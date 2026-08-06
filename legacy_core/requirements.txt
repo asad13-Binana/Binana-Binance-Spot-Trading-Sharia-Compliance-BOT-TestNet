@@ -1,0 +1,10 @@
+# ARCHIVAL — do NOT install directly. M-003 fix: this legacy standalone recipe
+# is aligned to the audited service pin so no supported install path uses a
+# superseded requests version. The supported install is requirements.services.txt
+# (or requirements.services.lock); the preserved core runs inside the V10.1 stack.
+requests==2.34.2
+pandas==2.2.3
+numpy==2.1.3
+pytz==2024.2
+websocket-client==1.8.0
+python-binance==1.0.28

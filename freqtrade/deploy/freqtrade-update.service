@@ -1,0 +1,7 @@
+# DISABLED compatibility stub. Do not install this unit.
+[Unit]
+Description=DISABLED legacy pull-based updater
+ConditionPathExists=/path/that/intentionally/does/not/exist/v81-legacy-updater-disabled
+[Service]
+Type=oneshot
+ExecStart=/bin/false

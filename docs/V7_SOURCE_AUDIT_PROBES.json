@@ -1,0 +1,134 @@
+{
+  "approval_hash_hex_length": 16,
+  "backtest_gate_exit_codes": {
+    "catastrophic_drawdown": 1,
+    "missing_drawdown": 1,
+    "negative_profit": 1,
+    "pf_boundary": 1
+  },
+  "file_count": 18,
+  "files": [
+    ".env.example",
+    ".gitignore",
+    "README.md",
+    "deploy/freqtrade-docker.service",
+    "deploy/freqtrade-update.service",
+    "deploy/freqtrade-update.timer",
+    "deploy/oracle_setup.sh",
+    "deploy/update.sh",
+    "docker-compose.yml",
+    "scripts/backtest.sh",
+    "scripts/download_data.sh",
+    "scripts/start.sh",
+    "scripts/stop.sh",
+    "scripts/verify.sh",
+    "tests/audit_probes.py",
+    "user_data/config.json",
+    "user_data/halal_list.json",
+    "user_data/strategies/IctSmcStrategy.py"
+  ],
+  "function_count": 11,
+  "functions": [
+    {
+      "end_line": 98,
+      "line": 81,
+      "name": "protections"
+    },
+    {
+      "end_line": 147,
+      "line": 118,
+      "name": "_live_approval_hash"
+    },
+    {
+      "end_line": 169,
+      "line": 152,
+      "name": "_halal_allowed"
+    },
+    {
+      "end_line": 174,
+      "line": 171,
+      "name": "_is_halal"
+    },
+    {
+      "end_line": 192,
+      "line": 176,
+      "name": "bot_loop_start"
+    },
+    {
+      "end_line": 202,
+      "line": 194,
+      "name": "bot_start"
+    },
+    {
+      "end_line": 239,
+      "line": 204,
+      "name": "confirm_trade_entry"
+    },
+    {
+      "end_line": 252,
+      "line": 243,
+      "name": "populate_indicators_5m"
+    },
+    {
+      "end_line": 284,
+      "line": 255,
+      "name": "populate_indicators"
+    },
+    {
+      "end_line": 317,
+      "line": 286,
+      "name": "populate_entry_trend"
+    },
+    {
+      "end_line": 329,
+      "line": 319,
+      "name": "populate_exit_trend"
+    }
+  ],
+  "hash_binding_changed": {
+    "db_url": true,
+    "exchange_name": true,
+    "force_entry_enable": true,
+    "initial_state": true,
+    "max_open_trades": true,
+    "minimal_roi": true,
+    "order_types": true,
+    "pair_blacklist": true,
+    "pair_whitelist": true,
+    "stake_amount": true,
+    "stake_currency": true,
+    "stoploss": true,
+    "tradable_balance_ratio": true,
+    "trading_mode": true,
+    "unfilledtimeout": true
+  },
+  "interlock": {
+    "dry_run_with_pause": false,
+    "dry_run_without_pause": true,
+    "halal_file_missing_fail_closed": true,
+    "interlock_exception": false,
+    "live_correct_marker": true,
+    "live_lowercase_dryrun_db": false,
+    "live_missing_marker": false,
+    "live_paper_db": false,
+    "live_uppercase_DRYRUN_db": false,
+    "live_wrong_marker": false,
+    "nonhalal_pair_refused": true
+  },
+  "strategy_smoke": {
+    "candles": 6000,
+    "entries_macd_forced_negative": 14,
+    "entries_macd_forced_positive": 14,
+    "entry_signals": 14,
+    "exit_signals": 1689,
+    "prefix_max_abs_diffs": {
+      "adx": 0.0,
+      "ema21": 0.0,
+      "ema50": 0.0,
+      "ema9": 0.0,
+      "rsi": 0.0,
+      "rvol": 0.0,
+      "vwap": 0.0
+    }
+  }
+}

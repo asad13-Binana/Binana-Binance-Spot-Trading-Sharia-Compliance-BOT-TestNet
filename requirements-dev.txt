@@ -1,0 +1,8 @@
+# V102-REM-004: development/CI installs the RESOLVED service lock so the
+# dependency set that is tested and audited is byte-identical to the set the
+# Docker image installs. requirements.services.txt remains the human-edited
+# source; regenerating the lock is a deliberate, reviewed act.
+-r requirements.services.lock
+-r monitoring/requirements-monitoring-dev.txt
+PyYAML==6.0.2
+pip-audit==2.9.0

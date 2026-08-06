@@ -1,0 +1,14 @@
+# GITHUB-001: byte-exact fidelity for the release integrity chain.
+#
+# RELEASE_MANIFEST.json pins a SHA-256 and byte size for every tracked file,
+# and scripts/verify_manifest.py fails the release gate on any mismatch.
+# Git's default line-ending translation (core.autocrlf=true, the Git for
+# Windows default) would rewrite CRLF files to LF on commit, changing their
+# hashes and turning the first CI run red for a reason unrelated to code.
+#
+# '* -text' disables ALL line-ending translation, so what is committed is
+# byte-identical to what was audited, on every platform and every clone.
+#
+# Verified safe: no shell script in this tree contains a carriage return,
+# so nothing breaks under Linux/Oracle execution.
+* -text

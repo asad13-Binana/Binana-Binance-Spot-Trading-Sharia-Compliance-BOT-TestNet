@@ -1,0 +1,28 @@
+FROM python:3.12-slim
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/app PIP_NO_CACHE_DIR=1 HOME=/tmp
+# V102-REM-004: install the resolved lock file so the image runs the exact
+# dependency set that was tested and vulnerability-audited. pip check proves
+# the closure is internally consistent. No fallback to the unlocked file.
+COPY requirements.services.lock /app/
+RUN pip install --no-cache-dir -r requirements.services.lock \
+    && python -m pip check \
+    && useradd --create-home --uid 10001 bot
+COPY --chown=bot:bot legacy_core /app/legacy_core
+COPY --chown=bot:bot services /app/services
+# V102-REM-011 (deep-audit CRITICAL): the execution sidecar's live-evidence
+# gate fingerprints the exact strategy at /app/freqtrade/user_data/strategies/
+# IctSmcStrategy.py (services/execution_sidecar/main.py, live path only). The
+# image previously omitted freqtrade/, so a live promotion attempt would fail
+# with 'evidence verification failed' — breaking the live package's live
+# capability in-container. The strategy source is byte-identical to the tree,
+# so shipping it read-only preserves capability without changing behavior.
+# It is NOT executed here (Freqtrade runs it in its own container); it is only
+# read for fingerprint verification.
+COPY --chown=bot:bot freqtrade/user_data/strategies /app/freqtrade/user_data/strategies
+COPY --chown=bot:bot RELEASE_MANIFEST.json RELEASE_SHA256.txt VALIDATION_STATUS.json RELEASE_VERSION /app/
+# V102-REM-001: the package mode ships read-only inside the image; the
+# execution sidecar's runtime interlock reads this file, never an env var.
+COPY RELEASE_MODE /app/RELEASE_MODE
+RUN chmod 0444 /app/RELEASE_MODE
+USER bot

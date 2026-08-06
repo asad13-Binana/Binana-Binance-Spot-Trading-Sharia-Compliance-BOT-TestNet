@@ -1,0 +1,51 @@
+{
+  "_comment": "V19.1 execution-gate projection. ONLY the sharia-screener service writes this file, from strictly validated results of the immutable HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json controller. Research screening only - not a fatwa. The migration records below are explicit fail-closed NO_TRADE_INFO placeholders: no asset is trade-eligible until a real V19.1 screening returns GREEN or GREEN_AVOID_OPTIONAL.",
+  "schema_version": 2,
+  "controller_sha256": "07106bb8bfc1924d8d0c6f61ced4e0c51c2ac2054988423f42c1fd67f3b2ba78",
+  "controller_version": "V19.1_PRODUCTION_ALL_20_FIXES_APPLIED_SPOT_ONLY",
+  "generated_at": "2026-07-17T00:00:00+00:00",
+  "records": [
+    {
+      "symbol": "BTC",
+      "status": "NO_TRADE_INFO",
+      "final_code": "NO_TRADE_INFO",
+      "reviewed_at": "2026-07-17",
+      "expires_at": "2026-10-17T23:59:59Z",
+      "source": "migration-from-legacy-approval-list; not yet screened under V19.1; fail-closed",
+      "note": "BTC also remains excluded from trading as a base by bot policy."
+    },
+    {
+      "symbol": "ETH",
+      "status": "NO_TRADE_INFO",
+      "final_code": "NO_TRADE_INFO",
+      "reviewed_at": "2026-07-17",
+      "expires_at": "2026-10-17T23:59:59Z",
+      "source": "migration-from-legacy-approval-list; not yet screened under V19.1; fail-closed"
+    },
+    {
+      "symbol": "SOL",
+      "status": "NO_TRADE_INFO",
+      "final_code": "NO_TRADE_INFO",
+      "reviewed_at": "2026-07-17",
+      "expires_at": "2026-10-17T23:59:59Z",
+      "source": "migration-from-legacy-approval-list; not yet screened under V19.1; fail-closed"
+    },
+    {
+      "symbol": "XRP",
+      "status": "NO_TRADE_INFO",
+      "final_code": "NO_TRADE_INFO",
+      "reviewed_at": "2026-07-17",
+      "expires_at": "2026-10-17T23:59:59Z",
+      "source": "migration-from-legacy-approval-list; not yet screened under V19.1; fail-closed"
+    },
+    {
+      "symbol": "BNB",
+      "status": "NO_TRADE_INFO",
+      "final_code": "NO_TRADE_INFO",
+      "reviewed_at": "2026-07-17",
+      "expires_at": "2026-10-17T23:59:59Z",
+      "source": "explicitly-excluded-by-user; never traded regardless of screening",
+      "note": "Excluded; the bot never buys or depends on BNB."
+    }
+  ]
+}

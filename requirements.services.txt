@@ -1,0 +1,13 @@
+# V10.1: requests upgraded from 2.32.3 — that pin had two published security
+# advisories (fixed in 2.32.4 / 2.33.0). 2.34.2 is the version the independent
+# V10 dependency audit reported clean on 2026-07-15; compatibility with the
+# preserved V4.9.16 core and all services is proven by the release test suite.
+requests==2.34.2
+pandas==2.2.3
+numpy==2.1.3
+pytz==2024.2
+websocket-client==1.8.0
+# Pinned for compatibility with the preserved V4.9.16 core review (V81-AUD-010).
+python-binance==1.0.28
+# Direct dependency: Ed25519 result/status attestations (not merely transitive).
+pycryptodome==3.23.0

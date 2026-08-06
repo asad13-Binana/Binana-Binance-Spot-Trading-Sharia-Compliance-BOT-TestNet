@@ -1,0 +1,7 @@
+# DISABLED compatibility stub. Do not install this timer.
+[Unit]
+Description=DISABLED legacy pull-based update timer
+ConditionPathExists=/path/that/intentionally/does/not/exist/v81-legacy-timer-disabled
+[Timer]
+OnBootSec=1y
+Unit=freqtrade-update.service

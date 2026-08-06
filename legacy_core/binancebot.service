@@ -1,0 +1,17 @@
+[Unit]
+Description=Binance ICT/SMC Bot V4.9.16
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/bot
+ExecStart=/opt/bot/venv/bin/python3 /opt/bot/binance_bot_V4.9.16_ALL_IN_ONE.py
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=120
+StartLimitBurst=5
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=/opt/bot/.env
+[Install]
+WantedBy=multi-user.target

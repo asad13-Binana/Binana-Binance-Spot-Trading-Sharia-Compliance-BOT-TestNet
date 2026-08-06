@@ -1,0 +1,4 @@
+MODE: BINANCE SPOT TESTNET - NO REAL-MONEY TRADING
+Deploy this package first. The monitor installer selects the testnet-only
+environment and systemd units, binds the API to 127.0.0.1:8090, and uses
+Binance Spot Testnet public endpoints. Monitoring and MCP are read-only.

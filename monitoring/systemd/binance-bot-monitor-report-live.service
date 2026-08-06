@@ -1,0 +1,37 @@
+[Unit]
+Description=V10.1 Telegram monitor report (LIVE Binance Spot)
+After=network-online.target binance-bot-monitor-live.service
+Wants=network-online.target
+Requires=binance-bot-monitor-live.service
+ConditionPathExists=/etc/binance-freqtrade-v101/live-monitor.env
+
+[Service]
+Type=oneshot
+User=botmon
+Group=botmon
+EnvironmentFile=/etc/binance-freqtrade-v101/live-monitor.env
+WorkingDirectory=/opt/binance-freqtrade-v101/current
+ExecCondition=/opt/binance-freqtrade-v101/monitoring-current/bin/python -m monitoring.control telegram
+ExecStart=/opt/binance-freqtrade-v101/monitoring-current/bin/python -m monitoring.telegram.telegram_reporter --days 1
+UMask=0077
+NoNewPrivileges=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectClock=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectHostname=true
+ProtectProc=invisible
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+SystemCallArchitectures=native
+ReadOnlyPaths=/var/lib/binance-freqtrade-v101/shared /opt/binance-freqtrade-v101/current

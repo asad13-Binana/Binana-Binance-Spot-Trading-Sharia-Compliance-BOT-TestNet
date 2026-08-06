@@ -1,0 +1,4 @@
+{
+  "_comment": "Generated compatibility view for the preserved V4.9.16 core. Source of truth is the V19.1 screener-written sharia_status.json. EMPTY until a valid, current V19.1 GREEN or GREEN_AVOID_OPTIONAL result exists - the preserved core therefore fails closed.",
+  "symbols": []
+}

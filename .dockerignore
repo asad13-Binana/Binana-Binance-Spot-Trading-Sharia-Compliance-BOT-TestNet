@@ -1,0 +1,22 @@
+*
+!Dockerfile.services
+!requirements.services.txt
+!requirements.services.lock
+!legacy_core/
+!legacy_core/**
+!services/
+!services/**
+!RELEASE_MANIFEST.json
+!RELEASE_SHA256.txt
+!VALIDATION_STATUS.json
+# DOCKERCTX-001: this file is deny-all ('*') plus an allow-list, so every
+# path the Dockerfile COPYs must be re-included or the build fails with
+# "failed to compute cache key: ... not found". These three were missing,
+# which broke the artifact and integration-simulation jobs on the first CI
+# run that ever built the image.
+!RELEASE_VERSION
+!RELEASE_MODE
+!freqtrade/
+!freqtrade/user_data/
+!freqtrade/user_data/strategies/
+!freqtrade/user_data/strategies/**

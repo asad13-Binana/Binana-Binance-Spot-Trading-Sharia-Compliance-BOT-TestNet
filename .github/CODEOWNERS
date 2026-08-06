@@ -1,0 +1,13 @@
+# H-010: strategy and integrity baselines require code-owner review so a
+# strategy change cannot be silently re-baselined in the same commit.
+# Ownership assigned. Enable branch protection (require review from Code
+# Owners) on the default branch before any live use.
+/freqtrade/user_data/strategies/IctSmcStrategy.py   @asad13-Binana
+/services/common/strategy_fingerprint.py            @asad13-Binana
+/scripts/build_manifest.py                          @asad13-Binana
+/tests/test_v101_consolidation.py                   @asad13-Binana
+/shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json   @asad13-Binana
+/services/common/sharia_v19.py                      @asad13-Binana
+
+# Self-protection: ownership-rule changes also require the code owner.
+/.github/CODEOWNERS                                 @asad13-Binana

@@ -1,0 +1,2 @@
+-r requirements-monitoring.lock
+pytest==9.0.2

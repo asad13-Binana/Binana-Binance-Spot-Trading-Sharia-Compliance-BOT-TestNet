@@ -1,0 +1,47 @@
+MIT License
+
+Copyright (c) 2026 asad13-Binana
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+--------------------------------------------------------------------------
+ADDITIONAL TRADING RISK DISCLAIMER
+--------------------------------------------------------------------------
+
+This software places or can be configured to place orders on a cryptocurrency
+exchange. Cryptocurrency trading carries substantial risk, including the total
+loss of deposited funds.
+
+  * This software is NOT financial, investment, tax or legal advice.
+  * No representation is made that any account will or is likely to achieve
+    profit. Past or simulated performance does not indicate future results.
+  * The authors and copyright holders accept no liability whatsoever for any
+    financial loss, missed trade, erroneous order, exchange outage, API
+    change, data error or other damage arising from use of this software.
+  * You alone are responsible for your API keys, your capital, your risk
+    limits, and for complying with the laws and tax rules that apply to you.
+  * The strategy in this repository has NOT been validated as profitable
+    after fees and slippage.
+  * Any Sharia / halal screening output is automated research assistance
+    only. It is NOT a fatwa and NOT a religious ruling. Consult a qualified
+    scholar before relying on it.
+
+Run this software against the Binance Spot Testnet first. Deploy real capital
+only after your own independent testing, and only with funds you can afford to
+lose entirely.

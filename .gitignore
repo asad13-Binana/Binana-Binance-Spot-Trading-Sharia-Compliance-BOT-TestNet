@@ -1,0 +1,58 @@
+*.db
+*.key
+*.log
+*.pem
+*.pyc
+*.sqlite*
+.env
+.env.*
+!.env.example
+!**/.env.example
+!**/.env.*.example
+.pytest_cache/
+LIVE_EVIDENCE.json
+LIVE_OK
+SIDECAR_LIVE_OK
+__pycache__/
+freqtrade/user_data/*.sqlite*
+freqtrade/user_data/backtest_results/*
+freqtrade/user_data/logs/
+legacy_core/data/
+legacy_core/fortress_state.json*
+legacy_core/logs/*
+secrets/
+shared/audit/*
+shared/runtime/*
+shared/signals/inbox/*
+shared/signals/processed/*
+shared/signals/rejected/*
+shared/universe/current_pairlist.json
+shared/universe/latest_rejections.json
+shared/universe/snapshots/*
+shared/universe/status.json
+user_data/*.sqlite*
+user_data/data/
+user_data/logs/
+
+# GITHUB-002: re-include release-manifest files that the broad ignores above
+# would otherwise exclude.
+#
+# RELEASE_MANIFEST.json tracks these 10 files, so scripts/verify_manifest.py
+# fails with "manifest lists missing file" if git does not commit them. In
+# .gitignore the LAST matching pattern wins, so these negations must stay at
+# the end of the file. Note also that a file cannot be re-included if its
+# PARENT DIRECTORY is excluded, which is why 'legacy_core/logs/' above was
+# changed to 'legacy_core/logs/*' (contents, not the directory itself).
+#
+# Runtime output in these directories stays ignored; only the committed
+# release evidence and directory placeholders are re-included.
+!legacy_core/logs/backtest_results_selftest.json
+!legacy_core/logs/passed_partial_fill_test.flag
+!legacy_core/logs/passed_rsi_tests.flag
+!legacy_core/logs/passed_vwap_uncap_test.flag
+!shared/audit/.gitkeep
+!shared/runtime/.gitkeep
+!shared/signals/inbox/.gitkeep
+!shared/signals/processed/.gitkeep
+!shared/signals/rejected/.gitkeep
+!shared/universe/snapshots/.gitkeep

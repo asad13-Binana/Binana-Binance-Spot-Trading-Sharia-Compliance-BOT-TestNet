@@ -1,0 +1,35 @@
+{
+  "trades": 4,
+  "wins": 2,
+  "losses": 2,
+  "win_rate_pct": 50.0,
+  "total_return_pct": 3.91,
+  "expectancy_pct_per_trade": 0.9764,
+  "avg_win_pct": 2.702,
+  "avg_loss_pct": -0.75,
+  "profit_factor": 3.605,
+  "max_drawdown_pct": -1.5,
+  "max_losing_streak": 2,
+  "symbols": [
+    "TESTUSDT"
+  ],
+  "per_symbol": {
+    "TESTUSDT": {
+      "trades": 4,
+      "wins": 2,
+      "losses": 2,
+      "win_rate_pct": 50.0,
+      "total_return_pct": 3.91,
+      "expectancy_pct_per_trade": 0.9764,
+      "avg_win_pct": 2.702,
+      "avg_loss_pct": -0.75,
+      "profit_factor": 3.605,
+      "max_drawdown_pct": -0.01,
+      "max_losing_streak": 2
+    }
+  },
+  "generated_utc": "2026-07-14T22:18:28.932426+00:00",
+  "strategy_version": "V4.9.16",
+  "config_hash": "227f3d161c0cf755",
+  "disclaimer": "Indicator-driven approximation: order-book pressure and multi-TF cascade confirmation are NOT reconstructable from single-TF history and were treated as neutral. Not a live-edge proof."
+}

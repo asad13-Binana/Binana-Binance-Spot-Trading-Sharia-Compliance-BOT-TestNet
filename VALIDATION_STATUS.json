@@ -1,0 +1,47 @@
+{
+  "release": "V10.2-CODEX-2026-08-01J",
+  "revision": "2026-08-01J",
+  "assessment_date": "2026-08-06",
+  "package_mode": "testnet",
+  "default_execution_mode": "testnet",
+  "production_live_certified": false,
+  "core_strategy_changed": false,
+  "readiness_classification": "OFFLINE SOURCE, PACKAGE, AND DISPOSABLE-ARTIFACT GATES PASSED; AUTHENTICATED SPOT TESTNET, DOCKER CI, ORACLE SOAK, AND LIVE-PROMOTION EVIDENCE REMAIN EXTERNAL",
+  "protected_hashes": {
+    "strategy_sha256": "9f6bafc78c8cd0d9b9cbde615ddce89e304ab09738584b88d05bfdf92ff4e830",
+    "legacy_core_sha256": "70b1d67cc0092b5b8db4a68b343cf893641bde1aae580e9ef51e2adec1062459"
+  },
+  "package_interlock": {
+    "release_mode": "testnet",
+    "live_execution_possible": false,
+    "note": "The image-baked, read-only RELEASE_MODE interlock cannot be promoted to live by editing .env."
+  },
+  "offline_results": {
+    "full_release_gate": "passed for the final working tree and re-extracted revision-J archive; exact commands, counts, skips, warnings, and exit codes are in the outer CODEX reports",
+    "audit_ledgers": "independently verified with zero missing and zero extra definitions after regeneration",
+    "release_manifest": "regenerated and verified against the revision-J tree",
+    "strategy_integrity": "protected bytes and source/token fingerprints match the reviewed baseline",
+    "dependency_locks": "fresh isolated installs, pip check, and strict vulnerability audits passed on the local audit host",
+    "container_execution": "not run locally because no Docker engine was available; GitHub Actions remains authoritative",
+    "authenticated_binance_orders": "not attempted",
+    "telegram_real_credentials": "not used",
+    "oracle_deployment": "not attempted"
+  },
+  "repair_summary": {
+    "universe": "full immutable snapshot reopen, semantic hash, filename/path, configuration, ranking, schema, freshness, and retention validation",
+    "sharia_screening": "controller/report/Ed25519-bound projections, opened-source evidence, fresh live screening, durable quota and fail-closed health; automated screening only, not a fatwa",
+    "external_signals": "CoinGecko and CoinMarketCap remain advisory and cannot override Binance execution facts; provider failures degrade safely; trusted identity binding is required before enabling a hard market-cap exclusion",
+    "binance_execution": "strict symbol/filter/capacity validation and durable fail-closed handling for partial fills, unknown responses, expiry, restart, protection and emergency paths",
+    "telegram": "verified owner-only control, replay-resistant callbacks, redaction, verified Sharia eligibility, current health, universe and protection displays",
+    "credentials": "Telegram token and owner chat ID are runtime-only private .env values; see docs/TELEGRAM_BOT_SETUP.md"
+  },
+  "required_external_gates": [
+    "All jobs green in the first private testnet GitHub Actions run, including real Docker image and exact dependency execution",
+    "Container image digest pinning before Oracle deployment",
+    "Authenticated Binance Spot Testnet lifecycle evidence for partial fills, accepted-timeout recovery, cancel races and user-stream reconciliation",
+    "Oracle testnet deployment, restart/network/OOM/disk/backup/rollback drills and soak",
+    "Fee-and-slippage backtesting and owner performance review",
+    "Signed reconciliation and rollback evidence before any live promotion"
+  ],
+  "safety_statement": "This package is restricted to Binance Spot Testnet. It is not a profitability claim, financial advice, or a religious ruling."
+}

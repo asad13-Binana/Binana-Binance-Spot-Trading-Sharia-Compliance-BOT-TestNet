@@ -1,0 +1,8 @@
+# DISABLED compatibility stub. Do not install this unit.
+# The merged release is managed by the root immutable-artifact deployment flow.
+[Unit]
+Description=DISABLED legacy standalone Freqtrade unit
+ConditionPathExists=/path/that/intentionally/does/not/exist/v81-legacy-unit-disabled
+[Service]
+Type=oneshot
+ExecStart=/bin/false

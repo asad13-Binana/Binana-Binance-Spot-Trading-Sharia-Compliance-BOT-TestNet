@@ -1,0 +1,243 @@
+{
+  "can_short": false,
+  "change_classification": "No approved signal-producing method or preserved legacy core changed. Changes are safety, reliability, deployment, packaging, tests, and documentation corrections.",
+  "core_strategy_changed": false,
+  "database_paths": [
+    "/app/shared/state/execution_state.sqlite",
+    "/freqtrade/shared/freqtrade/tradesv3.signal-only.sqlite"
+  ],
+  "default_operating_mode": "simulation; BINANCE_TESTNET=true; entries paused after restart until owner confirmation",
+  "deployment_entry_point": "root docker-compose.yml via deploy/install_artifact.sh; stale nested standalone Freqtrade deployment disabled",
+  "entry_conditions": [
+    "5m EMA9>EMA21>EMA50",
+    "close>5m EMA50",
+    "5m MACD histogram>0",
+    "close>rolling VWAP",
+    "3-bar EMA9/21 pullback",
+    "close>1m EMA9",
+    "EMA9 rising",
+    "RSI>50 and rising",
+    "RVOL>=1.5",
+    "ADX>20",
+    "volume>0",
+    "explicit current HALAL",
+    "Freqtrade emits signal only; confirm_trade_entry always false"
+  ],
+  "environment_variables": [
+    "AUDIT_DIR",
+    "AUDIT_LOG",
+    "AUDIT_LOG_BACKUPS",
+    "AUDIT_LOG_MAX_BYTES",
+    "AUTOTRADE_ENABLED",
+    "AUTO_CONFIRM",
+    "BINANCE_API_KEY",
+    "BINANCE_API_SECRET",
+    "BINANCE_PUBLIC_BASE",
+    "BINANCE_TESTNET",
+    "BOT_GID",
+    "BOT_TEST_EXISTING",
+    "BOT_TEST_NEWKEY",
+    "BOT_UID",
+    "CALLBACK_TTL_SECONDS",
+    "CASCADE_MAX_WORKERS",
+    "CMC_API_KEY",
+    "COINGECKO_API_KEY",
+    "COINMARKETCAP_API_KEY",
+    "COMMAND_INBOX",
+    "COMMAND_MAX_AGE_SECONDS",
+    "COMMAND_RESULT_MAX_AGE_SECONDS",
+    "COMMAND_RESULT_MAX_FILES",
+    "EXECUTION_MODE",
+    "FREQTRADE_API_JWT_SECRET",
+    "FREQTRADE_API_PASSWORD",
+    "FREQTRADE_API_URL",
+    "FREQTRADE_API_USERNAME",
+    "FREQTRADE_API_WS_TOKEN",
+    "HTTP_TIMEOUT_SECONDS",
+    "LEGACY_HALAL_FILE",
+    "LEGACY_RUNTIME_DIR",
+    "LOG_LEVEL",
+    "MAX_CANDLE_AGE_SECONDS",
+    "MAX_POSITIONS",
+    "MAX_SIGNAL_AGE_SECONDS",
+    "MAX_SPREAD_RATIO",
+    "MAX_STOPOUTS_GLOBAL_DAY",
+    "MAX_STOPOUTS_PER_PAIR_DAY",
+    "MAX_UNIVERSE_AGE_SECONDS",
+    "MIN_LISTING_AGE_DAYS",
+    "MIN_PHYSICAL_MEMORY_MIB",
+    "MIN_QUOTE_VOLUME_USDT",
+    "MIN_TOTAL_MEMORY_MIB",
+    "PAIR_COOLDOWN_SECONDS",
+    "RELEASE_TAG",
+    "RUNTIME_DIR",
+    "RUN_ONCE",
+    "SHARED_HOST_PATH",
+    "SHARED_ROOT",
+    "SHARIA_FILE",
+    "SIDECAR_RELEASE_HASH",
+    "SIGNAL_ARCHIVE_MAX_FILES",
+    "SIGNAL_INBOX",
+    "SIGNAL_PROCESSED",
+    "SIGNAL_REJECTED",
+    "STABLECOINS",
+    "TELEGRAM_BOT_TOKEN",
+    "TELEGRAM_OWNER_CHAT_ID",
+    "TELEGRAM_SIGNAL_CHAT_ID",
+    "TRADE_SIZE_USDT",
+    "UNIVERSE_FILE",
+    "UNIVERSE_LIMIT",
+    "UNIVERSE_REFRESH_SECONDS",
+    "UNIVERSE_ROOT",
+    "UNIVERSE_SNAPSHOT_MAX_FILES",
+    "USER"
+  ],
+  "exchange_order_methods": [
+    "legacy broker deterministic client IDs",
+    "OTO",
+    "OTOCO",
+    "LIMIT_MAKER",
+    "STOP_LOSS_LIMIT",
+    "trailingDelta",
+    "query-before-retry",
+    "user-data executionReport/ListStatus reconciliation"
+  ],
+  "exit_conditions": [
+    "structural exit: close<VWAP and 5m MACD histogram<0",
+    "minimal ROI schedule",
+    "hard stoploss",
+    "trailing stop",
+    "execution sidecar owns Binance exits/protection"
+  ],
+  "indicator_formulas": {
+    "1m": [
+      "EMA(9)",
+      "EMA(21)",
+      "EMA(50)",
+      "RSI(14)",
+      "MACD(5,13,6; reference only)",
+      "rolling VWAP(200)",
+      "RVOL=volume/SMA(volume,20)",
+      "ADX",
+      "3-bar pullback touch of max(EMA9,EMA21)"
+    ],
+    "5m": [
+      "EMA(9)",
+      "EMA(21)",
+      "EMA(50)",
+      "EMA(200)",
+      "MACD(12,26,9)"
+    ]
+  },
+  "minimal_roi": {
+    "0": 0.012,
+    "20": 0.006,
+    "45": 0.003,
+    "90": 0.0
+  },
+  "pair_selection": {
+    "dynamic_limit": 50,
+    "exclusions": [
+      "BTC",
+      "BNB",
+      "stablecoins",
+      "leveraged tokens",
+      "inactive/non-Spot",
+      "insufficient liquidity/spread/filter support",
+      "non-HALAL"
+    ],
+    "quote": "USDT",
+    "source": "universe_service snapshot + Freqtrade RemotePairList file://"
+  },
+  "position_sizing": {
+    "default_stake_amount": 100,
+    "max_open_trades": 2,
+    "sidecar_env": [
+      "TRADE_SIZE_USDT",
+      "MAX_POSITIONS"
+    ],
+    "stake_currency": "USDT",
+    "tradable_balance_ratio": 0.99
+  },
+  "preservation": {
+    "legacy_core_sha256": "70b1d67cc0092b5b8db4a68b343cf893641bde1aae580e9ef51e2adec1062459",
+    "signal_method_ast_sha256": {
+      "populate_entry_trend": "306d3c1b0baa44b437b884500ff59691151e4c7fb7738ef37543ab2c15d59c6a",
+      "populate_exit_trend": "5bbb4447a24d296c6e79b72a0ed2b61499ab04437d38a6717e990a7b46978c90",
+      "populate_indicators": "843ec3c59817ad49266baae3ae672cb27dbb4ca9fbf692f9878e5ed18b7cc6a0",
+      "populate_indicators_5m": "1645cfbc651c7175e3fbefca1861416a579d95e37b5b3071c00a2cb41e3ab5a0"
+    }
+  },
+  "release": "V8.1-MERGED-AUDITED-BLOCKED",
+  "sharia_rules": [
+    "explicit shared/sharia/sharia_status.json",
+    "only non-expired HALAL",
+    "malformed/missing/expired/UNKNOWN/DOUBTFUL/HARAM/STALE fail closed",
+    "pre-order revalidation"
+  ],
+  "spot_only": true,
+  "startup_candle_count": 210,
+  "stop_loss": {
+    "hard": -0.02,
+    "interval_seconds": 60,
+    "limit_ratio": 0.99,
+    "on_exchange": true,
+    "type": "STOP_LOSS_LIMIT via Freqtrade config"
+  },
+  "strategy_class": "IctSmcStrategy",
+  "strategy_interface_version": "3 (implicit Freqtrade 2026.6 default; class does not override INTERFACE_VERSION)",
+  "telegram_commands": [
+    "/menu",
+    "/status",
+    "/start",
+    "/stop",
+    "/pause",
+    "/balance",
+    "/profit",
+    "/logs",
+    "/reload",
+    "/fixed_oco",
+    "/trailing_only",
+    "/oco_trailing",
+    "/convert",
+    "/breakeven",
+    "/lockprofit",
+    "/emergency",
+    "/setsize",
+    "/setmax",
+    "/reconcile",
+    "/universe",
+    "/sharia",
+    "/deploy",
+    "/lastsignal",
+    "/settings",
+    "/selftest",
+    "/backtest",
+    "/restartws"
+  ],
+  "timeframes": {
+    "base": "1m",
+    "informative": [
+      "5m"
+    ]
+  },
+  "top_gainer_rules": [
+    "positive 24h change",
+    "minimum quote volume",
+    "maximum spread",
+    "listing age",
+    "exchange filters/order capabilities",
+    "descending rank, limit 50"
+  ],
+  "trailing": {
+    "enabled": true,
+    "offset": 0.006,
+    "only_after_offset": true,
+    "positive": 0.004,
+    "sidecar_modes": [
+      "FIXED_OCO",
+      "TRAILING_ONLY",
+      "OCO_TRAILING"
+    ]
+  }
+}

@@ -1,0 +1,43 @@
+[Unit]
+Description=V10.1 read-only monitor API (LIVE Binance Spot)
+After=network-online.target docker.service
+Wants=network-online.target
+ConditionPathExists=/etc/binance-freqtrade-v101/live-monitor.env
+
+[Service]
+Type=simple
+User=botmon
+Group=botmon
+EnvironmentFile=/etc/binance-freqtrade-v101/live-monitor.env
+WorkingDirectory=/opt/binance-freqtrade-v101/current
+ExecCondition=/opt/binance-freqtrade-v101/monitoring-current/bin/python -m monitoring.control api
+ExecStart=/opt/binance-freqtrade-v101/monitoring-current/bin/python -m uvicorn monitoring.api.app:app --host ${MONITOR_BIND_HOST} --port ${MONITOR_PORT} --no-access-log
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+UMask=0077
+NoNewPrivileges=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectClock=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectHostname=true
+ProtectProc=invisible
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+SystemCallArchitectures=native
+ReadWritePaths=/var/log/binance-freqtrade-v101/monitor
+ReadOnlyPaths=/var/lib/binance-freqtrade-v101/shared /opt/binance-freqtrade-v101/current
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,69 @@
+==============================================================
+ YOUR BINANCE BOT (V10.1 + Sharia V19.1) — PLAIN WORDS
+==============================================================
+(This corrected guide fixes the earlier version's inaccurate claims — see the notes marked [FIXED].)
+
+WHAT IT IS
+----------
+One system, five parts that work together:
+
+1. UNIVERSE SERVICE — the "scout". Every few minutes it ranks all Binance Spot USDT coins by 24-hour gain
+   and keeps the TOP 50. It then only lets through coins the Sharia service has marked tradable.
+
+2. SHARIA SCREENER SERVICE — a separate service (its own container, safe for Oracle). It uses YOUR
+   immutable V19.1 screening rules (the JSON is never changed — the build fails if a single byte changes).
+   For each coin it opens sources, applies the rules, and returns one verdict. ONLY "GREEN" (halal for
+   spot) or "GREEN_AVOID_OPTIONAL" let a coin trade. Anything else — HARAM, DOUBTFUL, NO_TRADE_INFO,
+   missing, expired, or unclear — blocks it (fail-closed). If the screening can't run (no API credit,
+   timeout, error) it also blocks. AI research is NOT a fatwa.
+
+3. FREQTRADE (the brain) — watches the approved coins and runs YOUR ONE STRATEGY (below). When everything
+   agrees it emits a SIGNED signal. It never places orders itself.
+
+4. EXECUTION SIDECAR (the hands) — takes the signal, RE-SCREENS that exact coin one more time under V19.1
+   before doing anything, then places the real Binance orders: a buy, then an OCO bracket (take-profit +
+   stop-loss together). It writes every intention to disk BEFORE sending, so a crash can never cause a
+   double order. It can convert the bracket to a TRAILING stop and move the stop above your buy price once
+   in profit.
+
+5. TELEGRAM BROKER (your phone remote) — pause/resume, status, profit, emergency-sell, protection mode,
+   and Sharia scanning. Type "BTC/USDT" (or "BTCUSDT") to queue a V19.1 scan; use /scan, /scanall,
+   /shariareport, /shariastatus.
+
+YOUR ONE STRATEGY — UNCHANGED
+-----------------------------
+Buys only when ALL agree: 5-minute EMA9>EMA21>EMA50 and 5m MACD bullish (hard gate); 1m price above VWAP,
+pulled back to the EMA9/21 zone, bullish reclaim; RSI above 50 and rising; RVOL at least 1.5x. Long only.
+Spot only. No leverage. Exit = OCO bracket with trailing stop. The four strategy methods are protected by a
+FINGERPRINT: any logic change fails the build and tests.
+
+[FIXED] There is NO automatic "BTC/market-not-bearish" gate in the running strategy — that was a
+documentation error. It is listed in the code only as an OPTIONAL future step, not implemented.
+
+SAFETY LOCKS (ALWAYS ON)
+------------------------
+- Simulation is the DEFAULT. It cannot trade real money by accident.
+- Every internal message (signals, commands, Sharia results) is signed; a rogue container can't forge one.
+- LIVE mode needs an approval file with a matching hash AND a signed evidence envelope proving a real
+  exact-strategy Freqtrade backtest, Testnet, and Oracle results — plain marker files are NOT enough.
+- Stop-loss lives ON the exchange, so it protects you even if the bot is down.
+- After a stop-loss, re-entry needs a FRESH valid signal (cooldown; repeated stops lock that coin).
+- BNB is excluded and never bought; turn OFF "Use BNB for fees" in Binance. Binance still decides the
+  actual commission asset per fill.
+
+HOW YOU RUN IT
+--------------
+[FIXED] Deployment is push-to-main → GitHub Actions (test matrix + strict dependency audit) → a verified,
+immutable release artifact → SSH atomic install on Oracle → 5-service health check with automatic,
+health-verified rollback. There is NO "Oracle pulls every 10 minutes" updater — that old pull timer is
+disabled. [FIXED] The Telegram menu has an emergency SELL, not a manual BUY.
+
+Path to real money: verify → download data → BACKTEST GATE (must pass) → dry-run 1-2 weeks → only then a
+tiny live amount on a dedicated sub-account with withdrawals disabled.
+
+THE HONEST WARNING
+------------------
+Well built and tested offline (130 consolidated tests + 33/33 legacy self-tests, all green on Windows and
+Linux). But the STRATEGY has NOT proven it makes money — every past backtest lost after fees. The backtest
+gate and dry-run are the judges. Until they say yes, this stays in simulation. AI Sharia research is not a
+formal fatwa.

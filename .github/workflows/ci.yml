@@ -1,0 +1,333 @@
+# V102-REM-009: display name tracks the release version; the v101
+# concurrency/namespace identifiers are retained for compatibility.
+name: Verify and deploy V10.2 testnet
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v101-testnet-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # The V8.1 release was blocked by an interpreter-dependent strategy-hash
+  # test that failed on the Python 3.12 its own Docker/CI selected. V10.1
+  # therefore verifies the complete offline suite on every supported
+  # interpreter, including the exact one the container image uses.
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install verification dependencies (resolved locks)
+        run: python -m pip install -r requirements-dev.txt
+      - name: Dependency closure consistency check
+        run: python -m pip check
+      - name: Full offline verification
+        run: bash ./deploy/verify_release.sh
+      # V102-REM-004: audits run against the exact resolved lock files the
+      # Docker image and CI install — never the unlocked requirements.
+      # AUDIT-RESOLVE-001: both lock files ARE the complete resolved
+      # transitive closure, so there is nothing left for pip to resolve.
+      # Auditing through pip's resolver additionally required every pin to
+      # be INSTALLABLE on the interpreter running the audit, which coupled
+      # a security check to the build matrix: monitoring's rpds-py pin
+      # declares Requires-Python >=3.11, so the audit aborted on the 3.10
+      # leg with "No matching distribution found" -- a resolver failure
+      # reported as an audit failure. --no-deps --disable-pip audits
+      # exactly the pinned versions and is interpreter independent.
+      # Verified to still fail closed on a known-vulnerable pin.
+      - name: Dependency vulnerability audit (services lock)
+        run: python -m pip_audit -r requirements.services.lock --strict --no-deps --disable-pip
+      - name: Monitoring dependency vulnerability audit
+        run: python -m pip_audit -r monitoring/requirements-monitoring.lock --strict --no-deps --disable-pip
+
+  artifact:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install verification dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Create deterministic immutable release artifact
+        run: |
+          printf '%s\n' "$GITHUB_SHA" > .git-commit
+          # ARTIFACT-LEDGER-001: .git-commit becomes part of the shipped
+          # artifact, so the audit ledgers must be regenerated to include it
+          # BEFORE the manifest is rebuilt. The extracted artifact re-runs
+          # build_audit_ledgers.py --check (exact tree parity), so skipping
+          # this rebuild fails the artifact job on the very first push.
+          python scripts/build_audit_ledgers.py
+          python scripts/build_manifest.py
+          python scripts/verify_manifest.py
+          python scripts/build_audit_ledgers.py --check
+          mkdir -p /tmp/v101-artifact
+          tar --sort=name --mtime='UTC 2020-01-01' --owner=0 --group=0 --numeric-owner \
+            --format=posix --pax-option=delete=atime,delete=ctime \
+            --exclude='./.git' --exclude='./.env' --exclude='*.sqlite*' \
+            --exclude='__pycache__' --exclude='*.pyc' --exclude='.pytest_cache' \
+            --exclude='.ruff_cache' --exclude='*.zip' --exclude='*.tar.gz' \
+            --transform='s,^,binance-bot-testnet/,' -cf - . | \
+            gzip -n -9 > "/tmp/v101-artifact/binance-bot-testnet-${GITHUB_SHA}.tar.gz"
+          cd /tmp/v101-artifact
+          sha256sum "binance-bot-testnet-${GITHUB_SHA}.tar.gz" > "binance-bot-testnet-${GITHUB_SHA}.tar.gz.sha256"
+          cp "$GITHUB_WORKSPACE/deploy/install_artifact.sh" .
+      - name: Verify freshly extracted release artifact
+        run: |
+          python - <<'PY'
+          import pathlib, tarfile
+          archive=next(pathlib.Path('/tmp/v101-artifact').glob('binance-bot-testnet-*.tar.gz'))
+          with tarfile.open(archive,'r:gz') as tf:
+              roots=set()
+              for member in tf.getmembers():
+                  path=pathlib.PurePosixPath(member.name)
+                  if path.is_absolute() or '..' in path.parts:
+                      raise SystemExit(f'unsafe archive path: {member.name}')
+                  if member.issym() or member.islnk() or member.isdev() or member.isfifo():
+                      raise SystemExit(f'unsafe archive member type: {member.name}')
+                  if path.parts:
+                      roots.add(path.parts[0])
+              if roots != {'binance-bot-testnet'}:
+                  raise SystemExit(f'unexpected archive roots: {roots}')
+              tf.extractall('/tmp/v101-extracted', filter='data')
+          PY
+          cd /tmp/v101-extracted/binance-bot-testnet
+          # PKG-001: the artifact a real host will execute must carry usable
+          # modes. install_artifact.sh executes deploy/install_monitoring.sh
+          # directly, so a 0644 script breaks deployment and triggers rollback.
+          if find . -type f -name '*.sh' ! -perm -u+x -print | grep -q .; then
+            echo 'FAIL: extracted artifact has non-executable shell scripts'
+            find . -type f -name '*.sh' ! -perm -u+x -print
+            exit 1
+          fi
+          if find . -type f -perm /022 -print | grep -q .; then
+            echo 'FAIL: extracted artifact has group/world-writable files'
+            find . -type f -perm /022 -print
+            exit 1
+          fi
+          echo 'artifact permission check passed'
+          python scripts/verify_manifest.py
+          bash ./deploy/verify_release.sh
+          docker compose --env-file .env.example config -q
+          docker compose --env-file .env.example build universe
+          cmp RELEASE_MANIFEST.json "$GITHUB_WORKSPACE/RELEASE_MANIFEST.json"
+          cmp RELEASE_SHA256.txt "$GITHUB_WORKSPACE/RELEASE_SHA256.txt"
+      - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
+        with:
+          name: binance-bot-testnet-${{ github.sha }}
+          path: /tmp/v101-artifact/*
+          retention-days: 14
+          if-no-files-found: error
+
+  # V102-REM-017 (deep-audit F-07): a no-credential simulation integration job.
+  # Builds the services image, starts the self-contained universe scanner in
+  # simulation, and proves the container-level invariants offline tests cannot:
+  # the package-mode file is baked read-only, the Sharia mount is read-only, the
+  # service reaches health, and state survives a container restart. Freqtrade
+  # and the Telegram broker need a pinned image pull and real tokens, so full
+  # five-service health remains a testnet/Oracle gate.
+  integration-simulation:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: '3.12'
+      - name: Install integration env synthesis dependency
+        run: python -m pip install pycryptodome==3.23.0
+      - name: Synthesize a no-credential simulation env
+        run: |
+          python - <<'PY'
+          import base64, os, secrets, pathlib
+          from Crypto.PublicKey import ECC
+          lines = pathlib.Path('.env.example').read_text().splitlines(keepends=True)
+          def setk(text, key, value):
+              out, seen = [], False
+              for line in text:
+                  if line.split('=',1)[0].strip() == key:
+                      out.append(f"{key}={value}\n"); seen = True
+                  else:
+                      out.append(line)
+              if not seen: out.append(f"{key}={value}\n")
+              return out
+          for key in ('SIGNAL_HMAC_KEY','COMMAND_HMAC_KEY','SHARIA_HMAC_KEY','SHARIA_RESULT_HMAC_KEY'):
+              lines = setk(lines, key, secrets.token_hex(24))
+          signing = ECC.generate(curve='Ed25519')
+          lines = setk(lines, 'SHARIA_RESULT_SIGNING_PRIVATE_KEY_B64',
+                       base64.b64encode(signing.export_key(format='DER', use_pkcs8=True)).decode())
+          lines = setk(lines, 'SHARIA_RESULT_VERIFY_PUBLIC_KEY_B64',
+                       base64.b64encode(signing.public_key().export_key(format='DER')).decode())
+          lines = setk(lines, 'EXECUTION_MODE', 'testnet')
+          lines = setk(lines, 'FREQTRADE_API_PASSWORD', secrets.token_hex(16))
+          lines = setk(lines, 'FREQTRADE_API_JWT_SECRET', secrets.token_hex(40))
+          lines = setk(lines, 'FREQTRADE_API_WS_TOKEN', secrets.token_hex(40))
+          lines = setk(lines, 'TELEGRAM_BOT_TOKEN', 'ci-simulation-not-used')
+          lines = setk(lines, 'TELEGRAM_OWNER_CHAT_ID', '1')
+          # CI-NETWORK-001: api.binance.com returns HTTP 451 to GitHub's
+          # hosted runners, so the scan aborted and the container never
+          # reached health. data-api.binance.vision is Binance's public
+          # market-data mirror: same /api/v3 shapes, no credentials, not
+          # jurisdiction-blocked. Production keeps api.binance.com.
+          lines = setk(lines, 'BINANCE_PUBLIC_BASE', 'https://data-api.binance.vision')
+          # CI-PERMS-001: compose runs the container as ${BOT_UID:-1000},
+          # but the bind-mounted ./shared is the checked-out tree owned by
+          # the runner (uid 1001), so every audit write failed with EACCES
+          # on events.jsonl.lock. Run as the user that owns the mount.
+          lines = setk(lines, 'BOT_UID', str(os.getuid()))
+          lines = setk(lines, 'BOT_GID', str(os.getgid()))
+          pathlib.Path('.env.ci').write_text(''.join(lines))
+          PY
+      - name: Validate compose and build the services image
+        run: |
+          docker compose --env-file .env.ci config -q
+          docker compose --env-file .env.ci build universe
+      - name: Package-mode file is baked read-only into the image
+        run: |
+          image=$(docker compose --env-file .env.ci config --format json | python -c "import sys,json;print(json.load(sys.stdin)['services']['universe']['image'])")
+          perms=$(docker run --rm --entrypoint stat "$image" -c '%a' /app/RELEASE_MODE)
+          test "$perms" = "444" || { echo "RELEASE_MODE not 0444 (got $perms)"; exit 1; }
+          mode=$(docker run --rm --entrypoint cat "$image" /app/RELEASE_MODE)
+          test "$mode" = "testnet" || { echo "packaged mode $mode != testnet"; exit 1; }
+          echo "packaged RELEASE_MODE=$mode perms=$perms"
+      - name: Start the universe scanner in simulation and wait for health
+        run: |
+          mkdir -p shared
+          docker compose --env-file .env.ci up -d universe
+          for i in $(seq 1 30); do
+            state=$(docker inspect --format '{{ .State.Health.Status }}' $(docker compose --env-file .env.ci ps -q universe) 2>/dev/null || echo starting)
+            echo "universe health: $state"
+            [ "$state" = "healthy" ] && break
+            sleep 5
+          done
+          test "$state" = "healthy" || { docker compose --env-file .env.ci logs universe; exit 1; }
+      - name: Sharia mount is read-only inside the running container
+        run: |
+          cid=$(docker compose --env-file .env.ci ps -q universe)
+          if docker exec "$cid" sh -c 'echo x > /app/shared/sharia/_ci_write_probe 2>/dev/null'; then
+            echo "Sharia mount is writable — expected read-only"; exit 1
+          fi
+          echo "Sharia mount correctly rejected a write"
+      - name: State survives a container restart
+        run: |
+          # A-002 fix: the previous step hashed a FILENAME LIST, never compared
+          # before/after, and passed even with no state at all. This asserts real
+          # persistence against an IMMUTABLE snapshot file (current_pairlist.json
+          # and status.json are legitimately rewritten by the post-restart rescan,
+          # so they are the wrong target).
+          target=$(sudo find shared/universe/snapshots -name 'universe_*.json' -type f | sort | head -n1)
+          test -n "$target" || { echo "FAIL: no universe snapshot existed before restart"; exit 1; }
+          before_hash=$(sudo sha256sum "$target" | awk '{print $1}')
+          before_count=$(sudo find shared/universe -name '*.json' -type f | wc -l)
+          echo "pre-restart: target=$target sha256=$before_hash json_count=$before_count"
+          docker compose --env-file .env.ci restart universe
+          for i in $(seq 1 30); do
+            state=$(docker inspect --format '{{ .State.Health.Status }}' $(docker compose --env-file .env.ci ps -q universe) 2>/dev/null || echo starting)
+            [ "$state" = "healthy" ] && break
+            sleep 5
+          done
+          test "$state" = "healthy" || { echo "FAIL: universe unhealthy after restart"; docker compose --env-file .env.ci logs universe; exit 1; }
+          sudo test -f "$target" || { echo "FAIL: pre-restart snapshot $target did not survive"; exit 1; }
+          after_hash=$(sudo sha256sum "$target" | awk '{print $1}')
+          after_count=$(sudo find shared/universe -name '*.json' -type f | wc -l)
+          echo "post-restart: sha256=$after_hash json_count=$after_count"
+          test "$before_hash" = "$after_hash" || { echo "FAIL: persisted snapshot changed across restart"; exit 1; }
+          test "$after_count" -ge "$before_count" || { echo "FAIL: state files lost across restart"; exit 1; }
+          echo "PASS: snapshot byte-identical across restart and service healthy again"
+      - name: Tear down
+        if: always()
+        run: docker compose --env-file .env.ci down -v || true
+
+  # A-001 (deep-audit): the strategy smoke probe needs TA-Lib, which is not
+  # installable from requirements-dev.txt. Run it inside the PINNED Freqtrade
+  # image, which ships TA-Lib, and fail if it errors OR silently skips. This is
+  # what makes "the strategy is executed in the mandatory gate" true.
+  strategy-probe-container:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Run the strategy probe inside freqtradeorg/freqtrade:2026.6
+        run: |
+          set -o pipefail
+          docker run --rm -v "$PWD":/work -w /work \
+            -e PYTHONDONTWRITEBYTECODE=1 -e PYTHONPATH=/work \
+            --entrypoint python freqtradeorg/freqtrade:2026.6 \
+            -m unittest discover -s tests -p 'test_strategy_probe.py' -v 2>&1 | tee probe.log
+          if grep -qi 'skipped' probe.log; then
+            echo "FAIL: the strategy probe SKIPPED inside the pinned container; TA-Lib must be present there"
+            exit 1
+          fi
+          echo "PASS: strategy executed and the active 5m MACD gate was proven in the pinned container"
+      - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
+        if: always()
+        with:
+          name: strategy-probe-log-${{ github.sha }}
+          path: probe.log
+          retention-days: 14
+          if-no-files-found: warn
+
+  deploy-oracle:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.ORACLE_TESTNET_DEPLOY_ENABLED == 'true'
+    # GATE-001 fix: `needs: artifact` alone let deployment start while the
+    # container gates were still running — or after they FAILED — because
+    # GitHub jobs run in parallel and a job waits only for what it lists here.
+    # The container integration simulation and the real TA-Lib strategy probe
+    # exist precisely to turn an offline skip into a hard failure, so they are
+    # mandatory prerequisites. tests/test_workflow_graph.py pins this set.
+    needs: [artifact, integration-simulation, strategy-probe-container]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: oracle-testnet
+    steps:
+      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: binance-bot-testnet-${{ github.sha }}
+          path: /tmp/v101-artifact
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.ORACLE_SSH_PRIVATE_KEY }}
+          ORACLE_KNOWN_HOSTS: ${{ secrets.ORACLE_SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          test -n "$SSH_KEY"
+          test -n "$ORACLE_KNOWN_HOSTS"
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$ORACLE_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+      - name: Transfer verified artifact
+        env:
+          ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
+          ORACLE_USER: ${{ secrets.ORACLE_USER }}
+          ORACLE_PORT: ${{ secrets.ORACLE_SSH_PORT }}
+        run: |
+          scp -P "${ORACLE_PORT:-22}" /tmp/v101-artifact/* "${ORACLE_USER}@${ORACLE_HOST}:/tmp/"
+      - name: Atomic install with reconciliation and rollback
+        env:
+          ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
+          ORACLE_USER: ${{ secrets.ORACLE_USER }}
+          ORACLE_PORT: ${{ secrets.ORACLE_SSH_PORT }}
+        run: |
+          ssh -p "${ORACLE_PORT:-22}" "${ORACLE_USER}@${ORACLE_HOST}" \
+            "chmod +x /tmp/install_artifact.sh && /tmp/install_artifact.sh /tmp/binance-bot-testnet-${GITHUB_SHA}.tar.gz /tmp/binance-bot-testnet-${GITHUB_SHA}.tar.gz.sha256"

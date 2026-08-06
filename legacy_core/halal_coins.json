@@ -1,0 +1,8 @@
+{
+  "_comment": "Curated halal + favorites whitelist (the Sharia gate). Edit with coins YOU screened. Empty/missing/corrupt = fail-safe, no trades. AI research is not a fatwa.",
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT"
+  ]
+}
