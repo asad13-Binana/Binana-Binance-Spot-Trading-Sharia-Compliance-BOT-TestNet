@@ -261,6 +261,30 @@ class UniverseSelectionHardeningTests(unittest.TestCase):
                     self._scan([entry], root=root, **kwargs)
                 self.assertFalse((root / 'current_pairlist.json').exists())
 
+    def test_exotic_base_symbol_is_skipped_not_fatal(self):
+        """UNIVERSE-EXOTIC-001: Binance lists live Spot symbols whose base asset
+        is not [A-Z0-9] -- the pair below is real and was returned by
+        /api/v3/ticker/24hr. Rejecting it as a corrupt RESPONSE aborted the
+        whole scan, so the universe container never reached health in CI. Such a
+        symbol can never be traded anyway (_basic_filter rejects a non-[A-Z0-9]
+        base), so it must be skipped, not fatal -- while a genuinely malformed
+        row stays fatal."""
+        exotic = '币安人生USDT'
+        entry = exchange_entry('ETH')
+        default_tickers, _ = self._default_market_rows([entry])
+        snapshot, _root = self._scan(
+            [entry],
+            tickers=[{'symbol': exotic, 'priceChangePercent': '5',
+                      'quoteVolume': '9'}] + list(default_tickers),
+        )
+        self.assertEqual(snapshot['pairs'], ['ETH/USDT'],
+                         'an exotic listing must not abort or distort the scan')
+        self.assertNotIn(exotic, snapshot['pairs'])
+
+        # A structurally malformed row in the same position is still fatal.
+        with self.assertRaises(ValueError):
+            self._scan([entry], tickers=[None])
+
     def test_exact_symbol_base_usdt_identity_is_required(self):
         entries = [
             exchange_entry('ETH', symbol='WRONGUSDT'),

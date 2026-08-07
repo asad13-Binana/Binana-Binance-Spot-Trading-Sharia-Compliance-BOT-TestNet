@@ -134,20 +134,32 @@ def _indexed_public_rows(payload: object, endpoint: str) -> dict[str, dict]:
     if not isinstance(payload, list):
         raise ValueError(f'Binance {endpoint} response must be a list')
     indexed: dict[str, dict] = {}
+    skipped: list[str] = []
     for row in payload:
         if not isinstance(row, dict):
             raise ValueError(f'Binance {endpoint} entries must be objects')
         symbol = row.get('symbol')
-        if (
-            not isinstance(symbol, str)
-            or not symbol
-            or symbol != symbol.strip().upper()
-            or re.fullmatch(r'[A-Z0-9]+', symbol) is None
-        ):
+        if not isinstance(symbol, str) or not symbol:
             raise ValueError(f'Binance {endpoint} entry has invalid symbol identity')
+        # UNIVERSE-EXOTIC-001: Binance really does list symbols whose base asset
+        # is not [A-Z0-9] -- for example the live Spot pair whose base is four
+        # Han characters. Such a symbol can never be a candidate: _basic_filter
+        # already rejects a non-[A-Z0-9] base, and only *USDT pairs are eligible.
+        # Treating it as a corrupt RESPONSE, however, aborted the entire scan and
+        # the universe container never reached health. A symbol outside the
+        # tradeable identity shape is not malformed data, it is simply not a
+        # candidate, so skip it here exactly as the candidate filter does.
+        # Structural defects below and above stay fatal.
+        if symbol != symbol.strip().upper() or re.fullmatch(r'[A-Z0-9]+', symbol) is None:
+            skipped.append(symbol)
+            continue
         if symbol in indexed:
             raise ValueError(f'Binance {endpoint} contains duplicate symbol {symbol}')
         indexed[symbol] = row
+    if skipped:
+        log.info('Binance %s: skipped %d symbol(s) outside the tradeable '
+                 'identity shape (never eligible): %s',
+                 endpoint, len(skipped), ', '.join(sorted(skipped)[:5]))
     return indexed
 
 
