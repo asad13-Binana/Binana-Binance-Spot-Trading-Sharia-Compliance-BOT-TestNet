@@ -96,6 +96,20 @@ def html_to_text(payload: str) -> str:
     return re.sub(r'\s+', ' ', parser.text()).strip()
 
 
+def _canonical_host(value: str) -> str:
+    """Lowercase a host and drop one leading ``www.`` label.
+
+    Deliberately not ``lstrip('www.')``: that strips a *character set*, so
+    ``web3.foundation`` became ``eb3.foundation`` and ``w3.org`` became
+    ``3.org``. The damage was not cosmetic — a legitimate subdomain such as
+    ``docs.web3.foundation`` then failed the ``endswith`` suffix test against
+    the mangled official host, was classified Tier 3, and could never satisfy
+    the GREEN gate's Tier 1 requirement.
+    """
+    host = (value or '').strip().lower().rstrip('.')
+    return host[4:] if host.startswith('www.') else host
+
+
 def classify_tier(url: str, official_hosts: set[str] | None = None) -> str:
     """Assign a controller source tier to a URL.
 
@@ -103,11 +117,11 @@ def classify_tier(url: str, official_hosts: set[str] | None = None) -> str:
     own tier. Everything else is Tier 3 at best, which the GREEN gate will
     not accept as the required Tier 1 evidence.
     """
-    host = (urlparse(url).hostname or '').lower().lstrip('www.')
+    host = _canonical_host(urlparse(url).hostname or '')
     for screener_host, tier in _SCREENER_TIERS.items():
         if host == screener_host or host.endswith('.' + screener_host):
             return tier
-    for official in {h.lower().lstrip('www.') for h in (official_hosts or set())}:
+    for official in {_canonical_host(h) for h in (official_hosts or set())}:
         if official and (host == official or host.endswith('.' + official)):
             return 'TIER_1_OFFICIAL'
     return 'TIER_3_SECONDARY'
