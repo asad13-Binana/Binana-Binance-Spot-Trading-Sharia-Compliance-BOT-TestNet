@@ -1,6 +1,6 @@
 {
-  "release": "V10.2-CODEX-2026-08-08A",
-  "revision": "2026-08-08A",
+  "release": "V10.2-CODEX-2026-08-08C",
+  "revision": "2026-08-08C",
   "assessment_date": "2026-08-08",
   "package_mode": "testnet",
   "default_execution_mode": "testnet",
@@ -18,11 +18,11 @@
     "note": "The image-baked, read-only RELEASE_MODE interlock cannot be promoted to live by editing .env."
   },
   "offline_results": {
-    "full_release_gate": "passed locally after the latest code change: 353 of 357 core tests passed with 4 documented skips, plus 50 monitoring tests and 33 of 33 preserved legacy self-tests",
+    "full_release_gate": "passed locally after the latest code change: 357 of 361 core tests passed with 4 documented skips, plus 50 monitoring tests and 33 of 33 preserved legacy self-tests",
     "audit_ledgers": "independently verified with zero missing and zero extra definitions after regeneration",
-    "release_manifest": "regenerated for revision 2026-08-08A and exact file-set/hash verification passed locally",
+    "release_manifest": "regenerated for revision 2026-08-08C and exact file-set/hash verification passed locally",
     "strategy_integrity": "protected bytes and source/token fingerprints match the reviewed baseline",
-    "dependency_locks": "strict vulnerability audits passed for the current exact version locks; distribution hashes are not yet pinned",
+    "dependency_locks": "all 61 exact runtime requirement records are SHA-256 hash-locked and installed with pip --require-hashes; strict vulnerability audits remain mandatory in CI",
     "container_execution": "not run locally because no Docker engine was available; GitHub Actions is required for this revision",
     "authenticated_binance_orders": "not attempted",
     "telegram_real_credentials": "not used",
@@ -40,7 +40,6 @@
     "All required GitHub Actions jobs green for this exact revision, including real Docker image and exact dependency execution",
     "Protect main with pull-request review and required successful checks; keep deployment secrets in a protected GitHub Environment",
     "Container image digest pinning before Oracle deployment",
-    "Python distribution hash pinning with pip --require-hashes before Oracle deployment",
     "Authenticated Binance Spot Testnet lifecycle evidence for partial fills, accepted-timeout recovery, cancel races and user-stream reconciliation",
     "Oracle testnet deployment, restart/network/OOM/disk/backup/rollback drills and soak",
     "Fee-and-slippage backtesting and owner performance review",

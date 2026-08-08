@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/app PIP_NO_CACHE_DI
 # dependency set that was tested and vulnerability-audited. pip check proves
 # the closure is internally consistent. No fallback to the unlocked file.
 COPY requirements.services.lock /app/
-RUN pip install --no-cache-dir -r requirements.services.lock \
+RUN pip install --no-cache-dir --require-hashes -r requirements.services.lock \
     && python -m pip check \
     && useradd --create-home --uid 10001 bot
 COPY --chown=bot:bot legacy_core /app/legacy_core

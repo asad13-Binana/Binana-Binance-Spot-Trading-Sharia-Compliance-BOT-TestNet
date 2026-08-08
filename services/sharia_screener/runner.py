@@ -41,6 +41,8 @@ class ScreeningUnavailable(RuntimeError):
 
 PACKAGE_MODE_FILE = Path(__file__).resolve().parents[2] / 'RELEASE_MODE'
 LIVE_POLICY_FILE = Path(__file__).resolve().parents[2] / 'VALIDATION_STATUS.json'
+DEFAULT_OPENAI_BASE = 'https://api.openai.com/v1'
+DEFAULT_OPENAI_HOST = 'api.openai.com'
 
 
 def enforce_live_screening_policy(*, package_mode_path: str | Path | None = None,
@@ -49,10 +51,11 @@ def enforce_live_screening_policy(*, package_mode_path: str | Path | None = None
     """Enforce the package/execution contract and bind live AI provenance.
 
     Both packages may screen in simulation, and the testnet package may also
-    screen in testnet mode.  Only ``EXECUTION_MODE=live`` in the immutable live
-    package requires an approved ``sharia_live_policy``.  This preserves the
-    safe simulation default without allowing environment variables to create
-    live authority or to widen an approved live host/model policy.
+    screen in testnet mode. Only ``EXECUTION_MODE=live`` in the immutable live
+    package requires an approved ``sharia_live_policy`` and exact model match.
+    Every mode of the live package nevertheless pins the screening destination
+    to the approved policy host, or to the official default when no approved
+    policy exists, so environment variables cannot redirect its API key.
     """
     mode_file = Path(package_mode_path or PACKAGE_MODE_FILE)
     policy_file = Path(policy_path or LIVE_POLICY_FILE)
@@ -74,32 +77,57 @@ def enforce_live_screening_policy(*, package_mode_path: str | Path | None = None
         raise ScreeningUnavailable(
             f'the {package_mode} package does not permit '
             f'EXECUTION_MODE={execution!r} for screening')
-    if package_mode != 'live' or execution != 'live':
+    if package_mode != 'live':
         return
+
+    policy = None
     try:
-        metadata = json.loads(policy_file.read_text(encoding='utf-8'))
-        policy = metadata['sharia_live_policy']
-    except Exception as exc:
-        raise ScreeningUnavailable(
-            'live screening policy is absent from immutable VALIDATION_STATUS.json') from exc
-    if not isinstance(policy, dict) or policy.get('approved') is not True:
+        policy_text = policy_file.read_text(encoding='utf-8')
+    except OSError as exc:
+        if execution == 'live':
+            raise ScreeningUnavailable(
+                'live screening policy is absent from immutable '
+                'VALIDATION_STATUS.json') from exc
+    else:
+        try:
+            metadata = json.loads(policy_text)
+        except Exception as exc:
+            raise ScreeningUnavailable(
+                'immutable screening policy metadata is malformed') from exc
+        if not isinstance(metadata, dict):
+            raise ScreeningUnavailable(
+                'immutable screening policy metadata is malformed')
+        policy = metadata.get('sharia_live_policy')
+
+    approved = isinstance(policy, dict) and policy.get('approved') is True
+    if execution == 'live' and not approved:
         raise ScreeningUnavailable('live screening policy is not explicitly approved')
-    approved_base = str(policy.get('base_url', '')).rstrip('/')
-    approved_model = str(policy.get('model', '')).strip()
+
+    approved_base = (
+        str(policy.get('base_url', '')).rstrip('/')
+        if approved else DEFAULT_OPENAI_BASE)
+    approved_model = str(policy.get('model', '')).strip() if approved else ''
     parsed = urlparse(approved_base)
     if (parsed.scheme != 'https' or not parsed.hostname or parsed.username or
-            parsed.password or parsed.query or parsed.fragment or not approved_model):
+            parsed.password or parsed.query or parsed.fragment or
+            (approved and not approved_model)):
         raise ScreeningUnavailable('immutable live screening host/model policy is malformed')
-    configured_base = os.getenv('SHARIA_OPENAI_BASE', '').rstrip('/')
+    configured_base = os.getenv(
+        'SHARIA_OPENAI_BASE', DEFAULT_OPENAI_BASE).rstrip('/')
     configured_model = os.getenv('SHARIA_MODEL', '').strip()
     configured_hosts = {x.strip().lower() for x in
-                        os.getenv('SHARIA_ALLOWED_OPENAI_HOSTS', '').split(',') if x.strip()}
+                        os.getenv(
+                            'SHARIA_ALLOWED_OPENAI_HOSTS',
+                            DEFAULT_OPENAI_HOST).split(',') if x.strip()}
     if configured_base != approved_base:
-        raise ScreeningUnavailable('live SHARIA_OPENAI_BASE differs from immutable approval')
-    if configured_model != approved_model:
+        raise ScreeningUnavailable(
+            'live-package SHARIA_OPENAI_BASE differs from immutable '
+            'approved/default endpoint')
+    if execution == 'live' and configured_model != approved_model:
         raise ScreeningUnavailable('live SHARIA_MODEL differs from immutable approval')
     if configured_hosts != {parsed.hostname.lower()}:
-        raise ScreeningUnavailable('live host allowlist differs from immutable single-host approval')
+        raise ScreeningUnavailable(
+            'live-package host allowlist differs from immutable single-host endpoint')
 
 
 class ScreeningRunner:
@@ -109,10 +137,10 @@ class ScreeningRunner:
         # not turn environment variables into live authority.
         enforce_live_screening_policy()
         self.controller_text = controller_bytes.decode('utf-8')
-        self.base_url = os.getenv('SHARIA_OPENAI_BASE', 'https://api.openai.com/v1').rstrip('/')
+        self.base_url = os.getenv('SHARIA_OPENAI_BASE', DEFAULT_OPENAI_BASE).rstrip('/')
         parsed = urlparse(self.base_url)
         allowed_hosts = {x.strip().lower() for x in
-                         os.getenv('SHARIA_ALLOWED_OPENAI_HOSTS', 'api.openai.com').split(',')
+                         os.getenv('SHARIA_ALLOWED_OPENAI_HOSTS', DEFAULT_OPENAI_HOST).split(',')
                          if x.strip()}
         if (parsed.scheme != 'https' or not parsed.hostname or parsed.username or
                 parsed.password or parsed.hostname.lower() not in allowed_hosts):

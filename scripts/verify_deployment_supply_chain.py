@@ -15,6 +15,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SHA256_REF = re.compile(r'@sha256:[0-9a-f]{64}(?:\s|$)')
 HASH_OPTION = re.compile(r'--hash=sha256:[0-9a-f]{64}(?:\s|$)')
+HASH_TOKEN = re.compile(r'--hash=([^\s]+)')
+HASH_VALUE = re.compile(r'sha256:[0-9a-f]{64}$')
 
 
 def _logical_requirements(path: Path) -> list[str]:
@@ -55,12 +57,20 @@ def deployment_supply_chain_errors(root: Path = ROOT) -> list[str]:
         root / 'monitoring/requirements-monitoring.lock',
     )
     for lock in locks:
-        unhashed = [record for record in _logical_requirements(lock)
+        records = _logical_requirements(lock)
+        unhashed = [record for record in records
                     if not HASH_OPTION.search(record)]
         if unhashed:
             errors.append(
                 f'{lock.relative_to(root).as_posix()} has {len(unhashed)} '
                 'requirement record(s) without sha256 hashes')
+        malformed = [token for record in records
+                     for token in HASH_TOKEN.findall(record)
+                     if not HASH_VALUE.fullmatch(token)]
+        if malformed:
+            errors.append(
+                f'{lock.relative_to(root).as_posix()} has {len(malformed)} '
+                'malformed or non-sha256 hash option(s)')
 
     if '--require-hashes' not in dockerfile:
         errors.append('Dockerfile.services does not enforce pip --require-hashes')

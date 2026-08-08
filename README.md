@@ -51,6 +51,9 @@ scanning. See `docs/EXTERNAL_SIGNALS.md`.
 ```bash
 python -m venv .venv
 . .venv/bin/activate
+# Install each hash-locked runtime closure separately from unhashed test tools.
+pip install --require-hashes -r requirements.services.lock
+pip install --require-hashes -r monitoring/requirements-monitoring.lock
 pip install -r requirements-dev.txt
 bash deploy/verify_release.sh
 ```

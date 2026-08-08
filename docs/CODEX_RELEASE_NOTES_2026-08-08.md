@@ -1,7 +1,7 @@
-# Codex revision 2026-08-08A release notes
+# Codex revision 2026-08-08C release notes
 
-This is the Binance Spot Testnet package for revision `2026-08-08A`; its
-internal release identifier is `V10.2-CODEX-2026-08-08A`. The immutable
+This is the Binance Spot Testnet package for revision `2026-08-08C`; its
+internal release identifier is `V10.2-CODEX-2026-08-08C`. The immutable
 package interlock continues to make live execution structurally unavailable.
 
 ## Runtime and release repairs
@@ -17,6 +17,14 @@ package interlock continues to make live execution structurally unavailable.
   generated release manifest.
 - Release and validation metadata have been advanced together to remove the
   stale revision mismatch.
+- All 61 exact service and monitoring runtime requirement records are now
+  SHA-256 hash-locked. CI, the service image build and the Oracle monitoring
+  installer enforce them with separate `pip --require-hashes` invocations.
+- The Oracle preflight now accepts the Python dependency closures and remains
+  fail-closed on the two unresolved container-image digest pins.
+- The shared Sharia runner now pins every live-package screening destination
+  to an approved policy host, or to the fixed official default when no policy
+  is approved. Simulation still starts without production model approval.
 
 ## Protected behaviour
 
@@ -34,7 +42,7 @@ Exact local results for this revision are recorded in
 `docs/audit/TEST_EVIDENCE_LEDGER.csv`; the file set and hashes are bound by
 `RELEASE_MANIFEST.json` and `RELEASE_SHA256.txt`.
 
-The local full release gate passed 353 of 357 core tests with four documented
+The local full release gate passed 357 of 361 core tests with four documented
 skips, 50 monitoring tests and 33 of 33 preserved legacy self-tests. Secret,
 controller-integrity, audit-ledger, JSON, YAML and service-unit checks passed.
 One Starlette/httpx deprecation warning remains disclosed. Docker was not
@@ -43,7 +51,7 @@ available on the local host, so container execution remains a GitHub gate.
 This source package is ready only for the remaining controlled validation
 path in `VALIDATION_STATUS.json`. This exact revision still requires
 successful GitHub container CI, protected-branch/environment controls,
-immutable container digests, hash-pinned Python distributions, authenticated
-Binance Spot Testnet lifecycle evidence, Oracle soak and rollback evidence,
+immutable container digests, authenticated Binance Spot Testnet lifecycle
+evidence, Oracle soak and rollback evidence,
 reconciliation evidence and performance review before any live promotion is
 considered.

@@ -1,2 +1,3 @@
--r requirements-monitoring.lock
+# DEP-HASH-001: monitoring test tooling only. CI installs the hash-locked
+# monitoring runtime closure in its own --require-hashes invocation.
 pytest==9.0.2

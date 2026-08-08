@@ -30,7 +30,10 @@ if [[ ! -f "$VENV_TARGET/.complete" ]]; then
   [[ ! -e "$VENV_TARGET" ]] || fail "incomplete monitoring venv exists: $VENV_TARGET"
   BUILD=$(mktemp -d "$VENV_ROOT/.build.XXXXXX")
   python3 -m venv "$BUILD/venv"
+  # DEP-HASH-001: reject substituted or tampered distributions before the
+  # monitoring environment can be activated on the Oracle host.
   "$BUILD/venv/bin/python" -m pip install --disable-pip-version-check \
+    --require-hashes \
     --requirement "$RELEASE_DIR/monitoring/requirements-monitoring.lock"
   "$BUILD/venv/bin/python" -m pip check
   touch "$BUILD/venv/.complete"
