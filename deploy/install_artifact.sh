@@ -130,6 +130,7 @@ NEW=$(find "$TMP" -mindepth 1 -maxdepth 1 -type d | head -1)
 [[ -n "$NEW" && -f "$NEW/RELEASE_MANIFEST.json" && -f "$NEW/RELEASE_SHA256.txt" \
    && -f "$NEW/RELEASE_MODE" ]] || fail 'invalid release root'
 python "$NEW/scripts/verify_manifest.py"
+python "$NEW/scripts/verify_deployment_supply_chain.py"
 python "$NEW/tests/secret_scan.py"
 RELEASE_HASH=$(awk 'NF{print $1;exit}' "$NEW/RELEASE_SHA256.txt")
 [[ "$RELEASE_HASH" =~ ^[0-9a-f]{64}$ ]] || fail 'invalid release hash'

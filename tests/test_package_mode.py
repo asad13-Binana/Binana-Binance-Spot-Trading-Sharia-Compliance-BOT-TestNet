@@ -12,6 +12,7 @@ The live package's behavior is unchanged: simulation default, existing
 signed-evidence promotion gates (pinned by the existing V8.1/V10.1
 regression suites), and rejection of cross-mode EXECUTION_MODE=testnet.
 """
+import json
 import os
 import sys
 import tempfile
@@ -218,6 +219,33 @@ class ShippedPackageConsistencyTests(unittest.TestCase):
     def test_package_mode_file_resolves_to_repo_root(self):
         self.assertEqual(package_mode.PACKAGE_MODE_FILE,
                          ROOT / 'RELEASE_MODE')
+
+    def test_sharia_service_receives_the_same_execution_mode(self):
+        compose = (ROOT / 'docker-compose.yml').read_text(encoding='utf-8')
+        sharia_section = compose.split('  sharia-screener:', 1)[1].split(
+            '\n  freqtrade:', 1)[0]
+        self.assertIn(
+            'EXECUTION_MODE: ${EXECUTION_MODE:-simulation}', sharia_section)
+
+    def test_release_metadata_is_consistent_and_disarmed(self):
+        mode = (ROOT / 'RELEASE_MODE').read_text(encoding='utf-8').strip()
+        version = (ROOT / 'RELEASE_VERSION').read_text(encoding='utf-8').strip()
+        validation = json.loads(
+            (ROOT / 'VALIDATION_STATUS.json').read_text(encoding='utf-8'))
+        manifest = json.loads(
+            (ROOT / 'RELEASE_MANIFEST.json').read_text(encoding='utf-8'))
+
+        self.assertEqual(validation['release'], version)
+        self.assertTrue(version.endswith(validation['revision']))
+        self.assertEqual(validation['package_mode'], mode)
+        self.assertEqual(validation['package_interlock']['release_mode'], mode)
+        self.assertEqual(
+            validation['default_execution_mode'],
+            'simulation' if mode == 'live' else 'testnet')
+        self.assertIs(validation['production_live_certified'], False)
+        self.assertIs(validation['core_strategy_changed'], False)
+        self.assertEqual(manifest['release'], f'{version}-{mode.upper()}')
+        self.assertIs(manifest['live_certified'], False)
 
 
 class ImportOutsideTheImageTests(unittest.TestCase):
