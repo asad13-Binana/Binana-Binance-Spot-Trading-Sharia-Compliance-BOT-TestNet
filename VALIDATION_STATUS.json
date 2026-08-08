@@ -22,7 +22,7 @@
     "audit_ledgers": "independently verified with zero missing and zero extra definitions after regeneration",
     "release_manifest": "regenerated for revision 2026-08-08C and exact file-set/hash verification passed locally",
     "strategy_integrity": "protected bytes and source/token fingerprints match the reviewed baseline",
-    "dependency_locks": "all 62 exact runtime requirement records are SHA-256 hash-locked and installed with pip --require-hashes; strict vulnerability audits remain mandatory in CI",
+    "dependency_locks": "all 63 exact runtime requirement records are SHA-256 hash-locked and installed with pip --require-hashes; strict vulnerability audits remain mandatory in CI",
     "container_execution": "not run locally because no Docker engine was available; GitHub Actions is required for this revision",
     "authenticated_binance_orders": "not attempted",
     "telegram_real_credentials": "not used",
