@@ -79,6 +79,7 @@ services:
       universe:
         condition: service_healthy
     environment:
+      EXECUTION_MODE: ${EXECUTION_MODE:-simulation}
       SHARED_ROOT: /app/shared
       SHARIA_FILE: /app/shared/sharia/sharia_status.json
       SHARIA_CONTROLLER_FILE: /app/shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json

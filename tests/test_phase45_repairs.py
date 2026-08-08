@@ -223,25 +223,65 @@ class SemanticAndModeRepairTests(unittest.TestCase):
                 'SHARIA_ALLOWED_OPENAI_HOSTS': 'api.openai.com',
             }
             with mock.patch.dict('os.environ', good):
-                enforce_live_screening_policy(package_mode_path=mode, policy_path=policy)
+                enforce_live_screening_policy(
+                    package_mode_path=mode, policy_path=policy, execution_mode='live')
                 with mock.patch.object(runner_mod, 'PACKAGE_MODE_FILE', mode), \
-                        mock.patch.object(runner_mod, 'LIVE_POLICY_FILE', policy):
+                        mock.patch.object(runner_mod, 'LIVE_POLICY_FILE', policy), \
+                        mock.patch.dict('os.environ', {'EXECUTION_MODE': 'live'}):
                     self.assertEqual(
                         runner_mod.ScreeningRunner(b'controller').model,
                         'approved-model-exact')
                 with mock.patch.dict('os.environ', {'SHARIA_MODEL': 'substituted-model'}):
                     with self.assertRaises(ScreeningUnavailable):
-                        enforce_live_screening_policy(package_mode_path=mode, policy_path=policy)
+                        enforce_live_screening_policy(
+                            package_mode_path=mode, policy_path=policy,
+                            execution_mode='live')
                 with mock.patch.dict('os.environ', {
                         'SHARIA_ALLOWED_OPENAI_HOSTS': 'api.openai.com,evil.example'}):
                     with self.assertRaises(ScreeningUnavailable):
-                        enforce_live_screening_policy(package_mode_path=mode, policy_path=policy)
+                        enforce_live_screening_policy(
+                            package_mode_path=mode, policy_path=policy,
+                            execution_mode='live')
             mode.write_text('testnet')
             with mock.patch.dict('os.environ', {
                     'SHARIA_OPENAI_BASE': 'https://sandbox.example/v1',
                     'SHARIA_MODEL': 'simulation-model',
                     'SHARIA_ALLOWED_OPENAI_HOSTS': 'sandbox.example'}):
-                enforce_live_screening_policy(package_mode_path=mode, policy_path=policy)
+                enforce_live_screening_policy(
+                    package_mode_path=mode, policy_path=policy,
+                    execution_mode='testnet')
+
+    def test_screening_policy_obeys_package_and_execution_modes(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            mode = root / 'RELEASE_MODE'
+            absent_policy = root / 'VALIDATION_STATUS.json'
+
+            mode.write_text('live')
+            enforce_live_screening_policy(
+                package_mode_path=mode, policy_path=absent_policy,
+                execution_mode='simulation')
+            with self.assertRaisesRegex(
+                    ScreeningUnavailable, 'policy is absent'):
+                enforce_live_screening_policy(
+                    package_mode_path=mode, policy_path=absent_policy,
+                    execution_mode='live')
+            with self.assertRaisesRegex(
+                    ScreeningUnavailable, 'does not permit'):
+                enforce_live_screening_policy(
+                    package_mode_path=mode, policy_path=absent_policy,
+                    execution_mode='testnet')
+
+            mode.write_text('testnet')
+            for execution in ('simulation', 'testnet'):
+                enforce_live_screening_policy(
+                    package_mode_path=mode, policy_path=absent_policy,
+                    execution_mode=execution)
+            with self.assertRaisesRegex(
+                    ScreeningUnavailable, 'does not permit'):
+                enforce_live_screening_policy(
+                    package_mode_path=mode, policy_path=absent_policy,
+                    execution_mode='live')
 
 
 class AutonomousDiscoveryAndRetryRepairTests(unittest.TestCase):

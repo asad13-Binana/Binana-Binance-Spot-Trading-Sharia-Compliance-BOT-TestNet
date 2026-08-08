@@ -44,13 +44,15 @@ LIVE_POLICY_FILE = Path(__file__).resolve().parents[2] / 'VALIDATION_STATUS.json
 
 
 def enforce_live_screening_policy(*, package_mode_path: str | Path | None = None,
-                                  policy_path: str | Path | None = None) -> None:
-    """Bind live host/model provenance to immutable packaged metadata.
+                                  policy_path: str | Path | None = None,
+                                  execution_mode: str | None = None) -> None:
+    """Enforce the package/execution contract and bind live AI provenance.
 
-    Testnet remains configurable.  A live package cannot use environment
-    variables to widen the host allowlist or substitute a model; until an
-    approved ``sharia_live_policy`` is included in VALIDATION_STATUS.json, the
-    live screener intentionally refuses to start.
+    Both packages may screen in simulation, and the testnet package may also
+    screen in testnet mode.  Only ``EXECUTION_MODE=live`` in the immutable live
+    package requires an approved ``sharia_live_policy``.  This preserves the
+    safe simulation default without allowing environment variables to create
+    live authority or to widen an approved live host/model policy.
     """
     mode_file = Path(package_mode_path or PACKAGE_MODE_FILE)
     policy_file = Path(policy_path or LIVE_POLICY_FILE)
@@ -58,10 +60,22 @@ def enforce_live_screening_policy(*, package_mode_path: str | Path | None = None
         package_mode = mode_file.read_text(encoding='utf-8').strip().lower()
     except OSError as exc:
         raise ScreeningUnavailable(f'package mode unavailable for screening policy: {exc}') from exc
-    if package_mode == 'testnet':
-        return
-    if package_mode != 'live':
+    if package_mode not in {'live', 'testnet'}:
         raise ScreeningUnavailable(f'invalid immutable package mode {package_mode!r}')
+    execution = str(
+        execution_mode if execution_mode is not None
+        else os.getenv('EXECUTION_MODE', 'simulation')
+    ).strip().lower()
+    allowed_execution_modes = {
+        'testnet': {'testnet', 'simulation'},
+        'live': {'live', 'simulation'},
+    }
+    if execution not in allowed_execution_modes[package_mode]:
+        raise ScreeningUnavailable(
+            f'the {package_mode} package does not permit '
+            f'EXECUTION_MODE={execution!r} for screening')
+    if package_mode != 'live' or execution != 'live':
+        return
     try:
         metadata = json.loads(policy_file.read_text(encoding='utf-8'))
         policy = metadata['sharia_live_policy']
