@@ -15,6 +15,54 @@ export LIVE_EVIDENCE_KEY="$(python -c 'import secrets;print(secrets.token_hex(24
 export ENVELOPE_RELEASE_HASH="$(python -c 'print("a"*64)')"
 
 python -m compileall -q services legacy_core freqtrade/user_data/strategies tests scripts monitoring
+
+# Fail fast when the release label, package mode, safety default or
+# certification state drifts across the shipped control files.
+python - <<'PY'
+import json
+import pathlib
+import sys
+
+root = pathlib.Path('.')
+version = (root / 'RELEASE_VERSION').read_text(encoding='utf-8').strip()
+mode = (root / 'RELEASE_MODE').read_text(encoding='utf-8').strip()
+status = json.loads((root / 'VALIDATION_STATUS.json').read_text(encoding='utf-8'))
+manifest = json.loads((root / 'RELEASE_MANIFEST.json').read_text(encoding='utf-8'))
+problems = []
+revision = status.get('revision')
+expected_default = 'simulation' if mode == 'live' else 'testnet'
+if status.get('release') != version:
+    problems.append(f'validation release {status.get("release")!r} != {version!r}')
+if not isinstance(revision, str) or not revision or not version.endswith(revision):
+    problems.append(f'release {version!r} does not carry revision {revision!r}')
+if mode not in {'testnet', 'live'}:
+    problems.append(f'unsupported RELEASE_MODE {mode!r}')
+if status.get('package_mode') != mode:
+    problems.append(f'validation package mode {status.get("package_mode")!r} != {mode!r}')
+if status.get('package_interlock', {}).get('release_mode') != mode:
+    problems.append('validation package interlock does not match RELEASE_MODE')
+if status.get('default_execution_mode') != expected_default:
+    problems.append('validation default execution mode is inconsistent')
+if manifest.get('release') != f'{version}-{mode.upper()}':
+    problems.append('manifest release identity is inconsistent')
+if manifest.get('package_mode') != mode:
+    problems.append('manifest package mode is inconsistent')
+certified = status.get('production_live_certified')
+if manifest.get('live_certified') != certified:
+    problems.append('manifest and validation certification states disagree')
+if mode == 'testnet' and certified is not False:
+    problems.append('a testnet package cannot be production-live certified')
+if mode == 'live' and certified is True:
+    policy = status.get('sharia_live_policy')
+    if not isinstance(policy, dict) or policy.get('approved') is not True:
+        problems.append('live certification requires an approved Sharia host/model policy')
+if problems:
+    print('FAIL: release identity is inconsistent:', file=sys.stderr)
+    for problem in problems:
+        print(f'  - {problem}', file=sys.stderr)
+    raise SystemExit(1)
+print(f'release identity consistent: {version} ({mode})')
+PY
 python -m unittest discover -s tests -p 'test_*.py' -v
 python -m pytest -q monitoring/tests
 python tests/secret_scan.py

@@ -33,7 +33,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-      - name: Install verification dependencies (resolved locks)
+      # Keep the two hash-locked runtime closures in separate pip invocations
+      # from the deliberately unhashed development/CI tooling.
+      - name: Install hash-locked runtime dependencies (services)
+        run: python -m pip install --require-hashes -r requirements.services.lock
+      - name: Install hash-locked runtime dependencies (monitoring)
+        run: python -m pip install --require-hashes -r monitoring/requirements-monitoring.lock
+      - name: Install development and CI tooling
         run: python -m pip install -r requirements-dev.txt
       - name: Dependency closure consistency check
         run: python -m pip check
@@ -66,7 +72,11 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
-      - name: Install verification dependencies
+      - name: Install hash-locked runtime dependencies (services)
+        run: python -m pip install --require-hashes -r requirements.services.lock
+      - name: Install hash-locked runtime dependencies (monitoring)
+        run: python -m pip install --require-hashes -r monitoring/requirements-monitoring.lock
+      - name: Install development and CI tooling
         run: python -m pip install -r requirements-dev.txt
       - name: Create deterministic immutable release artifact
         run: |

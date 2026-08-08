@@ -251,6 +251,82 @@ class SemanticAndModeRepairTests(unittest.TestCase):
                     package_mode_path=mode, policy_path=policy,
                     execution_mode='testnet')
 
+    def test_live_package_simulation_cannot_redirect_screening_credentials(self):
+        from services.sharia_screener import runner as runner_mod
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            mode = root / 'RELEASE_MODE'
+            mode.write_text('live', encoding='utf-8')
+            policy = root / 'VALIDATION_STATUS.json'
+
+            official = {
+                'EXECUTION_MODE': 'simulation',
+                'SHARIA_OPENAI_BASE': 'https://api.openai.com/v1',
+                'SHARIA_ALLOWED_OPENAI_HOSTS': 'api.openai.com',
+                'SHARIA_MODEL': 'simulation-model',
+            }
+            with mock.patch.object(runner_mod, 'PACKAGE_MODE_FILE', mode), \
+                    mock.patch.object(runner_mod, 'LIVE_POLICY_FILE', policy), \
+                    mock.patch.dict('os.environ', official, clear=True):
+                instance = runner_mod.ScreeningRunner(b'controller')
+                self.assertEqual(instance.base_url, 'https://api.openai.com/v1')
+
+            redirected = dict(official)
+            redirected.update({
+                'SHARIA_OPENAI_BASE': 'https://evil.example/v1',
+                'SHARIA_ALLOWED_OPENAI_HOSTS': 'evil.example',
+            })
+            with mock.patch.object(runner_mod, 'PACKAGE_MODE_FILE', mode), \
+                    mock.patch.object(runner_mod, 'LIVE_POLICY_FILE', policy), \
+                    mock.patch.dict('os.environ', redirected, clear=True):
+                with self.assertRaisesRegex(
+                        ScreeningUnavailable, 'approved/default endpoint'):
+                    runner_mod.ScreeningRunner(b'controller')
+
+            widened = dict(official)
+            widened['SHARIA_ALLOWED_OPENAI_HOSTS'] = 'api.openai.com,evil.example'
+            with mock.patch.object(runner_mod, 'PACKAGE_MODE_FILE', mode), \
+                    mock.patch.object(runner_mod, 'LIVE_POLICY_FILE', policy), \
+                    mock.patch.dict('os.environ', widened, clear=True):
+                with self.assertRaisesRegex(
+                        ScreeningUnavailable, 'single-host endpoint'):
+                    runner_mod.ScreeningRunner(b'controller')
+
+            policy.write_text(json.dumps({'sharia_live_policy': {
+                'approved': False,
+                'base_url': 'https://candidate.example/v1',
+                'model': 'candidate-model',
+            }}), encoding='utf-8')
+            candidate = dict(official)
+            candidate.update({
+                'SHARIA_OPENAI_BASE': 'https://candidate.example/v1',
+                'SHARIA_ALLOWED_OPENAI_HOSTS': 'candidate.example',
+            })
+            with mock.patch.object(runner_mod, 'PACKAGE_MODE_FILE', mode), \
+                    mock.patch.object(runner_mod, 'LIVE_POLICY_FILE', policy), \
+                    mock.patch.dict('os.environ', candidate, clear=True):
+                with self.assertRaisesRegex(
+                        ScreeningUnavailable, 'approved/default endpoint'):
+                    runner_mod.ScreeningRunner(b'controller')
+
+            policy.write_text(json.dumps({'sharia_live_policy': {
+                'approved': True,
+                'base_url': 'https://approved.example/v1',
+                'model': 'production-approved-model',
+            }}), encoding='utf-8')
+            approved_host = dict(official)
+            approved_host.update({
+                'SHARIA_OPENAI_BASE': 'https://approved.example/v1',
+                'SHARIA_ALLOWED_OPENAI_HOSTS': 'approved.example',
+                'SHARIA_MODEL': 'simulation-only-model',
+            })
+            with mock.patch.object(runner_mod, 'PACKAGE_MODE_FILE', mode), \
+                    mock.patch.object(runner_mod, 'LIVE_POLICY_FILE', policy), \
+                    mock.patch.dict('os.environ', approved_host, clear=True):
+                instance = runner_mod.ScreeningRunner(b'controller')
+                self.assertEqual(instance.base_url, 'https://approved.example/v1')
+                self.assertEqual(instance.model, 'simulation-only-model')
+
     def test_screening_policy_obeys_package_and_execution_modes(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

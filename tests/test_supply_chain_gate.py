@@ -49,6 +49,25 @@ class DeploymentSupplyChainGateTests(unittest.TestCase):
         self.assertEqual(sum('without sha256 hashes' in error for error in errors), 2)
         self.assertEqual(sum('--require-hashes' in error for error in errors), 2)
 
+    def test_malformed_hash_is_rejected_even_when_a_valid_hash_is_present(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            _write_tree(root, pinned=True)
+            lock = root / 'requirements.services.lock'
+            lock.write_text(
+                lock.read_text()[:-1] + ' --hash=sha256:not-a-digest\n')
+            errors = deployment_supply_chain_errors(root)
+        self.assertTrue(any('malformed' in error for error in errors))
+
+    def test_current_tree_is_blocked_only_by_unpinned_container_images(self):
+        self.assertEqual(
+            deployment_supply_chain_errors(ROOT),
+            [
+                'Dockerfile.services base image is not pinned by sha256 digest',
+                'Freqtrade runtime image is not pinned by sha256 digest',
+            ],
+        )
+
     def test_oracle_installer_runs_gate_before_activation(self):
         installer = (ROOT / 'deploy/install_artifact.sh').read_text(encoding='utf-8')
         gate = 'python "$NEW/scripts/verify_deployment_supply_chain.py"'

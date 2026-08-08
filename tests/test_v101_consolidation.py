@@ -109,9 +109,8 @@ class DependencyPolicyTests(unittest.TestCase):
     """Exact runtime locks must not regress below known security fixes."""
 
     def test_every_matrix_interpreter_resolves_exactly_one_rpds_py(self):
-        """DEP-MARKER-001: requirements-dev.txt installs the monitoring lock, so
-        every pin in it must be installable on every interpreter in the CI
-        matrix. rpds-py==2026.6.3 declares Requires-Python >=3.11, so the 3.10
+        """DEP-MARKER-001: CI installs the monitoring lock on every interpreter
+        in the matrix. rpds-py==2026.6.3 declares Requires-Python >=3.11, so the 3.10
         leg failed at install with 'No matching distribution found' -- before
         reaching any test or audit. The lock now carries an environment-marker
         pair; this asserts each matrix interpreter selects exactly one of them,
@@ -128,6 +127,8 @@ class DependencyPolicyTests(unittest.TestCase):
         entries = []
         for line in lock.splitlines():
             line = line.split('#')[0].strip()
+            if line.endswith('\\'):
+                line = line[:-1].strip()
             if not line.startswith('rpds-py'):
                 continue
             requirement, _, marker = line.partition(';')
@@ -185,7 +186,7 @@ class DependencyPolicyTests(unittest.TestCase):
 
     def test_aiohttp_lock_is_at_or_above_current_security_fix(self):
         text = (ROOT / 'requirements.services.lock').read_text(encoding='utf-8')
-        match = re.search(r'^aiohttp==(\d+)\.(\d+)\.(\d+)\s*$', text, re.M)
+        match = re.search(r'^aiohttp==(\d+)\.(\d+)\.(\d+)\s*\\?\s*$', text, re.M)
         self.assertIsNotNone(match, 'aiohttp must stay exactly pinned in the resolved lock')
         version = tuple(int(part) for part in match.groups())
         self.assertGreaterEqual(
@@ -199,12 +200,12 @@ class DependencyPolicyTests(unittest.TestCase):
         except Exception:
             self.skipTest('aiohttp not installed in this environment')
         text = (ROOT / 'requirements.services.lock').read_text(encoding='utf-8')
-        match = re.search(r'^aiohttp==([0-9.]+)\s*$', text, re.M)
+        match = re.search(r'^aiohttp==([0-9.]+)\s*\\?\s*$', text, re.M)
         self.assertEqual(aiohttp.__version__, match.group(1))
 
     def test_cryptography_lock_is_at_or_above_current_security_fix(self):
         text = (ROOT / 'monitoring/requirements-monitoring.lock').read_text(encoding='utf-8')
-        match = re.search(r'^cryptography==(\d+)\.(\d+)\.(\d+)\s*$', text, re.M)
+        match = re.search(r'^cryptography==(\d+)\.(\d+)\.(\d+)\s*\\?\s*$', text, re.M)
         self.assertIsNotNone(match, 'cryptography must stay exactly pinned')
         version = tuple(int(part) for part in match.groups())
         self.assertGreaterEqual(
@@ -219,8 +220,21 @@ class DependencyPolicyTests(unittest.TestCase):
         except Exception:
             self.skipTest('cryptography not installed in this environment')
         text = (ROOT / 'monitoring/requirements-monitoring.lock').read_text(encoding='utf-8')
-        match = re.search(r'^cryptography==([0-9.]+)\s*$', text, re.M)
+        match = re.search(r'^cryptography==([0-9.]+)\s*\\?\s*$', text, re.M)
         self.assertEqual(actual, match.group(1))
+
+    def test_hash_locked_runtime_installs_are_separate_from_ci_tooling(self):
+        dev = (ROOT / 'requirements-dev.txt').read_text(encoding='utf-8')
+        self.assertNotRegex(dev, r'(?m)^\s*(?:-r|--requirement)\s+')
+        workflow = (ROOT / '.github/workflows/ci.yml').read_text(encoding='utf-8')
+        self.assertIn(
+            '--require-hashes -r requirements.services.lock', workflow)
+        self.assertIn(
+            '--require-hashes -r monitoring/requirements-monitoring.lock', workflow)
+        dockerfile = (ROOT / 'Dockerfile.services').read_text(encoding='utf-8')
+        self.assertIn('--require-hashes', dockerfile)
+        installer = (ROOT / 'deploy/install_monitoring.sh').read_text(encoding='utf-8')
+        self.assertIn('--require-hashes', installer)
 
     def test_ci_runs_dependency_audit_and_a_python_version_matrix(self):
         workflow = (ROOT / '.github/workflows/ci.yml').read_text(encoding='utf-8')

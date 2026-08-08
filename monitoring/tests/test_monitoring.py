@@ -436,7 +436,7 @@ def test_ci_and_release_gate_include_monitoring():
     assert "scripts/build_manifest.py" not in verifier
 
 
-def test_monitoring_dev_requirements_include_exact_runtime_lock():
+def test_monitoring_tests_install_exact_hash_locked_runtime_separately():
     dev = (ROOT / "monitoring/requirements-monitoring-dev.txt").read_text(
         encoding="utf-8"
     )
@@ -445,8 +445,12 @@ def test_monitoring_dev_requirements_include_exact_runtime_lock():
         for line in dev.splitlines()
         if line.strip().startswith(("-r ", "--requirement "))
     ]
-    assert includes == ["-r requirements-monitoring.lock"]
+    assert includes == []
     assert (ROOT / "monitoring/requirements-monitoring.lock").is_file()
+    workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    assert "--require-hashes -r monitoring/requirements-monitoring.lock" in workflow
+    installer = (ROOT / "deploy/install_monitoring.sh").read_text(encoding="utf-8")
+    assert "--require-hashes" in installer
 
 
 def test_oracle_installer_installs_monitoring():
