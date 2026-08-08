@@ -23,13 +23,32 @@ _REGISTERED_PROVIDERS: dict[str, frozenset[str]] = {
     'local-oracle-v1': frozenset({
         'url', 'retrieved_utc', 'http_status', 'content_sha256', 'source_tier',
     }),
-    # Remote hosted-web-search provider. Retained so previously signed
-    # historical evidence stays verifiable; it is NOT selectable by the
-    # shipped configuration and requires no API credentials to validate.
-    'openai-responses': frozenset({'url'}),
+    # Remote hosted-web-search provider, retained ONLY so previously signed
+    # historical evidence stays verifiable.
+    #
+    # This MUST stay empty. An earlier version required a top-level 'url'
+    # here, which the real runner never emits -- it produces 'source_urls'
+    # and carries the URL inside 'action'. That invented requirement rejected
+    # previously valid reports, converted validated GREEN results to
+    # NO_TRADE_INFO in the bridge, and broke 6 authoritative tests. It passed
+    # my own check only because that check used a hand-built fixture instead
+    # of the real producer's output. Requirements for this provider are
+    # frozen at what the generic validator already enforced.
+    'openai-responses': frozenset(),
 }
 
 DEFAULT_PROVIDER = 'local-oracle-v1'
+
+# Providers a NEWLY produced report may declare. Historical records may still
+# be verified under any registered provider, but a fresh result must not be
+# able to select the weaker legacy schema and thereby skip the content-digest
+# requirements that local-oracle-v1 imposes.
+ACTIVE_PROVIDERS = frozenset({'local-oracle-v1'})
+
+
+def is_selectable_for_new_result(provider: object) -> bool:
+    """True when a freshly produced report may declare this provider."""
+    return isinstance(provider, str) and provider in ACTIVE_PROVIDERS
 
 
 def is_registered(provider: object) -> bool:
