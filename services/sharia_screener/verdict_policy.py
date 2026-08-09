@@ -12,6 +12,8 @@ from collections.abc import Iterable
 import re
 import unicodedata
 
+from services.sharia_screener.evidence_binding import text_blocks
+
 
 CANONICAL_SCREENER_VERDICTS = frozenset({
     'halal', 'haram', 'doubtful', 'unknown',
@@ -191,4 +193,123 @@ def positive_verdict_conflict(
         return (f'positive verdict quote has an unrecognised qualifier or tail '
                 f'({match.group("tail")!r}); send it to owner review instead '
                 'of promoting it')
+    return ''
+
+
+# --- QUOTE-TRUNCATION DEFENCE ---------------------------------------------
+#
+# Checking the owner's quote as a substring of the page let a negation be
+# edited away. A page reading "It is false that this token is halal." accepts
+# the quote "this token is halal", and every downstream check then sees only
+# the laundered fragment: the affirmative template matches, no negative token
+# is present, and the screener counts as positive.
+#
+# Reproduced on three pages ("It is false that...", "No authority says...",
+# "Nobody has confirmed..."), and the same substring test existed in both the
+# seeding helper and the runtime rules engine.
+#
+# The fix is to stop judging the fragment. Locate it in the source, expand to
+# the complete sentence that contains it, and apply the verdict policy to
+# that sentence. The negation is still in the source, so it cannot be removed
+# by editing the draft.
+_SENTENCE_END = '.!?\n'
+
+# Tokens whose trailing period is NOT a sentence boundary. Treating one as a
+# boundary let a negative prefix be cut off: "It is false, i.e. this token is
+# halal." was reduced to the accepted sentence "this token is halal."
+_ABBREVIATIONS = frozenset({
+    'i.e', 'e.g', 'etc', 'vs', 'cf', 'al', 'approx', 'est', 'fig', 'no',
+    'u.s', 'u.k', 'u.a.e', 'inc', 'ltd', 'llc', 'co', 'corp', 'plc',
+    'dr', 'mr', 'mrs', 'ms', 'prof', 'sr', 'jr', 'st', 'vol', 'ch', 'pp',
+})
+_BOUNDARY = re.compile(r'[.!?]+\s+')
+
+
+def _sentence_spans(text: str) -> list[tuple[int, int]]:
+    """Split into sentences, refusing to break on an abbreviation.
+
+    A boundary counts only when the punctuation is not the tail of a known
+    abbreviation AND the next character starts a new sentence (uppercase or
+    a digit). Both conditions were missing: "i.e." split, and so did a period
+    followed by a lowercase word.
+    """
+    starts = [0]
+    for match in _BOUNDARY.finditer(text):
+        prefix = text[:match.start()]
+        last = re.split(r'[\s(\["]', prefix)[-1].casefold().rstrip('.')
+        if last in _ABBREVIATIONS or len(last) == 1:
+            continue  # "i.e." or an initial such as "J."
+        nxt = text[match.end():match.end() + 1]
+        if nxt and not (nxt.isupper() or nxt.isdigit()):
+            continue  # a lowercase continuation is not a new sentence
+        starts.append(match.end())
+    ends = starts[1:] + [len(text)]
+    return list(zip(starts, ends))
+
+
+def containing_contexts(quote: object, text: object) -> list[str]:
+    """Every sentence in ``text`` that contains ``quote``.
+
+    ALL occurrences are returned, not just the first. Using ``find()`` meant
+    a page reading "This token is halal. It is false that this token is
+    halal." matched the affirmative sentence and ignored the contradictory
+    one, because the draft records no offset saying which occurrence the
+    owner actually reviewed.
+    """
+    needle = _normalize(quote).casefold()
+    haystack = _normalize(text)
+    if not needle or not haystack:
+        return []
+    folded = haystack.casefold()
+    spans = _sentence_spans(haystack)
+    found, cursor = [], 0
+    while True:
+        index = folded.find(needle, cursor)
+        if index < 0:
+            break
+        for left, right in spans:
+            if left <= index < right:
+                found.append(haystack[left:right].strip())
+                break
+        cursor = index + 1
+    return found
+
+
+def containing_sentence(quote: object, text: object) -> str:
+    """The single sentence containing ``quote``, or '' if it is ambiguous.
+
+    Deliberately returns '' when the fragment appears more than once: with no
+    recorded offset there is no way to know which occurrence was reviewed,
+    and guessing the first one is how a contradictory occurrence got ignored.
+    """
+    contexts = containing_contexts(quote, text)
+    return contexts[0] if len(contexts) == 1 else ''
+
+
+def quote_conflict_in_source(value: object, quote: object, text: object,
+                             **kwargs) -> str:
+    """Apply the positive policy to one exact complete extracted-text block.
+
+    Positive evidence is never relocated from a caller-supplied substring and
+    no English sentence boundary is guessed here.  The seeding/runtime path
+    additionally verifies the block's exact offsets, surrounding context,
+    extracted-text hash and response-byte hash.  This block invariant closes
+    the unbounded abbreviation-truncation class while preserving the existing
+    affirmative language policy.
+    """
+    if canonical_screener_verdict(value) != POSITIVE_SCREENER_VERDICT:
+        return ''
+    selected = str(quote or '').strip()
+    matches = [block for block in text_blocks(str(text or ''))
+               if block.text == selected]
+    if not matches:
+        return ('positive verdict quote must exactly equal one complete '
+                'extracted-text block in the retrieved source')
+    if len(matches) != 1:
+        return ('positive verdict block occurs more than once; exact reviewed '
+                'offset binding is required and ambiguous evidence is refused')
+    conflict = positive_verdict_conflict(value, matches[0].text, **kwargs)
+    if conflict:
+        return (f'{conflict} (judged on the complete bound source block '
+                f'{matches[0].text!r})')
     return ''

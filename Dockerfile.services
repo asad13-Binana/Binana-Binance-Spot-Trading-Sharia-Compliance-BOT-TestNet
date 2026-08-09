@@ -10,6 +10,7 @@ RUN pip install --no-cache-dir --require-hashes -r requirements.services.lock \
     && useradd --create-home --uid 10001 bot
 COPY --chown=bot:bot legacy_core /app/legacy_core
 COPY --chown=bot:bot services /app/services
+COPY --chown=bot:bot scripts/seed_source_registry.py /app/scripts/seed_source_registry.py
 # V102-REM-011 (deep-audit CRITICAL): the execution sidecar's live-evidence
 # gate fingerprints the exact strategy at /app/freqtrade/user_data/strategies/
 # IctSmcStrategy.py (services/execution_sidecar/main.py, live path only). The

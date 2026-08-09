@@ -28,7 +28,7 @@ Actions are **commit-SHA pinned**. Jobs:
   image/artifact provenance (H-003/H-009).
 
 ## Rollback
-If the new release's five-service health check fails, `install_artifact.sh` automatically: brings the new
+If the new release's six-service health check fails, `install_artifact.sh` automatically: brings the new
 release down, restores the previous release symlink, starts it, and **verifies the old release becomes
 healthy**. The deployment status file records `ROLLED_BACK_OLD_HEALTHY` or the CRITICAL
 `ROLLED_BACK_OLD_UNHEALTHY_CRITICAL`; entries stay paused until an owner resumes via Telegram.

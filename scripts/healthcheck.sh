@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 # V10.1 stack health helper. Fixes V101-NEW-005: a service that is merely
 # present (Created/Paused/Exited) must NOT pass as healthy. Every one of the
-# five expected services must be present, running, and health=healthy.
+# six expected services must be present, running, and health=healthy.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-EXPECTED=(universe sharia-screener freqtrade execution-sidecar telegram-broker)
+EXPECTED=(
+  universe sharia-egress-proxy sharia-screener freqtrade
+  execution-sidecar telegram-broker
+)
 export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-binance-freqtrade-v101}"
 
 fail=0
@@ -35,4 +38,4 @@ if [[ "$fail" -ne 0 ]]; then
   docker compose ps || true
   exit 1
 fi
-echo "all five services present, running and healthy"
+echo "all six services present, running and healthy"

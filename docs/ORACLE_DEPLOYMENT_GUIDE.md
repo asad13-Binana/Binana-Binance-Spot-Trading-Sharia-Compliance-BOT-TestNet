@@ -29,17 +29,17 @@ Deployment is artifact-based, not `git pull`. From CI (see GITHUB_RELEASE_AND_RO
 The installer: acquires an exclusive host `flock` (no parallel installs), verifies the artifact checksum
 and safe structure, verifies the release manifest, seeds + byte-verifies the immutable V19.1 controller,
 asks the running stack to pause + reconcile and waits for acknowledgement, atomically switches `current`,
-starts the 5-service stack under the fixed Compose project `binance-freqtrade-v101`, and waits for all five
+starts the 6-service stack under the fixed Compose project `binance-freqtrade-v101`, and waits for all six
 containers to report **healthy**. On failure it rolls back to the previous release and **verifies the old
 release is healthy**, emitting a CRITICAL status if not.
 
 ## 4. Resource envelope
-Per-service `mem_limit`s (universe 180m, screener 200m, freqtrade 520m, sidecar 300m, telegram 120m) fit a
+Per-service `mem_limit`s (universe 180m, Sharia egress proxy 50m, screener 200m, freqtrade 520m, sidecar 300m, telegram 120m) fit a
 2 GiB host with headroom. Log rotation (10m × 3) is set per service. The sidecar writes verified SQLite
 backups daily (retain 14).
 
 ## 5. Health, restart, backups
-`scripts/healthcheck.sh` requires all five services present, running, and healthy (a Created/Paused/Exited
+`scripts/healthcheck.sh` requires all six services present, running, and healthy (a Created/Paused/Exited
 service fails). `restart: unless-stopped` restarts crashed containers; on restart the sidecar leaves entries
 paused and requires a fresh owner `Resume` via Telegram. Restore from `runtime/db_backups/` if the state DB
 fails its startup integrity check.

@@ -24,6 +24,7 @@ from services.sharia_screener.source_registry import (
     SourceRegistry,
     SourceRegistryError,
 )
+from services.sharia_screener.evidence_binding import verify_reviewed_block
 
 
 def _future_date(days: int = 7) -> str:
@@ -58,12 +59,21 @@ class LocalScreeningRunner:
         return True, 'local-oracle-v1 ready; no external AI service configured'
 
     @staticmethod
-    def _claim(raw: object, documents: dict[str, RetrievedDocument]
+    def _claim(raw: object, documents: dict[str, RetrievedDocument],
+               sources: dict[str, dict]
                ) -> EvidenceClaim | None:
         if not isinstance(raw, dict):
             return None
         document = documents.get(str(raw.get('url', '')).strip())
         if document is None or not document.opened:
+            return None
+        source = sources.get(document.url)
+        if (not isinstance(source, dict) or
+                source.get('content_sha256') != document.content_sha256):
+            return None
+        binding_ok, _reason = verify_reviewed_block(
+            document.text, str(raw.get('quote', '')), raw)
+        if not binding_ok:
             return None
         return EvidenceClaim(
             value=str(raw.get('value', '')).strip(),
@@ -102,6 +112,23 @@ class LocalScreeningRunner:
             and not finding.hits
         )
         all_sources_opened = bool(fetches) and all(item.ok for item in fetches)
+        bound_items = []
+        for name, raw in {**claims, **screeners}.items():
+            if not isinstance(raw, dict):
+                continue
+            bound_items.append({
+                'name': name,
+                'url': str(raw.get('url', '')),
+                'quote': str(raw.get('quote', '')),
+                'quote_start': raw.get('quote_start'),
+                'quote_end': raw.get('quote_end'),
+                'context': str(raw.get('context', '')),
+                'context_start': raw.get('context_start'),
+                'context_end': raw.get('context_end'),
+                'context_sha256': str(raw.get('context_sha256', '')),
+                'text_sha256': str(raw.get('text_sha256', '')),
+                'extractor_version': str(raw.get('extractor_version', '')),
+            })
         promotable = (
             all_green and all_sources_opened
             and (finding.disposition == Disposition.PROPOSE_GREEN
@@ -156,6 +183,7 @@ class LocalScreeningRunner:
                 'all_registered_sources_opened': all_sources_opened,
                 'promotable': promotable,
                 'owner_decision_required': True,
+                'evidence_bindings': bound_items,
             },
         })
         utility = claims.get('utility') or {}
@@ -194,9 +222,14 @@ class LocalScreeningRunner:
                 identity_match=item.identity_match)
             for item in fetches if item.ok
         }
+        sources_by_url = {
+            str(source.get('url', '')).strip(): source
+            for source in asset['sources']
+        }
         raw_claims = asset['claims']
         fact_evidence = {
-            name: self._claim(raw_claims.get(name), documents_by_url)
+            name: self._claim(
+                raw_claims.get(name), documents_by_url, sources_by_url)
             for name in ('token_type', 'utility', 'revenue')
         }
         raw_screeners = {
@@ -204,7 +237,7 @@ class LocalScreeningRunner:
             for name, value in asset['screeners'].items()
         }
         screener_evidence = {
-            name: self._claim(value, documents_by_url)
+            name: self._claim(value, documents_by_url, sources_by_url)
             for name, value in raw_screeners.items()
         }
         screener_results = {

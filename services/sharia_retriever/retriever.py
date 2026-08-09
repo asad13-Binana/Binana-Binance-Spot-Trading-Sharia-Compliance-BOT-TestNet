@@ -15,6 +15,7 @@ import hashlib
 import io
 import ipaddress
 import logging
+import os
 import re
 import socket
 from dataclasses import dataclass
@@ -84,17 +85,39 @@ class _TextExtractor(HTMLParser):
         'meta', 'link', 'br', 'hr', 'img', 'input', 'source', 'area',
         'base', 'col', 'embed', 'param', 'track', 'wbr',
     })
+    # Preserve semantic block boundaries.  The previous extractor flattened
+    # every element into one line, forcing the evidence layer to guess English
+    # sentence boundaries.  A finite abbreviation list then repeatedly cut a
+    # negative prefix away from an apparently positive fragment.  Blocks are
+    # transport structure, not a religious interpretation, and give the owner
+    # an exact unit that can be offset-bound and signed.
+    _BLOCK = frozenset({
+        'address', 'article', 'aside', 'blockquote', 'dd', 'details', 'dialog',
+        'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer',
+        'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'li', 'main',
+        'nav', 'ol', 'p', 'pre', 'section', 'summary', 'table', 'tbody', 'td',
+        'tfoot', 'th', 'thead', 'tr', 'ul',
+    })
 
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self._chunks: list[str] = []
         self._skip_stack: list[str] = []
 
+    def _block_boundary(self):
+        if not self._skip_stack and self._chunks and self._chunks[-1] != '\n':
+            self._chunks.append('\n')
+
     def handle_starttag(self, tag, attrs):
         if tag in self._VOID:
+            if tag in {'br', 'hr'}:
+                self._block_boundary()
             return
         if tag in self._SKIP:
             self._skip_stack.append(tag)
+            return
+        if tag in self._BLOCK:
+            self._block_boundary()
 
     def handle_startendtag(self, tag, attrs):
         return  # <foo /> opens and closes; nothing to track
@@ -108,26 +131,44 @@ class _TextExtractor(HTMLParser):
             while self._skip_stack:
                 if self._skip_stack.pop() == tag:
                     break
+            return
+        if tag in self._BLOCK:
+            self._block_boundary()
 
     def handle_data(self, data):
         if not self._skip_stack and data.strip():
             self._chunks.append(data.strip())
 
     def text(self) -> str:
-        return ' '.join(self._chunks)
+        lines: list[str] = []
+        current: list[str] = []
+        for chunk in self._chunks:
+            if chunk == '\n':
+                if current:
+                    lines.append(' '.join(current))
+                    current = []
+                continue
+            current.append(chunk)
+        if current:
+            lines.append(' '.join(current))
+        return '\n'.join(line for line in lines if line.strip())
 
 
 def html_to_text(payload: str) -> str:
-    """Reduce HTML to visible text. Sentence punctuation is preserved so the
-    rules engine can still find sentence boundaries for quote extraction."""
+    """Reduce HTML to visible text while preserving exact block boundaries."""
     parser = _TextExtractor()
     try:
         parser.feed(payload)
         parser.close()
     except Exception:  # noqa: BLE001 - malformed markup must fail closed
         log.warning('HTML parse failed; falling back to tag stripping')
-        return re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', payload)).strip()
-    return re.sub(r'\s+', ' ', parser.text()).strip()
+        fallback = re.sub(r'<[^>]+>', '\n', payload)
+        return '\n'.join(
+            re.sub(r'[ \t\f\v]+', ' ', line).strip()
+            for line in fallback.splitlines() if line.strip())
+    return '\n'.join(
+        re.sub(r'[ \t\f\v]+', ' ', line).strip()
+        for line in parser.text().splitlines() if line.strip())
 
 
 def pdf_to_text(payload: bytes) -> str:
@@ -147,7 +188,10 @@ def pdf_to_text(payload: bytes) -> str:
         chunks: list[str] = []
         size = 0
         for page in reader.pages:
-            text = str(page.extract_text() or '').strip()
+            raw_text = str(page.extract_text() or '')
+            text = '\n'.join(
+                re.sub(r'[ \t\f\v]+', ' ', line).strip()
+                for line in raw_text.splitlines() if line.strip())
             size += len(text)
             if size > MAX_EXTRACTED_TEXT_CHARS:
                 raise RetrievalBlocked(
@@ -159,7 +203,7 @@ def pdf_to_text(payload: bytes) -> str:
         raise
     except Exception as exc:
         raise RetrievalBlocked(f'PDF text extraction failed: {exc}') from exc
-    normalized = re.sub(r'\s+', ' ', ' '.join(chunks)).strip()
+    normalized = '\n\n'.join(chunks).strip()
     if not normalized:
         raise RetrievalBlocked('PDF contains no extractable text')
     return normalized
@@ -249,6 +293,61 @@ def _addresses_for(host: str) -> list[ipaddress._BaseAddress]:
     return resolved
 
 
+def connected_peer_address(response) -> ipaddress._BaseAddress | None:
+    """Return the address this response is actually connected to, or None.
+
+    Several urllib3 versions expose the socket at different depths, so each
+    known path is tried. Returning None means the peer could not be
+    determined, which callers must treat as a failure rather than a pass.
+    """
+    paths = (
+        lambda: response.raw._connection.sock,
+        lambda: response.raw._fp.fp.raw._sock,
+        lambda: response.raw._original_response.fp.raw._sock,
+    )
+    for path in paths:
+        try:
+            sock = path()
+        except Exception:
+            continue
+        if sock is None:
+            continue
+        try:
+            peer = sock.getpeername()
+        except Exception:
+            continue
+        try:
+            return ipaddress.ip_address(peer[0])
+        except (ValueError, IndexError, TypeError):
+            continue
+    return None
+
+
+def assert_peer_is_public(response, host: str) -> None:
+    """Verify the address actually connected to, not the one we resolved.
+
+    ``assert_fetchable`` resolves the hostname and rejects non-global
+    answers, but the HTTP stack resolves it again when it opens the socket.
+    Between those two lookups a DNS record can change, so a compromised or
+    hostile approved domain could pass validation on a public address and
+    then be connected on a loopback, private or cloud-metadata address.
+
+    Checking the connected peer closes that window, because it inspects the
+    connection that will actually deliver the bytes. An undeterminable peer
+    is treated as a failure: a security check that cannot be performed has
+    not passed.
+    """
+    peer = connected_peer_address(response)
+    if peer is None:
+        raise RetrievalBlocked(
+            f'cannot determine the connected peer address for {host!r}; '
+            'refusing to read the body rather than skip the check')
+    if not peer.is_global or peer.is_multicast:
+        raise RetrievalBlocked(
+            f'{host!r} connected to non-public address {peer} despite '
+            'resolving to a public one before the request (DNS rebinding)')
+
+
 def assert_fetchable(url: str) -> str:
     """Return the canonical URL or raise.
 
@@ -314,11 +413,22 @@ class Retriever:
 
     def __init__(self, *, session: requests.Session | None = None,
                  timeout: int = TIMEOUT_SECONDS, max_bytes: int = MAX_BYTES,
-                 evidence_store: EvidenceStore | None = None):
+                 evidence_store: EvidenceStore | None = None,
+                 verify_peer: bool | None = None):
         self.session = session or requests.Session()
         self.timeout = timeout
         self.max_bytes = max_bytes
         self.evidence_store = evidence_store
+        # A direct connection verifies its live socket peer. Inside the
+        # network-isolated production container, the socket peer is
+        # intentionally the private CONNECT proxy; that proxy resolves once,
+        # rejects non-public answers and connects to the validated numeric IP.
+        # The explicit flag prevents an unrelated ambient HTTPS_PROXY from
+        # weakening the direct-path check.
+        proxy_enforced = os.environ.get(
+            'SHARIA_PINNED_EGRESS_PROXY', '').strip().lower() == 'true'
+        self.verify_peer = (
+            not proxy_enforced if verify_peer is None else bool(verify_peer))
 
     def fetch(self, url: str, *, official_hosts: set[str] | None = None,
               identity_match: bool = False) -> FetchResult:
@@ -344,6 +454,22 @@ class Retriever:
                     target, timeout=self.timeout, allow_redirects=False,
                     stream=True,
                     headers={'User-Agent': 'binance-sharia-screener/1.0'})
+                # Validate the peer we are ACTUALLY connected to, before any
+                # body is read. assert_fetchable resolved the name earlier,
+                # but the HTTP stack resolved it again to open this socket,
+                # and the record can change in between.
+                if self.verify_peer:
+                    # Close before re-raising. The rejection path previously
+                    # jumped past the later close(), leaving the socket to
+                    # garbage collection; repeated rejected scans could then
+                    # exhaust the connection pool. A security refusal must
+                    # not depend on the collector running.
+                    try:
+                        assert_peer_is_public(
+                            response, urlparse(target).hostname or target)
+                    except RetrievalBlocked:
+                        response.close()
+                        raise
                 if response.status_code not in (301, 302, 303, 307, 308):
                     break
                 location = response.headers.get('Location') or ''

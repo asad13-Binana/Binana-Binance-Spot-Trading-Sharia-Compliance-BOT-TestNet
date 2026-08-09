@@ -31,9 +31,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -47,6 +49,14 @@ from services.sharia_retriever.store import EvidenceStore  # noqa: E402
 from services.sharia_screener.source_registry import (  # noqa: E402
     SourceRegistry, SourceRegistryError,
 )
+from services.sharia_screener.evidence_binding import (  # noqa: E402
+    EXTRACTOR_VERSION,
+    EvidenceBindingError,
+    bind_reviewed_block,
+    extracted_text_sha256,
+    text_blocks,
+    verify_reviewed_block,
+)
 from services.sharia_screener.verdict_policy import (  # noqa: E402
     CANONICAL_SCREENER_VERDICTS,
     canonical_screener_verdict,
@@ -55,6 +65,26 @@ from services.sharia_screener.verdict_policy import (  # noqa: E402
 
 MIN_QUOTE_WORDS = 6
 MAX_CANDIDATES = 4
+
+
+def require_pinned_proxy_environment() -> None:
+    """Refuse administrative fetches outside the isolated proxy container."""
+    enabled = os.environ.get(
+        'SHARIA_PINNED_EGRESS_PROXY', '').strip().lower() == 'true'
+    proxy = os.environ.get('HTTPS_PROXY') or os.environ.get('https_proxy') or ''
+    try:
+        parsed = urlparse(proxy)
+        valid_proxy = (
+            parsed.scheme == 'http' and parsed.hostname == 'sharia-egress-proxy'
+            and parsed.port == 8080 and not parsed.username and
+            not parsed.password and not parsed.path.rstrip('/'))
+    except ValueError:
+        valid_proxy = False
+    if not enabled or not valid_proxy:
+        raise RuntimeError(
+            'registry fetches must run inside the network-isolated '
+            'sharia-screener container with HTTPS_PROXY='
+            'http://sharia-egress-proxy:8080')
 
 # Deterministic cues for each required claim. These select *candidate*
 # sentences for the owner to read; they never decide anything.
@@ -107,12 +137,21 @@ def sentences(text: str) -> list[str]:
 
 
 def candidates(text: str, cues) -> list[str]:
-    """Sentences containing a cue, longest first. Deterministic, no scoring."""
+    """Complete extracted-text blocks containing a cue, longest first.
+
+    This intentionally does not split English sentences.  Sentence guessing
+    repeatedly cut negative prefixes at unrecognised abbreviations.  A block
+    is emitted by the HTML/PDF extractor, offset-bound, shown to the owner and
+    replayed exactly at runtime.
+    """
     found = []
-    for sentence in sentences(text):
-        low = sentence.lower()
+    for block in text_blocks(text):
+        candidate = block.text
+        if len(candidate.split()) < MIN_QUOTE_WORDS:
+            continue
+        low = candidate.lower()
         if any(cue in low for cue in cues):
-            found.append(sentence)
+            found.append(candidate)
     found.sort(key=lambda s: -len(s.split()))
     return found[:MAX_CANDIDATES]
 
@@ -150,6 +189,8 @@ def quote_is_in(quote: str, text: str) -> bool:
 
 def do_propose(args) -> int:
     request = json.loads(Path(args.input).read_text(encoding='utf-8'))
+    if not isinstance(request, dict):
+        raise ValueError('proposal input must be a JSON object keyed by asset')
     store = EvidenceStore(args.evidence_dir)
     retriever = Retriever(evidence_store=store)
     drafts, review = {}, []
@@ -157,7 +198,18 @@ def do_propose(args) -> int:
 
     for base, spec in request.items():
         base = str(base).strip().upper()
-        official_hosts = [str(h).strip() for h in spec.get('official_hosts') or []]
+        if not isinstance(spec, dict):
+            print(f'{base}: SKIPPED - asset specification must be an object',
+                  file=sys.stderr)
+            failed += 1
+            continue
+        raw_hosts = spec.get('official_hosts') or []
+        if not isinstance(raw_hosts, list):
+            print(f'{base}: SKIPPED - official_hosts must be an array',
+                  file=sys.stderr)
+            failed += 1
+            continue
+        official_hosts = [str(h).strip() for h in raw_hosts]
         if not official_hosts:
             print(f'{base}: SKIPPED - you must supply official_hosts; '
                   'this tool will not infer them from the symbol',
@@ -167,7 +219,16 @@ def do_propose(args) -> int:
         host_set = set(official_hosts)
         review.append(f'\n{"=" * 74}\n{base}   official hosts: {", ".join(official_hosts)}\n{"=" * 74}')
         sources, texts = [], {}
-        for source in spec.get('sources') or []:
+        requested_sources = spec.get('sources') or []
+        if not isinstance(requested_sources, list):
+            review.append('  REJECTED - sources must be an array')
+            failed += 1
+            continue
+        for source in requested_sources:
+            if not isinstance(source, dict):
+                review.append('  REJECTED - every source must be an object')
+                failed += 1
+                continue
             url = str(source.get('url', ''))
             try:
                 identity = strict_bool(source.get('identity_match'),
@@ -186,8 +247,13 @@ def do_propose(args) -> int:
             # SAME bytes the owner reviewed. Without it, apply re-fetched the
             # page and would accept a materially changed version whenever the
             # selected sentence happened to survive the edit.
-            sources.append({'url': result.url, 'identity_match': identity,
-                            'content_sha256': result.content_sha256})
+            sources.append({
+                'url': result.url,
+                'identity_match': identity,
+                'content_sha256': result.content_sha256,
+                'text_sha256': extracted_text_sha256(result.text),
+                'extractor_version': EXTRACTOR_VERSION,
+            })
             texts[result.url] = result.text
             review.append(f'  fetched  {result.url}\n'
                           f'           tier={result.tier} sha256={result.content_sha256[:16]}... '
@@ -206,7 +272,17 @@ def do_propose(args) -> int:
             for url in identity_urls:
                 options = candidates(texts[url], cues)
                 if options:
-                    picked = {'value': '', 'quote': options[0], 'url': url}
+                    try:
+                        picked = {
+                            'value': '', 'quote': options[0], 'url': url,
+                            **bind_reviewed_block(texts[url], options[0]),
+                        }
+                    except EvidenceBindingError as exc:
+                        review.append(
+                            f'\n  [{name}] AMBIGUOUS BLOCK - {exc}; choose '
+                            'a source with a unique complete block')
+                        failed += 1
+                        continue
                     review.append(f'\n  [{name}] candidates from {url}:')
                     for i, option in enumerate(options, 1):
                         mark = '*' if i == 1 else ' '
@@ -230,7 +306,16 @@ def do_propose(args) -> int:
                 continue
             # The value is left blank on purpose. This tool extracts evidence;
             # it does not read a religious ruling out of a sentence.
-            screeners[name] = {'value': '', 'quote': options[0], 'url': url}
+            try:
+                screeners[name] = {
+                    'value': '', 'quote': options[0], 'url': url,
+                    **bind_reviewed_block(text, options[0]),
+                }
+            except EvidenceBindingError as exc:
+                review.append(
+                    f'\n  [screener {name}] AMBIGUOUS BLOCK at {url}: {exc}')
+                failed += 1
+                continue
             review.append(f'\n  [screener {name}] READ THIS AND ENTER THE VALUE '
                           f'YOURSELF ({url}). Allowed values: '
                           f'{", ".join(sorted(CANONICAL_SCREENER_VERDICTS))}:\n'
@@ -243,8 +328,13 @@ def do_propose(args) -> int:
                           '    add a source URL on each screener\'s own domain')
             failed += 1
 
-        drafts[base] = {'official_hosts': official_hosts, 'sources': sources,
-                        'claims': claims, 'screeners': screeners}
+        drafts[base] = {
+            'official_hosts': official_hosts,
+            'context_confirmed': False,
+            'sources': sources,
+            'claims': claims,
+            'screeners': screeners,
+        }
 
     Path(args.draft).write_text(
         json.dumps({'schema_version': 1, 'assets': drafts}, indent=2) + '\n',
@@ -256,7 +346,8 @@ def do_propose(args) -> int:
     print()
     print('NEXT: read the review sheet, correct any quote or value in the draft,')
     print('      fill every empty "value", using only halal, haram, doubtful,')
-    print('      or unknown for screener verdicts, then run `apply`.')
+    print('      or unknown for screener verdicts; read every bound context and')
+    print('      set the asset-level "context_confirmed" to true, then run `apply`.')
     if failed:
         print(f'\n{failed} item(s) need your attention before apply will succeed.')
     return 1 if failed else 0
@@ -264,6 +355,11 @@ def do_propose(args) -> int:
 
 def do_apply(args) -> int:
     draft = json.loads(Path(args.draft).read_text(encoding='utf-8'))
+    if (not isinstance(draft, dict) or draft.get('schema_version') != 1 or
+            not isinstance(draft.get('assets'), dict)):
+        print('REGISTRY NOT UPDATED - draft schema_version/assets is invalid',
+              file=sys.stderr)
+        return 1
     store = EvidenceStore(args.evidence_dir)
     retriever = Retriever(evidence_store=store)
     registry_path = Path(args.registry)
@@ -271,8 +367,29 @@ def do_apply(args) -> int:
     problems = []
 
     for base, entry in (draft.get('assets') or {}).items():
+        if not isinstance(entry, dict):
+            problems.append(f'{base}: asset entry must be an object')
+            continue
         texts = {}
-        for source in entry.get('sources') or []:
+        try:
+            context_confirmed = strict_bool(
+                entry.get('context_confirmed'),
+                f'{base} context_confirmed')
+        except ValueError as exc:
+            problems.append(f'{base}: {exc}')
+            context_confirmed = False
+        if not context_confirmed:
+            problems.append(
+                f'{base}: context_confirmed must be true after the owner reads '
+                'every complete bound context in the review sheet')
+        draft_sources = entry.get('sources') or []
+        if not isinstance(draft_sources, list):
+            problems.append(f'{base}: sources must be an array')
+            continue
+        for source in draft_sources:
+            if not isinstance(source, dict):
+                problems.append(f'{base}: every source must be an object')
+                continue
             try:
                 strict_bool(source.get('identity_match'),
                             f'{base} source {source.get("url")} identity_match')
@@ -284,6 +401,17 @@ def do_apply(args) -> int:
                 problems.append(
                     f'{base}: {source.get("url")} has no proposed content_sha256; '
                     're-run propose so the reviewed bytes are recorded')
+                continue
+            if source.get('extractor_version') != EXTRACTOR_VERSION:
+                problems.append(
+                    f'{base}: {source.get("url")} has an unsupported extractor '
+                    'version; re-run propose')
+                continue
+            proposed_text_digest = str(source.get('text_sha256', '')).strip()
+            if re.fullmatch(r'[0-9a-f]{64}', proposed_text_digest) is None:
+                problems.append(
+                    f'{base}: {source.get("url")} has no extracted-text '
+                    'SHA-256; re-run propose')
                 continue
             result = retriever.fetch(
                 source['url'],
@@ -304,16 +432,29 @@ def do_apply(args) -> int:
                     f'{result.content_sha256[:16]}...); re-run propose and '
                     're-review before applying')
                 continue
+            actual_text_digest = extracted_text_sha256(result.text)
+            if actual_text_digest != proposed_text_digest:
+                problems.append(
+                    f'{base}: {source["url"]} extracted text changed since '
+                    'review; re-run propose with this extractor version')
+                continue
             texts[result.url] = result.text
-        for name, claim in {**entry.get('claims', {}),
-                            **entry.get('screeners', {})}.items():
+        claims = entry.get('claims', {})
+        screeners = entry.get('screeners', {})
+        if not isinstance(claims, dict) or not isinstance(screeners, dict):
+            problems.append(f'{base}: claims and screeners must be objects')
+            continue
+        for name, claim in {**claims, **screeners}.items():
+            if not isinstance(claim, dict):
+                problems.append(f'{base}.{name}: claim must be an object')
+                continue
             value = str(claim.get('value', '')).strip()
             quote = str(claim.get('quote', '')).strip()
             url = normalize_evidence_url(claim.get('url'))
             if not value:
                 problems.append(f'{base}.{name}: value is empty - the owner '
                                 'must supply every verdict explicitly')
-            if name in entry.get('screeners', {}):
+            if name in screeners:
                 verdict = canonical_screener_verdict(value)
                 if not verdict:
                     problems.append(
@@ -327,12 +468,19 @@ def do_apply(args) -> int:
                 problems.append(
                     f'{base}.{name}: url {url} was not retrieved or failed '
                     'digest verification')
-            elif not quote_is_in(quote, texts[url]):
-                problems.append(
-                    f'{base}.{name}: quote does NOT appear in the retrieved '
-                    f'bytes for {url} - it was edited or the page changed')
-            is_screener = name in entry.get('screeners', {})
-            conflict = positive_value_conflicts_with_quote(
+            else:
+                ok, binding_error = verify_reviewed_block(
+                    texts[url], quote, claim)
+                if not ok:
+                    problems.append(
+                        f'{base}.{name}: exact evidence binding failed: '
+                        f'{binding_error}; re-run propose and review again')
+            is_screener = name in screeners
+            # The quote is now one complete, exact, offset-bound source block.
+            # The language policy therefore receives the reviewed block
+            # directly and does not relocate a substring or guess where an
+            # English sentence begins.
+            conflict = positive_verdict_conflict(
                 value, quote,
                 permitted_provider_identifiers=({name} if is_screener else set()),
                 permitted_asset_identifiers=({base} if is_screener else set()))
@@ -386,6 +534,7 @@ def main(argv=None) -> int:
     apply_cmd.set_defaults(func=do_apply)
 
     args = parser.parse_args(argv)
+    require_pinned_proxy_environment()
     return args.func(args)
 
 

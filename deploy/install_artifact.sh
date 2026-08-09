@@ -14,6 +14,10 @@ MIN_TOTAL_MEMORY_MIB=${MIN_TOTAL_MEMORY_MIB:-2000}
 # H-004: one fixed Compose project so overlapping installs cannot start a
 # second parallel stack against the same account.
 export COMPOSE_PROJECT_NAME=binance-freqtrade-v101
+REQUIRED_SERVICES=(
+  universe sharia-egress-proxy sharia-screener freqtrade
+  execution-sidecar telegram-broker
+)
 
 fail(){ echo "ERROR: $*" >&2; exit 1; }
 
@@ -85,7 +89,7 @@ mkdir -p "$RELEASES" "$PERSIST" "$PERSIST/commands/inbox" "$PERSIST/runtime" \
 [[ $(stat -c '%g' "$PERSIST") == "$BOT_GID" ]] || fail "$PERSIST group GID must match BOT_GID=$BOT_GID"
 [[ "${SHARED_HOST_PATH:-}" == "$PERSIST" ]] || fail "SHARED_HOST_PATH in $ENV_FILE must equal $PERSIST"
 
-# Require enough host capacity for the four-container stack. A 1 GiB E2 micro
+# Require enough host capacity for the six-container stack. A 1 GiB E2 micro
 # is not treated as a supported target; use an A1 free-tier allocation with at
 # least 2 GiB, preferably 4 GiB for soak testing and upgrades.
 physical_mib=$(awk '/MemTotal/{print int($2/1024)}' /proc/meminfo)
@@ -286,13 +290,13 @@ rollback(){
     for _ in $(seq 1 36); do
       running=$(compose_for "$OLD" "$OLD_TAG" ps --status running --services | wc -l | tr -d ' ')
       all_ok=true
-      for service in universe sharia-screener freqtrade execution-sidecar telegram-broker; do
+      for service in "${REQUIRED_SERVICES[@]}"; do
         cid=$(compose_for "$OLD" "$OLD_TAG" ps -q "$service" 2>/dev/null || true)
         [[ -n "$cid" ]] || { all_ok=false; break; }
         st=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$cid" 2>/dev/null || true)
         [[ "$st" == healthy ]] || { all_ok=false; break; }
       done
-      if [[ "$running" -eq 5 && "$all_ok" == true ]]; then old_ok=true; break; fi
+      if [[ "$running" -eq "${#REQUIRED_SERVICES[@]}" && "$all_ok" == true ]]; then old_ok=true; break; fi
       sleep 5
     done
     [[ "$old_ok" == true ]] && rollback_status='ROLLED_BACK_OLD_HEALTHY' || rollback_status='ROLLED_BACK_OLD_UNHEALTHY_CRITICAL'
@@ -342,13 +346,13 @@ healthy=false
 for _ in $(seq 1 48); do
   running=$(compose_for "$DEST" "$NEW_TAG" ps --status running --services | wc -l | tr -d ' ')
   all_healthy=true
-  for service in universe sharia-screener freqtrade execution-sidecar telegram-broker; do
+  for service in "${REQUIRED_SERVICES[@]}"; do
     cid=$(compose_for "$DEST" "$NEW_TAG" ps -q "$service" 2>/dev/null || true)
     [[ -n "$cid" ]] || { all_healthy=false; break; }
     status=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$cid" 2>/dev/null || true)
     [[ "$status" == healthy ]] || { all_healthy=false; break; }
   done
-  if [[ "$running" -eq 5 && "$all_healthy" == true ]]; then
+  if [[ "$running" -eq "${#REQUIRED_SERVICES[@]}" && "$all_healthy" == true ]]; then
     healthy=true
     break
   fi

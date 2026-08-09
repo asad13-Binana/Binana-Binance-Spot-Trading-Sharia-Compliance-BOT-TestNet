@@ -264,3 +264,219 @@ class CanonicalVocabularyTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class QuoteTruncationTests(unittest.TestCase):
+    """A negation must not be removable by trimming the quote.
+
+    Both the seeding helper and the runtime engine checked the owner's quote
+    as a plain substring of the page, and then judged that fragment. Deleting
+    a negative prefix therefore laundered a negative page into positive
+    evidence: the affirmative template matched, no negative token remained,
+    and the screener counted as positive. Proven on three real phrasings.
+    """
+
+    TRUNCATION_ATTACKS = (
+        ('It is false that this token is halal.', 'this token is halal'),
+        ('No authority says this token is halal.', 'this token is halal'),
+        ('Nobody has confirmed this token is halal.', 'this token is halal'),
+        ('We cannot say the asset is compliant.', 'the asset is compliant'),
+        ('It is untrue that the coin is permissible.', 'the coin is permissible'),
+        ('Contrary to reports, the token is halal only for staking.',
+         'the token is halal'),
+    )
+
+    def test_a_trimmed_negation_is_judged_on_the_full_source_sentence(self):
+        from services.sharia_screener.verdict_policy import quote_conflict_in_source
+        for page, fragment in self.TRUNCATION_ATTACKS:
+            with self.subTest(page=page):
+                self.assertTrue(
+                    quote_conflict_in_source('halal', fragment, page),
+                    f'trimming turned {page!r} into accepted halal evidence')
+
+    def test_a_genuinely_affirmative_page_still_passes(self):
+        from services.sharia_screener.verdict_policy import quote_conflict_in_source
+        self.assertEqual(
+            quote_conflict_in_source('halal', 'This token is halal.',
+                                     'This token is halal.'), '')
+
+    def test_a_fragment_absent_from_the_source_is_refused(self):
+        from services.sharia_screener.verdict_policy import quote_conflict_in_source
+        self.assertTrue(quote_conflict_in_source(
+            'halal', 'this token is halal', 'A completely unrelated page.'))
+
+    def test_containing_sentence_returns_the_whole_sentence(self):
+        from services.sharia_screener.verdict_policy import containing_sentence
+        found = containing_sentence(
+            'this token is halal', 'Intro text. It is false that this token '
+                                   'is halal. Later text.')
+        self.assertEqual(found, 'It is false that this token is halal.')
+
+    def test_containing_sentence_is_invisible_character_safe(self):
+        from services.sharia_screener.verdict_policy import containing_sentence
+        self.assertTrue(containing_sentence(
+            'this token is halal', 'It is false that this​ token is halal.'))
+
+
+class ConnectedPeerVerificationTests(unittest.TestCase):
+    """P2 — the address validated must be the address connected to.
+
+    assert_fetchable resolves the hostname and rejects non-global answers,
+    but the HTTP stack resolves it again when opening the socket. A hostile
+    or compromised approved domain can answer public during validation and
+    private during connection. Checking the live peer closes that window.
+    """
+
+    @staticmethod
+    def _response_connected_to(address: str | None):
+        import socket as _socket
+
+        class _Sock:
+            def getpeername(self):
+                if address is None:
+                    raise OSError('no peer')
+                return (address, 443)
+
+        class _Conn:
+            sock = _Sock()
+
+        class _Raw:
+            _connection = _Conn()
+
+        class _Resp:
+            raw = _Raw()
+
+        del _socket
+        return _Resp()
+
+    def test_a_private_peer_is_refused_after_a_public_resolution(self):
+        from services.sharia_retriever.retriever import (
+            RetrievalBlocked, assert_peer_is_public)
+        for address in ('127.0.0.1', '169.254.169.254', '10.0.0.5',
+                        '192.168.1.1', '::1'):
+            with self.subTest(address=address):
+                with self.assertRaises(RetrievalBlocked):
+                    assert_peer_is_public(
+                        self._response_connected_to(address), 'approved.example')
+
+    def test_a_public_peer_is_accepted(self):
+        from services.sharia_retriever.retriever import assert_peer_is_public
+        assert_peer_is_public(
+            self._response_connected_to('93.184.216.34'), 'approved.example')
+
+    def test_an_undeterminable_peer_fails_closed(self):
+        # A security check that cannot be performed has not passed.
+        from services.sharia_retriever.retriever import (
+            RetrievalBlocked, assert_peer_is_public)
+        with self.assertRaises(RetrievalBlocked):
+            assert_peer_is_public(
+                self._response_connected_to(None), 'approved.example')
+
+    def test_peer_verification_is_on_by_default(self):
+        from services.sharia_retriever.retriever import Retriever
+        self.assertTrue(Retriever().verify_peer,
+                        'production must verify the connected peer')
+
+
+class SentenceBoundaryAndOccurrenceTests(unittest.TestCase):
+    """The context extracted around a quote must not be trimmable.
+
+    Two further bypasses of the source-sentence fix, both reproduced:
+    a dotted abbreviation immediately before the fragment split the sentence
+    and cut the negation off, and a repeated fragment matched only its first
+    (affirmative) occurrence while a contradictory one sat elsewhere.
+    """
+
+    ABBREVIATION_TRUNCATION = (
+        'It is false, i.e. this token is halal.',
+        'This claim is untrue, e.g. this token is halal.',
+        'Per U.S. rules it is untrue that this token is halal.',
+        'Reviewed by J. Smith. It is false that this token is halal.',
+        'It is false. this token is halal.',
+        'The following statement is false, viz. This token is halal.',
+        'The following assertion is false, a.k.a. This token is halal.',
+        'This claim is untrue, esp. This token is halal.',
+    )
+    REPEATED_OCCURRENCE = (
+        'This token is halal. It is false that this token is halal.',
+        'It is false that this token is halal. This token is halal.',
+        'This token is halal. This token is halal. '
+        'It is false that this token is halal.',
+    )
+
+    def test_an_abbreviation_cannot_cut_the_negation_away(self):
+        from services.sharia_screener.verdict_policy import quote_conflict_in_source
+        for source in self.ABBREVIATION_TRUNCATION:
+            with self.subTest(source=source):
+                self.assertTrue(
+                    quote_conflict_in_source('halal', 'this token is halal',
+                                             source),
+                    f'{source!r} was trimmed into accepted halal evidence')
+
+    def test_every_occurrence_must_be_affirmative(self):
+        from services.sharia_screener.verdict_policy import quote_conflict_in_source
+        for source in self.REPEATED_OCCURRENCE:
+            with self.subTest(source=source):
+                self.assertTrue(
+                    quote_conflict_in_source('halal', 'this token is halal',
+                                             source),
+                    'a contradictory occurrence elsewhere was ignored')
+
+    def test_all_occurrences_are_returned_not_just_the_first(self):
+        from services.sharia_screener.verdict_policy import containing_contexts
+        found = containing_contexts(
+            'this token is halal',
+            'This token is halal. It is false that this token is halal.')
+        self.assertEqual(len(found), 2)
+
+    def test_containing_sentence_refuses_an_ambiguous_fragment(self):
+        from services.sharia_screener.verdict_policy import containing_sentence
+        self.assertEqual(containing_sentence(
+            'this token is halal',
+            'This token is halal. This token is halal.'), '')
+
+    def test_a_single_affirmative_sentence_still_passes(self):
+        from services.sharia_screener.verdict_policy import quote_conflict_in_source
+        self.assertEqual(quote_conflict_in_source(
+            'halal', 'This token is halal.', 'This token is halal.'), '')
+
+
+class RejectedResponseIsClosedTests(unittest.TestCase):
+    """A security refusal must not leak the socket it refused."""
+
+    def test_a_peer_rejected_response_is_closed_before_raising(self):
+        import ipaddress
+        from unittest import mock as _mock
+        from services.sharia_retriever.retriever import Retriever
+
+        closed = []
+
+        class _Resp:
+            status_code = 200
+            history: list = []
+            headers = {'Content-Type': 'text/plain'}
+            encoding = 'utf-8'
+            url = 'https://approved.example/'
+
+            def close(self):
+                closed.append(True)
+
+            def iter_content(self, _n):
+                yield b'body'
+
+        class _Session:
+            def get(self, _url, **_kw):
+                return _Resp()
+
+        with _mock.patch(
+                'services.sharia_retriever.retriever._addresses_for',
+                lambda _h: [ipaddress.ip_address('93.184.216.34')]), \
+             _mock.patch(
+                'services.sharia_retriever.retriever.connected_peer_address',
+                lambda _r: ipaddress.ip_address('127.0.0.1')):
+            result = Retriever(session=_Session()).fetch(
+                'https://approved.example/')
+
+        self.assertFalse(result.ok)
+        self.assertIn('non-public address', result.error)
+        self.assertTrue(closed, 'the rejected response was never closed')

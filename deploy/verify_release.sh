@@ -221,8 +221,12 @@ for path in list(pathlib.Path('.').rglob('*.yml')) + list(pathlib.Path('.').rglo
         continue
     parsed[path.as_posix()] = yaml.safe_load(path.read_text(encoding='utf-8'))
 root = parsed.get('docker-compose.yml')
-assert isinstance(root, dict) and len(root.get('services', {})) == 5, \
-    ('root compose must define 5 services', len(root.get('services', {})))
+expected = {
+    'universe', 'sharia-egress-proxy', 'sharia-screener', 'freqtrade',
+    'execution-sidecar', 'telegram-broker',
+}
+assert isinstance(root, dict) and set(root.get('services', {})) == expected, \
+    ('root compose service set mismatch', sorted(root.get('services', {})))
 assert isinstance(parsed.get('freqtrade/docker-compose.yml'), dict)
 print(f'YAML structural validation passed for {len(parsed)} file(s) (Docker unavailable)')
 PY
