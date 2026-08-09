@@ -292,7 +292,14 @@ class NoAutomaticVerdictTests(unittest.TestCase):
     def test_clean_positive_wording_is_still_allowed(self):
         self.assertEqual(
             seed.positive_value_conflicts_with_quote(
-                'halal', 'This asset is compliant for spot holding.'), '')
+                'halal', 'This asset is Shariah compliant for spot holding.'), '')
+
+    def test_bare_compliant_or_permissible_is_domain_ambiguous(self):
+        for sentence in ('This asset is compliant.',
+                         'This asset is permissible.'):
+            with self.subTest(sentence=sentence):
+                self.assertTrue(
+                    seed.positive_value_conflicts_with_quote('halal', sentence))
 
     def test_positive_synonyms_cannot_bypass_the_canonical_enum(self):
         for value in ('approved', 'allowed', 'green', 'pass', 'yes',

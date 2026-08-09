@@ -8,6 +8,7 @@ and rules engine from drifting into three different interpretations.
 """
 from __future__ import annotations
 
+from collections.abc import Iterable
 import re
 import unicodedata
 
@@ -45,57 +46,98 @@ _ZERO_WIDTH = dict.fromkeys(map(ord, '\u200b\u200c\u200d\u2060\ufeff'), ' ')
 # whether it is halal" all satisfied a six-word-noun-phrase pattern. Widening
 # the negative-word list to cover them is the same losing game as before, so
 # the subject may contain only words that cannot carry a claim, plus at most
-# one identifier (the screener name or the asset ticker).
+# one identifier that the caller binds to the actual screener name or asset
+# ticker.  No arbitrary word is treated as an identifier.
 _SAFE_SUBJECT_WORDS = frozenset({
-    'the', 'this', 'its', 'their', 'a', 'an', 'of', 'for',
+    'the', 'this', 'it', 'its', 'their', 'a', 'an', 'of', 'for',
     'asset', 'assets', 'token', 'tokens', 'coin', 'coins', 'project',
     'currency', 'crypto', 'cryptocurrency', 'screening', 'screen', 'result',
     'results', 'status', 'rating', 'assessment', 'verdict', 'classification',
     'analysis', 'listing', 'record',
 })
 _MAX_SUBJECT_TOKENS = 4
-_IDENTIFIER = re.compile(r"^[A-Za-z0-9'’.]{1,20}$")
+_BOUND_IDENTIFIER = re.compile(r"^[a-z0-9]{1,40}$")
 
-_AFFIRM = (r"(?:is|are|was|were|remains?)\s+"
+# Only present-tense assertions can support a current verdict.  In particular,
+# "was halal" and "were compliant" say nothing about the current state.
+_AFFIRM = (r"(?:is|are|remains?)\s+"
            r"(?:currently\s+|fully\s+|deemed\s+|considered\s+|assessed\s+as\s+"
            r"|rated\s+(?:as\s+)?|classified\s+as\s+|certified\s+(?:as\s+)?)?")
-_POSITIVE = r"(?:shariah\s+|sharia\s+|islamically\s+)?(?:halal|compliant|permissible)"
-_TAIL = r"(?:\s+(?:for|under|by|as|on)\s+[A-Za-z0-9'’\s]{1,40})?"
+# "Compliant" and "permissible" alone are domain-ambiguous: they can describe
+# exchange, legal, technical or listing status.  Only the unambiguous word
+# "halal" or an explicit Sharia/Islamic qualifier can support this gate.
+_POSITIVE = r"(?:halal|(?:shariah|sharia|islamically)\s+(?:compliant|permissible))"
 _AFFIRMATIVE_TEMPLATE = re.compile(
-    rf"^(?P<subject>.+?)\s+{_AFFIRM}{_POSITIVE}{_TAIL}\s*[.]?$", re.IGNORECASE)
+    rf"^(?P<subject>.+?)\s+{_AFFIRM}{_POSITIVE}"
+    rf"(?:\s+(?P<tail>.+?))?\s*[.]?$", re.IGNORECASE)
+
+# Tails are closed phrases, not a bounded free-form string.  A free-form tail
+# accepted "for now", "by mistake", "as alleged" and "under appeal".  Each of
+# those reverses or qualifies the apparent positive statement without using a
+# word from the former negative blocklist.
+_SAFE_TAILS = frozenset({
+    'for this asset', 'for this token', 'for this coin', 'for this project',
+    'for the asset', 'for the token', 'for the coin', 'for the project',
+    'for spot holding', 'for spot trading',
+    'for spot holding by this screener',
+    'for spot trading by this screener',
+    'by our scholars',
+    'under shariah screening', 'under sharia screening',
+    'under islamic screening', 'under shariah assessment',
+    'under sharia assessment', 'under islamic assessment',
+    'under shariah methodology', 'under sharia methodology',
+    'under islamic methodology',
+})
 
 
-def _subject_is_a_plain_noun_phrase(subject: str) -> bool:
-    """True when the subject cannot itself carry or deny a claim."""
-    tokens = subject.split()
+def _permitted_identifier_tokens(values: Iterable[object]) -> frozenset[str]:
+    """Return single-token identifiers explicitly bound by the caller."""
+    permitted = set()
+    for value in values:
+        normalized = _normalize(value).casefold()
+        if _BOUND_IDENTIFIER.fullmatch(normalized):
+            permitted.add(normalized)
+    return frozenset(permitted)
+
+
+def _subject_is_a_plain_noun_phrase(
+        subject: str, provider_identifiers: frozenset[str],
+        asset_identifiers: frozenset[str]) -> bool:
+    """True only for closed words or an identifier in a fixed grammatical slot."""
+    normalized = subject.casefold()
+    tokens = normalized.split()
     if not tokens or len(tokens) > _MAX_SUBJECT_TOKENS:
         return False
-    identifiers = 0
-    for token in tokens:
-        if token.casefold() in _SAFE_SUBJECT_WORDS:
-            continue
-        if _IDENTIFIER.match(token):
-            identifiers += 1
-            if identifiers > 1:
-                return False  # two unknown words can form a clause
-            continue
-        return False
-    return True
+    if all(token in _SAFE_SUBJECT_WORDS for token in tokens):
+        return True
 
-# Hard stop regardless of the template: any token that denies, hedges,
-# conditions or defers the claim. The two checks are deliberately
-# overlapping — the template refuses shapes it cannot parse, and this
-# refuses meanings it can, so a bypass has to defeat both.
-_HARD_NEGATIVE = re.compile(
-    r"\b(?:not|non|never|cannot|no|haram|impermissible|prohibited|forbidden"
-    r"|revoked|denied|rejected|suspended|withdrawn|lacks?|fails?|failed"
-    r"|previously|formerly|questionable|disputed|doubtful|pending|unclear"
-    r"|may|might|maybe|unless|except|however|but|provisional(?:ly)?"
-    r"|incomplete|partial(?:ly)?|conditional(?:ly)?|assume[ds]?|treat"
-    r"|uncertain|review|awaiting|subject)\b"
-    r"|n't\b|[?]",
-    re.IGNORECASE,
-)
+    # Provider and asset identifiers are not interchangeable and cannot occur
+    # in an arbitrary position.  This keeps a real ticker such as "NO" from
+    # making the English negation "NO asset is halal" look like an identifier.
+    provider_subjects = {
+        phrase
+        for identifier in provider_identifiers
+        for phrase in (
+            f'{identifier} screening result', f'{identifier} screening status',
+            f'{identifier} assessment', f'{identifier} verdict',
+            f'{identifier} rating', f'{identifier} classification',
+        )
+    }
+    asset_subjects = {
+        phrase
+        for identifier in asset_identifiers
+        for phrase in (
+            f'the asset {identifier}', f'this asset {identifier}',
+            f'the token {identifier}', f'this token {identifier}',
+            f'the coin {identifier}', f'this coin {identifier}',
+            f'the project {identifier}', f'this project {identifier}',
+            f'the {identifier} asset', f'this {identifier} asset',
+            f'the {identifier} token', f'this {identifier} token',
+            f'the {identifier} coin', f'this {identifier} coin',
+            f'the {identifier} project', f'this {identifier} project',
+        )
+    }
+    return normalized in provider_subjects or normalized in asset_subjects
 
 
 def _normalize(text: object) -> str:
@@ -112,7 +154,10 @@ def canonical_screener_verdict(value: object) -> str:
     return normalized if normalized in CANONICAL_SCREENER_VERDICTS else ''
 
 
-def positive_verdict_conflict(value: object, quote: object) -> str:
+def positive_verdict_conflict(
+        value: object, quote: object, *,
+        permitted_provider_identifiers: Iterable[object] = (),
+        permitted_asset_identifiers: Iterable[object] = ()) -> str:
     """Explain why a positive verdict is not supported by its own quote.
 
     Only an exact canonical ``halal`` value can contribute to GREEN, and only
@@ -129,17 +174,21 @@ def positive_verdict_conflict(value: object, quote: object) -> str:
     normalized = _normalize(quote)
     if not normalized:
         return 'positive verdict has no supporting quote'
-    hard = _HARD_NEGATIVE.search(normalized)
-    if hard:
-        return (f'positive verdict is contradicted by {hard.group(0)!r} in its '
-                f'own quote')
     match = _AFFIRMATIVE_TEMPLATE.match(normalized)
     if not match:
         return ('positive verdict quote does not match a plain affirmative '
-                'statement ("<subject> is halal/compliant/permissible"); '
+                'statement ("<subject> is halal/Shariah compliant"); '
                 'send it to owner review instead of promoting it')
-    if not _subject_is_a_plain_noun_phrase(match.group('subject')):
+    providers = _permitted_identifier_tokens(permitted_provider_identifiers)
+    assets = _permitted_identifier_tokens(permitted_asset_identifiers)
+    if not _subject_is_a_plain_noun_phrase(
+            match.group('subject'), providers, assets):
         return (f'positive verdict quote has a clause, not a plain subject, '
                 f'before the affirmative phrase ({match.group("subject")!r}); '
                 'send it to owner review instead of promoting it')
+    tail = (match.group('tail') or '').casefold()
+    if tail and tail not in _SAFE_TAILS:
+        return (f'positive verdict quote has an unrecognised qualifier or tail '
+                f'({match.group("tail")!r}); send it to owner review instead '
+                'of promoting it')
     return ''

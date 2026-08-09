@@ -77,9 +77,14 @@ CLAIM_CUES = {
 VERDICT_CUES = ('halal', 'haram', 'compliant', 'non-compliant',
                 'not compliant', 'permissible', 'impermissible', 'doubtful')
 
-def positive_value_conflicts_with_quote(value: str, quote: str) -> str:
+def positive_value_conflicts_with_quote(
+        value: str, quote: str, *,
+        permitted_provider_identifiers=(), permitted_asset_identifiers=()) -> str:
     """Backward-compatible wrapper around the shared fail-closed policy."""
-    return positive_verdict_conflict(value, quote)
+    return positive_verdict_conflict(
+        value, quote,
+        permitted_provider_identifiers=permitted_provider_identifiers,
+        permitted_asset_identifiers=permitted_asset_identifiers)
 
 
 def strict_bool(value, field: str):
@@ -326,7 +331,11 @@ def do_apply(args) -> int:
                 problems.append(
                     f'{base}.{name}: quote does NOT appear in the retrieved '
                     f'bytes for {url} - it was edited or the page changed')
-            conflict = positive_value_conflicts_with_quote(value, quote)
+            is_screener = name in entry.get('screeners', {})
+            conflict = positive_value_conflicts_with_quote(
+                value, quote,
+                permitted_provider_identifiers=({name} if is_screener else set()),
+                permitted_asset_identifiers=({base} if is_screener else set()))
             if conflict:
                 problems.append(f'{base}.{name}: {conflict}')
         current['assets'][str(base).strip().upper()] = entry

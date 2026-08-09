@@ -80,6 +80,27 @@ SCREENER_PHRASINGS = (
     'This token is halal.',
 )
 
+# These all matched the previous supposedly closed template.  Past tense was
+# explicitly allowed, while the subject admitted one arbitrary word and the
+# tail admitted forty arbitrary characters.
+SECOND_GENERATION_BYPASSES = (
+    'The asset was halal.',
+    'The asset were halal.',
+    'The asset is halal for now.',
+    'The asset is halal by mistake.',
+    'The asset is halal as alleged.',
+    'The asset is halal on paper only.',
+    'The asset is halal under appeal.',
+    'The asset is halal under duress.',
+    'Unverified asset is halal.',
+    'Neither asset is halal.',
+    'Allegedly token is halal.',
+    'Purportedly token is halal.',
+    'Counterfeit token is halal.',
+    'n0t token is halal.',
+    'The asset is halal for money laundering.',
+)
+
 # Invisible-character and homoglyph attempts.
 OBFUSCATED_QUOTES = (
     'This token is not​Shariah compliant.',   # zero-width space
@@ -91,11 +112,11 @@ OBFUSCATED_QUOTES = (
 
 # Plain affirmative statements that must still be usable.
 LEGITIMATE_QUOTES = (
-    'This asset is compliant for spot holding.',
+    'This asset is Shariah compliant for spot holding.',
     'The token is halal.',
-    'EXP is assessed as halal for spot trading.',
+    'The asset EXP is assessed as halal for spot trading.',
     'The coin is Shariah compliant.',
-    'It is permissible.',
+    'It is Islamically permissible.',
     'The asset is rated halal by our scholars.',
 )
 
@@ -129,21 +150,73 @@ class ContradictoryQuoteTests(unittest.TestCase):
             'halal', 'Our committee met on Tuesday to discuss halal criteria '
                      'for digital assets in general.'))
 
+    def test_past_tense_free_subject_and_free_tail_bypasses_are_refused(self):
+        for quote in SECOND_GENERATION_BYPASSES:
+            with self.subTest(quote=quote):
+                self.assertTrue(
+                    positive_verdict_conflict('halal', quote),
+                    f'{quote!r} bypassed the closed affirmative grammar')
+
+    def test_domain_ambiguous_compliance_words_are_refused(self):
+        for quote in ('The asset is compliant.', 'The asset is permissible.'):
+            with self.subTest(quote=quote):
+                self.assertTrue(positive_verdict_conflict('halal', quote))
+
 
 class LegitimatePositiveTests(unittest.TestCase):
     def test_plain_affirmative_statements_are_accepted(self):
-        for quote in LEGITIMATE_QUOTES + SCREENER_PHRASINGS:
+        for quote in LEGITIMATE_QUOTES:
             with self.subTest(quote=quote):
+                asset_ids = {'EXP'} if ' EXP ' in quote else set()
                 self.assertEqual(
-                    positive_verdict_conflict('halal', quote), '',
+                    positive_verdict_conflict(
+                        'halal', quote,
+                        permitted_asset_identifiers=asset_ids), '',
+                    f'{quote!r} should be usable evidence')
+
+        for quote in SCREENER_PHRASINGS:
+            with self.subTest(quote=quote):
+                provider = quote.split()[0]
+                self.assertEqual(
+                    positive_verdict_conflict(
+                        'halal', quote,
+                        permitted_provider_identifiers={provider}), '',
                     f'{quote!r} should be usable evidence')
 
     def test_the_guard_is_not_so_strict_that_nothing_passes(self):
         # A guard that refuses everything is safe and useless: the whole
         # mechanical path would collapse into permanent escalation.
-        accepted = sum(1 for q in LEGITIMATE_QUOTES + SCREENER_PHRASINGS
-                       if not positive_verdict_conflict('halal', q))
+        accepted = sum(
+            1 for q in LEGITIMATE_QUOTES
+            if not positive_verdict_conflict(
+                'halal', q,
+                permitted_asset_identifiers=({'EXP'} if ' EXP ' in q else set())))
+        accepted += sum(
+            1 for q in SCREENER_PHRASINGS
+            if not positive_verdict_conflict(
+                'halal', q,
+                permitted_provider_identifiers={q.split()[0]}))
         self.assertEqual(accepted, len(LEGITIMATE_QUOTES) + len(SCREENER_PHRASINGS))
+
+    def test_an_identifier_must_be_bound_to_the_actual_context(self):
+        quote = 'musaffa screening result is halal for this asset.'
+        self.assertTrue(positive_verdict_conflict('halal', quote))
+        self.assertTrue(positive_verdict_conflict(
+            'halal', quote, permitted_provider_identifiers={'sharlife'}))
+        self.assertEqual(positive_verdict_conflict(
+            'halal', quote, permitted_provider_identifiers={'musaffa'}), '')
+
+        asset_quote = 'The asset EXP is halal for spot holding.'
+        self.assertTrue(positive_verdict_conflict('halal', asset_quote))
+        self.assertTrue(positive_verdict_conflict(
+            'halal', asset_quote, permitted_asset_identifiers={'XYZ'}))
+        self.assertEqual(positive_verdict_conflict(
+            'halal', asset_quote, permitted_asset_identifiers={'EXP'}), '')
+
+    def test_a_bound_identifier_cannot_move_into_a_negating_position(self):
+        self.assertTrue(positive_verdict_conflict(
+            'halal', 'NO asset is halal.',
+            permitted_asset_identifiers={'NO'}))
 
 
 class NonPositiveVerdictTests(unittest.TestCase):

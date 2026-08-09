@@ -355,7 +355,8 @@ def evaluate_green_gate(documents: list[RetrievedDocument],
                         keyword_scan_completed: bool,
                         expected_screeners: set[str],
                         fact_evidence: dict[str, EvidenceClaim],
-                        screener_evidence: dict[str, EvidenceClaim]
+                        screener_evidence: dict[str, EvidenceClaim],
+                        asset_identifier: str = '',
                         ) -> dict[str, bool]:
     """Mechanically evaluate GREEN_PROOF_GATE.green_requires_all.
 
@@ -440,7 +441,10 @@ def evaluate_green_gate(documents: list[RetrievedDocument],
         verdict = canonical_screener_verdict(known.get(name))
         if verdict != POSITIVE_SCREENER_VERDICT:
             return False
-        if positive_verdict_conflict(verdict, claim.quote):
+        if positive_verdict_conflict(
+                verdict, claim.quote,
+                permitted_provider_identifiers={name},
+                permitted_asset_identifiers={asset_identifier}):
             return False
         return claim_is_bound(
             claim, expected_value=verdict, min_words=3)
@@ -512,7 +516,8 @@ def evaluate(controller: dict, *, documents: list[RetrievedDocument],
              contradictions: list[str] | None = None,
              expected_screeners: set[str] | None = None,
              fact_evidence: dict[str, EvidenceClaim] | None = None,
-             screener_evidence: dict[str, EvidenceClaim] | None = None
+             screener_evidence: dict[str, EvidenceClaim] | None = None,
+             asset_identifier: str = '',
              ) -> RulesFinding:
     """Run the full deterministic pass and return a disposition.
 
@@ -590,7 +595,8 @@ def evaluate(controller: dict, *, documents: list[RetrievedDocument],
         utility_quote=utility_quote, revenue_clean=revenue_clean,
         contradictions=contradictions, keyword_scan_completed=scan_completed,
         expected_screeners=expected_screeners, fact_evidence=fact_evidence,
-        screener_evidence=screener_evidence)
+        screener_evidence=screener_evidence,
+        asset_identifier=asset_identifier)
 
     escalations = detect_escalations(
         controller, screener_results, token_type, contradictions, haram_notes)
