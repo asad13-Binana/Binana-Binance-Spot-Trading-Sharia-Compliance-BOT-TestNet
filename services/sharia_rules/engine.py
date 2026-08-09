@@ -27,6 +27,12 @@ MIN_QUOTE_WORDS = 15
 # controller requires them for HARAM; the engine refuses to assert them and
 # routes to the owner instead of inventing a judgement.
 JUDGEMENT_CONDITIONS = ('C3_ACTIVE_AND_MATERIAL', 'C4_ECONOMIC_LINK')
+# TOKEN_TYPE_CLASSIFICATION_GATE.types, plus the schema's UNKNOWN. A type
+# outside this set is not a classification, so it cannot satisfy the gate.
+VALID_TOKEN_TYPES = frozenset({
+    'PAYMENT', 'PAYMENT_CURRENCY', 'UTILITY', 'GOVERNANCE', 'TOKENIZED_ASSET',
+    'EQUITY_SECURITY', 'STABLECOIN', 'WRAPPED_BRIDGED', 'NFT',
+})
 
 
 class Disposition:
@@ -135,29 +141,22 @@ def extract_quote(text: str, start: int, end: int,
                   min_words: int = MIN_QUOTE_WORDS) -> str:
     """Return the verbatim sentence containing [start:end], or '' if too short.
 
-    Deliberately does NOT pad outward word-by-word to reach ``min_words``.
-    An earlier version did, and it manufactured a qualifying quote by stitching
-    in neighbouring sentences that had nothing to do with the match — which
-    defeats the controller's whole reason for demanding a verbatim minimum.
-    At most one following sentence is joined, and only because a claim is often
-    completed by the sentence after it. If the passage still falls short, the
-    document genuinely does not evidence the narrative and the caller must
-    refuse to treat the hit as HARAM evidence.
+    The quote is exactly the sentence containing the match — nothing is
+    appended to reach the minimum. Two earlier versions inflated it: the first
+    padded word-by-word across the document, the second joined one following
+    sentence. Both could turn "We offer lending." into qualifying evidence by
+    adjoining text about branding and site navigation. A contiguous extract
+    can be verbatim and still be irrelevant to the matched claim, so length
+    borrowed from unrelated prose is not evidence.
+
+    A short sentence therefore yields a short quote, and the caller must treat
+    the lead as unresolved — escalated to the owner, never auto-HARAM and
+    never silently dropped.
     """
     if not text or start < 0 or end > len(text) or start >= end:
         return ''
     left, right = _sentence_bounds(text, start, end)
-    span = ' '.join(text[left:right].split())
-    if len(span.split()) >= min_words:
-        return span
-    # Join at most one following sentence to complete the thought.
-    if right < len(text):
-        _l2, right2 = _sentence_bounds(text, right, min(right + 1, len(text)))
-        extended = ' '.join(text[left:right2].split())
-        if len(extended.split()) >= min_words:
-            return extended
-        span = extended
-    return span if len(span.split()) >= min_words else ''
+    return ' '.join(text[left:right].split())
 
 
 # Cues that invert the meaning of a following phrase. A whitepaper stating
@@ -167,33 +166,62 @@ def extract_quote(text: str, start: int, end: int,
 _NEGATION_CUES = (
     'no', 'not', 'never', 'without', 'none', 'neither', 'nor', 'cannot',
     "n't", 'free of', 'free from', 'absent', 'excludes', 'excluding',
-    'does not', 'do not', 'is not', 'are not', 'will not', 'nothing',
-    'prohibited', 'forbidden', 'disclaims', 'disclaim', 'avoids', 'avoid',
+    'nothing', 'disclaims', 'disclaim',
+)
+# Verbs that are themselves negative in polarity. A negation cue applied to
+# one of these is a DOUBLE negative, which asserts the phrase rather than
+# denying it: "does not prohibit a guaranteed return" permits the return.
+# Treating that as a denial erased a genuine disclosure.
+_POLARITY_REVERSING_VERBS = (
+    'prohibit', 'prohibits', 'prohibited', 'prevent', 'prevents', 'prevented',
+    'forbid', 'forbids', 'forbidden', 'exclude', 'excludes', 'excluded',
+    'disallow', 'disallows', 'disallowed', 'ban', 'bans', 'banned',
+    'restrict', 'restricts', 'restricted', 'preclude', 'precludes',
+    'deny', 'denies', 'denied', 'bar', 'bars', 'barred',
 )
 _NEGATION_WINDOW_WORDS = 10
 
 
 def is_negated(text: str, start: int) -> bool:
-    """True when a negation cue governs the match at ``start``.
+    """True only when a negation cue clearly denies the match at ``start``.
 
-    Only the text between the start of the containing sentence and the match
-    is considered, within a bounded window, so a negation in a previous
-    sentence does not silently excuse a real disclosure.
+    Bounded to the containing sentence so a denial in a previous sentence
+    cannot excuse a later disclosure. Returns False when a polarity-reversing
+    verb sits between the cue and the match, because that is a double negative
+    that asserts the phrase.
+
+    This is a heuristic and is deliberately biased toward *not* suppressing:
+    a false negative here would hide real evidence of a haram feature, which
+    is far worse than an extra item on the owner's review queue.
     """
     sentence_start, _ = _sentence_bounds(text, start, start + 1)
     prefix = text[sentence_start:start].lower()
     words = prefix.split()
-    window = ' '.join(words[-_NEGATION_WINDOW_WORDS:])
+    window_words = words[-_NEGATION_WINDOW_WORDS:]
+    window = ' '.join(window_words)
     if not window:
         return False
     padded = f' {window} '
+    cue_index = None
     for cue in _NEGATION_CUES:
-        if cue.startswith("n't"):
+        if cue == "n't":
             if "n't" in window:
-                return True
+                cue_index = max(
+                    (i for i, w in enumerate(window_words) if "n't" in w),
+                    default=None)
+                break
         elif f' {cue} ' in padded:
-            return True
-    return False
+            cue_index = max(
+                (i for i, w in enumerate(window_words)
+                 if w.strip('.,;:()') == cue.split()[-1]), default=None)
+            break
+    if cue_index is None:
+        return False
+    # Double negative between the cue and the match asserts the phrase.
+    for word in window_words[cue_index + 1:]:
+        if word.strip('.,;:()') in _POLARITY_REVERSING_VERBS:
+            return False
+    return True
 
 
 def scan_keywords(controller: dict,
@@ -215,6 +243,11 @@ def scan_keywords(controller: dict,
             pattern = re.compile(
                 r'(?<!\w)' + re.escape(phrase).replace(r'\ ', r'\s+') + r'(?!\w)',
                 re.IGNORECASE)
+            # EVERY occurrence is examined. An earlier version stopped at the
+            # first match per phrase per document, so a leading disclaimer
+            # ("no guaranteed return is offered in the legacy plan") hid a
+            # genuine disclosure later in the same page. That is the exact
+            # failure mode that lets a haram coin through.
             for match in pattern.finditer(haystack):
                 negated = is_negated(haystack, match.start())
                 hit = KeywordHit(
@@ -234,7 +267,6 @@ def scan_keywords(controller: dict,
                     clean_signals.append(hit)
                 else:
                     haram_leads.append(hit)
-                break  # one representative hit per phrase per document
     return haram_leads, clean_signals
 
 
@@ -291,28 +323,48 @@ def evaluate_green_gate(documents: list[RetrievedDocument],
                         expected_screeners: set[str]) -> dict[str, bool]:
     """Mechanically evaluate GREEN_PROOF_GATE.green_requires_all.
 
-    Every check is evidence-derived. None of them defaults to True.
+    Positive facts are bound to retained evidence wherever the controller
+    allows it. Three checks were previously satisfiable by a bare caller
+    assertion — an invalid ``token_type`` such as ``BANANA`` counted as
+    classified because the string was non-empty, an unbound five-word string
+    counted as an official utility quote, and seven blank screener values
+    counted as a completed screener check. Together those produced a
+    ``PROPOSE_GREEN`` on a one-sentence page, which would have shown the owner
+    a proof card claiming all twelve checks passed. A caller boolean is not
+    Sharia evidence.
+
+    Adverse leads block GREEN regardless of quote length. A short quote means
+    the narrative is unproven, not absent; the lead is unresolved and belongs
+    in front of the owner.
     """
     tier1_opened = [d for d in documents
                     if d.is_tier1 and d.opened and d.identity_match]
+    # The utility quote must actually appear in an opened, identity-matched
+    # Tier 1 document rather than merely being asserted by the caller.
+    normalized_quote = ' '.join(utility_quote.split()).lower()
+    utility_is_bound = bool(normalized_quote) and len(
+        normalized_quote.split()) >= 5 and any(
+        normalized_quote in ' '.join(d.text.split()).lower()
+        for d in tier1_opened)
+    known = {k.lower().replace('_', '').replace('-', ''): str(v or '').strip()
+             for k, v in screener_results.items()}
     screeners_complete = (
         bool(expected_screeners) and
-        expected_screeners <= {k.lower().replace('_', '').replace('-', '')
-                               for k in screener_results}
+        expected_screeners <= set(known) and
+        all(known.get(name) for name in expected_screeners)
     )
+    adverse = [h for h in leads if not h.negated]
     return {
         'identity_verified': bool(identity_confirmed),
-        'token_type_classified': bool(token_type),
+        'token_type_classified': token_type.strip().upper() in VALID_TOKEN_TYPES,
         'tier1_official_source_opened': bool(tier1_opened),
-        'real_utility_official_quote': len(utility_quote.split()) >= 5,
+        'real_utility_official_quote': utility_is_bound,
         'revenue_clean_or_non_material': bool(revenue_clean),
-        'no_confirmed_haram_narrative': not any(
-            h.quote_is_sufficient for h in leads),
+        'no_confirmed_haram_narrative': not adverse,
         'no_automatic_haram_income': not any(
-            h.narrative == 'N6' and h.quote_is_sufficient for h in leads),
+            h.narrative == 'N6' for h in adverse),
         'no_unresolved_yield_treasury_reward': not any(
-            h.narrative in {'N2', 'N3', 'N9'} and h.quote_is_sufficient
-            for h in leads),
+            h.narrative in {'N2', 'N3', 'N9'} for h in adverse),
         'no_unresolved_identity_conflict': bool(identity_confirmed),
         'keyword_scan_completed': bool(keyword_scan_completed),
         'no_unresolved_material_contradiction': not contradictions,
@@ -376,7 +428,23 @@ def evaluate(controller: dict, *, documents: list[RetrievedDocument],
     finding.haram_conditions = conditions
     finding.narrative = narrative
 
+    adverse = [h for h in leads if not h.negated]
     mechanical = [n for n in conditions if n not in JUDGEMENT_CONDITIONS]
+    if adverse and not (mechanical and all(conditions[n] for n in mechanical)):
+        # An adverse phrase was found but the HARAM gate is not satisfied —
+        # typically the sentence is shorter than the controller's verbatim
+        # minimum, or the source is below Tier 1. The narrative is unproven,
+        # not absent. Quote inflation used to paper over exactly this case, so
+        # the lead goes to the owner instead of being silently dropped.
+        finding.disposition = Disposition.ESCALATE
+        finding.reasons.append(
+            f'{len(adverse)} unresolved adverse keyword lead(s) '
+            f'({sorted({h.narrative for h in adverse})}) could not be proven '
+            'or dismissed mechanically; owner review required')
+        finding.escalations = detect_escalations(
+            controller, screener_results, token_type, contradictions, haram_notes)
+        return finding
+
     if mechanical and all(conditions[n] for n in mechanical):
         # A quoted Tier-1 narrative exists. The controller still forbids HARAM
         # until C3/C4 are established, and those need judgement — escalate with

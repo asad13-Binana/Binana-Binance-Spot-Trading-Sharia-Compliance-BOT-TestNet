@@ -12,12 +12,14 @@ feature would widen the supply-chain surface for no benefit.
 from __future__ import annotations
 
 import hashlib
+import ipaddress
 import logging
 import re
+import socket
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from html.parser import HTMLParser
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import requests
 
@@ -58,25 +60,49 @@ class RetrievalBlocked(RuntimeError):
 
 
 class _TextExtractor(HTMLParser):
-    """Collect visible text, dropping script/style/head noise."""
+    """Collect visible text, dropping script/style/head noise.
 
-    _SKIP = {'script', 'style', 'head', 'meta', 'link', 'noscript', 'svg'}
+    Skip state is a *stack of open container tags*, not a counter. An earlier
+    version counted depth and listed the void elements ``meta`` and ``link``
+    as skippable. Void elements never emit an end tag, so the counter never
+    returned to zero and an entirely ordinary page — any page with
+    ``<meta charset>`` in its head, i.e. effectively all of them — yielded an
+    empty document. Every screening would then have failed closed for the
+    wrong reason. Void elements carry no text and are simply not tracked.
+    """
+
+    # Container elements whose contents are not visible page text.
+    _SKIP = {'script', 'style', 'head', 'noscript', 'svg', 'template', 'title'}
+    # Void elements: no end tag, no text content, never tracked.
+    _VOID = {'meta', 'link', 'br', 'hr', 'img', 'input', 'source', 'area',
+             'base', 'col', 'embed', 'param', 'track', 'wbr'}
 
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self._chunks: list[str] = []
-        self._depth = 0
+        self._skip_stack: list[str] = []
 
     def handle_starttag(self, tag, attrs):
+        if tag in self._VOID:
+            return
         if tag in self._SKIP:
-            self._depth += 1
+            self._skip_stack.append(tag)
+
+    def handle_startendtag(self, tag, attrs):
+        return  # <foo /> opens and closes; nothing to track
 
     def handle_endtag(self, tag):
-        if tag in self._SKIP and self._depth:
-            self._depth -= 1
+        if tag in self._VOID:
+            return
+        if tag in self._skip_stack:
+            # Unwind to this tag so stray/misnested end tags cannot strand
+            # the extractor in a permanently skipping state.
+            while self._skip_stack:
+                if self._skip_stack.pop() == tag:
+                    break
 
     def handle_data(self, data):
-        if not self._depth and data.strip():
+        if not self._skip_stack and data.strip():
             self._chunks.append(data.strip())
 
     def text(self) -> str:
@@ -157,17 +183,64 @@ class FetchResult:
         }
 
 
+def _addresses_for(host: str) -> list[ipaddress._BaseAddress]:
+    """Resolve a host to IP objects. An IP literal resolves to itself."""
+    try:
+        return [ipaddress.ip_address(host)]
+    except ValueError:
+        pass
+    try:
+        infos = socket.getaddrinfo(host, 443, proto=socket.IPPROTO_TCP)
+    except OSError as exc:
+        raise RetrievalBlocked(f'cannot resolve {host!r}: {exc}') from exc
+    resolved = []
+    for info in infos:
+        try:
+            resolved.append(ipaddress.ip_address(info[4][0]))
+        except ValueError:
+            continue
+    if not resolved:
+        raise RetrievalBlocked(f'{host!r} resolved to no usable address')
+    return resolved
+
+
 def assert_fetchable(url: str) -> str:
-    """Return the canonical URL or raise. HTTPS only; never an AI host."""
+    """Return the canonical URL or raise.
+
+    HTTPS only, never a model-inference host, and never an address that is not
+    globally routable. The address check is the substantive control: a
+    hostname blacklist alone cannot prove no paid AI is used, because any
+    proxy or new hostname walks around it. Refusing loopback, private,
+    link-local, multicast and reserved destinations is what stops the
+    screening service from being turned into an SSRF primitive against the
+    Oracle host or its cloud metadata endpoint.
+    """
     canonical = normalize_evidence_url(url)
     if not canonical:
         raise RetrievalBlocked(f'not a fetchable HTTPS URL: {url!r}')
-    host = (urlparse(canonical).hostname or '').lower()
+    try:
+        parsed = urlparse(canonical)
+        host = (parsed.hostname or '').lower()
+        port = parsed.port
+    except ValueError as exc:
+        # urlparse raises on a malformed port, e.g. a bracketed IPv6 literal
+        # that survived canonicalisation. Fail closed rather than letting the
+        # ValueError escape as an unhandled error.
+        raise RetrievalBlocked(f'unparseable URL authority in {url!r}: {exc}') from exc
+    if port not in (None, 443):
+        raise RetrievalBlocked(f'refusing non-443 port {port} on {host!r}')
+    if not host:
+        raise RetrievalBlocked(f'no host in {url!r}')
     if host in AI_ENDPOINT_HOSTS or any(
             host.endswith('.' + h) for h in AI_ENDPOINT_HOSTS):
         raise RetrievalBlocked(
             f'refusing to contact model-inference host {host!r}: screening '
             'must not depend on an external AI service')
+    for address in _addresses_for(host):
+        if not address.is_global or address.is_multicast:
+            raise RetrievalBlocked(
+                f'refusing non-public destination {address} for host {host!r} '
+                '(loopback, private, link-local, multicast or reserved)')
     return canonical
 
 
@@ -191,12 +264,29 @@ class Retriever:
                                tier='TIER_4_WEAK_REJECT', error=str(exc))
         tier = classify_tier(canonical, official_hosts)
         try:
-            response = self.session.get(
-                canonical, timeout=self.timeout, allow_redirects=True,
-                stream=True, headers={'User-Agent': 'binance-sharia-screener/1.0'})
-            # A redirect chain must not leave HTTPS or land on an AI host.
-            for hop in list(response.history) + [response]:
-                assert_fetchable(hop.url)
+            # Redirects are followed MANUALLY. With allow_redirects=True the
+            # library completes the whole chain before returning, so
+            # inspecting response.history afterwards reported a blocked hop
+            # only after the prohibited request had already been made. Each
+            # Location is now validated before the next request is issued,
+            # and MAX_REDIRECTS is actually enforced.
+            target = canonical
+            response = None
+            for hop in range(MAX_REDIRECTS + 1):
+                response = self.session.get(
+                    target, timeout=self.timeout, allow_redirects=False,
+                    stream=True,
+                    headers={'User-Agent': 'binance-sharia-screener/1.0'})
+                if response.status_code not in (301, 302, 303, 307, 308):
+                    break
+                location = response.headers.get('Location') or ''
+                response.close()
+                if hop == MAX_REDIRECTS:
+                    return FetchResult(
+                        url=canonical, http_status=0, content_sha256='',
+                        text='', retrieved_utc=now, tier=tier,
+                        error=f'exceeded {MAX_REDIRECTS} redirects')
+                target = assert_fetchable(urljoin(target, location))
             body = b''
             for chunk in response.iter_content(65536):
                 body += chunk
