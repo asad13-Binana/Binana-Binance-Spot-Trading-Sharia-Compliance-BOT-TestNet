@@ -924,7 +924,7 @@ services/sharia_retriever/retriever.py,assert_peer_is_public,function,top-level-
 services/sharia_retriever/retriever.py,assert_fetchable,function,top-level-or-method,307,344,-,runtime-service
 services/sharia_retriever/retriever.py,_same_redirect_origin,function,top-level-or-method,347,364,-,runtime-service
 services/sharia_retriever/retriever.py,Retriever.__init__,function,top-level-or-method,370,381,-,runtime-service
-services/sharia_retriever/retriever.py,Retriever.fetch,function,top-level-or-method,383,496,-,runtime-service
+services/sharia_retriever/retriever.py,Retriever.fetch,function,top-level-or-method,383,505,-,runtime-service
 services/sharia_retriever/store.py,EvidenceStore.__init__,function,top-level-or-method,26,27,-,runtime-service
 services/sharia_retriever/store.py,EvidenceStore.relative_path,function,top-level-or-method,30,33,staticmethod,runtime-service
 services/sharia_retriever/store.py,EvidenceStore._target,function,top-level-or-method,35,42,-,runtime-service
@@ -1006,8 +1006,10 @@ services/sharia_screener/verdict_policy.py,_subject_is_a_plain_noun_phrase,funct
 services/sharia_screener/verdict_policy.py,_normalize,function,top-level-or-method,143,148,-,runtime-service
 services/sharia_screener/verdict_policy.py,canonical_screener_verdict,function,top-level-or-method,151,154,-,runtime-service
 services/sharia_screener/verdict_policy.py,positive_verdict_conflict,function,top-level-or-method,157,194,-,runtime-service
-services/sharia_screener/verdict_policy.py,containing_sentence,function,top-level-or-method,216,240,-,runtime-service
-services/sharia_screener/verdict_policy.py,quote_conflict_in_source,function,top-level-or-method,243,261,-,runtime-service
+services/sharia_screener/verdict_policy.py,_sentence_spans,function,top-level-or-method,226,245,-,runtime-service
+services/sharia_screener/verdict_policy.py,containing_contexts,function,top-level-or-method,248,273,-,runtime-service
+services/sharia_screener/verdict_policy.py,containing_sentence,function,top-level-or-method,276,284,-,runtime-service
+services/sharia_screener/verdict_policy.py,quote_conflict_in_source,function,top-level-or-method,287,313,-,runtime-service
 services/telegram_broker/authorization.py,is_owner,function,top-level-or-method,5,8,-,runtime-service
 services/telegram_broker/bot.py,_redact_secrets,function,top-level-or-method,47,62,-,runtime-service
 services/telegram_broker/bot.py,_release_label,function,top-level-or-method,65,73,-,runtime-service
@@ -1826,6 +1828,15 @@ tests/test_verdict_policy.py,ConnectedPeerVerificationTests.test_a_private_peer_
 tests/test_verdict_policy.py,ConnectedPeerVerificationTests.test_a_public_peer_is_accepted,function,top-level-or-method,362,365,-,test
 tests/test_verdict_policy.py,ConnectedPeerVerificationTests.test_an_undeterminable_peer_fails_closed,function,top-level-or-method,367,373,-,test
 tests/test_verdict_policy.py,ConnectedPeerVerificationTests.test_peer_verification_is_on_by_default,function,top-level-or-method,375,378,-,test
+tests/test_verdict_policy.py,SentenceBoundaryAndOccurrenceTests.test_an_abbreviation_cannot_cut_the_negation_away,function,top-level-or-method,404,411,-,test
+tests/test_verdict_policy.py,SentenceBoundaryAndOccurrenceTests.test_every_occurrence_must_be_affirmative,function,top-level-or-method,413,420,-,test
+tests/test_verdict_policy.py,SentenceBoundaryAndOccurrenceTests.test_all_occurrences_are_returned_not_just_the_first,function,top-level-or-method,422,427,-,test
+tests/test_verdict_policy.py,SentenceBoundaryAndOccurrenceTests.test_containing_sentence_refuses_an_ambiguous_fragment,function,top-level-or-method,429,433,-,test
+tests/test_verdict_policy.py,SentenceBoundaryAndOccurrenceTests.test_a_single_affirmative_sentence_still_passes,function,top-level-or-method,435,438,-,test
+tests/test_verdict_policy.py,RejectedResponseIsClosedTests.test_a_peer_rejected_response_is_closed_before_raising,function,top-level-or-method,444,479,-,test
+tests/test_verdict_policy.py,RejectedResponseIsClosedTests.test_a_peer_rejected_response_is_closed_before_raising._Resp.close,function,nested,458,459,-,test
+tests/test_verdict_policy.py,RejectedResponseIsClosedTests.test_a_peer_rejected_response_is_closed_before_raising._Resp.iter_content,function,nested,461,462,-,test
+tests/test_verdict_policy.py,RejectedResponseIsClosedTests.test_a_peer_rejected_response_is_closed_before_raising._Session.get,function,nested,465,466,-,test
 tests/test_workflow_graph.py,_load_workflow,function,top-level-or-method,31,32,-,test
 tests/test_workflow_graph.py,DeployGateGraphTests.setUp,function,top-level-or-method,36,38,-,test
 tests/test_workflow_graph.py,DeployGateGraphTests.test_mandatory_gate_jobs_exist,function,top-level-or-method,40,42,-,test

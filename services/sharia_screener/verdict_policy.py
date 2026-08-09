@@ -212,32 +212,76 @@ def positive_verdict_conflict(
 # by editing the draft.
 _SENTENCE_END = '.!?\n'
 
+# Tokens whose trailing period is NOT a sentence boundary. Treating one as a
+# boundary let a negative prefix be cut off: "It is false, i.e. this token is
+# halal." was reduced to the accepted sentence "this token is halal."
+_ABBREVIATIONS = frozenset({
+    'i.e', 'e.g', 'etc', 'vs', 'cf', 'al', 'approx', 'est', 'fig', 'no',
+    'u.s', 'u.k', 'u.a.e', 'inc', 'ltd', 'llc', 'co', 'corp', 'plc',
+    'dr', 'mr', 'mrs', 'ms', 'prof', 'sr', 'jr', 'st', 'vol', 'ch', 'pp',
+})
+_BOUNDARY = re.compile(r'[.!?]+\s+')
 
-def containing_sentence(quote: object, text: object) -> str:
-    """Return the full sentence in ``text`` spanning ``quote``, or ''.
 
-    Both sides are normalised identically first, so invisible characters and
-    hyphen variants cannot be used to dodge the lookup.
+def _sentence_spans(text: str) -> list[tuple[int, int]]:
+    """Split into sentences, refusing to break on an abbreviation.
+
+    A boundary counts only when the punctuation is not the tail of a known
+    abbreviation AND the next character starts a new sentence (uppercase or
+    a digit). Both conditions were missing: "i.e." split, and so did a period
+    followed by a lowercase word.
     """
-    needle = _normalize(quote)
+    starts = [0]
+    for match in _BOUNDARY.finditer(text):
+        prefix = text[:match.start()]
+        last = re.split(r'[\s(\["]', prefix)[-1].casefold().rstrip('.')
+        if last in _ABBREVIATIONS or len(last) == 1:
+            continue  # "i.e." or an initial such as "J."
+        nxt = text[match.end():match.end() + 1]
+        if nxt and not (nxt.isupper() or nxt.isdigit()):
+            continue  # a lowercase continuation is not a new sentence
+        starts.append(match.end())
+    ends = starts[1:] + [len(text)]
+    return list(zip(starts, ends))
+
+
+def containing_contexts(quote: object, text: object) -> list[str]:
+    """Every sentence in ``text`` that contains ``quote``.
+
+    ALL occurrences are returned, not just the first. Using ``find()`` meant
+    a page reading "This token is halal. It is false that this token is
+    halal." matched the affirmative sentence and ignored the contradictory
+    one, because the draft records no offset saying which occurrence the
+    owner actually reviewed.
+    """
+    needle = _normalize(quote).casefold()
     haystack = _normalize(text)
     if not needle or not haystack:
-        return ''
-    index = haystack.casefold().find(needle.casefold())
-    if index < 0:
-        return ''
-    start, end = index, index + len(needle)
-    left = 0
-    for i in range(start - 1, -1, -1):
-        if haystack[i] in _SENTENCE_END:
-            left = i + 1
+        return []
+    folded = haystack.casefold()
+    spans = _sentence_spans(haystack)
+    found, cursor = [], 0
+    while True:
+        index = folded.find(needle, cursor)
+        if index < 0:
             break
-    right = len(haystack)
-    for i in range(end, len(haystack)):
-        if haystack[i] in _SENTENCE_END:
-            right = i + 1
-            break
-    return haystack[left:right].strip()
+        for left, right in spans:
+            if left <= index < right:
+                found.append(haystack[left:right].strip())
+                break
+        cursor = index + 1
+    return found
+
+
+def containing_sentence(quote: object, text: object) -> str:
+    """The single sentence containing ``quote``, or '' if it is ambiguous.
+
+    Deliberately returns '' when the fragment appears more than once: with no
+    recorded offset there is no way to know which occurrence was reviewed,
+    and guessing the first one is how a contradictory occurrence got ignored.
+    """
+    contexts = containing_contexts(quote, text)
+    return contexts[0] if len(contexts) == 1 else ''
 
 
 def quote_conflict_in_source(value: object, quote: object, text: object,
@@ -250,12 +294,20 @@ def quote_conflict_in_source(value: object, quote: object, text: object,
     """
     if canonical_screener_verdict(value) != POSITIVE_SCREENER_VERDICT:
         return ''
-    sentence = containing_sentence(quote, text)
-    if not sentence:
+    contexts = containing_contexts(quote, text)
+    if not contexts:
         return ('positive verdict quote was not found verbatim in the '
                 'retrieved source')
-    conflict = positive_verdict_conflict(value, sentence, **kwargs)
-    if conflict:
-        return (f'{conflict} (judged on the full source sentence '
-                f'{sentence!r}, not the supplied fragment)')
+    # EVERY occurrence must be affirmative. Judging only the first let a page
+    # containing both "This token is halal." and "It is false that this token
+    # is halal." pass on the affirmative one while the contradiction sat two
+    # sentences away. The draft records no offset identifying which
+    # occurrence the owner read, so until it does, ambiguity is refused.
+    for sentence in contexts:
+        conflict = positive_verdict_conflict(value, sentence, **kwargs)
+        if conflict:
+            where = ('' if len(contexts) == 1 else
+                     f' (1 of {len(contexts)} occurrences of this fragment)')
+            return (f'{conflict} (judged on the full source sentence '
+                    f'{sentence!r}, not the supplied fragment){where}')
     return ''

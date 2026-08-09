@@ -65,8 +65,8 @@
       "size": 31
     },
     "VALIDATION_STATUS.json": {
-      "sha256": "43633f5c8cfac961b44becaf72a81e2bfc8a5b38825f64657e2f866acc7144ef",
-      "size": 4730
+      "sha256": "4099b5f7570fd47291231c911af2b481b076a8ee172e0be2958272925141dab3",
+      "size": 5287
     },
     "deploy/install_artifact.sh": {
       "sha256": "731a6fa5de4ee31ed618dc9879bef32d2ea035e7b3f14ac19a42718caa65df70",
@@ -181,7 +181,7 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "73c3d0974b511cf52bd536f2d5b08aac22157fff17aa8dfa8ba05cfd950fcb9a",
+      "sha256": "ea3e05a9527ecb68e377edfc33bb556ab8d0f6b04b252834d9495a411b03bbfe",
       "size": 35118
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
@@ -189,8 +189,8 @@
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "52c8d6647d7e7bd73c9838c1d8511bf82954219d2bc99b6c8c51f8025840e2df",
-      "size": 234804
+      "sha256": "094b2d635b92b0a6a05acddef197a1b049d3a7b951aca27850ac2bb446e0dc91",
+      "size": 236461
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "7c51900cd34d65cf53216d1830543e89f1175d5eab51481e5283ccb171f6df40",
@@ -637,8 +637,8 @@
       "size": 1068
     },
     "services/sharia_retriever/retriever.py": {
-      "sha256": "736c7a039049fb98d0cf35a00fcfa7f4235e92ce5f95f7653eb851640622661c",
-      "size": 21193
+      "sha256": "acda0170d87ee3adf45f10a4f68ad36414e21f8ee26ab367c3f57bfa1554ff0d",
+      "size": 21705
     },
     "services/sharia_retriever/store.py": {
       "sha256": "58a4403640c8b6d4c166e50470593b0912d7fa957e75d8930466b56d2dee5224",
@@ -685,8 +685,8 @@
       "size": 7941
     },
     "services/sharia_screener/verdict_policy.py": {
-      "sha256": "fe3987178db9fa33b1966d3d5553821974a9d6170bd63ed4a1158426199c9d78",
-      "size": 12053
+      "sha256": "094de328f1c5290b683587c65349c47587d0784977b71aa8bf496caf77d0850c",
+      "size": 14689
     },
     "services/telegram_broker/__init__.py": {
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -881,8 +881,8 @@
       "size": 46181
     },
     "tests/test_verdict_policy.py": {
-      "sha256": "0e6e0a1a2d748d8bcc637645f7caad3deaa947a0873232fade78168c398a5d78",
-      "size": 16809
+      "sha256": "2eb76d2d77f004d831cfccd1c14249601cad0f09f8f652404023086c040c5874",
+      "size": 21114
     },
     "tests/test_workflow_graph.py": {
       "sha256": "2a8f22e7f2b3ead500a6011b15e67f8ffc49baab0752f21f798bd970c1055784",

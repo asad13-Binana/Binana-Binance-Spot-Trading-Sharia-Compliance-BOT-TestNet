@@ -376,3 +376,104 @@ class ConnectedPeerVerificationTests(unittest.TestCase):
         from services.sharia_retriever.retriever import Retriever
         self.assertTrue(Retriever().verify_peer,
                         'production must verify the connected peer')
+
+
+class SentenceBoundaryAndOccurrenceTests(unittest.TestCase):
+    """The context extracted around a quote must not be trimmable.
+
+    Two further bypasses of the source-sentence fix, both reproduced:
+    a dotted abbreviation immediately before the fragment split the sentence
+    and cut the negation off, and a repeated fragment matched only its first
+    (affirmative) occurrence while a contradictory one sat elsewhere.
+    """
+
+    ABBREVIATION_TRUNCATION = (
+        'It is false, i.e. this token is halal.',
+        'This claim is untrue, e.g. this token is halal.',
+        'Per U.S. rules it is untrue that this token is halal.',
+        'Reviewed by J. Smith. It is false that this token is halal.',
+        'It is false. this token is halal.',
+    )
+    REPEATED_OCCURRENCE = (
+        'This token is halal. It is false that this token is halal.',
+        'It is false that this token is halal. This token is halal.',
+        'This token is halal. This token is halal. '
+        'It is false that this token is halal.',
+    )
+
+    def test_an_abbreviation_cannot_cut_the_negation_away(self):
+        from services.sharia_screener.verdict_policy import quote_conflict_in_source
+        for source in self.ABBREVIATION_TRUNCATION:
+            with self.subTest(source=source):
+                self.assertTrue(
+                    quote_conflict_in_source('halal', 'this token is halal',
+                                             source),
+                    f'{source!r} was trimmed into accepted halal evidence')
+
+    def test_every_occurrence_must_be_affirmative(self):
+        from services.sharia_screener.verdict_policy import quote_conflict_in_source
+        for source in self.REPEATED_OCCURRENCE:
+            with self.subTest(source=source):
+                self.assertTrue(
+                    quote_conflict_in_source('halal', 'this token is halal',
+                                             source),
+                    'a contradictory occurrence elsewhere was ignored')
+
+    def test_all_occurrences_are_returned_not_just_the_first(self):
+        from services.sharia_screener.verdict_policy import containing_contexts
+        found = containing_contexts(
+            'this token is halal',
+            'This token is halal. It is false that this token is halal.')
+        self.assertEqual(len(found), 2)
+
+    def test_containing_sentence_refuses_an_ambiguous_fragment(self):
+        from services.sharia_screener.verdict_policy import containing_sentence
+        self.assertEqual(containing_sentence(
+            'this token is halal',
+            'This token is halal. This token is halal.'), '')
+
+    def test_a_single_affirmative_sentence_still_passes(self):
+        from services.sharia_screener.verdict_policy import quote_conflict_in_source
+        self.assertEqual(quote_conflict_in_source(
+            'halal', 'this token is halal', 'This token is halal.'), '')
+
+
+class RejectedResponseIsClosedTests(unittest.TestCase):
+    """A security refusal must not leak the socket it refused."""
+
+    def test_a_peer_rejected_response_is_closed_before_raising(self):
+        import ipaddress
+        from unittest import mock as _mock
+        from services.sharia_retriever.retriever import Retriever
+
+        closed = []
+
+        class _Resp:
+            status_code = 200
+            history: list = []
+            headers = {'Content-Type': 'text/plain'}
+            encoding = 'utf-8'
+            url = 'https://approved.example/'
+
+            def close(self):
+                closed.append(True)
+
+            def iter_content(self, _n):
+                yield b'body'
+
+        class _Session:
+            def get(self, _url, **_kw):
+                return _Resp()
+
+        with _mock.patch(
+                'services.sharia_retriever.retriever._addresses_for',
+                lambda _h: [ipaddress.ip_address('93.184.216.34')]), \
+             _mock.patch(
+                'services.sharia_retriever.retriever.connected_peer_address',
+                lambda _r: ipaddress.ip_address('127.0.0.1')):
+            result = Retriever(session=_Session()).fetch(
+                'https://approved.example/')
+
+        self.assertFalse(result.ok)
+        self.assertIn('non-public address', result.error)
+        self.assertTrue(closed, 'the rejected response was never closed')

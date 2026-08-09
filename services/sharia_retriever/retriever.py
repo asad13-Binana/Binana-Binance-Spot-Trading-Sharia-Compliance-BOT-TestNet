@@ -409,8 +409,17 @@ class Retriever:
                 # but the HTTP stack resolved it again to open this socket,
                 # and the record can change in between.
                 if self.verify_peer:
-                    assert_peer_is_public(
-                        response, urlparse(target).hostname or target)
+                    # Close before re-raising. The rejection path previously
+                    # jumped past the later close(), leaving the socket to
+                    # garbage collection; repeated rejected scans could then
+                    # exhaust the connection pool. A security refusal must
+                    # not depend on the collector running.
+                    try:
+                        assert_peer_is_public(
+                            response, urlparse(target).hostname or target)
+                    except RetrievalBlocked:
+                        response.close()
+                        raise
                 if response.status_code not in (301, 302, 303, 307, 308):
                     break
                 location = response.headers.get('Location') or ''

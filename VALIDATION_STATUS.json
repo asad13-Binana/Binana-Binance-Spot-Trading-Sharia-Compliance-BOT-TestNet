@@ -18,16 +18,17 @@
     "note": "The image-baked, read-only RELEASE_MODE interlock cannot be promoted to live by editing .env."
   },
   "offline_results": {
-    "full_release_gate": "passed locally after the quote-truncation fix: 321 core tests passed with 8 documented skips and 225 subtests, plus the monitoring suite; totals are re-derived per revision rather than carried forward",
-    "audit_ledgers": "verified exact tree parity after regeneration: 224 files and 1832 functions",
-    "release_manifest": "regenerated after the quote-truncation fix; 222-file exact set/hash verification passed locally",
+    "full_release_gate": "passed locally at this exact revision: 331 core tests passed with 8 documented skips and 238 subtests, plus the monitoring suite. Counts are re-derived at every revision; a previous commit left them describing the prior head.",
+    "audit_ledgers": "verified exact tree parity after regeneration at this exact revision: 224 files and 1851 functions",
+    "release_manifest": "regenerated at this exact revision; 222-file exact set/hash verification passed locally",
     "strategy_integrity": "protected bytes and source/token fingerprints match the reviewed baseline",
     "dependency_locks": "runtime dependencies, including the pure-Python PDF parser, are SHA-256 hash-locked and installed with pip --require-hashes; local strict vulnerability audit found no known vulnerabilities",
     "container_execution": "not run locally because no Docker engine was available; both base images are digest-pinned with amd64 and arm64 manifests, and GitHub Actions remains required for this revision",
     "authenticated_binance_orders": "not attempted",
     "telegram_real_credentials": "not used",
     "oracle_deployment": "not attempted",
-    "sharia_evidence_binding": "a positive screener verdict is judged on the full sentence the retrieved source contains, not on the fragment supplied by the caller, so trimming a negative prefix cannot launder negative evidence into a positive record"
+    "sharia_evidence_binding": "a positive screener verdict is judged on the full sentence the retrieved source contains, across EVERY occurrence of the quoted fragment, with abbreviation-aware sentence boundaries, so neither trimming a negative prefix nor a contradictory second occurrence can produce a positive record",
+    "retriever_egress_policy": "destinations are resolved and required to be globally routable before the request, and the live socket peer is re-checked before any body is read, closing the DNS-rebinding window; a rejected response is closed deterministically. This prevents consuming a private response, but the GET has already been sent, so it is not a substitute for network-level egress denial of private and link-local ranges on the host."
   },
   "repair_summary": {
     "universe": "full immutable snapshot reopen, semantic hash, filename/path, configuration, ranking, schema, freshness, and retention validation",
