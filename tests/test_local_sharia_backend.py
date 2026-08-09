@@ -315,6 +315,76 @@ class LocalRunnerIntegrationTests(unittest.TestCase):
             self.assertTrue(report['local_review']['promotable'])
             validate_local_evidence_files(report, root / 'evidence')
 
+    def test_seven_haram_screener_results_can_never_propose_green(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            registry_payload, bodies = self._registry_payload()
+            for name, claim in registry_payload['assets']['XYZ']['screeners'].items():
+                quote = f'{name} screening result is haram for this asset.'
+                claim['value'] = 'haram'
+                claim['quote'] = quote
+                bodies[claim['url']] = quote
+            registry = root / 'source_registry.json'
+            registry.write_text(json.dumps(registry_payload), encoding='utf-8')
+            store = EvidenceStore(root / 'evidence')
+
+            class _Retriever:
+                def fetch(self, url, *, official_hosts=None, identity_match=False):
+                    body = bodies[url].encode()
+                    digest, relative = store.put(body)
+                    return FetchResult(
+                        url=url, http_status=200, content_sha256=digest,
+                        content_path=relative, text=bodies[url],
+                        retrieved_utc='2026-08-09T00:00:00Z',
+                        tier=('TIER_1_OFFICIAL' if identity_match
+                              else 'TIER_3_SECONDARY'),
+                        identity_match=identity_match)
+
+            report, _meta = LocalScreeningRunner(
+                CONTROLLER, registry_path=registry,
+                evidence_root=root / 'evidence', retriever=_Retriever()).run(
+                    'XYZ', 'XYZ/USDT')
+            self.assertNotEqual(
+                report['local_review']['disposition'], Disposition.PROPOSE_GREEN)
+            self.assertFalse(report['local_review']['promotable'])
+            self.assertFalse(report['local_review']['green_checks'][
+                'shariah_screener_check_completed'])
+
+    def test_halal_value_bound_to_negative_quote_can_never_propose_green(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            registry_payload, bodies = self._registry_payload()
+            for claim in registry_payload['assets']['XYZ']['screeners'].values():
+                quote = 'This asset is not Shariah compliant for spot holding.'
+                claim['value'] = 'halal'
+                claim['quote'] = quote
+                bodies[claim['url']] = quote
+            registry = root / 'source_registry.json'
+            registry.write_text(json.dumps(registry_payload), encoding='utf-8')
+            store = EvidenceStore(root / 'evidence')
+
+            class _Retriever:
+                def fetch(self, url, *, official_hosts=None, identity_match=False):
+                    body = bodies[url].encode()
+                    digest, relative = store.put(body)
+                    return FetchResult(
+                        url=url, http_status=200, content_sha256=digest,
+                        content_path=relative, text=bodies[url],
+                        retrieved_utc='2026-08-09T00:00:00Z',
+                        tier=('TIER_1_OFFICIAL' if identity_match
+                              else 'TIER_3_SECONDARY'),
+                        identity_match=identity_match)
+
+            report, _meta = LocalScreeningRunner(
+                CONTROLLER, registry_path=registry,
+                evidence_root=root / 'evidence', retriever=_Retriever()).run(
+                    'XYZ', 'XYZ/USDT')
+            self.assertNotEqual(
+                report['local_review']['disposition'], Disposition.PROPOSE_GREEN)
+            self.assertFalse(report['local_review']['promotable'])
+            self.assertFalse(report['local_review']['green_checks'][
+                'shariah_screener_check_completed'])
+
     def test_owner_approval_is_bound_to_exact_report_and_evidence_bytes(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

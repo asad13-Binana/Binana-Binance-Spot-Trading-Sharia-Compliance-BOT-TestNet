@@ -23,6 +23,11 @@ from dataclasses import dataclass, field
 from urllib.parse import urlparse
 
 from services.common.sharia_v19 import SCREENER_HOSTS
+from services.sharia_screener.verdict_policy import (
+    POSITIVE_SCREENER_VERDICT,
+    canonical_screener_verdict,
+    positive_verdict_conflict,
+)
 
 MIN_QUOTE_WORDS = 15
 # Conditions that cannot be established by pattern matching alone. The
@@ -350,7 +355,8 @@ def evaluate_green_gate(documents: list[RetrievedDocument],
                         keyword_scan_completed: bool,
                         expected_screeners: set[str],
                         fact_evidence: dict[str, EvidenceClaim],
-                        screener_evidence: dict[str, EvidenceClaim]
+                        screener_evidence: dict[str, EvidenceClaim],
+                        asset_identifier: str = '',
                         ) -> dict[str, bool]:
     """Mechanically evaluate GREEN_PROOF_GATE.green_requires_all.
 
@@ -432,14 +438,23 @@ def evaluate_green_gate(documents: list[RetrievedDocument],
         if not any(claim_host == host or claim_host.endswith('.' + host)
                    for host in permitted):
             return False
+        verdict = canonical_screener_verdict(known.get(name))
+        if verdict != POSITIVE_SCREENER_VERDICT:
+            return False
+        if positive_verdict_conflict(
+                verdict, claim.quote,
+                permitted_provider_identifiers={name},
+                permitted_asset_identifiers={asset_identifier}):
+            return False
         return claim_is_bound(
-            claim, expected_value=known.get(name), min_words=3)
+            claim, expected_value=verdict, min_words=3)
 
     screeners_complete = (
         bool(expected_screeners) and
         expected_screeners <= set(known) and
         expected_screeners <= set(bound_screeners) and
-        all(known.get(name) and screener_claim_is_bound(name)
+        all(canonical_screener_verdict(known.get(name)) ==
+            POSITIVE_SCREENER_VERDICT and screener_claim_is_bound(name)
             for name in expected_screeners)
     )
     adverse = [h for h in leads if not h.negated]
@@ -473,6 +488,15 @@ def detect_escalations(controller: dict, screener_results: dict[str, str],
         fired.append(
             f'split verdict across credible Shariah screeners '
             f'(halal: {sorted(says_halal)}; haram: {sorted(says_haram)})')
+    non_positive = {
+        name: value for name, value in verdicts.items()
+        if canonical_screener_verdict(value) != POSITIVE_SCREENER_VERDICT
+    }
+    if non_positive:
+        fired.append(
+            'one or more named Shariah screeners are non-positive or unknown: '
+            + ', '.join(f'{name}={value or "<blank>"}'
+                        for name, value in sorted(non_positive.items())))
     if token_type.upper() in {'STABLECOIN', 'WRAPPED_BRIDGED'}:
         fired.append(
             f'{token_type} requires the sub-framework and holder-rights review')
@@ -492,7 +516,8 @@ def evaluate(controller: dict, *, documents: list[RetrievedDocument],
              contradictions: list[str] | None = None,
              expected_screeners: set[str] | None = None,
              fact_evidence: dict[str, EvidenceClaim] | None = None,
-             screener_evidence: dict[str, EvidenceClaim] | None = None
+             screener_evidence: dict[str, EvidenceClaim] | None = None,
+             asset_identifier: str = '',
              ) -> RulesFinding:
     """Run the full deterministic pass and return a disposition.
 
@@ -570,7 +595,8 @@ def evaluate(controller: dict, *, documents: list[RetrievedDocument],
         utility_quote=utility_quote, revenue_clean=revenue_clean,
         contradictions=contradictions, keyword_scan_completed=scan_completed,
         expected_screeners=expected_screeners, fact_evidence=fact_evidence,
-        screener_evidence=screener_evidence)
+        screener_evidence=screener_evidence,
+        asset_identifier=asset_identifier)
 
     escalations = detect_escalations(
         controller, screener_results, token_type, contradictions, haram_notes)

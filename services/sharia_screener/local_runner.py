@@ -226,6 +226,7 @@ class LocalScreeningRunner:
             contradictions=[], expected_screeners=SCREENER_SITES,
             fact_evidence=fact_evidence,
             screener_evidence=screener_evidence,
+            asset_identifier=base,
         )
         report = self._review_report(
             base, finding, fetches, raw_claims, raw_screeners)
