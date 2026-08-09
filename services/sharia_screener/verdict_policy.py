@@ -12,6 +12,8 @@ from collections.abc import Iterable
 import re
 import unicodedata
 
+from services.sharia_screener.evidence_binding import text_blocks
+
 
 CANONICAL_SCREENER_VERDICTS = frozenset({
     'halal', 'haram', 'doubtful', 'unknown',
@@ -286,28 +288,28 @@ def containing_sentence(quote: object, text: object) -> str:
 
 def quote_conflict_in_source(value: object, quote: object, text: object,
                              **kwargs) -> str:
-    """Apply the positive-verdict policy to the quote's FULL source sentence.
+    """Apply the positive policy to one exact complete extracted-text block.
 
-    ``quote`` may be any fragment the owner selected; what is judged is the
-    sentence the source actually contains. A fragment that cannot be located
-    at all is refused outright.
+    Positive evidence is never relocated from a caller-supplied substring and
+    no English sentence boundary is guessed here.  The seeding/runtime path
+    additionally verifies the block's exact offsets, surrounding context,
+    extracted-text hash and response-byte hash.  This block invariant closes
+    the unbounded abbreviation-truncation class while preserving the existing
+    affirmative language policy.
     """
     if canonical_screener_verdict(value) != POSITIVE_SCREENER_VERDICT:
         return ''
-    contexts = containing_contexts(quote, text)
-    if not contexts:
-        return ('positive verdict quote was not found verbatim in the '
-                'retrieved source')
-    # EVERY occurrence must be affirmative. Judging only the first let a page
-    # containing both "This token is halal." and "It is false that this token
-    # is halal." pass on the affirmative one while the contradiction sat two
-    # sentences away. The draft records no offset identifying which
-    # occurrence the owner read, so until it does, ambiguity is refused.
-    for sentence in contexts:
-        conflict = positive_verdict_conflict(value, sentence, **kwargs)
-        if conflict:
-            where = ('' if len(contexts) == 1 else
-                     f' (1 of {len(contexts)} occurrences of this fragment)')
-            return (f'{conflict} (judged on the full source sentence '
-                    f'{sentence!r}, not the supplied fragment){where}')
+    selected = str(quote or '').strip()
+    matches = [block for block in text_blocks(str(text or ''))
+               if block.text == selected]
+    if not matches:
+        return ('positive verdict quote must exactly equal one complete '
+                'extracted-text block in the retrieved source')
+    if len(matches) != 1:
+        return ('positive verdict block occurs more than once; exact reviewed '
+                'offset binding is required and ambiguous evidence is refused')
+    conflict = positive_verdict_conflict(value, matches[0].text, **kwargs)
+    if conflict:
+        return (f'{conflict} (judged on the complete bound source block '
+                f'{matches[0].text!r})')
     return ''

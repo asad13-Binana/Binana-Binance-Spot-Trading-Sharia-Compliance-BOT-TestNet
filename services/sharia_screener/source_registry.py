@@ -16,10 +16,27 @@ from services.sharia_screener.verdict_policy import (
     CANONICAL_SCREENER_VERDICTS,
     canonical_screener_verdict,
 )
+from services.sharia_screener.evidence_binding import EXTRACTOR_VERSION
 
 
 class SourceRegistryError(ValueError):
     """The local source registry is malformed or identity-unsafe."""
+
+
+_SHA256 = re.compile(r'^[0-9a-f]{64}$')
+
+
+def _sha256(value: object, field: str) -> str:
+    digest = str(value or '').strip().lower()
+    if not _SHA256.fullmatch(digest):
+        raise SourceRegistryError(f'{field} must be a lowercase SHA-256')
+    return digest
+
+
+def _offset(value: object, field: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise SourceRegistryError(f'{field} must be a non-negative integer')
+    return value
 
 
 def _host(value: str) -> str:
@@ -84,6 +101,10 @@ class SourceRegistry:
         sources = raw.get('sources')
         claims = raw.get('claims', {})
         screeners = raw.get('screeners', {})
+        if raw.get('context_confirmed') is not True:
+            raise SourceRegistryError(
+                f'{base} requires explicit owner confirmation of every '
+                'complete evidence context')
         if (not isinstance(official_hosts, list) or not official_hosts or
                 not all(isinstance(item, str) and item.strip()
                         for item in official_hosts)):
@@ -112,7 +133,20 @@ class SourceRegistry:
             if url in source_urls:
                 raise SourceRegistryError(f'{base} contains duplicate source URL {url!r}')
             source_urls.add(url)
-            normalized_sources.append({'url': url, 'identity_match': identity_match})
+            if source.get('extractor_version') != EXTRACTOR_VERSION:
+                raise SourceRegistryError(
+                    f'{base} source {index} extractor version is unsupported')
+            normalized_sources.append({
+                'url': url,
+                'identity_match': identity_match,
+                'content_sha256': _sha256(
+                    source.get('content_sha256'),
+                    f'{base} source {index} content_sha256'),
+                'text_sha256': _sha256(
+                    source.get('text_sha256'),
+                    f'{base} source {index} text_sha256'),
+                'extractor_version': EXTRACTOR_VERSION,
+            })
         if not has_identity_source:
             raise SourceRegistryError(f'{base} requires an identity-matched official source')
         if not isinstance(claims, dict) or not isinstance(screeners, dict):
@@ -140,7 +174,37 @@ class SourceRegistry:
                 'value': str(claim['value']).strip(),
                 'quote': str(claim['quote']).strip(),
                 'url': url,
+                'extractor_version': str(claim.get('extractor_version', '')),
+                'text_sha256': _sha256(
+                    claim.get('text_sha256'),
+                    f'{base} claim {name!r} text_sha256'),
+                'quote_start': _offset(
+                    claim.get('quote_start'),
+                    f'{base} claim {name!r} quote_start'),
+                'quote_end': _offset(
+                    claim.get('quote_end'),
+                    f'{base} claim {name!r} quote_end'),
+                'context_start': _offset(
+                    claim.get('context_start'),
+                    f'{base} claim {name!r} context_start'),
+                'context_end': _offset(
+                    claim.get('context_end'),
+                    f'{base} claim {name!r} context_end'),
+                'context_sha256': _sha256(
+                    claim.get('context_sha256'),
+                    f'{base} claim {name!r} context_sha256'),
+                'context': str(claim.get('context', '')),
             }
+            if normalized['extractor_version'] != EXTRACTOR_VERSION:
+                raise SourceRegistryError(
+                    f'{base} claim {name!r} extractor version is unsupported')
+            if not normalized['context']:
+                raise SourceRegistryError(
+                    f'{base} claim {name!r} requires owner-reviewed context')
+            if not (normalized['context_start'] <= normalized['quote_start'] <
+                    normalized['quote_end'] <= normalized['context_end']):
+                raise SourceRegistryError(
+                    f'{base} claim {name!r} evidence offsets are not nested')
             if name in claims:
                 normalized_claims[name] = normalized
             else:
@@ -169,6 +233,7 @@ class SourceRegistry:
             canonical_screeners[normalized_name] = claim
         return {
             'official_hosts': normalized_hosts,
+            'context_confirmed': True,
             'sources': normalized_sources,
             'claims': normalized_claims,
             'screeners': canonical_screeners,

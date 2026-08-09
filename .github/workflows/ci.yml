@@ -154,7 +154,7 @@ jobs:
   # the package-mode file is baked read-only, the Sharia mount is read-only, the
   # service reaches health, and state survives a container restart. Freqtrade
   # and the Telegram broker need a pinned image pull and real tokens, so full
-  # five-service health remains a testnet/Oracle gate.
+  # six-service health remains a testnet/Oracle gate.
   integration-simulation:
     needs: verify
     runs-on: ubuntu-latest
@@ -212,6 +212,40 @@ jobs:
         run: |
           docker compose --env-file .env.ci config -q
           docker compose --env-file .env.ci build universe
+      - name: Prove Sharia network isolation and pinned HTTPS egress
+        run: |
+          docker compose --env-file .env.ci up -d sharia-egress-proxy
+          for i in $(seq 1 20); do
+            state=$(docker inspect --format '{{ .State.Health.Status }}' $(docker compose --env-file .env.ci ps -q sharia-egress-proxy) 2>/dev/null || echo starting)
+            [ "$state" = "healthy" ] && break
+            sleep 2
+          done
+          test "$state" = "healthy" || { docker compose --env-file .env.ci logs sharia-egress-proxy; exit 1; }
+          docker compose --env-file .env.ci run --rm --no-deps -T sharia-screener python - <<'PY'
+          import socket
+          import requests
+
+          response = requests.get('https://example.com/', timeout=15)
+          assert response.status_code == 200, response.status_code
+
+          direct = socket.socket()
+          direct.settimeout(3)
+          try:
+              direct.connect(('1.1.1.1', 443))
+          except OSError:
+              pass
+          else:
+              raise SystemExit('FAIL: screener bypassed its internal-only network')
+          finally:
+              direct.close()
+
+          probe = socket.create_connection(('sharia-egress-proxy', 8080), 5)
+          probe.sendall(b'CONNECT 169.254.169.254:443 HTTP/1.1\r\nHost: 169.254.169.254\r\n\r\n')
+          reply = probe.recv(1024)
+          probe.close()
+          assert b'403 Forbidden' in reply, reply
+          print('PASS: HTTPS used the pinned proxy; direct and metadata egress were blocked')
+          PY
       - name: Package-mode file is baked read-only into the image
         run: |
           image=$(docker compose --env-file .env.ci config --format json | python -c "import sys,json;print(json.load(sys.stdin)['services']['universe']['image'])")

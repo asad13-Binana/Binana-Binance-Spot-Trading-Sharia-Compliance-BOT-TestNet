@@ -297,7 +297,7 @@ class QuoteTruncationTests(unittest.TestCase):
     def test_a_genuinely_affirmative_page_still_passes(self):
         from services.sharia_screener.verdict_policy import quote_conflict_in_source
         self.assertEqual(
-            quote_conflict_in_source('halal', 'This token is halal',
+            quote_conflict_in_source('halal', 'This token is halal.',
                                      'This token is halal.'), '')
 
     def test_a_fragment_absent_from_the_source_is_refused(self):
@@ -393,6 +393,9 @@ class SentenceBoundaryAndOccurrenceTests(unittest.TestCase):
         'Per U.S. rules it is untrue that this token is halal.',
         'Reviewed by J. Smith. It is false that this token is halal.',
         'It is false. this token is halal.',
+        'The following statement is false, viz. This token is halal.',
+        'The following assertion is false, a.k.a. This token is halal.',
+        'This claim is untrue, esp. This token is halal.',
     )
     REPEATED_OCCURRENCE = (
         'This token is halal. It is false that this token is halal.',
@@ -435,7 +438,7 @@ class SentenceBoundaryAndOccurrenceTests(unittest.TestCase):
     def test_a_single_affirmative_sentence_still_passes(self):
         from services.sharia_screener.verdict_policy import quote_conflict_in_source
         self.assertEqual(quote_conflict_in_source(
-            'halal', 'this token is halal', 'This token is halal.'), '')
+            'halal', 'This token is halal.', 'This token is halal.'), '')
 
 
 class RejectedResponseIsClosedTests(unittest.TestCase):

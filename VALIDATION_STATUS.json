@@ -1,7 +1,7 @@
 {
-  "release": "V10.3-LOCAL-SHARIA-2026-08-09A",
-  "revision": "2026-08-09A",
-  "assessment_date": "2026-08-09",
+  "release": "V10.3-LOCAL-SHARIA-2026-08-10A",
+  "revision": "2026-08-10A",
+  "assessment_date": "2026-08-10",
   "package_mode": "testnet",
   "default_execution_mode": "testnet",
   "production_live_certified": false,
@@ -18,21 +18,21 @@
     "note": "The image-baked, read-only RELEASE_MODE interlock cannot be promoted to live by editing .env."
   },
   "offline_results": {
-    "full_release_gate": "passed locally at this exact revision: 331 core tests passed with 8 documented skips and 238 subtests, plus the monitoring suite. Counts are re-derived at every revision; a previous commit left them describing the prior head.",
-    "audit_ledgers": "verified exact tree parity after regeneration at this exact revision: 224 files and 1851 functions",
-    "release_manifest": "regenerated at this exact revision; 222-file exact set/hash verification passed locally",
+    "full_release_gate": "the complete local shell release gate passed at this revision: 476 core tests with 4 documented skips, 50 monitoring tests, 33 legacy self-tests, plus exact manifest/ledger, secret, controller-integrity and deployment-structure checks; combined pytest independently passed 523 tests with 9 documented skips and 266 subtests; GitHub container and workflow gates remain required on the exact committed head",
+    "audit_ledgers": "verified exact tree parity at this revision: 229 files and 1881 functions",
+    "release_manifest": "verified exact set and SHA-256 parity at this revision: 227 shipped files",
     "strategy_integrity": "protected bytes and source/token fingerprints match the reviewed baseline",
     "dependency_locks": "runtime dependencies, including the pure-Python PDF parser, are SHA-256 hash-locked and installed with pip --require-hashes; local strict vulnerability audit found no known vulnerabilities",
-    "container_execution": "not run locally because no Docker engine was available; both base images are digest-pinned with amd64 and arm64 manifests, and GitHub Actions remains required for this revision",
+    "container_execution": "local Docker was unavailable; a real pinned-numeric-IP TLS connection passed with hostname certificate verification, while GitHub Actions must prove Compose isolation, proxy egress, image build and container health on the exact committed head",
     "authenticated_binance_orders": "not attempted",
     "telegram_real_credentials": "not used",
     "oracle_deployment": "not attempted",
-    "sharia_evidence_binding": "a positive screener verdict is judged on the full sentence the retrieved source contains, across EVERY occurrence of the quoted fragment, with abbreviation-aware sentence boundaries, so neither trimming a negative prefix nor a contradictory second occurrence can produce a positive record",
-    "retriever_egress_policy": "destinations are resolved and required to be globally routable before the request, and the live socket peer is re-checked before any body is read, closing the DNS-rebinding window; a rejected response is closed deterministically. This prevents consuming a private response, but the GET has already been sent, so it is not a substitute for network-level egress denial of private and link-local ranges on the host."
+    "sharia_evidence_binding": "positive screener evidence must equal one complete extracted HTML/PDF block and is bound to exact quote/context offsets, response-byte SHA-256, extracted-text SHA-256, context SHA-256 and extractor version; runtime replays those offsets without substring relocation or sentence-boundary guessing, and the signed owner report contains every bound context",
+    "retriever_egress_policy": "the Sharia container has only an internal Docker network and can reach HTTPS solely through a secretless CONNECT proxy that resolves once, rejects the whole DNS set if any address is non-global, and connects to the validated numeric address while preserving end-to-end TLS hostname verification; direct administrative helper execution is refused"
   },
   "repair_summary": {
     "universe": "full immutable snapshot reopen, semantic hash, filename/path, configuration, ranking, schema, freshness, and retention validation",
-    "sharia_screening": "local-oracle-v1 only; owner-registered HTTPS sources, bounded HTML/PDF parsing, content-addressed exact bytes, deterministic V19.1 rules, dedicated owner-decision key, exact report/evidence re-hashing, seven-day signed cache and fail-closed health; no paid model API; research only, not a fatwa",
+    "sharia_screening": "local-oracle-v1 only; owner-registered HTTPS sources, network-isolated pinned egress, bounded block-preserving HTML/PDF parsing, content-addressed exact bytes, immutable offset/context bindings, deterministic V19.1 rules, dedicated owner-decision key, exact report/evidence re-hashing, seven-day signed cache and fail-closed health; no paid model API; research only, not a fatwa",
     "external_signals": "CoinGecko and CoinMarketCap remain advisory and cannot override Binance execution facts; provider failures degrade safely; trusted identity binding is required before enabling a hard market-cap exclusion",
     "binance_execution": "strict symbol/filter/capacity validation and durable fail-closed handling for partial fills, unknown responses, expiry, restart, protection and emergency paths",
     "telegram": "verified owner-only control, replay-resistant callbacks, redaction, exact-hash Sharia approve/reject cards, verified eligibility, local-backend health, universe and protection displays",

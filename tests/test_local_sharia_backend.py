@@ -62,6 +62,11 @@ from services.sharia_screener.approval import (
     apply_owner_decision,
 )
 from services.sharia_screener.local_runner import LocalScreeningRunner
+from services.sharia_screener.evidence_binding import (
+    EXTRACTOR_VERSION,
+    bind_reviewed_block,
+    extracted_text_sha256,
+)
 from services.sharia_screener.source_registry import (
     SourceRegistry,
     SourceRegistryError,
@@ -257,6 +262,26 @@ class EvidenceStoreTests(unittest.TestCase):
 
 class LocalRunnerIntegrationTests(unittest.TestCase):
     @staticmethod
+    def _bind_registry(payload, bodies):
+        entry = payload['assets']['XYZ']
+        entry['context_confirmed'] = True
+        for source in entry['sources']:
+            text = bodies[source['url']]
+            source.update({
+                'content_sha256': hashlib.sha256(text.encode()).hexdigest(),
+                'text_sha256': extracted_text_sha256(text),
+                'extractor_version': EXTRACTOR_VERSION,
+            })
+        for claim in {**entry['claims'], **entry['screeners']}.values():
+            text = bodies[claim['url']]
+            # Test fixtures use one complete extracted-text block per source.
+            # Production proposals bind the selected HTML/PDF block the same
+            # way; no sentence relocation is involved.
+            claim['quote'] = text.strip()
+            claim.update(bind_reviewed_block(text, claim['quote']))
+        return payload
+
+    @staticmethod
     def _registry_payload():
         utility = 'The token settles payments and pays network transaction fees.'
         token = 'The token is classified as a payment currency.'
@@ -277,10 +302,12 @@ class LocalRunnerIntegrationTests(unittest.TestCase):
             sources.append({'url': url, 'identity_match': False})
             screeners[name] = {'value': 'halal', 'quote': quote, 'url': url}
             bodies[url] = quote
-        return ({'schema_version': 1, 'assets': {'XYZ': {
+        payload = {'schema_version': 1, 'assets': {'XYZ': {
             'official_hosts': ['official.example'], 'sources': sources,
             'claims': claims, 'screeners': screeners,
-        }}}, bodies)
+        }}}
+        return (LocalRunnerIntegrationTests._bind_registry(payload, bodies),
+                bodies)
 
     def test_complete_local_case_produces_review_not_trade_authority(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -324,6 +351,7 @@ class LocalRunnerIntegrationTests(unittest.TestCase):
                 claim['value'] = 'haram'
                 claim['quote'] = quote
                 bodies[claim['url']] = quote
+            self._bind_registry(registry_payload, bodies)
             registry = root / 'source_registry.json'
             registry.write_text(json.dumps(registry_payload), encoding='utf-8')
             store = EvidenceStore(root / 'evidence')
@@ -359,6 +387,7 @@ class LocalRunnerIntegrationTests(unittest.TestCase):
                 claim['value'] = 'halal'
                 claim['quote'] = quote
                 bodies[claim['url']] = quote
+            self._bind_registry(registry_payload, bodies)
             registry = root / 'source_registry.json'
             registry.write_text(json.dumps(registry_payload), encoding='utf-8')
             store = EvidenceStore(root / 'evidence')
@@ -456,6 +485,7 @@ class LocalRunnerIntegrationTests(unittest.TestCase):
             official = 'https://official.example/docs'
             bodies[official] += (
                 ' No fixed or guaranteed return is offered to any participant.')
+            self._bind_registry(registry_payload, bodies)
             registry = root / 'source_registry.json'
             registry.write_text(json.dumps(registry_payload), encoding='utf-8')
             store = EvidenceStore(root / 'evidence')
@@ -859,7 +889,8 @@ class PdfExtractionTests(unittest.TestCase):
                 return_value=reader):
             self.assertEqual(
                 pdf_to_text(b'%PDF-fixture'),
-                'Official token utility statement. Revenue comes from service fees.')
+                'Official token utility\nstatement.\n\n'
+                'Revenue comes from service fees.')
 
     def test_encrypted_and_image_only_pdfs_fail_closed(self):
         encrypted = mock.Mock(is_encrypted=True, pages=[mock.Mock()])

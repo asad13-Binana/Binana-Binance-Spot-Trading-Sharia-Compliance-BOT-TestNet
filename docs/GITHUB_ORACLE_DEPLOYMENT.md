@@ -80,7 +80,7 @@ variable is enabled, the deployment transaction:
 9. build of the new immutable image tag before touching the running release
 10. explicit pause and reconciliation commands to the current sidecar, with verified acknowledgements
 11. atomic `current` symlink switch
-12. startup of all five bot services plus the isolated monitoring units, with health verification
+12. startup of all six bot services plus the isolated monitoring units, with health verification
 13. deployment status and Telegram notification
 14. automatic rollback to the prior release on failed health checks
 15. bounded old-release and old-image cleanup

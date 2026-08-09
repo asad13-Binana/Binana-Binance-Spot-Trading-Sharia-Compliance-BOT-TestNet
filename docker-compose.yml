@@ -70,6 +70,36 @@ services:
       retries: 5
     logging: *default-logging
 
+  sharia-egress-proxy:
+    image: binance-freqtrade-v101-services:${RELEASE_TAG:-local}
+    command: python -m services.sharia_egress_proxy.server
+    user: "${BOT_UID:-1000}:${BOT_GID:-1000}"
+    restart: unless-stopped
+    environment:
+      SHARIA_PROXY_LISTEN_HOST: 0.0.0.0
+      SHARIA_PROXY_LISTEN_PORT: "8080"
+      SHARIA_PROXY_CONNECT_TIMEOUT: ${SHARIA_PROXY_CONNECT_TIMEOUT:-15}
+      SHARIA_PROXY_IDLE_TIMEOUT: ${SHARIA_PROXY_IDLE_TIMEOUT:-30}
+      SHARIA_PROXY_MAX_CONNECTIONS: ${SHARIA_PROXY_MAX_CONNECTIONS:-16}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    # The proxy alone has an Internet-capable network. It resolves once,
+    # rejects any non-global answer, and connects to the validated numeric IP.
+    # It receives no Binance, Telegram, signing or approval secrets.
+    networks:
+      - default
+      - sharia-egress
+    mem_limit: 50m
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import socket;s=socket.create_connection(('127.0.0.1',8080),3);s.close()\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging: *default-logging
+
   sharia-screener:
     image: binance-freqtrade-v101-services:${RELEASE_TAG:-local}
     command: python -m services.sharia_screener.service
@@ -77,6 +107,8 @@ services:
     restart: unless-stopped
     depends_on:
       universe:
+        condition: service_healthy
+      sharia-egress-proxy:
         condition: service_healthy
     environment:
       EXECUTION_MODE: ${EXECUTION_MODE:-simulation}
@@ -102,12 +134,24 @@ services:
       SHARIA_RESULT_HMAC_KEY: ${SHARIA_RESULT_HMAC_KEY:?set SHARIA_RESULT_HMAC_KEY}
       SHARIA_RESULT_SIGNING_PRIVATE_KEY_B64: ${SHARIA_RESULT_SIGNING_PRIVATE_KEY_B64:?set SHARIA_RESULT_SIGNING_PRIVATE_KEY_B64}
       SHARIA_RESULT_VERIFY_PUBLIC_KEY_B64: ${SHARIA_RESULT_VERIFY_PUBLIC_KEY_B64:?set SHARIA_RESULT_VERIFY_PUBLIC_KEY_B64}
+      # This container has only an internal Docker network. HTTPS can leave
+      # solely through the pinned-destination CONNECT proxy above; the
+      # application-level peer check remains a second fail-closed layer.
+      HTTPS_PROXY: http://sharia-egress-proxy:8080
+      HTTP_PROXY: http://sharia-egress-proxy:8080
+      https_proxy: http://sharia-egress-proxy:8080
+      http_proxy: http://sharia-egress-proxy:8080
+      NO_PROXY: localhost,127.0.0.1
+      no_proxy: localhost,127.0.0.1
+      SHARIA_PINNED_EGRESS_PROXY: "true"
       ENVELOPE_RELEASE_HASH: ${SIDECAR_RELEASE_HASH:-}
       AUDIT_LOG: /app/shared/audit/events.jsonl
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     volumes:
       - ${SHARED_HOST_PATH:-./shared}:/app/shared
       - ${SHARED_HOST_PATH:-./shared}/universe:/app/shared/universe:ro
+    networks:
+      - sharia-egress
     mem_limit: 200m
     read_only: true
     tmpfs: [/tmp]
@@ -284,3 +328,7 @@ services:
       retries: 4
       start_period: 60s
     logging: *default-logging
+
+networks:
+  sharia-egress:
+    internal: true

@@ -9,6 +9,7 @@ real source and the whole content-hash chain would mean nothing.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -81,7 +82,11 @@ class SeedHelperTests(unittest.TestCase):
         }}), encoding='utf-8')
 
     def _propose(self):
-        with mock.patch('services.sharia_retriever.retriever.requests.Session',
+        with mock.patch.dict(os.environ, {
+                 'SHARIA_PINNED_EGRESS_PROXY': 'true',
+                 'HTTPS_PROXY': 'http://sharia-egress-proxy:8080',
+             }), \
+             mock.patch('services.sharia_retriever.retriever.requests.Session',
                         _Session), \
              mock.patch('services.sharia_retriever.retriever._addresses_for',
                         lambda h: [__import__('ipaddress').ip_address('93.184.216.34')]),              mock.patch('services.sharia_retriever.retriever.assert_peer_is_public',
@@ -92,7 +97,11 @@ class SeedHelperTests(unittest.TestCase):
                               '--evidence-dir', str(self.evidence)])
 
     def _apply(self):
-        with mock.patch('services.sharia_retriever.retriever.requests.Session',
+        with mock.patch.dict(os.environ, {
+                 'SHARIA_PINNED_EGRESS_PROXY': 'true',
+                 'HTTPS_PROXY': 'http://sharia-egress-proxy:8080',
+             }), \
+             mock.patch('services.sharia_retriever.retriever.requests.Session',
                         _Session), \
              mock.patch('services.sharia_retriever.retriever._addresses_for',
                         lambda h: [__import__('ipaddress').ip_address('93.184.216.34')]),              mock.patch('services.sharia_retriever.retriever.assert_peer_is_public',
@@ -105,6 +114,7 @@ class SeedHelperTests(unittest.TestCase):
         self._propose()
         draft = json.loads(self.draft.read_text(encoding='utf-8'))
         entry = draft['assets']['EXP']
+        self.assertIs(entry['context_confirmed'], False)
         for name in ('token_type', 'utility', 'revenue'):
             quote = entry['claims'][name]['quote']
             self.assertTrue(quote, f'{name} had no candidate')
@@ -116,6 +126,9 @@ class SeedHelperTests(unittest.TestCase):
             # quote and types the value.
             self.assertTrue(entry['screeners'][name]['quote'])
             self.assertEqual(entry['screeners'][name]['value'], '')
+            self.assertRegex(
+                entry['screeners'][name]['context_sha256'], r'^[0-9a-f]{64}$')
+            self.assertIsInstance(entry['screeners'][name]['quote_start'], int)
 
     def test_official_hosts_are_never_inferred_from_the_symbol(self):
         self.request.write_text(json.dumps(
@@ -147,6 +160,7 @@ class SeedHelperTests(unittest.TestCase):
         # The owner reads each screener quote and supplies the verdict.
         for name in draft['assets']['EXP']['screeners']:
             draft['assets']['EXP']['screeners'][name]['value'] = 'halal'
+        draft['assets']['EXP']['context_confirmed'] = True
         self.draft.write_text(json.dumps(draft), encoding='utf-8')
         self.assertEqual(self._apply(), 0)
         written = json.loads(self.registry.read_text(encoding='utf-8'))
@@ -183,6 +197,7 @@ class SeedHelperTests(unittest.TestCase):
             draft['assets']['EXP']['claims'][name]['value'] = 'PAYMENT'
         for name in draft['assets']['EXP']['screeners']:
             draft['assets']['EXP']['screeners'][name]['value'] = 'halal'
+        draft['assets']['EXP']['context_confirmed'] = True
         self.draft.write_text(json.dumps(draft), encoding='utf-8')
 
         changed = (OFFICIAL_TEXT +
@@ -222,6 +237,7 @@ class SeedHelperTests(unittest.TestCase):
             # The owner mistakenly types halal against a negative quote.
             for name in draft['assets']['EXP']['screeners']:
                 draft['assets']['EXP']['screeners'][name]['value'] = 'halal'
+            draft['assets']['EXP']['context_confirmed'] = True
             self.draft.write_text(json.dumps(draft), encoding='utf-8')
             rc = self._apply()
         finally:
@@ -229,6 +245,49 @@ class SeedHelperTests(unittest.TestCase):
         self.assertEqual(rc, 1)
         self.assertFalse(self.registry.exists(),
                          'halal must never be applied against a negative quote')
+
+    def test_unlisted_abbreviation_cannot_trim_a_negative_block(self):
+        attacks = (
+            'The following statement is false, viz. This token is halal.',
+            'The following assertion is false, a.k.a. This token is halal.',
+            'This claim is untrue, esp. This token is halal.',
+        )
+        original = _Session.get
+        for attack in attacks:
+            with self.subTest(attack=attack):
+                def adversarial(self_, url, **kw):
+                    if OFFICIAL_HOST in url:
+                        return _Resp(OFFICIAL_TEXT.encode(), url)
+                    return _Resp(attack.encode(), url)
+                try:
+                    _Session.get = adversarial
+                    self._propose()
+                    draft = json.loads(self.draft.read_text(encoding='utf-8'))
+                    for name in ('token_type', 'utility', 'revenue'):
+                        draft['assets']['EXP']['claims'][name]['value'] = 'PAYMENT'
+                    for name in draft['assets']['EXP']['screeners']:
+                        draft['assets']['EXP']['screeners'][name]['value'] = 'halal'
+                    draft['assets']['EXP']['context_confirmed'] = True
+                    self.draft.write_text(json.dumps(draft), encoding='utf-8')
+                    self.assertEqual(self._apply(), 1)
+                    self.assertFalse(self.registry.exists())
+                finally:
+                    _Session.get = original
+
+    def test_apply_rejects_edited_offsets_and_context(self):
+        self._propose()
+        draft = json.loads(self.draft.read_text(encoding='utf-8'))
+        for name in ('token_type', 'utility', 'revenue'):
+            draft['assets']['EXP']['claims'][name]['value'] = 'PAYMENT'
+        for name in draft['assets']['EXP']['screeners']:
+            draft['assets']['EXP']['screeners'][name]['value'] = 'halal'
+        draft['assets']['EXP']['context_confirmed'] = True
+        target = draft['assets']['EXP']['screeners']['musaffa']
+        target['quote_start'] += 1
+        target['context'] = 'This token is halal.'
+        self.draft.write_text(json.dumps(draft), encoding='utf-8')
+        self.assertEqual(self._apply(), 1)
+        self.assertFalse(self.registry.exists())
 
     def test_string_identity_match_is_rejected_not_coerced(self):
         self.request.write_text(json.dumps({'EXP': {
@@ -242,6 +301,11 @@ class SeedHelperTests(unittest.TestCase):
 
 
 class QuoteHelperTests(unittest.TestCase):
+    def test_direct_host_execution_is_refused(self):
+        with mock.patch.dict(os.environ, {}, clear=True), self.assertRaisesRegex(
+                RuntimeError, 'network-isolated'):
+            seed.require_pinned_proxy_environment()
+
     def test_quote_membership_is_whitespace_insensitive(self):
         self.assertTrue(seed.quote_is_in('a  b   c', 'x a b c y'))
         self.assertFalse(seed.quote_is_in('a b d', 'x a b c y'))
@@ -249,6 +313,15 @@ class QuoteHelperTests(unittest.TestCase):
     def test_screener_is_identified_only_by_its_own_host(self):
         self.assertEqual(seed.screener_for('https://musaffa.com/asset/exp'), 'musaffa')
         self.assertIsNone(seed.screener_for('https://evil.example/musaffa'))
+
+    def test_repeated_complete_block_requires_an_explicit_reviewed_offset(self):
+        text = 'This token is halal.\nThis token is halal.'
+        with self.assertRaisesRegex(
+                seed.EvidenceBindingError, 'multiple complete blocks'):
+            seed.bind_reviewed_block(text, 'This token is halal.')
+        binding = seed.bind_reviewed_block(
+            text, 'This token is halal.', quote_start=21)
+        self.assertEqual(binding['quote_start'], 21)
 
 
 class NoAutomaticVerdictTests(unittest.TestCase):

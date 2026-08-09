@@ -2,9 +2,13 @@
 
 The active screening backend is `local-oracle-v1`. It uses no ChatGPT,
 OpenAI, Anthropic, hosted model, model key, or separately billed screening
-API. It fetches public HTTPS sources directly from the Oracle host, parses
+API. It fetches public HTTPS sources through a secretless, pinned-destination
+CONNECT proxy, parses
 HTML and text-bearing PDFs locally, stores the exact response bytes by
 SHA-256, and applies the pinned V19.1 controller through deterministic rules.
+The screener container has only an internal Docker network: it cannot bypass
+the proxy to reach the Internet, another application container, loopback,
+RFC1918/link-local space, or the Oracle metadata endpoint.
 
 The rules engine cannot directly authorise a trade. It creates a fail-closed
 `NO_TRADE_INFO` review proposal. The Telegram owner reads the quoted evidence
@@ -28,9 +32,38 @@ Each asset entry requires:
 - one or more exact official project hosts;
 - at least one identity-matched official HTTPS source;
 - evidence-bound `token_type`, `utility`, and `revenue` claims whose verbatim
-  quotes occur in a fetched source;
+  quotes equal a complete extracted HTML/PDF block;
 - a value, quote and real host-bound URL for each named Sharia screener used
-  by the V19.1 proof gate.
+  by the V19.1 proof gate;
+- raw-response and extracted-text SHA-256 values, exact quote/context offsets,
+  the complete surrounding context and its SHA-256, plus explicit owner
+  confirmation that every context was reviewed.
+
+Do not hand-build those binding fields. Generate them from the exact fetched
+bytes, review the resulting context sheet, and apply the reviewed draft:
+
+Place `my_coins.json` under the persistent `shared/sharia/` directory, then
+run the helper only inside the network-isolated screener container:
+
+```bash
+docker compose run --rm sharia-screener \
+  python /app/scripts/seed_source_registry.py propose \
+  /app/shared/sharia/my_coins.json \
+  --draft /app/shared/sharia/registry_draft.json \
+  --review /app/shared/sharia/registry_review.txt \
+  --evidence-dir /app/shared/sharia/evidence
+# fill the values, review every context, set context_confirmed=true
+docker compose run --rm sharia-screener \
+  python /app/scripts/seed_source_registry.py apply \
+  /app/shared/sharia/registry_draft.json \
+  --registry /app/shared/sharia/source_registry.json \
+  --evidence-dir /app/shared/sharia/evidence
+```
+
+Direct host execution is deliberately refused because its first DNS check and
+its socket connection would otherwise be separate resolution events. The
+container has no direct route and the CONNECT proxy pins the validated public
+address before the request is sent.
 
 Example structure (illustrative placeholders only; it cannot pass as shipped):
 
@@ -40,10 +73,14 @@ Example structure (illustrative placeholders only; it cannot pass as shipped):
   "assets": {
     "BASE": {
       "official_hosts": ["official-project.example"],
+      "context_confirmed": true,
       "sources": [
         {
           "url": "https://official-project.example/whitepaper.pdf",
-          "identity_match": true
+          "identity_match": true,
+          "content_sha256": "[generated raw-response SHA-256]",
+          "text_sha256": "[generated extracted-text SHA-256]",
+          "extractor_version": "local-text-v2-blocks"
         },
         {
           "url": "https://musaffa.com/asset/base",
@@ -53,8 +90,14 @@ Example structure (illustrative placeholders only; it cannot pass as shipped):
       "claims": {
         "token_type": {
           "value": "PAYMENT",
-          "quote": "[exact quote from the official source]",
-          "url": "https://official-project.example/whitepaper.pdf"
+          "quote": "[generated complete source block]",
+          "url": "https://official-project.example/whitepaper.pdf",
+          "quote_start": "[generated integer offset]",
+          "quote_end": "[generated integer offset]",
+          "context_start": "[generated integer offset]",
+          "context_end": "[generated integer offset]",
+          "context": "[generated surrounding source blocks]",
+          "context_sha256": "[generated context SHA-256]"
         },
         "utility": {
           "value": "real utility",

@@ -420,6 +420,21 @@ def _latest_local_review_card(base: str) -> tuple[str, list[list[dict]] | None]:
                     f'{str(hit.get("quote", ""))[:500]}')
             if len(hits) > 4:
                 lines.append(f'{len(hits) - 4} additional quote(s) are in {report_name}.')
+            bindings = [
+                item for item in (review.get('evidence_bindings') or [])
+                if isinstance(item, dict)
+            ]
+            for index, item in enumerate(bindings, start=1):
+                context = ' '.join(str(item.get('context', '')).split())
+                lines.append(
+                    f'evidence {index}/{len(bindings)} '
+                    f'[{item.get("name", "")}; '
+                    f'context-sha={str(item.get("context_sha256", ""))[:16]}]: '
+                    f'{context[:220]}')
+            if bindings:
+                lines.append(
+                    'All evidence blocks and surrounding contexts above are '
+                    'offset-bound to the exact extracted-text and response hashes.')
             lines.extend([
                 ('Approval is an owner operational decision over these exact '
                  'stored bytes; it is research screening, not a fatwa.'),
