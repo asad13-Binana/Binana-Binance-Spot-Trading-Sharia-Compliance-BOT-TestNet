@@ -11,6 +11,7 @@ export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
 export SIGNAL_HMAC_KEY="$(python -c 'import secrets;print(secrets.token_hex(24))')"
 export COMMAND_HMAC_KEY="$(python -c 'import secrets;print(secrets.token_hex(24))')"
 export SHARIA_HMAC_KEY="$(python -c 'import secrets;print(secrets.token_hex(24))')"
+export SHARIA_APPROVAL_HMAC_KEY="$(python -c 'import secrets;print(secrets.token_hex(24))')"
 export LIVE_EVIDENCE_KEY="$(python -c 'import secrets;print(secrets.token_hex(24))')"
 export ENVELOPE_RELEASE_HASH="$(python -c 'print("a"*64)')"
 

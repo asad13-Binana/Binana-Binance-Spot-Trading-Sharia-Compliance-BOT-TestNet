@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """HMAC-authenticated message envelopes for every inter-service file bus.
 
 Fixes V101-NEW-001: signals, commands, Sharia screening requests/results and
@@ -44,6 +45,7 @@ MIN_KEY_LENGTH = 32
 BUS_SIGNAL = 'signal'
 BUS_COMMAND = 'command'
 BUS_SHARIA_REQUEST = 'sharia-request'
+BUS_SHARIA_DECISION = 'sharia-decision'
 BUS_SHARIA_RESULT = 'sharia-result'
 BUS_LIVE_EVIDENCE = 'live-evidence'
 
@@ -51,6 +53,9 @@ KEY_ENV = {
     BUS_SIGNAL: 'SIGNAL_HMAC_KEY',
     BUS_COMMAND: 'COMMAND_HMAC_KEY',
     BUS_SHARIA_REQUEST: 'SHARIA_HMAC_KEY',
+    # Owner approvals have a separate key known only to Telegram and the
+    # screener. A request producer or execution container cannot mint one.
+    BUS_SHARIA_DECISION: 'SHARIA_APPROVAL_HMAC_KEY',
     # Transport authentication is deliberately separated from the request
     # bus.  Authoritative result identity additionally requires the screener's
     # Ed25519 attestation; HMAC verifiers are not treated as result producers.

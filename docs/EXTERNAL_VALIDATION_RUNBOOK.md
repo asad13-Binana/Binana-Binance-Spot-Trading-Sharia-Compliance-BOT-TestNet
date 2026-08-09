@@ -8,10 +8,12 @@ Push to a connected repository; confirm the Python 3.10–3.13 matrix, `pip-audi
 artifact build, extracted-artifact retest, and Compose image build all pass. Pin base image digests; enable
 branch protection + CODEOWNERS. Retain signed image/artifact provenance.
 
-## 2. Enable screening API credit
-Provide `SHARIA_OPENAI_API_KEY` + `SHARIA_MODEL` (billed separately from any ChatGPT/Claude subscription).
-Run one complete manual `/scan BTC/USDT`; confirm a schema-valid V19.1 result is produced and signed. Until
-then the screener fails closed to NO_TRADE_INFO and no coin is trade-eligible.
+## 2. Validate the self-hosted screening path
+Populate `shared/sharia/source_registry.json` with owner-verified official and named-screener URLs for a
+non-excluded test asset. Run `/scan BASE/USDT`, inspect the exact quotes and report SHA-256 in Telegram,
+then exercise both REJECT and APPROVE. Confirm the Oracle host retained each fetched response under its
+SHA-256 path, the decision was accepted only for the displayed report hash, and a record older than seven
+days fails closed. No ChatGPT, OpenAI, model key or separately billed screening API is used.
 
 ## 3. Binance Spot Testnet — full order lifecycle
 Dedicated Testnet keys (Spot, no withdrawal). Exercise and capture raw REST/WebSocket evidence for: entry;
@@ -21,7 +23,7 @@ this replaced the retired listen-key REST endpoints on 2026-02-20 and is unit-te
 integration-validated); restart adoption; and reconciliation. No filled quantity may end unprotected.
 
 ## 4. Oracle deployment + soak
-Deploy to an A1/AMD Oracle Free Tier host. Run reboot, network-loss, disk-full, OOM, backup/restore, and
+Deploy to an A1/Ampere ARM Oracle Free Tier host. Run reboot, network-loss, disk-full, OOM, backup/restore, and
 rollback drills. Confirm single-instance (flock) behavior. Soak ≥ 14 days with monitoring.
 
 ## 5. Exact-strategy backtest + dry-run

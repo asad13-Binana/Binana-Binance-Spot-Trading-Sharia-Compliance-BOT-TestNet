@@ -5,11 +5,14 @@ RELEASE_MODE=testnet and .env.example selects EXECUTION_MODE=testnet.
 The installer rejects EXECUTION_MODE=live for this package.
 
 Before deployment:
-1. Read README.md and docs/GITHUB_ORACLE_DEPLOYMENT.md.
+1. Read README.md, docs/GITHUB_ORACLE_DEPLOYMENT.md and
+   docs/SHARIA_LOCAL_SCREENING.md.
 2. Put secrets only in GitHub environment secrets and /etc on Oracle.
 3. Configure the GitHub oracle-testnet environment.
 4. Run the complete Actions workflow and inspect its extracted-artifact tests.
 5. Use Binance Spot Testnet credentials only.
+6. Populate and independently verify the persistent Sharia source registry;
+   the shipped empty registry intentionally authorizes no asset.
 
 This package cannot prove profitability. Complete the external runbook and a
 minimum 14-day testnet/Oracle soak before considering live promotion.

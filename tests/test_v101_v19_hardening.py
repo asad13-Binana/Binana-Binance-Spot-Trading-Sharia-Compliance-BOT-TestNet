@@ -738,7 +738,7 @@ class SqliteIntegrityTests(unittest.TestCase):
 
 # ── master protocol 8.5: signal-time fresh screening seam ─────────────────
 class SignalTimeScreeningTests(unittest.TestCase):
-    def _manager(self, root, gate_mode, signal_id):
+    def _manager(self, root, gate_mode, signal_id, status='GREEN'):
         from services.execution_sidecar import order_manager as om
         from services.execution_sidecar.state_store import StateStore
         from services.execution_sidecar.risk_checks import FreshSignalGuard
@@ -749,7 +749,7 @@ class SignalTimeScreeningTests(unittest.TestCase):
         guard = FreshSignalGuard(root / 'risk.json', state_store=store)
         adapter = SimulationAdapter(store, guard); adapter.start()
         sharia = root / 'sharia.json'
-        _harness.write_attested_status(sharia, [('ETH', 'GREEN')])
+        _harness.write_attested_status(sharia, [('ETH', status)])
         processed = root / 'processed'; rejected = root / 'rejected'
         processed.mkdir(); rejected.mkdir()
         # Isolate the Sharia queue/result buses per test so results never leak
@@ -797,32 +797,26 @@ class SignalTimeScreeningTests(unittest.TestCase):
         (results_dir / f'result_signal-{signal_id}.json').write_text(
             json.dumps(_harness.sign_sharia_result(payload)))
 
-    def test_fresh_gate_waits_then_processes_after_signed_eligible_result(self):
+    def test_cached_gate_processes_recent_signed_eligible_record(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             sid = 'sig-eligible'
-            mgr, store, processed, rejected, results_dir = self._manager(root, 'fresh', sid)
+            mgr, store, processed, rejected, results_dir = self._manager(root, 'cached', sid)
             sig = self._signal(root, sid)
-            # First pass: no result yet -> AWAITING, signal stays in inbox.
-            out = mgr.process_signal(sig, {'ETH/USDT'}, 'h')
-            self.assertEqual(out[1], OrderManagerAwaiting())
-            self.assertTrue(sig.exists())
-            self._write_result(results_dir, sid, 'GREEN')
             ok, msg = mgr.process_signal(sig, {'ETH/USDT'}, 'h')
             self.assertTrue(ok)
             self.assertTrue(any(processed.glob('*.json')))
 
-    def test_fresh_gate_rejects_prohibited_result(self):
+    def test_cached_gate_rejects_prohibited_record(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             sid = 'sig-prohibited'
-            mgr, store, processed, rejected, results_dir = self._manager(root, 'fresh', sid)
+            mgr, store, processed, rejected, results_dir = self._manager(
+                root, 'cached', sid, status='NO_TRADE_INFO')
             sig = self._signal(root, sid)
-            mgr.process_signal(sig, {'ETH/USDT'}, 'h')  # request enqueued, AWAITING
-            self._write_result(results_dir, sid, 'HARAM')
             ok, reason = mgr.process_signal(sig, {'ETH/USDT'}, 'h')
             self.assertFalse(ok)
-            self.assertIn('fail_closed', reason)
+            self.assertIn('sharia_', reason)
             self.assertTrue(any(rejected.glob('*.json')))
 
 

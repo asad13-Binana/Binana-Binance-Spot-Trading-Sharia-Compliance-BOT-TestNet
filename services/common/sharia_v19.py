@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 """V19.1 Sharia screening controller binding and result validation.
 
 The file shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json is the
 single authoritative Sharia screening definition. It is IMMUTABLE: this module
 verifies its exact SHA-256 before any use and the release suite fails if a
 single byte changes. No code in this repository interprets Sharia law itself;
-the controller is executed by an external AI model and the strictly validated
-result is research screening only — not a fatwa.
+the controller is executed by a registered screening backend and the strictly
+validated result is research screening only — not a fatwa.
 
 Everything here fails closed: a missing controller, a wrong hash, a malformed
 result, a missing proof card, a wrong ticker, or an unknown code can never
@@ -18,6 +19,13 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse, urlunparse
+
+from services.common.evidence_providers import (
+    is_registered as is_registered_provider,
+)
+from services.common.evidence_providers import (
+    required_record_keys as provider_required_record_keys,
+)
 
 V19_CONTROLLER_FILENAME = 'HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json'
 V19_CONTROLLER_SHA256 = '07106bb8bfc1924d8d0c6f61ced4e0c51c2ac2054988423f42c1fd67f3b2ba78'
@@ -49,6 +57,7 @@ TECH_STOP_TRIGGERS = {'T1', 'T2', 'T3', 'NONE'}
 NARRATIVE_CODES = {f'N{i}' for i in range(1, 12)}
 _PURIFICATION_RE = re.compile(r'^(NO|YES \(\d+(\.\d+)?%\))$')
 MIN_HARAM_QUOTE_WORDS = 15
+CONTENT_PATH_RE = re.compile(r'^sha256/[0-9a-f]{2}/([0-9a-f]{64})\.bin$')
 
 # These names are the executable form of GREEN_PROOF_GATE.green_requires_all
 # in the immutable controller.  Arbitrary true booleans are not evidence.
@@ -75,6 +84,19 @@ SCREENER_SITES = {
     'cryptoummah', 'sharlife', 'islamicfinanceguru', 'saraf',
     'halalscreener', 'gethalalcrypto', 'musaffa',
 }
+# Exact website identities for the controller's seven named screeners. A
+# result labelled ``musaffa`` is not evidence unless it came from Musaffa's
+# own host (or one of its subdomains); a caller-chosen URL must not satisfy a
+# named external check.
+SCREENER_HOSTS = {
+    'cryptoummah': frozenset({'cryptoummah.com'}),
+    'sharlife': frozenset({'sharlife.my'}),
+    'islamicfinanceguru': frozenset({'islamicfinanceguru.com'}),
+    'saraf': frozenset({'saraf.app'}),
+    'halalscreener': frozenset({'halalscreener.app'}),
+    'gethalalcrypto': frozenset({'gethalalcrypto.com'}),
+    'musaffa': frozenset({'musaffa.com'}),
+}
 KEYWORD_CATEGORIES = {
     'RIBA_LENDING_KEYWORDS', 'DEBT_YIELD_KEYWORDS', 'FIXED_APY_KEYWORDS',
     'REBASE_DISTINCTION', 'GAMBLING_KEYWORDS', 'PREDICTION_MARKET_NUANCE',
@@ -82,6 +104,15 @@ KEYWORD_CATEGORIES = {
     'STABLECOIN_RESERVE_KEYWORDS', 'LOOTBOX_KEYWORDS',
     'MEME_NO_UTILITY_KEYWORDS', 'VARIABLE_POS_PASS_KEYWORDS',
     'CLEAN_FEE_PASS_KEYWORDS',
+}
+# Executable form of SOURCE_QUALITY_AND_CONFIDENCE_SCORING.tiers. Both the
+# bare and suffixed spellings are accepted because sources_opened already
+# uses TIER_1/TIER_1_OFFICIAL interchangeably.
+SOURCE_TIERS = {
+    'TIER_1', 'TIER_1_OFFICIAL',
+    'TIER_2', 'TIER_2_PRIMARY_MARKET',
+    'TIER_3', 'TIER_3_SECONDARY',
+    'TIER_4', 'TIER_4_WEAK_REJECT',
 }
 
 
@@ -149,13 +180,22 @@ def _provider_tool_evidence_urls(report: dict) -> tuple[set[str], set[str]]:
     """
     evidence = report.get('tool_evidence')
     _require(isinstance(evidence, dict), 'verdict requires provider tool_evidence')
-    _require(evidence.get('provider') == 'openai-responses',
-             'tool_evidence provider mismatch')
+    # LOCAL-BACKEND-001: this was `== 'openai-responses'`, which made a
+    # separately billed external API structurally mandatory — no self-hosted
+    # backend could ever produce an accepted verdict.  The registry keeps the
+    # check exact (an unregistered name is still rejected, so a forged report
+    # cannot invent its own evidence format) while allowing a local backend
+    # that is held to *stronger* per-record requirements below.
+    provider = evidence.get('provider')
+    _require(is_registered_provider(provider),
+             'tool_evidence provider is not a registered evidence provider')
+    required_keys = provider_required_record_keys(provider)
     calls = evidence.get('completed_web_search_calls')
     _require(isinstance(calls, list) and bool(calls),
              'verdict requires at least one completed provider web search call')
     provider_urls: set[str] = set()
     evidentiary_urls: set[str] = set()
+    hashed_evidentiary_urls: set[str] = set()
     for index, call in enumerate(calls):
         _require(isinstance(call, dict),
                  f'tool_evidence completed_web_search_calls[{index}] must be an object')
@@ -165,15 +205,48 @@ def _provider_tool_evidence_urls(report: dict) -> tuple[set[str], set[str]]:
         action_type = call.get('action_type')
         _require(action_type in {'search', 'open_page', 'find_in_page'},
                  'provider web search call action_type is invalid')
+        # A self-hosted retrieval record must prove *what bytes* were read, so
+        # every quote can be re-verified offline against the stored content
+        # instead of being trusted because the backend reported it.
+        _require(required_keys.issubset(call.keys()),
+                 f'retrieval record is missing required {provider} evidence keys: '
+                 f'{sorted(required_keys - set(call.keys()))}')
+        if 'content_sha256' in required_keys:
+            _require(isinstance(call.get('content_sha256'), str) and
+                     re.fullmatch(r'[0-9a-f]{64}', call['content_sha256']) is not None,
+                     'retrieval record content_sha256 must be a lowercase SHA-256 digest')
+            _require(call.get('http_status') == 200,
+                     'retrieval record must record an HTTP 200 retrieval')
+            _require(isinstance(call.get('retrieved_utc'), str) and
+                     bool(call['retrieved_utc'].strip()),
+                     'retrieval record must record a retrieval timestamp')
+            _require(call.get('source_tier') in SOURCE_TIERS,
+                     'retrieval record source_tier is invalid')
+            content_path = call.get('content_path')
+            match = (CONTENT_PATH_RE.fullmatch(content_path)
+                     if isinstance(content_path, str) else None)
+            _require(match is not None and match.group(1) == call['content_sha256'],
+                     'retrieval record content_path must be content-addressed '
+                     'by content_sha256')
         source_urls = call.get('source_urls')
         _require(isinstance(source_urls, list),
                  'provider web search call source_urls must be an array')
+        normalized_source_urls: set[str] = set()
         for raw_url in source_urls:
             normalized = normalize_evidence_url(raw_url)
             _require(bool(normalized), 'provider web search source URL is invalid')
+            normalized_source_urls.add(normalized)
             provider_urls.add(normalized)
             if action_type in {'open_page', 'find_in_page'}:
                 evidentiary_urls.add(normalized)
+                if 'content_sha256' in required_keys:
+                    hashed_evidentiary_urls.add(normalized)
+        if 'content_sha256' in required_keys:
+            record_url = normalize_evidence_url(call.get('url'))
+            _require(bool(record_url),
+                     'local retrieval record URL is invalid')
+            _require(record_url in normalized_source_urls,
+                     'local retrieval record URL must match its source_urls entry')
 
     citations = evidence.get('url_citations')
     _require(isinstance(citations, list), 'tool_evidence.url_citations must be an array')
@@ -190,9 +263,52 @@ def _provider_tool_evidence_urls(report: dict) -> tuple[set[str], set[str]]:
                  isinstance(end, int) and not isinstance(end, bool) and
                   0 <= start < end,
                   'provider URL citation offsets are invalid')
+        if 'content_sha256' in required_keys:
+            _require(normalized in hashed_evidentiary_urls,
+                     'local provider citation lacks a matching hashed open-page record')
         provider_urls.add(normalized)
-        evidentiary_urls.add(normalized)
+        # Hosted-provider citations can themselves demonstrate that a page
+        # was opened. Local citations are merely text offsets; the URL becomes
+        # evidentiary only through the matching hashed retrieval above.
+        if 'content_sha256' not in required_keys:
+            evidentiary_urls.add(normalized)
     return provider_urls, evidentiary_urls
+
+
+def validate_local_evidence_files(report: dict, evidence_root: str | Path) -> None:
+    """Re-hash every local evidence object before accepting a new result."""
+    evidence = report.get('tool_evidence')
+    _require(isinstance(evidence, dict), 'verdict requires provider tool_evidence')
+    if evidence.get('provider') != 'local-oracle-v1':
+        return
+    root = Path(evidence_root).resolve()
+    calls = evidence.get('completed_web_search_calls')
+    _require(isinstance(calls, list) and bool(calls),
+             'local verdict requires completed retrieval records')
+    for index, call in enumerate(calls):
+        _require(isinstance(call, dict),
+                 f'local retrieval record {index} must be an object')
+        digest = call.get('content_sha256')
+        relative = call.get('content_path')
+        match = (CONTENT_PATH_RE.fullmatch(relative)
+                 if isinstance(relative, str) else None)
+        _require(isinstance(digest, str) and match is not None and
+                 match.group(1) == digest,
+                 f'local retrieval record {index} content path is invalid')
+        target = (root / relative).resolve()
+        _require(root in target.parents and target.is_file(),
+                 f'local evidence object is missing for retrieval record {index}')
+        hasher = hashlib.sha256()
+        try:
+            with target.open('rb') as handle:
+                for chunk in iter(lambda: handle.read(1024 * 1024), b''):
+                    hasher.update(chunk)
+        except OSError as exc:
+            raise ResultValidationError(
+                f'local evidence object is unreadable for retrieval record {index}: '
+                f'{exc}') from exc
+        _require(hasher.hexdigest() == digest,
+                 f'local evidence digest mismatch for retrieval record {index}')
 
 
 def _validate_green_evidence(report: dict) -> None:

@@ -77,7 +77,10 @@ set -a; source "$ENV_FILE"; set +a
 BOT_UID=${BOT_UID:-$(id -u)}
 BOT_GID=${BOT_GID:-$(id -g)}
 mkdir -p "$RELEASES" "$PERSIST" "$PERSIST/commands/inbox" "$PERSIST/runtime" \
-  "$PERSIST/sharia" "$PERSIST/legacy_runtime" "$PERSIST/freqtrade/logs"
+  "$PERSIST/sharia" "$PERSIST/sharia/evidence" \
+  "$PERSIST/sharia_decisions/inbox" "$PERSIST/sharia_decisions/processed" \
+  "$PERSIST/legacy_runtime" \
+  "$PERSIST/freqtrade/logs"
 [[ $(stat -c '%u' "$PERSIST") == "$BOT_UID" ]] || fail "$PERSIST owner UID must match BOT_UID=$BOT_UID"
 [[ $(stat -c '%g' "$PERSIST") == "$BOT_GID" ]] || fail "$PERSIST group GID must match BOT_GID=$BOT_GID"
 [[ "${SHARED_HOST_PATH:-}" == "$PERSIST" ]] || fail "SHARED_HOST_PATH in $ENV_FILE must equal $PERSIST"
@@ -142,8 +145,8 @@ fi
 if [[ "$PACKAGE_MODE" == live && "${EXECUTION_MODE:-simulation}" == testnet ]]; then
   fail 'live package refuses EXECUTION_MODE=testnet; use simulation until live promotion'
 fi
-if [[ "$PACKAGE_MODE" == live && "${SHARIA_SIGNAL_GATE_MODE:-fresh}" != fresh ]]; then
-  fail 'live package requires SHARIA_SIGNAL_GATE_MODE=fresh'
+if [[ "${SHARIA_SIGNAL_GATE_MODE:-cached}" != cached ]]; then
+  fail 'self-hosted Sharia screening requires SHARIA_SIGNAL_GATE_MODE=cached'
 fi
 NEW_TAG="v101-${RELEASE_HASH:0:16}"
 printf '%s\n' "$NEW_TAG" > "$NEW/.release-tag"
@@ -157,6 +160,10 @@ if [[ ! -f "$PERSIST/sharia/sharia_status.json" ]]; then
 fi
 if [[ ! -f "$PERSIST/sharia/halal_coins.json" ]]; then
   cp "$NEW/shared/sharia/halal_coins.json" "$PERSIST/sharia/halal_coins.json"
+fi
+if [[ ! -f "$PERSIST/sharia/source_registry.json" ]]; then
+  cp "$NEW/shared/sharia/source_registry.json" \
+     "$PERSIST/sharia/source_registry.json"
 fi
 cp "$NEW/shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json" \
    "$PERSIST/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json"

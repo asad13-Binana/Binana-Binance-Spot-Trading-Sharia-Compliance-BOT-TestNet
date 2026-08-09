@@ -25,6 +25,8 @@ TEST_SHARIA_PUBLIC_KEY_B64 = 'MCowBQYDK2VwAyEAODWRab3eQeB77rQ6NmSc1rSwVcOzsbOTxP
 os.environ.setdefault('SIGNAL_HMAC_KEY', 'test-signal-key-0123456789abcdef0123')
 os.environ.setdefault('COMMAND_HMAC_KEY', 'test-command-key-0123456789abcdef012')
 os.environ.setdefault('SHARIA_HMAC_KEY', 'test-sharia-key-0123456789abcdef0123')
+os.environ.setdefault('SHARIA_APPROVAL_HMAC_KEY',
+                      'test-sharia-approval-key-0123456789abcdef')
 os.environ.setdefault('SHARIA_RESULT_HMAC_KEY', 'test-sharia-result-key-0123456789abcdef')
 os.environ.setdefault('SHARIA_RESULT_SIGNING_PRIVATE_KEY_B64', TEST_SHARIA_PRIVATE_KEY_B64)
 os.environ.setdefault('SHARIA_RESULT_VERIFY_PUBLIC_KEY_B64', TEST_SHARIA_PUBLIC_KEY_B64)
@@ -43,6 +45,7 @@ TEST_BUS_KEYS = {
     'SIGNAL_HMAC_KEY': os.environ['SIGNAL_HMAC_KEY'],
     'COMMAND_HMAC_KEY': os.environ['COMMAND_HMAC_KEY'],
     'SHARIA_HMAC_KEY': os.environ['SHARIA_HMAC_KEY'],
+    'SHARIA_APPROVAL_HMAC_KEY': os.environ['SHARIA_APPROVAL_HMAC_KEY'],
     'SHARIA_RESULT_HMAC_KEY': os.environ['SHARIA_RESULT_HMAC_KEY'],
     'SHARIA_RESULT_SIGNING_PRIVATE_KEY_B64': os.environ['SHARIA_RESULT_SIGNING_PRIVATE_KEY_B64'],
     'SHARIA_RESULT_VERIFY_PUBLIC_KEY_B64': os.environ['SHARIA_RESULT_VERIFY_PUBLIC_KEY_B64'],
@@ -89,7 +92,8 @@ def v19_status(records, *, controller_sha256: str = V19_CONTROLLER_SHA256) -> di
         expires = rec[2] if len(rec) > 2 else future
         out.append({
             'symbol': base, 'status': status, 'final_code': status,
-            'reviewed_at': now.date().isoformat(), 'expires_at': expires,
+            'reviewed_at': now.date().isoformat(),
+            'completed_at': now.isoformat(), 'expires_at': expires,
             'source': 'test-v19-screener',
         })
     return {

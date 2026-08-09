@@ -50,7 +50,7 @@ class OrderManager:
         self.paths = paths
         self.gate_mode = enforce_sharia_gate_mode(
             load_package_mode(),
-            os.getenv('SHARIA_SIGNAL_GATE_MODE', 'fresh'),
+            os.getenv('SHARIA_SIGNAL_GATE_MODE', 'cached'),
         )
         self.screening_timeout = env_int('SIGNAL_SCREENING_TIMEOUT_SECONDS', 150, 5, 900)
         self._pending_screenings: dict[str, float] = {}
@@ -74,7 +74,7 @@ class OrderManager:
         if errors:
             audit('signal_fail_closed_disarm_failed', severity='CRITICAL', details={'errors': errors})
 
-    # ---- V19.1 fresh screening seam (master protocol 8.5) ----
+    # ---- V19.1 screening result compatibility seam ----
     def _request_fresh_screening(self, sig: dict, base: str) -> str:
         request_id = 'signal-' + sig['signal_id']
         request_path = SHARIA_QUEUE_INBOX / f'request_{request_id}.json'

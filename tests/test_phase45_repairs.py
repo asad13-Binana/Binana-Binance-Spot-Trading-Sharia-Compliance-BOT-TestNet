@@ -19,7 +19,6 @@ from services.common.sharia_v19 import (
 )
 from services.execution_sidecar.package_mode import enforce_sharia_gate_mode
 from services.sharia_screener.queue_store import QueueStore
-from services.sharia_screener.runner import ScreeningUnavailable, enforce_live_screening_policy
 from services.universe_service.sharia_filter import ShariaFilter
 
 
@@ -122,243 +121,45 @@ class SemanticAndModeRepairTests(unittest.TestCase):
             validate_result(report, expected_base='ETH')
 
     def test_self_declared_tier1_without_provider_url_evidence_is_rejected(self):
-        from services.sharia_screener.runner import ScreeningRunner
         report = _harness.green_report('ETH')
         report['sources_opened'] = [{
             'url': 'https://evil.example/fake-whitepaper',
             'tier': 'TIER_1_OFFICIAL', 'opened': True, 'identity_match': True,
             'quote': 'This self declared source claims useful network transaction services.',
         }]
-        report['tool_evidence'] = ScreeningRunner._extract_tool_evidence({
-            'output': [{
-                'type': 'web_search_call', 'id': 'ws_no_sources',
-                'status': 'completed',
-                'action': {'type': 'search', 'sources': []},
+        report['tool_evidence'] = {
+            'provider': 'openai-responses',
+            'completed_web_search_calls': [{
+                'id': 'ws_no_sources', 'status': 'completed',
+                'action_type': 'search', 'source_urls': [],
             }],
-        })
+            'url_citations': [],
+        }
         with self.assertRaisesRegex(ResultValidationError, 'citation/open-page evidence'):
             validate_result(report, expected_base='ETH')
 
-    def test_runner_overwrites_model_provenance_with_provider_citation(self):
+    def test_external_model_runner_is_removed_from_runtime(self):
         from services.sharia_screener import runner as runner_mod
-        with tempfile.TemporaryDirectory() as td:
-            mode = Path(td) / 'RELEASE_MODE'
-            mode.write_text('testnet', encoding='utf-8')
-            model_report = _harness.green_report('ETH')
-            model_report['tool_evidence'] = {
-                'provider': 'model-self-declared',
-                'completed_web_search_calls': [], 'url_citations': [],
-            }
-            output_text = json.dumps(model_report)
-            response_data = {
-                'output': [{
-                    'type': 'web_search_call', 'id': 'ws_provider_1',
-                    'status': 'completed', 'action': {
-                        'type': 'search', 'sources': [{
-                            'type': 'url',
-                            'url': 'https://example.org/whitepaper/',
-                        }],
-                    },
-                }, {
-                    'type': 'message', 'content': [{
-                        'type': 'output_text', 'text': output_text,
-                        'annotations': [{
-                            'type': 'url_citation',
-                            'url': 'https://EXAMPLE.org/whitepaper#utility',
-                            'title': 'Official whitepaper',
-                            'start_index': 0, 'end_index': len(output_text),
-                        }],
-                    }],
-                }],
-                'usage': {'input_tokens': 10, 'output_tokens': 20},
-            }
-            fake_response = mock.Mock(status_code=200, text='')
-            fake_response.json.return_value = response_data
-            env = {
-                'SHARIA_OPENAI_BASE': 'https://api.openai.com/v1',
-                'SHARIA_ALLOWED_OPENAI_HOSTS': 'api.openai.com',
-                'SHARIA_MODEL': 'offline-fixture-model',
-            }
-            with mock.patch.dict('os.environ', env), \
-                    mock.patch.object(runner_mod, 'PACKAGE_MODE_FILE', mode), \
-                    mock.patch.object(runner_mod.requests, 'post',
-                                      return_value=fake_response) as post:
-                runner = runner_mod.ScreeningRunner(b'controller')
-                runner.api_key = 'offline-fixture-not-a-key'
-                report, meta = runner.run('ETH', 'ETH/USDT')
-            self.assertEqual(report['tool_evidence']['provider'], 'openai-responses')
-            self.assertEqual(meta['completed_web_search_calls'], 1)
-            self.assertEqual(meta['url_citations'], 1)
-            self.assertEqual(validate_result(report, expected_base='ETH'), report)
-            request_body = post.call_args.kwargs['json']
-            self.assertEqual(request_body['include'], ['web_search_call.action.sources'])
-            self.assertFalse(post.call_args.kwargs['allow_redirects'])
+        source = Path(runner_mod.__file__).read_text(encoding='utf-8')
+        self.assertFalse(hasattr(runner_mod, 'ScreeningRunner'))
+        for forbidden in (
+                'SHARIA_OPENAI_API_KEY', 'SHARIA_OPENAI_BASE',
+                'api.openai.com', 'requests.post'):
+            self.assertNotIn(forbidden, source)
 
-    def test_live_package_rejects_cached_gate(self):
-        with self.assertRaisesRegex(SystemExit, 'requires SHARIA_SIGNAL_GATE_MODE=fresh'):
-            enforce_sharia_gate_mode('live', 'cached')
-        self.assertEqual(enforce_sharia_gate_mode('live', 'fresh'), 'fresh')
+    def test_all_packages_require_signed_cached_gate(self):
+        with self.assertRaisesRegex(SystemExit, 'requires.*cached'):
+            enforce_sharia_gate_mode('live', 'fresh')
+        self.assertEqual(enforce_sharia_gate_mode('live', 'cached'), 'cached')
         self.assertEqual(enforce_sharia_gate_mode('testnet', 'cached'), 'cached')
 
-    def test_direct_order_manager_construction_cannot_enable_cached_live_gate(self):
+    def test_direct_order_manager_construction_cannot_enable_fresh_live_gate(self):
         from services.execution_sidecar import order_manager as om
         with mock.patch.object(om, 'load_package_mode', return_value='live'), \
-                mock.patch.dict('os.environ', {'SHARIA_SIGNAL_GATE_MODE': 'cached'}):
+                mock.patch.dict('os.environ', {'SHARIA_SIGNAL_GATE_MODE': 'fresh'}):
             with self.assertRaisesRegex(
-                    SystemExit, 'requires SHARIA_SIGNAL_GATE_MODE=fresh'):
+                    SystemExit, 'requires.*cached'):
                 om.OrderManager(None, None, None, None, None, {})
-
-    def test_live_host_and_model_are_immutable_policy_not_env_authority(self):
-        from services.sharia_screener import runner as runner_mod
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            mode = root / 'RELEASE_MODE'; mode.write_text('live')
-            policy = root / 'VALIDATION_STATUS.json'
-            policy.write_text(json.dumps({'sharia_live_policy': {
-                'approved': True, 'base_url': 'https://api.openai.com/v1',
-                'model': 'approved-model-exact'}}))
-            good = {
-                'SHARIA_OPENAI_BASE': 'https://api.openai.com/v1',
-                'SHARIA_MODEL': 'approved-model-exact',
-                'SHARIA_ALLOWED_OPENAI_HOSTS': 'api.openai.com',
-            }
-            with mock.patch.dict('os.environ', good):
-                enforce_live_screening_policy(
-                    package_mode_path=mode, policy_path=policy, execution_mode='live')
-                with mock.patch.object(runner_mod, 'PACKAGE_MODE_FILE', mode), \
-                        mock.patch.object(runner_mod, 'LIVE_POLICY_FILE', policy), \
-                        mock.patch.dict('os.environ', {'EXECUTION_MODE': 'live'}):
-                    self.assertEqual(
-                        runner_mod.ScreeningRunner(b'controller').model,
-                        'approved-model-exact')
-                with mock.patch.dict('os.environ', {'SHARIA_MODEL': 'substituted-model'}):
-                    with self.assertRaises(ScreeningUnavailable):
-                        enforce_live_screening_policy(
-                            package_mode_path=mode, policy_path=policy,
-                            execution_mode='live')
-                with mock.patch.dict('os.environ', {
-                        'SHARIA_ALLOWED_OPENAI_HOSTS': 'api.openai.com,evil.example'}):
-                    with self.assertRaises(ScreeningUnavailable):
-                        enforce_live_screening_policy(
-                            package_mode_path=mode, policy_path=policy,
-                            execution_mode='live')
-            mode.write_text('testnet')
-            with mock.patch.dict('os.environ', {
-                    'SHARIA_OPENAI_BASE': 'https://sandbox.example/v1',
-                    'SHARIA_MODEL': 'simulation-model',
-                    'SHARIA_ALLOWED_OPENAI_HOSTS': 'sandbox.example'}):
-                enforce_live_screening_policy(
-                    package_mode_path=mode, policy_path=policy,
-                    execution_mode='testnet')
-
-    def test_live_package_simulation_cannot_redirect_screening_credentials(self):
-        from services.sharia_screener import runner as runner_mod
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            mode = root / 'RELEASE_MODE'
-            mode.write_text('live', encoding='utf-8')
-            policy = root / 'VALIDATION_STATUS.json'
-
-            official = {
-                'EXECUTION_MODE': 'simulation',
-                'SHARIA_OPENAI_BASE': 'https://api.openai.com/v1',
-                'SHARIA_ALLOWED_OPENAI_HOSTS': 'api.openai.com',
-                'SHARIA_MODEL': 'simulation-model',
-            }
-            with mock.patch.object(runner_mod, 'PACKAGE_MODE_FILE', mode), \
-                    mock.patch.object(runner_mod, 'LIVE_POLICY_FILE', policy), \
-                    mock.patch.dict('os.environ', official, clear=True):
-                instance = runner_mod.ScreeningRunner(b'controller')
-                self.assertEqual(instance.base_url, 'https://api.openai.com/v1')
-
-            redirected = dict(official)
-            redirected.update({
-                'SHARIA_OPENAI_BASE': 'https://evil.example/v1',
-                'SHARIA_ALLOWED_OPENAI_HOSTS': 'evil.example',
-            })
-            with mock.patch.object(runner_mod, 'PACKAGE_MODE_FILE', mode), \
-                    mock.patch.object(runner_mod, 'LIVE_POLICY_FILE', policy), \
-                    mock.patch.dict('os.environ', redirected, clear=True):
-                with self.assertRaisesRegex(
-                        ScreeningUnavailable, 'approved/default endpoint'):
-                    runner_mod.ScreeningRunner(b'controller')
-
-            widened = dict(official)
-            widened['SHARIA_ALLOWED_OPENAI_HOSTS'] = 'api.openai.com,evil.example'
-            with mock.patch.object(runner_mod, 'PACKAGE_MODE_FILE', mode), \
-                    mock.patch.object(runner_mod, 'LIVE_POLICY_FILE', policy), \
-                    mock.patch.dict('os.environ', widened, clear=True):
-                with self.assertRaisesRegex(
-                        ScreeningUnavailable, 'single-host endpoint'):
-                    runner_mod.ScreeningRunner(b'controller')
-
-            policy.write_text(json.dumps({'sharia_live_policy': {
-                'approved': False,
-                'base_url': 'https://candidate.example/v1',
-                'model': 'candidate-model',
-            }}), encoding='utf-8')
-            candidate = dict(official)
-            candidate.update({
-                'SHARIA_OPENAI_BASE': 'https://candidate.example/v1',
-                'SHARIA_ALLOWED_OPENAI_HOSTS': 'candidate.example',
-            })
-            with mock.patch.object(runner_mod, 'PACKAGE_MODE_FILE', mode), \
-                    mock.patch.object(runner_mod, 'LIVE_POLICY_FILE', policy), \
-                    mock.patch.dict('os.environ', candidate, clear=True):
-                with self.assertRaisesRegex(
-                        ScreeningUnavailable, 'approved/default endpoint'):
-                    runner_mod.ScreeningRunner(b'controller')
-
-            policy.write_text(json.dumps({'sharia_live_policy': {
-                'approved': True,
-                'base_url': 'https://approved.example/v1',
-                'model': 'production-approved-model',
-            }}), encoding='utf-8')
-            approved_host = dict(official)
-            approved_host.update({
-                'SHARIA_OPENAI_BASE': 'https://approved.example/v1',
-                'SHARIA_ALLOWED_OPENAI_HOSTS': 'approved.example',
-                'SHARIA_MODEL': 'simulation-only-model',
-            })
-            with mock.patch.object(runner_mod, 'PACKAGE_MODE_FILE', mode), \
-                    mock.patch.object(runner_mod, 'LIVE_POLICY_FILE', policy), \
-                    mock.patch.dict('os.environ', approved_host, clear=True):
-                instance = runner_mod.ScreeningRunner(b'controller')
-                self.assertEqual(instance.base_url, 'https://approved.example/v1')
-                self.assertEqual(instance.model, 'simulation-only-model')
-
-    def test_screening_policy_obeys_package_and_execution_modes(self):
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            mode = root / 'RELEASE_MODE'
-            absent_policy = root / 'VALIDATION_STATUS.json'
-
-            mode.write_text('live')
-            enforce_live_screening_policy(
-                package_mode_path=mode, policy_path=absent_policy,
-                execution_mode='simulation')
-            with self.assertRaisesRegex(
-                    ScreeningUnavailable, 'policy is absent'):
-                enforce_live_screening_policy(
-                    package_mode_path=mode, policy_path=absent_policy,
-                    execution_mode='live')
-            with self.assertRaisesRegex(
-                    ScreeningUnavailable, 'does not permit'):
-                enforce_live_screening_policy(
-                    package_mode_path=mode, policy_path=absent_policy,
-                    execution_mode='testnet')
-
-            mode.write_text('testnet')
-            for execution in ('simulation', 'testnet'):
-                enforce_live_screening_policy(
-                    package_mode_path=mode, policy_path=absent_policy,
-                    execution_mode=execution)
-            with self.assertRaisesRegex(
-                    ScreeningUnavailable, 'does not permit'):
-                enforce_live_screening_policy(
-                    package_mode_path=mode, policy_path=absent_policy,
-                    execution_mode='live')
-
 
 class AutonomousDiscoveryAndRetryRepairTests(unittest.TestCase):
     def test_idle_discovery_seeds_from_binance_before_sharia(self):
