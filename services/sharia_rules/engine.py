@@ -26,7 +26,8 @@ from services.common.sharia_v19 import SCREENER_HOSTS
 from services.sharia_screener.verdict_policy import (
     POSITIVE_SCREENER_VERDICT,
     canonical_screener_verdict,
-    positive_verdict_conflict,
+    containing_sentence,
+    quote_conflict_in_source,
 )
 
 MIN_QUOTE_WORDS = 15
@@ -395,7 +396,13 @@ def evaluate_green_gate(documents: list[RetrievedDocument],
             if (document.url != claim.url or
                     document.content_sha256 != claim.content_sha256):
                 continue
-            if quote.casefold() in ' '.join(document.text.split()).casefold():
+            # A bare substring test let a negation be edited away: a page
+            # reading "It is false that this token is halal." accepted the
+            # fragment "this token is halal", and every later check then saw
+            # only the laundered text. The quote must therefore resolve to a
+            # complete sentence in the source, and callers judge that
+            # sentence rather than the fragment.
+            if containing_sentence(quote, document.text):
                 return True
         return False
 
@@ -441,8 +448,17 @@ def evaluate_green_gate(documents: list[RetrievedDocument],
         verdict = canonical_screener_verdict(known.get(name))
         if verdict != POSITIVE_SCREENER_VERDICT:
             return False
-        if positive_verdict_conflict(
-                verdict, claim.quote,
+        # Judge the sentence the SOURCE contains, not the fragment the caller
+        # supplied. Judging the fragment let a negative prefix be trimmed off
+        # ("It is false that this token is halal." -> "this token is halal"),
+        # which laundered a negative page into positive evidence.
+        source = next((d.text for d in documents
+                       if d.opened and d.url == claim.url and
+                       d.content_sha256 == claim.content_sha256), '')
+        if not source:
+            return False
+        if quote_conflict_in_source(
+                verdict, claim.quote, source,
                 permitted_provider_identifiers={name},
                 permitted_asset_identifiers={asset_identifier}):
             return False

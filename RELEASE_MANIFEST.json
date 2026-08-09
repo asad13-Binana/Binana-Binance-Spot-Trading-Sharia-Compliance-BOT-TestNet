@@ -65,8 +65,8 @@
       "size": 31
     },
     "VALIDATION_STATUS.json": {
-      "sha256": "59313ade09e3d5e9781d148e026d1ef3c0397e9631b11cee0daae4ace45e8368",
-      "size": 4453
+      "sha256": "43633f5c8cfac961b44becaf72a81e2bfc8a5b38825f64657e2f866acc7144ef",
+      "size": 4730
     },
     "deploy/install_artifact.sh": {
       "sha256": "731a6fa5de4ee31ed618dc9879bef32d2ea035e7b3f14ac19a42718caa65df70",
@@ -181,16 +181,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "9a9f7c2f55a41a8f50bc69ac286d7e3264a5b1850ae321e558c1d0fabadb754a",
-      "size": 35117
+      "sha256": "7defa8822b213e6147cc9270112a0556e2f6c109fa3a07efdce2a9fba7c6df11",
+      "size": 35118
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "b6ee338322cb4c981a4cc97e0fc4b2923fc554b192a75471a8fd905ecea7f248",
-      "size": 232741
+      "sha256": "0a249b8d701173ffc5f1cd1cee0098e0d216446a57532e635039f405e4b01645",
+      "size": 233716
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "7c51900cd34d65cf53216d1830543e89f1175d5eab51481e5283ccb171f6df40",
@@ -513,8 +513,8 @@
       "size": 1006
     },
     "scripts/seed_source_registry.py": {
-      "sha256": "7312d857108d85fc26dd0e331d2558576322afada5ba399a5f12e5c132a07c0c",
-      "size": 17610
+      "sha256": "fc59a248d7e2d66340de338bf60034236bf74105d5c45474a1a6ae78eb0246c6",
+      "size": 18339
     },
     "scripts/verify_deployment_supply_chain.py": {
       "sha256": "570e4d7f0a23be4fe99e2271e06e290efaec062d5423294c2754fd0876f12232",
@@ -649,8 +649,8 @@
       "size": 870
     },
     "services/sharia_rules/engine.py": {
-      "sha256": "f7cbcd9b50f7091850463b18ee926e52af9cf48edcd5ae75d1f601c13c8d9331",
-      "size": 27864
+      "sha256": "3a0b0bea1e2a3bfceda1a7e21e7de4298be3a60f40b6cc17fdc11592b953fce3",
+      "size": 28825
     },
     "services/sharia_screener/__init__.py": {
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -685,8 +685,8 @@
       "size": 7941
     },
     "services/sharia_screener/verdict_policy.py": {
-      "sha256": "2ef0f946acabb1aef32e4cb9caf9be879c2c88aa0a9fddca6b112f963962d1ce",
-      "size": 9389
+      "sha256": "fe3987178db9fa33b1966d3d5553821974a9d6170bd63ed4a1158426199c9d78",
+      "size": 12053
     },
     "services/telegram_broker/__init__.py": {
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -881,8 +881,8 @@
       "size": 46181
     },
     "tests/test_verdict_policy.py": {
-      "sha256": "65bbe984257e0e95139c0145e3ec9f9687a2f22c6812e9fcc9618fa683c74aa1",
-      "size": 11779
+      "sha256": "b37d535042ae5ac137dc094071a8c29a57e76232ed7d6201a7e9f52b7f925eee",
+      "size": 14499
     },
     "tests/test_workflow_graph.py": {
       "sha256": "2a8f22e7f2b3ead500a6011b15e67f8ffc49baab0752f21f798bd970c1055784",

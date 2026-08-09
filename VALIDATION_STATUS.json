@@ -18,15 +18,16 @@
     "note": "The image-baked, read-only RELEASE_MODE interlock cannot be promoted to live by editing .env."
   },
   "offline_results": {
-    "full_release_gate": "passed locally: the 410-test core run completed with 406 passes and 4 documented skips, plus 50 monitoring passes and 33 of 33 preserved legacy self-tests; combined pytest also passed 457 tests with 9 documented skips and 80 subtests",
-    "audit_ledgers": "verified exact tree parity after regeneration: 220 files and 1758 functions",
-    "release_manifest": "regenerated for revision 2026-08-09A; 218-file exact set/hash verification passed locally",
+    "full_release_gate": "passed locally after the quote-truncation fix: 321 core tests passed with 8 documented skips and 225 subtests, plus the monitoring suite; totals are re-derived per revision rather than carried forward",
+    "audit_ledgers": "verified exact tree parity after regeneration: 224 files and 1832 functions",
+    "release_manifest": "regenerated after the quote-truncation fix; 222-file exact set/hash verification passed locally",
     "strategy_integrity": "protected bytes and source/token fingerprints match the reviewed baseline",
     "dependency_locks": "runtime dependencies, including the pure-Python PDF parser, are SHA-256 hash-locked and installed with pip --require-hashes; local strict vulnerability audit found no known vulnerabilities",
     "container_execution": "not run locally because no Docker engine was available; both base images are digest-pinned with amd64 and arm64 manifests, and GitHub Actions remains required for this revision",
     "authenticated_binance_orders": "not attempted",
     "telegram_real_credentials": "not used",
-    "oracle_deployment": "not attempted"
+    "oracle_deployment": "not attempted",
+    "sharia_evidence_binding": "a positive screener verdict is judged on the full sentence the retrieved source contains, not on the fragment supplied by the caller, so trimming a negative prefix cannot launder negative evidence into a positive record"
   },
   "repair_summary": {
     "universe": "full immutable snapshot reopen, semantic hash, filename/path, configuration, ranking, schema, freshness, and retention validation",

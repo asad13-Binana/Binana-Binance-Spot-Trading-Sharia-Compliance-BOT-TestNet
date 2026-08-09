@@ -264,3 +264,55 @@ class CanonicalVocabularyTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class QuoteTruncationTests(unittest.TestCase):
+    """A negation must not be removable by trimming the quote.
+
+    Both the seeding helper and the runtime engine checked the owner's quote
+    as a plain substring of the page, and then judged that fragment. Deleting
+    a negative prefix therefore laundered a negative page into positive
+    evidence: the affirmative template matched, no negative token remained,
+    and the screener counted as positive. Proven on three real phrasings.
+    """
+
+    TRUNCATION_ATTACKS = (
+        ('It is false that this token is halal.', 'this token is halal'),
+        ('No authority says this token is halal.', 'this token is halal'),
+        ('Nobody has confirmed this token is halal.', 'this token is halal'),
+        ('We cannot say the asset is compliant.', 'the asset is compliant'),
+        ('It is untrue that the coin is permissible.', 'the coin is permissible'),
+        ('Contrary to reports, the token is halal only for staking.',
+         'the token is halal'),
+    )
+
+    def test_a_trimmed_negation_is_judged_on_the_full_source_sentence(self):
+        from services.sharia_screener.verdict_policy import quote_conflict_in_source
+        for page, fragment in self.TRUNCATION_ATTACKS:
+            with self.subTest(page=page):
+                self.assertTrue(
+                    quote_conflict_in_source('halal', fragment, page),
+                    f'trimming turned {page!r} into accepted halal evidence')
+
+    def test_a_genuinely_affirmative_page_still_passes(self):
+        from services.sharia_screener.verdict_policy import quote_conflict_in_source
+        self.assertEqual(
+            quote_conflict_in_source('halal', 'This token is halal',
+                                     'This token is halal.'), '')
+
+    def test_a_fragment_absent_from_the_source_is_refused(self):
+        from services.sharia_screener.verdict_policy import quote_conflict_in_source
+        self.assertTrue(quote_conflict_in_source(
+            'halal', 'this token is halal', 'A completely unrelated page.'))
+
+    def test_containing_sentence_returns_the_whole_sentence(self):
+        from services.sharia_screener.verdict_policy import containing_sentence
+        found = containing_sentence(
+            'this token is halal', 'Intro text. It is false that this token '
+                                   'is halal. Later text.')
+        self.assertEqual(found, 'It is false that this token is halal.')
+
+    def test_containing_sentence_is_invisible_character_safe(self):
+        from services.sharia_screener.verdict_policy import containing_sentence
+        self.assertTrue(containing_sentence(
+            'this token is halal', 'It is false that this​ token is halal.'))

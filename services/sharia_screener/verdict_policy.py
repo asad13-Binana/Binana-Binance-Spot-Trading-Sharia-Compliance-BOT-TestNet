@@ -192,3 +192,70 @@ def positive_verdict_conflict(
                 f'({match.group("tail")!r}); send it to owner review instead '
                 'of promoting it')
     return ''
+
+
+# --- QUOTE-TRUNCATION DEFENCE ---------------------------------------------
+#
+# Checking the owner's quote as a substring of the page let a negation be
+# edited away. A page reading "It is false that this token is halal." accepts
+# the quote "this token is halal", and every downstream check then sees only
+# the laundered fragment: the affirmative template matches, no negative token
+# is present, and the screener counts as positive.
+#
+# Reproduced on three pages ("It is false that...", "No authority says...",
+# "Nobody has confirmed..."), and the same substring test existed in both the
+# seeding helper and the runtime rules engine.
+#
+# The fix is to stop judging the fragment. Locate it in the source, expand to
+# the complete sentence that contains it, and apply the verdict policy to
+# that sentence. The negation is still in the source, so it cannot be removed
+# by editing the draft.
+_SENTENCE_END = '.!?\n'
+
+
+def containing_sentence(quote: object, text: object) -> str:
+    """Return the full sentence in ``text`` spanning ``quote``, or ''.
+
+    Both sides are normalised identically first, so invisible characters and
+    hyphen variants cannot be used to dodge the lookup.
+    """
+    needle = _normalize(quote)
+    haystack = _normalize(text)
+    if not needle or not haystack:
+        return ''
+    index = haystack.casefold().find(needle.casefold())
+    if index < 0:
+        return ''
+    start, end = index, index + len(needle)
+    left = 0
+    for i in range(start - 1, -1, -1):
+        if haystack[i] in _SENTENCE_END:
+            left = i + 1
+            break
+    right = len(haystack)
+    for i in range(end, len(haystack)):
+        if haystack[i] in _SENTENCE_END:
+            right = i + 1
+            break
+    return haystack[left:right].strip()
+
+
+def quote_conflict_in_source(value: object, quote: object, text: object,
+                             **kwargs) -> str:
+    """Apply the positive-verdict policy to the quote's FULL source sentence.
+
+    ``quote`` may be any fragment the owner selected; what is judged is the
+    sentence the source actually contains. A fragment that cannot be located
+    at all is refused outright.
+    """
+    if canonical_screener_verdict(value) != POSITIVE_SCREENER_VERDICT:
+        return ''
+    sentence = containing_sentence(quote, text)
+    if not sentence:
+        return ('positive verdict quote was not found verbatim in the '
+                'retrieved source')
+    conflict = positive_verdict_conflict(value, sentence, **kwargs)
+    if conflict:
+        return (f'{conflict} (judged on the full source sentence '
+                f'{sentence!r}, not the supplied fragment)')
+    return ''

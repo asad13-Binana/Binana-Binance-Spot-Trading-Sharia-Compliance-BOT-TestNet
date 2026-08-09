@@ -51,6 +51,7 @@ from services.sharia_screener.verdict_policy import (  # noqa: E402
     CANONICAL_SCREENER_VERDICTS,
     canonical_screener_verdict,
     positive_verdict_conflict,
+    quote_conflict_in_source,
 )
 
 MIN_QUOTE_WORDS = 6
@@ -332,8 +333,12 @@ def do_apply(args) -> int:
                     f'{base}.{name}: quote does NOT appear in the retrieved '
                     f'bytes for {url} - it was edited or the page changed')
             is_screener = name in entry.get('screeners', {})
-            conflict = positive_value_conflicts_with_quote(
-                value, quote,
+            # Judge the SOURCE sentence, not the supplied fragment. Judging
+            # the fragment let a negative prefix be trimmed away: a page
+            # reading "It is false that this token is halal." accepted the
+            # quote "this token is halal" and reported no conflict.
+            conflict = quote_conflict_in_source(
+                value, quote, texts.get(url, ''),
                 permitted_provider_identifiers=({name} if is_screener else set()),
                 permitted_asset_identifiers=({base} if is_screener else set()))
             if conflict:
