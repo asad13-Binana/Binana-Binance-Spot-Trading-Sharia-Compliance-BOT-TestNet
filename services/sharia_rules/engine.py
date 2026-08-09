@@ -20,7 +20,9 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from urllib.parse import urlparse
+
+from services.common.sharia_v19 import SCREENER_HOSTS
 
 MIN_QUOTE_WORDS = 15
 # Conditions that cannot be established by pattern matching alone. The
@@ -59,7 +61,33 @@ class RetrievedDocument:
 
     @property
     def opened(self) -> bool:
-        return self.http_status == 200 and bool(self.text.strip())
+        try:
+            parsed = urlparse(self.url)
+            valid_url = (parsed.scheme.lower() == 'https' and
+                         bool(parsed.hostname) and not parsed.username and
+                         not parsed.password)
+        except ValueError:
+            valid_url = False
+        return (
+            self.http_status == 200 and bool(self.text.strip()) and valid_url and
+            re.fullmatch(r'[0-9a-f]{64}', self.content_sha256) is not None and
+            bool(self.retrieved_utc.strip())
+        )
+
+
+@dataclass(frozen=True)
+class EvidenceClaim:
+    """A positive fact tied to one exact retrieved document.
+
+    ``value`` is the asserted classification or verdict. ``quote`` must occur
+    verbatim (after whitespace normalisation) in the document identified by
+    both ``url`` and ``content_sha256``.  This prevents a caller from turning
+    a bare boolean or enum into a passed GREEN proof-card check.
+    """
+    value: str
+    quote: str
+    url: str
+    content_sha256: str
 
 
 @dataclass(frozen=True)
@@ -320,7 +348,10 @@ def evaluate_green_gate(documents: list[RetrievedDocument],
                         revenue_clean: bool,
                         contradictions: list[str],
                         keyword_scan_completed: bool,
-                        expected_screeners: set[str]) -> dict[str, bool]:
+                        expected_screeners: set[str],
+                        fact_evidence: dict[str, EvidenceClaim],
+                        screener_evidence: dict[str, EvidenceClaim]
+                        ) -> dict[str, bool]:
     """Mechanically evaluate GREEN_PROOF_GATE.green_requires_all.
 
     Positive facts are bound to retained evidence wherever the controller
@@ -339,27 +370,85 @@ def evaluate_green_gate(documents: list[RetrievedDocument],
     """
     tier1_opened = [d for d in documents
                     if d.is_tier1 and d.opened and d.identity_match]
-    # The utility quote must actually appear in an opened, identity-matched
-    # Tier 1 document rather than merely being asserted by the caller.
-    normalized_quote = ' '.join(utility_quote.split()).lower()
-    utility_is_bound = bool(normalized_quote) and len(
-        normalized_quote.split()) >= 5 and any(
-        normalized_quote in ' '.join(d.text.split()).lower()
-        for d in tier1_opened)
+    def claim_is_bound(claim: object, *, expected_value: str | None = None,
+                       min_words: int = 3,
+                       tier1_only: bool = False) -> bool:
+        if not isinstance(claim, EvidenceClaim):
+            return False
+        value = str(claim.value).strip()
+        if expected_value is not None and value.casefold() != expected_value.casefold():
+            return False
+        quote = ' '.join(str(claim.quote).split())
+        if len(quote.split()) < min_words:
+            return False
+        for document in documents:
+            if not document.opened:
+                continue
+            if tier1_only and not (document.is_tier1 and document.identity_match):
+                continue
+            if (document.url != claim.url or
+                    document.content_sha256 != claim.content_sha256):
+                continue
+            if quote.casefold() in ' '.join(document.text.split()).casefold():
+                return True
+        return False
+
+    token_claim = fact_evidence.get('token_type')
+    utility_claim = fact_evidence.get('utility')
+    revenue_claim = fact_evidence.get('revenue')
+    token_is_bound = (
+        token_type.strip().upper() in VALID_TOKEN_TYPES and
+        claim_is_bound(token_claim, expected_value=token_type.strip().upper(),
+                       min_words=3, tier1_only=True)
+    )
+    utility_is_bound = (
+        isinstance(utility_claim, EvidenceClaim) and
+        ' '.join(utility_claim.quote.split()).casefold() ==
+        ' '.join(utility_quote.split()).casefold() and
+        claim_is_bound(utility_claim, min_words=5, tier1_only=True)
+    )
+    revenue_value = (revenue_claim.value.strip().casefold()
+                     if isinstance(revenue_claim, EvidenceClaim) else '')
+    revenue_is_bound = (
+        bool(revenue_clean) and revenue_value in {'clean', 'non-material'} and
+        claim_is_bound(revenue_claim, min_words=5, tier1_only=True)
+    )
     known = {k.lower().replace('_', '').replace('-', ''): str(v or '').strip()
              for k, v in screener_results.items()}
+    bound_screeners = {
+        str(k).lower().replace('_', '').replace('-', ''): v
+        for k, v in screener_evidence.items()
+    }
+
+    def screener_claim_is_bound(name: str) -> bool:
+        claim = bound_screeners.get(name)
+        if not isinstance(claim, EvidenceClaim):
+            return False
+        try:
+            claim_host = (urlparse(claim.url).hostname or '').lower().rstrip('.')
+        except ValueError:
+            return False
+        permitted = SCREENER_HOSTS.get(name, frozenset())
+        if not any(claim_host == host or claim_host.endswith('.' + host)
+                   for host in permitted):
+            return False
+        return claim_is_bound(
+            claim, expected_value=known.get(name), min_words=3)
+
     screeners_complete = (
         bool(expected_screeners) and
         expected_screeners <= set(known) and
-        all(known.get(name) for name in expected_screeners)
+        expected_screeners <= set(bound_screeners) and
+        all(known.get(name) and screener_claim_is_bound(name)
+            for name in expected_screeners)
     )
     adverse = [h for h in leads if not h.negated]
     return {
-        'identity_verified': bool(identity_confirmed),
-        'token_type_classified': token_type.strip().upper() in VALID_TOKEN_TYPES,
+        'identity_verified': bool(identity_confirmed) and bool(tier1_opened),
+        'token_type_classified': token_is_bound,
         'tier1_official_source_opened': bool(tier1_opened),
         'real_utility_official_quote': utility_is_bound,
-        'revenue_clean_or_non_material': bool(revenue_clean),
+        'revenue_clean_or_non_material': revenue_is_bound,
         'no_confirmed_haram_narrative': not adverse,
         'no_automatic_haram_income': not any(
             h.narrative == 'N6' for h in adverse),
@@ -401,7 +490,10 @@ def evaluate(controller: dict, *, documents: list[RetrievedDocument],
              screener_results: dict[str, str], identity_confirmed: bool,
              token_type: str, utility_quote: str, revenue_clean: bool,
              contradictions: list[str] | None = None,
-             expected_screeners: set[str] | None = None) -> RulesFinding:
+             expected_screeners: set[str] | None = None,
+             fact_evidence: dict[str, EvidenceClaim] | None = None,
+             screener_evidence: dict[str, EvidenceClaim] | None = None
+             ) -> RulesFinding:
     """Run the full deterministic pass and return a disposition.
 
     The result is never a tradeable verdict. ``PROPOSE_GREEN`` means every
@@ -409,6 +501,8 @@ def evaluate(controller: dict, *, documents: list[RetrievedDocument],
     """
     contradictions = list(contradictions or [])
     expected_screeners = set(expected_screeners or set())
+    fact_evidence = dict(fact_evidence or {})
+    screener_evidence = dict(screener_evidence or {})
 
     opened = [d for d in documents if d.opened]
     leads, clean = scan_keywords(controller, documents)
@@ -422,6 +516,26 @@ def evaluate(controller: dict, *, documents: list[RetrievedDocument],
         finding.reasons.append(
             'no source was successfully retrieved; controller requires '
             'fail-closed NO_TRADE_INFO')
+        return finding
+
+    # A lexical heuristic cannot reliably determine the scope of ``not``,
+    # ``unless``, ``except`` or a negation in a neighbouring clause.  A prior
+    # implementation treated every hit it labelled as negated as clean. That
+    # allowed statements such as "does not charge users and provides a
+    # guaranteed return" to reach PROPOSE_GREEN. Keep the hit and fail closed
+    # to owner review; never let grammar heuristics prove absence of a haram
+    # feature.
+    negated_adverse = [
+        hit for hit in clean
+        if hit.negated and hit.narrative not in {'CLEAN_PASS', 'NEUTRAL'}
+    ]
+    if negated_adverse:
+        finding.disposition = Disposition.ESCALATE
+        finding.reasons.append(
+            f'{len(negated_adverse)} adverse keyword occurrence(s) appeared '
+            'in potentially negated or conditional language; deterministic '
+            'scope analysis cannot clear them, so owner review is required')
+        finding.escalations.append('negation or conditional scope requires owner review')
         return finding
 
     conditions, narrative, haram_notes = evaluate_haram_gate(controller, leads)
@@ -462,7 +576,8 @@ def evaluate(controller: dict, *, documents: list[RetrievedDocument],
         identity_confirmed=identity_confirmed, token_type=token_type,
         utility_quote=utility_quote, revenue_clean=revenue_clean,
         contradictions=contradictions, keyword_scan_completed=scan_completed,
-        expected_screeners=expected_screeners)
+        expected_screeners=expected_screeners, fact_evidence=fact_evidence,
+        screener_evidence=screener_evidence)
 
     escalations = detect_escalations(
         controller, screener_results, token_type, contradictions, haram_notes)

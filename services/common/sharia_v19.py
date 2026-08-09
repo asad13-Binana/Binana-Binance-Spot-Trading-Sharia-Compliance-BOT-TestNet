@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """V19.1 Sharia screening controller binding and result validation.
 
 The file shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json is the
@@ -21,6 +22,8 @@ from urllib.parse import urlparse, urlunparse
 
 from services.common.evidence_providers import (
     is_registered as is_registered_provider,
+)
+from services.common.evidence_providers import (
     required_record_keys as provider_required_record_keys,
 )
 
@@ -79,6 +82,19 @@ REQUIRED_WHITEPAPER_SECTIONS = {
 SCREENER_SITES = {
     'cryptoummah', 'sharlife', 'islamicfinanceguru', 'saraf',
     'halalscreener', 'gethalalcrypto', 'musaffa',
+}
+# Exact website identities for the controller's seven named screeners. A
+# result labelled ``musaffa`` is not evidence unless it came from Musaffa's
+# own host (or one of its subdomains); a caller-chosen URL must not satisfy a
+# named external check.
+SCREENER_HOSTS = {
+    'cryptoummah': frozenset({'cryptoummah.com'}),
+    'sharlife': frozenset({'sharlife.my'}),
+    'islamicfinanceguru': frozenset({'islamicfinanceguru.com'}),
+    'saraf': frozenset({'saraf.app'}),
+    'halalscreener': frozenset({'halalscreener.app'}),
+    'gethalalcrypto': frozenset({'gethalalcrypto.com'}),
+    'musaffa': frozenset({'musaffa.com'}),
 }
 KEYWORD_CATEGORIES = {
     'RIBA_LENDING_KEYWORDS', 'DEBT_YIELD_KEYWORDS', 'FIXED_APY_KEYWORDS',
@@ -178,6 +194,7 @@ def _provider_tool_evidence_urls(report: dict) -> tuple[set[str], set[str]]:
              'verdict requires at least one completed provider web search call')
     provider_urls: set[str] = set()
     evidentiary_urls: set[str] = set()
+    hashed_evidentiary_urls: set[str] = set()
     for index, call in enumerate(calls):
         _require(isinstance(call, dict),
                  f'tool_evidence completed_web_search_calls[{index}] must be an object')
@@ -207,12 +224,22 @@ def _provider_tool_evidence_urls(report: dict) -> tuple[set[str], set[str]]:
         source_urls = call.get('source_urls')
         _require(isinstance(source_urls, list),
                  'provider web search call source_urls must be an array')
+        normalized_source_urls: set[str] = set()
         for raw_url in source_urls:
             normalized = normalize_evidence_url(raw_url)
             _require(bool(normalized), 'provider web search source URL is invalid')
+            normalized_source_urls.add(normalized)
             provider_urls.add(normalized)
             if action_type in {'open_page', 'find_in_page'}:
                 evidentiary_urls.add(normalized)
+                if 'content_sha256' in required_keys:
+                    hashed_evidentiary_urls.add(normalized)
+        if 'content_sha256' in required_keys:
+            record_url = normalize_evidence_url(call.get('url'))
+            _require(bool(record_url),
+                     'local retrieval record URL is invalid')
+            _require(record_url in normalized_source_urls,
+                     'local retrieval record URL must match its source_urls entry')
 
     citations = evidence.get('url_citations')
     _require(isinstance(citations, list), 'tool_evidence.url_citations must be an array')
@@ -229,8 +256,15 @@ def _provider_tool_evidence_urls(report: dict) -> tuple[set[str], set[str]]:
                  isinstance(end, int) and not isinstance(end, bool) and
                   0 <= start < end,
                   'provider URL citation offsets are invalid')
+        if 'content_sha256' in required_keys:
+            _require(normalized in hashed_evidentiary_urls,
+                     'local provider citation lacks a matching hashed open-page record')
         provider_urls.add(normalized)
-        evidentiary_urls.add(normalized)
+        # Hosted-provider citations can themselves demonstrate that a page
+        # was opened. Local citations are merely text offsets; the URL becomes
+        # evidentiary only through the matching hashed retrieval above.
+        if 'content_sha256' not in required_keys:
+            evidentiary_urls.add(normalized)
     return provider_urls, evidentiary_urls
 
 

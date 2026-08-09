@@ -19,21 +19,34 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from services.common.evidence_providers import (  # noqa: E402
-    ACTIVE_PROVIDERS, is_registered, is_selectable_for_new_result,
+from services.common.evidence_providers import (
+    ACTIVE_PROVIDERS,
+    is_registered,
+    is_selectable_for_new_result,
     required_record_keys,
 )
-from services.common.sharia_v19 import (  # noqa: E402
-    ResultValidationError, SCREENER_SITES, _provider_tool_evidence_urls,
+from services.common.sharia_v19 import (
+    SCREENER_HOSTS,
+    SCREENER_SITES,
+    ResultValidationError,
+    _provider_tool_evidence_urls,
     load_controller,
 )
-from services.sharia_retriever.retriever import (  # noqa: E402
-    MAX_REDIRECTS, RetrievalBlocked, Retriever, assert_fetchable,
-    classify_tier, html_to_text,
+from services.sharia_retriever.retriever import (
+    MAX_REDIRECTS,
+    RetrievalBlocked,
+    Retriever,
+    assert_fetchable,
+    classify_tier,
+    html_to_text,
 )
-from services.sharia_rules.engine import (  # noqa: E402
-    Disposition, RetrievedDocument, extract_quote, is_negated, scan_keywords,
+from services.sharia_rules.engine import (
+    Disposition,
+    EvidenceClaim,
+    RetrievedDocument,
     evaluate,
+    extract_quote,
+    is_negated,
 )
 
 CONTROLLER_PATH = (ROOT / 'shared/sharia'
@@ -42,20 +55,50 @@ _RAW, CONTROLLER = load_controller(CONTROLLER_PATH)
 ALL_HALAL = {name: 'halal' for name in SCREENER_SITES}
 
 
-def _doc(text, tier='TIER_1_OFFICIAL', status=200, identity=True):
+def _doc(text, tier='TIER_1_OFFICIAL', status=200, identity=True,
+         url='https://official.example/docs', digest='b' * 64):
     return RetrievedDocument(
-        url='https://official.example/docs', tier=tier, text=text,
-        content_sha256='b' * 64, retrieved_utc='2026-08-09T00:00:00Z',
+        url=url, tier=tier, text=text,
+        content_sha256=digest, retrieved_utc='2026-08-09T00:00:00Z',
         http_status=status, identity_match=identity)
 
 
+def _claim(doc, value, quote):
+    return EvidenceClaim(
+        value=value, quote=quote, url=doc.url,
+        content_sha256=doc.content_sha256)
+
+
 def _evaluate(text, **over):
-    quote = 'settles payments and pays network transaction fees'
-    args = dict(
-        documents=[_doc(f'{text} The token {quote} for every transfer.')],
-        screener_results=ALL_HALAL, identity_confirmed=True,
-        token_type='PAYMENT', utility_quote=quote, revenue_clean=True,
-        contradictions=[], expected_screeners=SCREENER_SITES)
+    utility_quote = 'settles payments and pays network transaction fees'
+    token_quote = 'The token is classified as a payment currency.'
+    revenue_quote = 'Project revenue consists solely of transaction fees for network use.'
+    official = _doc(
+        f'{text} {token_quote} The token {utility_quote} for every transfer. '
+        f'{revenue_quote}')
+    screener_docs = {}
+    screener_evidence = {}
+    for index, name in enumerate(sorted(SCREENER_SITES), start=1):
+        verdict_quote = f'{name} screening result is halal for this asset.'
+        host = min(SCREENER_HOSTS[name])
+        doc = _doc(
+            verdict_quote, tier='TIER_2_PRIMARY_MARKET', identity=False,
+            url=f'https://{host}/result', digest=f'{index:064x}')
+        screener_docs[name] = doc
+        screener_evidence[name] = _claim(doc, 'halal', verdict_quote)
+    args = {
+        'documents': [official, *screener_docs.values()],
+        'screener_results': ALL_HALAL, 'identity_confirmed': True,
+        'token_type': 'PAYMENT', 'utility_quote': utility_quote,
+        'revenue_clean': True, 'contradictions': [],
+        'expected_screeners': SCREENER_SITES,
+        'fact_evidence': {
+            'token_type': _claim(official, 'PAYMENT', token_quote),
+            'utility': _claim(official, 'real utility', utility_quote),
+            'revenue': _claim(official, 'clean', revenue_quote),
+        },
+        'screener_evidence': screener_evidence,
+    }
     args.update(over)
     return evaluate(CONTROLLER, **args)
 
@@ -104,12 +147,43 @@ class ProviderRegistryTests(unittest.TestCase):
                 'content_sha256': 'a' * 64, 'source_tier': 'TIER_1_OFFICIAL'}
         for drop in ('content_sha256', 'http_status', 'source_tier'):
             weakened = {k: v for k, v in base.items() if k != drop}
-            with self.subTest(missing=drop):
-                with self.assertRaises(ResultValidationError):
-                    _provider_tool_evidence_urls({'tool_evidence': {
-                        'provider': 'local-oracle-v1',
-                        'completed_web_search_calls': [weakened],
-                        'url_citations': []}})
+            with self.subTest(missing=drop), self.assertRaises(
+                    ResultValidationError):
+                _provider_tool_evidence_urls({'tool_evidence': {
+                    'provider': 'local-oracle-v1',
+                    'completed_web_search_calls': [weakened],
+                    'url_citations': []}})
+
+    def test_local_citation_cannot_add_an_unhashed_evidentiary_url(self):
+        record = {
+            'id': 'ret_1', 'status': 'completed', 'action_type': 'open_page',
+            'source_urls': ['https://official.example/docs'],
+            'url': 'https://official.example/docs',
+            'retrieved_utc': '2026-08-09T00:00:00Z', 'http_status': 200,
+            'content_sha256': 'a' * 64, 'source_tier': 'TIER_1_OFFICIAL',
+        }
+        with self.assertRaises(ResultValidationError):
+            _provider_tool_evidence_urls({'tool_evidence': {
+                'provider': 'local-oracle-v1',
+                'completed_web_search_calls': [record],
+                'url_citations': [{
+                    'url': 'https://unhashed.example/claim', 'title': 'claim',
+                    'start_index': 0, 'end_index': 5,
+                }]}})
+
+    def test_local_record_url_must_match_its_hashed_source_url(self):
+        record = {
+            'id': 'ret_1', 'status': 'completed', 'action_type': 'open_page',
+            'source_urls': ['https://different.example/docs'],
+            'url': 'https://official.example/docs',
+            'retrieved_utc': '2026-08-09T00:00:00Z', 'http_status': 200,
+            'content_sha256': 'a' * 64, 'source_tier': 'TIER_1_OFFICIAL',
+        }
+        with self.assertRaises(ResultValidationError):
+            _provider_tool_evidence_urls({'tool_evidence': {
+                'provider': 'local-oracle-v1',
+                'completed_web_search_calls': [record],
+                'url_citations': []}})
 
 
 class NegationTests(unittest.TestCase):
@@ -138,6 +212,27 @@ class NegationTests(unittest.TestCase):
     def test_polarity_reversing_verb_defeats_the_cue(self):
         text = 'The protocol does not prohibit a guaranteed return.'
         self.assertFalse(is_negated(text, text.index('guaranteed return')))
+
+    def test_unrelated_negation_in_same_sentence_cannot_clear_disclosure(self):
+        for text in (
+                'No fee applies, but holders receive a guaranteed return from treasury revenue.',
+                'The protocol does not charge users and provides a guaranteed return to holders.'):
+            with self.subTest(text=text):
+                self.assertNotEqual(_evaluate(text).disposition,
+                                    Disposition.PROPOSE_GREEN)
+
+    def test_unless_and_except_disclosures_cannot_clear_green(self):
+        for text in (
+                'No guaranteed return exists except for early depositors.',
+                'No guaranteed return is promised unless the treasury exceeds its target.'):
+            with self.subTest(text=text):
+                self.assertNotEqual(_evaluate(text).disposition,
+                                    Disposition.PROPOSE_GREEN)
+
+    def test_even_plain_disclaimer_requires_owner_scope_review(self):
+        finding = _evaluate(
+            'No fixed or guaranteed return is offered to any participant.')
+        self.assertEqual(finding.disposition, Disposition.ESCALATE)
 
 
 class QuoteBindingTests(unittest.TestCase):
@@ -181,6 +276,67 @@ class EvidenceDerivedFactTests(unittest.TestCase):
         self.assertNotEqual(finding.disposition, Disposition.PROPOSE_GREEN)
         self.assertFalse(finding.green_checks['real_utility_official_quote'])
 
+    def test_bare_positive_facts_cannot_produce_a_green_proposal(self):
+        finding = _evaluate(
+            'This project publishes a website.',
+            fact_evidence={}, screener_evidence={})
+        self.assertNotEqual(finding.disposition, Disposition.PROPOSE_GREEN)
+        self.assertFalse(finding.green_checks['token_type_classified'])
+        self.assertFalse(finding.green_checks['revenue_clean_or_non_material'])
+        self.assertFalse(
+            finding.green_checks['shariah_screener_check_completed'])
+
+    def test_revenue_boolean_must_be_bound_to_retrieved_evidence(self):
+        finding = _evaluate(
+            'This project publishes a website.',
+            fact_evidence={'token_type': None, 'utility': None,
+                           'revenue': None})
+        self.assertNotEqual(finding.disposition, Disposition.PROPOSE_GREEN)
+        self.assertFalse(finding.green_checks['revenue_clean_or_non_material'])
+
+    def test_unattested_document_cannot_support_positive_claims(self):
+        finding = _evaluate(
+            'This project publishes a website.',
+            documents=[_doc('apparently valid text', digest='not-a-digest')])
+        self.assertEqual(finding.disposition, Disposition.AUTO_NO_TRADE_INFO)
+
+    def test_screener_name_must_match_its_real_host(self):
+        finding = _evaluate('This project publishes a website.')
+        forged = dict(finding.green_checks)
+        self.assertTrue(forged['shariah_screener_check_completed'])
+
+        # Rebuild the normal inputs, then bind Musaffa's verdict to a different
+        # screener host. The text and digest are valid, but the identity is not.
+        utility_quote = 'settles payments and pays network transaction fees'
+        token_quote = 'The token is classified as a payment currency.'
+        revenue_quote = 'Project revenue consists solely of transaction fees for network use.'
+        official = _doc(
+            f'{token_quote} The token {utility_quote} for every transfer. '
+            f'{revenue_quote}')
+        docs = [official]
+        claims = {}
+        for index, name in enumerate(sorted(SCREENER_SITES), start=1):
+            host = min(SCREENER_HOSTS[name])
+            if name == 'musaffa':
+                host = 'cryptoummah.com'
+            quote = f'{name} screening result is halal for this asset.'
+            doc = _doc(quote, tier='TIER_3_SECONDARY', identity=False,
+                       url=f'https://{host}/result', digest=f'{index:064x}')
+            docs.append(doc)
+            claims[name] = _claim(doc, 'halal', quote)
+        result = evaluate(
+            CONTROLLER, documents=docs, screener_results=ALL_HALAL,
+            identity_confirmed=True, token_type='PAYMENT',
+            utility_quote=utility_quote, revenue_clean=True,
+            contradictions=[], expected_screeners=SCREENER_SITES,
+            fact_evidence={
+                'token_type': _claim(official, 'PAYMENT', token_quote),
+                'utility': _claim(official, 'real utility', utility_quote),
+                'revenue': _claim(official, 'clean', revenue_quote),
+            }, screener_evidence=claims)
+        self.assertFalse(
+            result.green_checks['shariah_screener_check_completed'])
+
 
 class RetrieverSecurityTests(unittest.TestCase):
     """C3 — the fetcher must not become an SSRF primitive."""
@@ -190,24 +346,21 @@ class RetrieverSecurityTests(unittest.TestCase):
                     'https://169.254.169.254/latest/meta-data/',
                     'https://10.0.0.5/', 'https://192.168.1.1/',
                     'https://[::1]/'):
-            with self.subTest(url=url):
-                with self.assertRaises(RetrievalBlocked):
-                    assert_fetchable(url)
+            with self.subTest(url=url), self.assertRaises(RetrievalBlocked):
+                assert_fetchable(url)
 
     def test_model_inference_hosts_are_refused(self):
         for url in ('https://api.openai.com/v1/responses',
                     'https://openrouter.ai/api',
                     'https://sub.api.anthropic.com/x'):
-            with self.subTest(url=url):
-                with self.assertRaises(RetrievalBlocked):
-                    assert_fetchable(url)
+            with self.subTest(url=url), self.assertRaises(RetrievalBlocked):
+                assert_fetchable(url)
 
     def test_plaintext_and_credentialed_urls_are_refused(self):
         for url in ('http://example.com/', 'https://user:pw@example.com/',
                     'https://example.com:8443/'):
-            with self.subTest(url=url):
-                with self.assertRaises(RetrievalBlocked):
-                    assert_fetchable(url)
+            with self.subTest(url=url), self.assertRaises(RetrievalBlocked):
+                assert_fetchable(url)
 
     def test_redirects_are_validated_before_the_next_request_is_made(self):
         # The blocked hop must never be requested. With allow_redirects=True
@@ -235,12 +388,6 @@ class RetrieverSecurityTests(unittest.TestCase):
                     return _Resp(302, 'https://169.254.169.254/latest/')
                 return _Resp(200)
 
-        with mock.patch(
-                'services.sharia_retriever.retriever._addresses_for',
-                side_effect=lambda h: __import__('ipaddress').ip_address(
-                    '169.254.169.254' if h == '169.254.169.254' else '93.184.216.34')
-        ) and mock.patch.object(Retriever, '__init__', Retriever.__init__):
-            pass
         session = _Session()
         with mock.patch('services.sharia_retriever.retriever._addresses_for',
                         lambda h: [__import__('ipaddress').ip_address(
@@ -253,6 +400,38 @@ class RetrieverSecurityTests(unittest.TestCase):
 
     def test_redirect_cap_is_enforced(self):
         self.assertEqual(MAX_REDIRECTS, 5)
+
+    def test_cross_origin_public_redirect_cannot_launder_tier_one(self):
+        requested = []
+
+        class _Resp:
+            status_code = 302
+            encoding = 'utf-8'
+
+            def __init__(self):
+                self.headers = {
+                    'Location': 'https://public-attacker.example/payload'}
+
+            def close(self):
+                pass
+
+            def iter_content(self, _n):
+                yield b''
+
+        class _Session:
+            def get(self, url, **_kwargs):
+                requested.append(url)
+                return _Resp()
+
+        with mock.patch('services.sharia_retriever.retriever._addresses_for',
+                        lambda _h: [__import__('ipaddress').ip_address(
+                            '93.184.216.34')]):
+            result = Retriever(session=_Session()).fetch(
+                'https://official.example/docs',
+                official_hosts={'official.example'}, identity_match=True)
+        self.assertFalse(result.ok)
+        self.assertEqual(requested, ['https://official.example/docs'])
+        self.assertIn('cross-origin redirect', result.error)
 
 
 class HtmlExtractionTests(unittest.TestCase):

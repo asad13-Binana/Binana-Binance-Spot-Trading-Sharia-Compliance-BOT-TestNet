@@ -72,10 +72,13 @@ class _TextExtractor(HTMLParser):
     """
 
     # Container elements whose contents are not visible page text.
-    _SKIP = {'script', 'style', 'head', 'noscript', 'svg', 'template', 'title'}
+    _SKIP = frozenset(
+        {'script', 'style', 'head', 'noscript', 'svg', 'template', 'title'})
     # Void elements: no end tag, no text content, never tracked.
-    _VOID = {'meta', 'link', 'br', 'hr', 'img', 'input', 'source', 'area',
-             'base', 'col', 'embed', 'param', 'track', 'wbr'}
+    _VOID = frozenset({
+        'meta', 'link', 'br', 'hr', 'img', 'input', 'source', 'area',
+        'base', 'col', 'embed', 'param', 'track', 'wbr',
+    })
 
     def __init__(self):
         super().__init__(convert_charrefs=True)
@@ -116,7 +119,7 @@ def html_to_text(payload: str) -> str:
     try:
         parser.feed(payload)
         parser.close()
-    except Exception:  # malformed markup must not abort a screening
+    except Exception:  # noqa: BLE001 - malformed markup must fail closed
         log.warning('HTML parse failed; falling back to tag stripping')
         return re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', payload)).strip()
     return re.sub(r'\s+', ' ', parser.text()).strip()
@@ -133,7 +136,7 @@ def _canonical_host(value: str) -> str:
     the GREEN gate's Tier 1 requirement.
     """
     host = (value or '').strip().lower().rstrip('.')
-    return host[4:] if host.startswith('www.') else host
+    return host.removeprefix('www.')
 
 
 def classify_tier(url: str, official_hosts: set[str] | None = None) -> str:
@@ -244,6 +247,26 @@ def assert_fetchable(url: str) -> str:
     return canonical
 
 
+def _same_redirect_origin(current: str, target: str) -> bool:
+    """Allow only HTTPS redirects that preserve the asserted source origin.
+
+    A Tier-1 project URL must not become a proof channel for content fetched
+    from an unrelated public host. ``www.`` is treated as the same canonical
+    host; all other host or effective-port changes fail closed.
+    """
+    try:
+        before = urlparse(current)
+        after = urlparse(target)
+        before_host = _canonical_host(before.hostname or '')
+        after_host = _canonical_host(after.hostname or '')
+        before_port = before.port or 443
+        after_port = after.port or 443
+    except ValueError:
+        return False
+    return (before.scheme.lower() == after.scheme.lower() == 'https' and
+            before_host == after_host and before_port == after_port)
+
+
 class Retriever:
     """Fetches and attests sources. One instance per screening run."""
 
@@ -286,27 +309,42 @@ class Retriever:
                         url=canonical, http_status=0, content_sha256='',
                         text='', retrieved_utc=now, tier=tier,
                         error=f'exceeded {MAX_REDIRECTS} redirects')
-                target = assert_fetchable(urljoin(target, location))
-            body = b''
-            for chunk in response.iter_content(65536):
-                body += chunk
-                if len(body) > self.max_bytes:
+                next_target = assert_fetchable(urljoin(target, location))
+                if not _same_redirect_origin(target, next_target):
                     return FetchResult(
-                        url=canonical, http_status=response.status_code,
-                        content_sha256='', text='', retrieved_utc=now, tier=tier,
-                        error=f'body exceeded {self.max_bytes} bytes')
+                        url=canonical, http_status=0, content_sha256='',
+                        text='', retrieved_utc=now, tier=tier,
+                        error=f'cross-origin redirect blocked: {target} -> '
+                              f'{next_target}')
+                target = next_target
+            # The final URL is the URL whose bytes were actually hashed.  Do
+            # not attest the original URL/tier after a redirect.
+            final_url = target
+            tier = classify_tier(final_url, official_hosts)
+            body = b''
+            try:
+                for chunk in response.iter_content(65536):
+                    body += chunk
+                    if len(body) > self.max_bytes:
+                        return FetchResult(
+                            url=final_url, http_status=response.status_code,
+                            content_sha256='', text='', retrieved_utc=now,
+                            tier=tier,
+                            error=f'body exceeded {self.max_bytes} bytes')
+            finally:
+                response.close()
         except RetrievalBlocked as exc:
             return FetchResult(url=canonical, http_status=0, content_sha256='',
                                text='', retrieved_utc=now, tier=tier,
                                error=f'redirect blocked: {exc}')
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - network failures fail closed
             return FetchResult(url=canonical, http_status=0, content_sha256='',
                                text='', retrieved_utc=now, tier=tier,
                                error=f'{type(exc).__name__}: {exc}')
 
         digest = hashlib.sha256(body).hexdigest()
         if response.status_code != 200:
-            return FetchResult(url=canonical, http_status=response.status_code,
+            return FetchResult(url=final_url, http_status=response.status_code,
                                content_sha256=digest, text='', retrieved_utc=now,
                                tier=tier, error=f'HTTP {response.status_code}')
         content_type = (response.headers.get('Content-Type') or '').lower()
@@ -317,6 +355,6 @@ class Retriever:
             payload = body.decode('utf-8', errors='replace')
         text = html_to_text(payload) if 'html' in content_type else \
             re.sub(r'\s+', ' ', payload).strip()
-        return FetchResult(url=canonical, http_status=200, content_sha256=digest,
+        return FetchResult(url=final_url, http_status=200, content_sha256=digest,
                            text=text, retrieved_utc=now, tier=tier,
                            identity_match=identity_match)

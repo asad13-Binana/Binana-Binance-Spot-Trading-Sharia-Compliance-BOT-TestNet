@@ -173,16 +173,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "39ec6b3ee9c39273c8514aaefdb954f7b4f57e826efdd8916381d99fecbf2867",
-      "size": 32419
+      "sha256": "fae267dbd765af9298e0fb63ea0b7cfbfe9b6340a64bd4b84a85058fb435891e",
+      "size": 33369
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "5ee07c2c46ab22b2641c4bd8ff32392f4a10ace2d2aff413737f1ec3c870ce4c",
-      "size": 207909
+      "sha256": "b609821f19ecfad8af38424eeb4e0df483ed5f1ea53e3a1fda64fa14ad0380e1",
+      "size": 219193
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "7c51900cd34d65cf53216d1830543e89f1175d5eab51481e5283ccb171f6df40",
@@ -540,6 +540,10 @@
       "sha256": "9df6e2ffba067056fa933a86e0acdec71e56135e37f410cfd73a8237f1a9d38a",
       "size": 7555
     },
+    "services/common/evidence_providers.py": {
+      "sha256": "7b8f8235ca47c974b7f7cc3a3a7c73085ca05359d1c17288f24a4c22bcd0fdf4",
+      "size": 3149
+    },
     "services/common/models.py": {
       "sha256": "be050babe8a315539cc2f2dd603373596e168968b867c8b7233558bd02913d6a",
       "size": 1200
@@ -557,8 +561,8 @@
       "size": 5604
     },
     "services/common/sharia_v19.py": {
-      "sha256": "682af83a51c680a86b6da11538cb255a8a9ed982cd6e0a825f109be6481331dc",
-      "size": 21502
+      "sha256": "a1c4f6e73bbe7a4a4bad72b9f714dece21e2e433c1aa252e5e6ef9b399eb402d",
+      "size": 25529
     },
     "services/common/strategy_fingerprint.py": {
       "sha256": "09fe2da098d405eab7cac48fc9b7ecde7b2cbf6f3f69450ca989d461f272a959",
@@ -615,6 +619,22 @@
     "services/execution_sidecar/user_data_stream.py": {
       "sha256": "85e64a72d8b60e2e91a9a56fa46e69d3a3970221903919f3820b1ef92ee89c83",
       "size": 11548
+    },
+    "services/sharia_retriever/__init__.py": {
+      "sha256": "8e8bfda09fad3d09ec9c54362a18f84b706e6d45387c7d06984ead852bb8324c",
+      "size": 963
+    },
+    "services/sharia_retriever/retriever.py": {
+      "sha256": "35caf141e7b5ba2a8a1b768dbda026d518d1d7dd55422410585ea56435b3d8e1",
+      "size": 15352
+    },
+    "services/sharia_rules/__init__.py": {
+      "sha256": "eebf2797b2b26dfcc73be23227e14519c45339971367be7116e93c5e149867ca",
+      "size": 870
+    },
+    "services/sharia_rules/engine.py": {
+      "sha256": "e34c5e2e2b47b89c3a618303f7eeea518018f9398a0ec8d80e234c6eb210cde1",
+      "size": 26614
     },
     "services/sharia_screener/__init__.py": {
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -767,6 +787,10 @@
     "tests/test_external_signals.py": {
       "sha256": "8bdc2a03021e3c9b67093e8964516d94a62de65ae7e4ac9543a317e6c545bebd",
       "size": 69667
+    },
+    "tests/test_local_sharia_backend.py": {
+      "sha256": "41a3816cd37cd11299d7fdb37980029aa43539d6e144b3d2884621d14074eccd",
+      "size": 22444
     },
     "tests/test_package_mode.py": {
       "sha256": "ac511c3d87fbcc2578ecba1c0f4f08f55c3f07f8ee393934439d756c4ba21ac2",
