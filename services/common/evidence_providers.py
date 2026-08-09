@@ -21,7 +21,8 @@ from __future__ import annotations
 _REGISTERED_PROVIDERS: dict[str, frozenset[str]] = {
     # Self-hosted retriever: URL, fetch time, HTTP status and content digest.
     'local-oracle-v1': frozenset({
-        'url', 'retrieved_utc', 'http_status', 'content_sha256', 'source_tier',
+        'url', 'retrieved_utc', 'http_status', 'content_sha256', 'content_path',
+        'source_tier',
     }),
     # Remote hosted-web-search provider, retained ONLY so previously signed
     # historical evidence stays verifiable.

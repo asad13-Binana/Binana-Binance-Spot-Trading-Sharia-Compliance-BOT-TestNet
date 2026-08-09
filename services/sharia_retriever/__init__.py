@@ -17,8 +17,12 @@ silently regain a paid dependency.
 from services.sharia_retriever.retriever import (  # noqa: F401
     AI_ENDPOINT_HOSTS,
     FetchResult,
-    Retriever,
     RetrievalBlocked,
+    Retriever,
     classify_tier,
     html_to_text,
+)
+from services.sharia_retriever.store import (  # noqa: F401
+    EvidenceStore,
+    EvidenceStoreError,
 )

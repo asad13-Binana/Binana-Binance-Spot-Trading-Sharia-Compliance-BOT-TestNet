@@ -57,6 +57,7 @@ TECH_STOP_TRIGGERS = {'T1', 'T2', 'T3', 'NONE'}
 NARRATIVE_CODES = {f'N{i}' for i in range(1, 12)}
 _PURIFICATION_RE = re.compile(r'^(NO|YES \(\d+(\.\d+)?%\))$')
 MIN_HARAM_QUOTE_WORDS = 15
+CONTENT_PATH_RE = re.compile(r'^sha256/[0-9a-f]{2}/([0-9a-f]{64})\.bin$')
 
 # These names are the executable form of GREEN_PROOF_GATE.green_requires_all
 # in the immutable controller.  Arbitrary true booleans are not evidence.
@@ -221,6 +222,12 @@ def _provider_tool_evidence_urls(report: dict) -> tuple[set[str], set[str]]:
                      'retrieval record must record a retrieval timestamp')
             _require(call.get('source_tier') in SOURCE_TIERS,
                      'retrieval record source_tier is invalid')
+            content_path = call.get('content_path')
+            match = (CONTENT_PATH_RE.fullmatch(content_path)
+                     if isinstance(content_path, str) else None)
+            _require(match is not None and match.group(1) == call['content_sha256'],
+                     'retrieval record content_path must be content-addressed '
+                     'by content_sha256')
         source_urls = call.get('source_urls')
         _require(isinstance(source_urls, list),
                  'provider web search call source_urls must be an array')
@@ -266,6 +273,42 @@ def _provider_tool_evidence_urls(report: dict) -> tuple[set[str], set[str]]:
         if 'content_sha256' not in required_keys:
             evidentiary_urls.add(normalized)
     return provider_urls, evidentiary_urls
+
+
+def validate_local_evidence_files(report: dict, evidence_root: str | Path) -> None:
+    """Re-hash every local evidence object before accepting a new result."""
+    evidence = report.get('tool_evidence')
+    _require(isinstance(evidence, dict), 'verdict requires provider tool_evidence')
+    if evidence.get('provider') != 'local-oracle-v1':
+        return
+    root = Path(evidence_root).resolve()
+    calls = evidence.get('completed_web_search_calls')
+    _require(isinstance(calls, list) and bool(calls),
+             'local verdict requires completed retrieval records')
+    for index, call in enumerate(calls):
+        _require(isinstance(call, dict),
+                 f'local retrieval record {index} must be an object')
+        digest = call.get('content_sha256')
+        relative = call.get('content_path')
+        match = (CONTENT_PATH_RE.fullmatch(relative)
+                 if isinstance(relative, str) else None)
+        _require(isinstance(digest, str) and match is not None and
+                 match.group(1) == digest,
+                 f'local retrieval record {index} content path is invalid')
+        target = (root / relative).resolve()
+        _require(root in target.parents and target.is_file(),
+                 f'local evidence object is missing for retrieval record {index}')
+        hasher = hashlib.sha256()
+        try:
+            with target.open('rb') as handle:
+                for chunk in iter(lambda: handle.read(1024 * 1024), b''):
+                    hasher.update(chunk)
+        except OSError as exc:
+            raise ResultValidationError(
+                f'local evidence object is unreadable for retrieval record {index}: '
+                f'{exc}') from exc
+        _require(hasher.hexdigest() == digest,
+                 f'local evidence digest mismatch for retrieval record {index}')
 
 
 def _validate_green_evidence(report: dict) -> None:

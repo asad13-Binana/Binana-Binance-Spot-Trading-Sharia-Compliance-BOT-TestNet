@@ -12,6 +12,7 @@ feature would widen the supply-chain surface for no benefit.
 from __future__ import annotations
 
 import hashlib
+import io
 import ipaddress
 import logging
 import re
@@ -22,8 +23,10 @@ from html.parser import HTMLParser
 from urllib.parse import urljoin, urlparse
 
 import requests
+from pypdf import PdfReader
 
 from services.common.sharia_v19 import normalize_evidence_url
+from services.sharia_retriever.store import EvidenceStore, EvidenceStoreError
 
 log = logging.getLogger('sharia-retriever')
 
@@ -53,6 +56,8 @@ _SCREENER_TIERS = {
 MAX_BYTES = 4 * 1024 * 1024
 TIMEOUT_SECONDS = 20
 MAX_REDIRECTS = 5
+MAX_PDF_PAGES = 250
+MAX_EXTRACTED_TEXT_CHARS = 2_000_000
 
 
 class RetrievalBlocked(RuntimeError):
@@ -125,6 +130,41 @@ def html_to_text(payload: str) -> str:
     return re.sub(r'\s+', ' ', parser.text()).strip()
 
 
+def pdf_to_text(payload: bytes) -> str:
+    """Extract bounded text from a PDF or fail closed.
+
+    Exact PDF bytes are retained separately by ``EvidenceStore``. Encrypted,
+    malformed, image-only, oversized-page-count and text-bomb PDFs are not
+    treated as evidence.
+    """
+    try:
+        reader = PdfReader(io.BytesIO(payload), strict=True)
+        if reader.is_encrypted:
+            raise RetrievalBlocked('encrypted PDF cannot be screened')
+        if not reader.pages or len(reader.pages) > MAX_PDF_PAGES:
+            raise RetrievalBlocked(
+                f'PDF page count must be within 1..{MAX_PDF_PAGES}')
+        chunks: list[str] = []
+        size = 0
+        for page in reader.pages:
+            text = str(page.extract_text() or '').strip()
+            size += len(text)
+            if size > MAX_EXTRACTED_TEXT_CHARS:
+                raise RetrievalBlocked(
+                    f'PDF extracted text exceeded '
+                    f'{MAX_EXTRACTED_TEXT_CHARS} characters')
+            if text:
+                chunks.append(text)
+    except RetrievalBlocked:
+        raise
+    except Exception as exc:
+        raise RetrievalBlocked(f'PDF text extraction failed: {exc}') from exc
+    normalized = re.sub(r'\s+', ' ', ' '.join(chunks)).strip()
+    if not normalized:
+        raise RetrievalBlocked('PDF contains no extractable text')
+    return normalized
+
+
 def _canonical_host(value: str) -> str:
     """Lowercase a host and drop one leading ``www.`` label.
 
@@ -164,6 +204,7 @@ class FetchResult:
     text: str
     retrieved_utc: str
     tier: str
+    content_path: str = ''
     identity_match: bool = False
     error: str = ''
 
@@ -182,6 +223,7 @@ class FetchResult:
             'retrieved_utc': self.retrieved_utc,
             'http_status': self.http_status,
             'content_sha256': self.content_sha256,
+            'content_path': self.content_path,
             'source_tier': self.tier,
         }
 
@@ -271,10 +313,12 @@ class Retriever:
     """Fetches and attests sources. One instance per screening run."""
 
     def __init__(self, *, session: requests.Session | None = None,
-                 timeout: int = TIMEOUT_SECONDS, max_bytes: int = MAX_BYTES):
+                 timeout: int = TIMEOUT_SECONDS, max_bytes: int = MAX_BYTES,
+                 evidence_store: EvidenceStore | None = None):
         self.session = session or requests.Session()
         self.timeout = timeout
         self.max_bytes = max_bytes
+        self.evidence_store = evidence_store
 
     def fetch(self, url: str, *, official_hosts: set[str] | None = None,
               identity_match: bool = False) -> FetchResult:
@@ -348,13 +392,38 @@ class Retriever:
                                content_sha256=digest, text='', retrieved_utc=now,
                                tier=tier, error=f'HTTP {response.status_code}')
         content_type = (response.headers.get('Content-Type') or '').lower()
-        charset = response.encoding or 'utf-8'
+        is_pdf = 'application/pdf' in content_type or body.startswith(b'%PDF-')
         try:
-            payload = body.decode(charset, errors='replace')
-        except LookupError:
-            payload = body.decode('utf-8', errors='replace')
-        text = html_to_text(payload) if 'html' in content_type else \
-            re.sub(r'\s+', ' ', payload).strip()
-        return FetchResult(url=final_url, http_status=200, content_sha256=digest,
-                           text=text, retrieved_utc=now, tier=tier,
-                           identity_match=identity_match)
+            if is_pdf:
+                text = pdf_to_text(body)
+            else:
+                charset = response.encoding or 'utf-8'
+                try:
+                    payload = body.decode(charset, errors='replace')
+                except LookupError:
+                    payload = body.decode('utf-8', errors='replace')
+                text = (html_to_text(payload) if 'html' in content_type else
+                        re.sub(r'\s+', ' ', payload).strip())
+        except RetrievalBlocked as exc:
+            return FetchResult(
+                url=final_url, http_status=response.status_code,
+                content_sha256=digest, text='', retrieved_utc=now,
+                tier=tier, error=str(exc))
+        content_path = ''
+        if self.evidence_store is not None:
+            try:
+                stored_digest, content_path = self.evidence_store.put(body)
+            except EvidenceStoreError as exc:
+                return FetchResult(
+                    url=final_url, http_status=0, content_sha256='', text='',
+                    retrieved_utc=now, tier=tier,
+                    error=f'evidence storage failed: {exc}')
+            if stored_digest != digest:
+                return FetchResult(
+                    url=final_url, http_status=0, content_sha256='', text='',
+                    retrieved_utc=now, tier=tier,
+                    error='evidence storage returned a mismatched digest')
+        return FetchResult(
+            url=final_url, http_status=200, content_sha256=digest,
+            content_path=content_path, text=text, retrieved_utc=now, tier=tier,
+            identity_match=identity_match)

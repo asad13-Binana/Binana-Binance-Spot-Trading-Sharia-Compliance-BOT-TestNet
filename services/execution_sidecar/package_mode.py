@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Runtime package-mode interlock (V102-REM-001 / audit ISSUE 1).
 
 The release ships as two packages that differ in the immutable RELEASE_MODE
@@ -84,7 +85,7 @@ def enforce_package_mode(execution_mode: str,
 
 
 def enforce_sharia_gate_mode(package_mode: str, gate_mode: str) -> str:
-    """Make fresh signal-time screening immutable for the live package."""
+    """Require the evidence-bound cached gate for local screening."""
     package = str(package_mode or '').strip().lower()
     gate = str(gate_mode or '').strip().lower()
     if package not in VALID_PACKAGE_MODES or gate not in VALID_SHARIA_GATE_MODES:
@@ -92,8 +93,9 @@ def enforce_sharia_gate_mode(package_mode: str, gate_mode: str) -> str:
             f'SHARIA GATE BLOCKED: package={package!r}, gate={gate!r}; '
             f'expected package {sorted(VALID_PACKAGE_MODES)} and gate '
             f'{sorted(VALID_SHARIA_GATE_MODES)}')
-    if package == 'live' and gate != 'fresh':
+    if gate != 'cached':
         raise SystemExit(
-            'LIVE BLOCKED: the live package requires SHARIA_SIGNAL_GATE_MODE=fresh; '
-            'cached screening is simulation/testnet-only')
+            'SHARIA GATE BLOCKED: the self-hosted screening design requires '
+            'SHARIA_SIGNAL_GATE_MODE=cached; each record is signed, report-bound '
+            'and rejected after seven days')
     return gate

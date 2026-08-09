@@ -5,7 +5,7 @@ incomplete; live trading not certified.** `RELEASE_MODE` identifies the
 testnet or live-capable package — and is enforced at runtime: the testnet
 package is structurally incapable of live execution. The live package
 defaults to simulation and cannot place a live order without its signed
-evidence gate. AI Sharia screening is research, not a fatwa.
+evidence gate. Self-hosted local Sharia screening is research, not a fatwa.
 
 The release version lives in `RELEASE_VERSION`. The `v101` operational
 namespace (server paths such as `/etc/binance-freqtrade-v101`, image and
@@ -81,7 +81,9 @@ Start with `docs/ORACLE_DEPLOYMENT_GUIDE.md`,
 `docs/GITHUB_ORACLE_DEPLOYMENT.md`,
 `docs/GITHUB_RELEASE_AND_ROLLBACK_GUIDE.md`,
 `docs/SECURITY_AND_SECRETS_GUIDE.md`,
+`docs/SHARIA_LOCAL_SCREENING.md`,
 `docs/TELEGRAM_BOT_SETUP.md`,
+`docs/CODEX_RELEASE_NOTES_2026-08-09.md`,
 `docs/CODEX_RELEASE_NOTES_2026-08-08.md`,
 `docs/EXTERNAL_VALIDATION_RUNBOOK.md`,
 `docs/OFFICIAL_DEPLOYMENT_REFERENCES.md`, and `monitoring/README.md`.

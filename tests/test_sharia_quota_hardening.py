@@ -132,7 +132,7 @@ class ShariaQuotaHardeningTests(unittest.TestCase):
             'SHARIA_MIN_SECONDS_BETWEEN_SCANS': '86401',
             'SHARIA_URGENT_RESERVE_PER_DAY': '201',
             'SHARIA_MAX_SCANS_PER_BASE_PER_DAY': '25',
-            'SHARIA_MAX_SCANS_PER_ACTOR_PER_DAY': '201',
+            'SHARIA_MAX_SCANS_PER_ACTOR_PER_DAY': '1001',
         }
         for name, value in too_large.items():
             with self.subTest(too_large=name), mock.patch.dict(

@@ -59,14 +59,8 @@ class DeploymentSupplyChainGateTests(unittest.TestCase):
             errors = deployment_supply_chain_errors(root)
         self.assertTrue(any('malformed' in error for error in errors))
 
-    def test_current_tree_is_blocked_only_by_unpinned_container_images(self):
-        self.assertEqual(
-            deployment_supply_chain_errors(ROOT),
-            [
-                'Dockerfile.services base image is not pinned by sha256 digest',
-                'Freqtrade runtime image is not pinned by sha256 digest',
-            ],
-        )
+    def test_current_tree_passes_the_deployment_supply_chain_gate(self):
+        self.assertEqual(deployment_supply_chain_errors(ROOT), [])
 
     def test_oracle_installer_runs_gate_before_activation(self):
         installer = (ROOT / 'deploy/install_artifact.sh').read_text(encoding='utf-8')

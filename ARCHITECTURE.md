@@ -13,10 +13,11 @@ two-stage forensic audit.
 2. **sharia-screener** — the fifth, independent service (Oracle-suitable). It verifies the immutable
    V19.1 controller's exact SHA-256 at startup and is the **only** writer of the canonical Sharia
    directory. It runs a durable, restart-safe SQLite queue with priority `signal > manual > bulk > idle`,
-   screens each pair through an external AI model with hosted web search, strictly validates the result
-   against the V19.1 output schema (5-gate HARAM proof, 15-word quote, ticker identity, GREEN proof
-   checks), writes an HMAC-signed result envelope + report + status projection, and idle-scans the current
-   top-50 universe. Every failure (missing key, quota, malformed, timeout, wrong asset) **fails closed to
+   retrieves owner-registered public sources directly, stores the exact bytes by SHA-256, and runs the
+   deterministic V19.1 rules engine locally with no model or paid screening API. It strictly validates
+   the proof card, requires a one-time owner approve/reject decision bound to the exact report hash,
+   writes an HMAC/Ed25519-signed result + status projection, and refreshes records every seven days.
+   Every missing source, failed proof check, stale record or invalid decision **fails closed to
    NO_TRADE_INFO**. It never holds Binance trading credentials and can never place an order.
 
 3. **freqtrade** — runs the four protected ICT/SMC signal methods (byte-identical, fingerprinted). It is
@@ -24,8 +25,8 @@ two-stage forensic audit.
    emits HMAC-signed signal envelopes for halal, top-gainer pairs and writes a durable signal-seam
    heartbeat. Mounts strategy/config and the Sharia directory read-only.
 
-4. **execution-sidecar** — the **sole Binance order owner**. It verifies signed signals, performs a fresh
-   V19.1 re-screen of the exact pair before any order (fail-closed on timeout), runs the durable
+4. **execution-sidecar** — the **sole Binance order owner**. It verifies signed signals and requires a
+   signed, report-bound V19.1 approval no older than seven days before any order, then runs the durable
    claim → submit → protection → event → reconcile lifecycle, owns OCO/OTO/OTOCO placement with complete
    pre-cancel filter validation, structured emergency exit, endpoint-complete startup reconciliation,
    SQLite integrity + verified backups, and the signed live-evidence gate. In simulation it drives a
@@ -33,10 +34,11 @@ two-stage forensic audit.
    faults). In testnet/live it drives the preserved V4.9.16 core, whose user-data transport is swapped to
    the modern WebSocket API subscription (listen-key REST was retired 2026-02-20).
 
-5. **telegram-broker** — the owner-only remote control. Signs every command and Sharia scan request,
-   verifies signed results, persists its update offset across restarts, and exposes status/pause/resume/
-   emergency/protection controls plus V19.1 `scan-one`, `scan-all`, `/scan BASE/USDT`, direct-pair typing,
-   and report retrieval. Never writes canonical Sharia data.
+5. **telegram-broker** — the owner-only remote control. Signs every command, Sharia scan request and
+   hash-bound approve/reject decision, verifies signed results, persists its update offset across
+   restarts, and exposes status/pause/resume/emergency/protection controls plus V19.1 `scan-one`,
+   `scan-all`, `/scan BASE/USDT`, direct-pair typing and report retrieval. Never writes canonical
+   Sharia data.
 
 ## Trust boundaries (V101-NEW-001)
 

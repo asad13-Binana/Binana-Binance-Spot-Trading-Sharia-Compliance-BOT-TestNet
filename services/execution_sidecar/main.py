@@ -337,7 +337,7 @@ def live_interlock(state: StateStore):
     # read-only RELEASE_MODE file baked into the image).
     package = enforce_package_mode(mode.value)
     gate_mode = enforce_sharia_gate_mode(
-        package, os.getenv('SHARIA_SIGNAL_GATE_MODE', 'fresh'))
+        package, os.getenv('SHARIA_SIGNAL_GATE_MODE', 'cached'))
     audit('package_mode_enforced', details={
         'package_mode': package, 'execution_mode': mode.value,
         'sharia_signal_gate_mode': gate_mode})
@@ -549,7 +549,7 @@ def main():
             'entries_enabled': state.entries(), 'pause_reason': state.data.get('pause_reason', ''),
             'simulation': state.data.get('simulation', True), 'protection_mode': state.get_mode(),
             'universe_count': len(pairs), 'universe_fresh': fresh,
-            'sharia_signal_gate_mode': os.getenv('SHARIA_SIGNAL_GATE_MODE', 'fresh'),
+            'sharia_signal_gate_mode': os.getenv('SHARIA_SIGNAL_GATE_MODE', 'cached'),
             'last_reconciliation_status': state.data.get('last_reconciliation_status', 'NOT_RUN'),
             'safety_halts': state.data.get('safety_halts', {}),
             'runtime_safety_faults': runtime_faults,

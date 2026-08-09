@@ -1,17 +1,24 @@
 from __future__ import annotations
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
+
 import hashlib
 import json
 import re
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 from services.common.sharia_attestation import (
-    STATUS_PURPOSE, ShariaAttestationError, verify_attached,
+    STATUS_PURPOSE,
+    ShariaAttestationError,
+    verify_attached,
 )
 from services.common.sharia_v19 import (
-    FINAL_CODES, TRADE_ELIGIBLE_CODES, V19_CONTROLLER_FILENAME, V19_CONTROLLER_SHA256,
-    load_controller, validate_result,
+    FINAL_CODES,
+    TRADE_ELIGIBLE_CODES,
+    V19_CONTROLLER_FILENAME,
+    V19_CONTROLLER_SHA256,
+    load_controller,
+    validate_result,
 )
 
 # The status file may only contain V19.1 final codes. The legacy
@@ -22,6 +29,7 @@ ALLOWED = set(TRADE_ELIGIBLE_CODES)
 SCHEMA_VERSION = 2
 MAX_STATUS_VALIDITY_SECONDS = 366 * 86_400
 MAX_FUTURE_SKEW_SECONDS = 30
+MAX_APPROVED_AGE_SECONDS = 7 * 86_400
 STATUS_SOURCE = 'sharia-screener/v19.1'
 REQUEST_ID_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$')
 
@@ -211,6 +219,15 @@ class ShariaFilter:
             return Decision(False, 'STALE', 'malformed expires_at', record)
         if not expiry or expiry <= now:
             return Decision(False, 'STALE', 'record expired — rescreen required', record)
+        try:
+            completed = self._parse_dt(str(record.get('completed_at', '')))
+        except Exception:
+            return Decision(False, 'STALE', 'malformed completed_at', record)
+        if not completed or (now - completed).total_seconds() > MAX_APPROVED_AGE_SECONDS:
+            return Decision(
+                False, 'STALE',
+                'approved record is older than the seven-day local rescreen window',
+                record)
         if status not in ALLOWED:
             return Decision(False, status,
                             'only GREEN or GREEN_AVOID_OPTIONAL passes under V19.1', record)

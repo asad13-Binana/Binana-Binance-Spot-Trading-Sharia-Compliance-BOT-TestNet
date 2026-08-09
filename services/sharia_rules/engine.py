@@ -529,14 +529,7 @@ def evaluate(controller: dict, *, documents: list[RetrievedDocument],
         hit for hit in clean
         if hit.negated and hit.narrative not in {'CLEAN_PASS', 'NEUTRAL'}
     ]
-    if negated_adverse:
-        finding.disposition = Disposition.ESCALATE
-        finding.reasons.append(
-            f'{len(negated_adverse)} adverse keyword occurrence(s) appeared '
-            'in potentially negated or conditional language; deterministic '
-            'scope analysis cannot clear them, so owner review is required')
-        finding.escalations.append('negation or conditional scope requires owner review')
-        return finding
+    scope_review_required = bool(negated_adverse)
 
     conditions, narrative, haram_notes = evaluate_haram_gate(controller, leads)
     finding.haram_conditions = conditions
@@ -581,6 +574,8 @@ def evaluate(controller: dict, *, documents: list[RetrievedDocument],
 
     escalations = detect_escalations(
         controller, screener_results, token_type, contradictions, haram_notes)
+    if scope_review_required:
+        escalations.append('negation or conditional scope requires owner review')
     finding.escalations = escalations
 
     failed = sorted(k for k, v in finding.green_checks.items() if not v)
@@ -591,8 +586,15 @@ def evaluate(controller: dict, *, documents: list[RetrievedDocument],
         return finding
     if escalations:
         finding.disposition = Disposition.ESCALATE
-        finding.reasons.append(
-            'all mechanical checks passed but a controller escalation trigger fired')
+        if scope_review_required and len(escalations) == 1:
+            finding.reasons.append(
+                f'all 12 GREEN proof-gate checks passed, but '
+                f'{len(negated_adverse)} adverse keyword occurrence(s) appeared '
+                'in potentially negated or conditional language; deterministic '
+                'scope analysis cannot clear them, so owner review is required')
+        else:
+            finding.reasons.append(
+                'all mechanical checks passed but a controller escalation trigger fired')
         return finding
 
     finding.disposition = Disposition.PROPOSE_GREEN

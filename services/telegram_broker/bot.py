@@ -1,23 +1,45 @@
 from __future__ import annotations
-import json, logging, math, os, re, time, uuid, requests
+
+import hashlib
+import json
+import logging
+import math
+import os
+import re
+import time
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
+
+import requests
 from requests.auth import HTTPBasicAuth
-from services.common.paths import (
-    COMMAND_INBOX, RUNTIME, UNIVERSE_CURRENT, SHARIA_FILE,
-    SHARIA_QUEUE_INBOX, SHARIA_RESULTS_DIR, SHARIA_RUNTIME_DIR,
-    SIGNAL_INBOX, SIGNAL_PROCESSED, SIGNAL_REJECTED, AUDIT_DIR,
-    TELEGRAM_ALERT_OUTBOX,
-)
+
 from services.common import envelope
 from services.common.atomic import atomic_write_json, read_json
 from services.common.audit import audit
 from services.common.config_bounds import env_int
+from services.common.paths import (
+    AUDIT_DIR,
+    COMMAND_INBOX,
+    RUNTIME,
+    SHARIA_DECISION_INBOX,
+    SHARIA_FILE,
+    SHARIA_QUEUE_INBOX,
+    SHARIA_REPORTS_DIR,
+    SHARIA_RESULTS_DIR,
+    SHARIA_RUNTIME_DIR,
+    SIGNAL_INBOX,
+    SIGNAL_PROCESSED,
+    SIGNAL_REJECTED,
+    TELEGRAM_ALERT_OUTBOX,
+    UNIVERSE_CURRENT,
+)
 from services.common.sharia_attestation import RESULT_PURPOSE, verify_attached
+from services.sharia_screener.approval import SCOPE_CONFIRMATION
 from services.telegram_broker.authorization import is_owner
 from services.telegram_broker.callbacks import CallbackStore
 from services.universe_service.sharia_filter import ShariaFilter
 from services.universe_service.snapshot_store import load_current
-
 
 _TOKEN_PATTERN = re.compile(r'bot\d{4,}:[A-Za-z0-9_\-]{20,}')
 
@@ -207,6 +229,37 @@ def sharia_scan_request(base: str, priority: str = 'manual') -> dict:
     return {'request_id': request_id}
 
 
+def sharia_owner_decision(action: str, args: dict) -> dict:
+    """Send one owner decision bound to the exact report bytes shown."""
+    decision_id = uuid.uuid4().hex
+    normalized = str(action).upper().strip()
+    if normalized not in {'APPROVE', 'REJECT'}:
+        raise ValueError('invalid Sharia owner decision')
+    payload = {
+        'decision_id': decision_id,
+        'action': normalized,
+        'base': str(args['base']).upper(),
+        'pair': f'{str(args["base"]).upper()}/USDT',
+        'proposal_request_id': str(args['proposal_request_id']),
+        'report_file': str(args['report_file']),
+        'report_sha256': str(args['report_sha256']).lower(),
+        'decided_at': datetime.now(timezone.utc).isoformat(),
+    }
+    if normalized == 'APPROVE' and args.get('scope_review_only') is True:
+        payload['scope_confirmation'] = SCOPE_CONFIRMATION
+    signed = envelope.sign_envelope(
+        producer='telegram-broker', purpose=envelope.BUS_SHARIA_DECISION,
+        payload=payload, ttl_seconds=600)
+    SHARIA_DECISION_INBOX.mkdir(parents=True, exist_ok=True)
+    atomic_write_json(
+        SHARIA_DECISION_INBOX / f'decision_{decision_id}.json', signed)
+    audit('telegram_sharia_owner_decision', actor='telegram-owner', details={
+        'decision_id': decision_id, 'base': payload['base'],
+        'action': normalized, 'report_sha256': payload['report_sha256']})
+    return {'decision_id': decision_id, 'action': normalized,
+            'base': payload['base']}
+
+
 def _sharia_service_status() -> str:
     health = read_json(SHARIA_RUNTIME_DIR / 'health.json', None)
     lines = ['V19.1 Sharia screening service']
@@ -234,8 +287,12 @@ def _sharia_service_status() -> str:
             f'completed today: {health.get("completed_today")}; '
             f'cost attempts: {health.get("cost_events_today")} / quota '
             f'{health.get("daily_quota")}')
-        api = health.get('api', {})
-        lines.append(f'API: available={api.get("available")} ({api.get("reason", "")})')
+        backend = health.get('backend', {})
+        lines.append(
+            f'local backend: {backend.get("name", "unknown")}; '
+            f'available={backend.get("available")}; '
+            f'external AI={backend.get("external_ai")} '
+            f'({backend.get("reason", "")})')
         last_done = health.get('last_done') or {}
         last_failed = health.get('last_failed') or {}
         if last_done:
@@ -309,6 +366,81 @@ def _latest_sharia_report(base: str) -> str:
             NOT_FATWA,
         ])
     return f'No verified V19.1 screening result found for {base}/USDT yet.'
+
+
+def _latest_local_review_card(base: str) -> tuple[str, list[list[dict]] | None]:
+    """Render the newest attested local proposal and hash-bound decisions."""
+    files = sorted(SHARIA_RESULTS_DIR.glob('result_*.json'),
+                   key=lambda p: p.stat().st_mtime, reverse=True)[:300]
+    for path in files:
+        try:
+            payload = envelope.read_verified_file(
+                path, purpose=envelope.BUS_SHARIA_RESULT,
+                expected_producers={'sharia-screener'})
+            payload = verify_attached(payload, purpose=RESULT_PURPOSE)
+            if str(payload.get('base', '')).upper() != base:
+                continue
+            report_name = str(payload.get('report_file', ''))
+            report_path = (SHARIA_REPORTS_DIR / report_name).resolve()
+            reports_root = SHARIA_REPORTS_DIR.resolve()
+            if reports_root not in report_path.parents or not report_path.is_file():
+                continue
+            raw = report_path.read_bytes()
+            report_sha = hashlib.sha256(raw).hexdigest()
+            if report_sha != str(payload.get('report_sha256', '')).lower():
+                continue
+            report = json.loads(raw)
+            review = report.get('local_review')
+            if not isinstance(review, dict):
+                return _latest_sharia_report(base), None
+            if (report.get('final_code') != 'NO_TRADE_INFO' or
+                    review.get('owner_decision_required') is not True):
+                return _latest_sharia_report(base), None
+            failed = sorted(
+                name for name, passed in (review.get('green_checks') or {}).items()
+                if passed is not True)
+            hits = [
+                item for item in [*(review.get('hits') or []),
+                                  *(review.get('clean_hits') or [])]
+                if isinstance(item, dict)
+            ]
+            lines = [
+                f'V19.1 local evidence review - {base}/USDT',
+                f'disposition: {review.get("disposition")}',
+                f'promotable: {review.get("promotable") is True}',
+                f'scope review only: {review.get("scope_review_only") is True}',
+                (f'proof checks: {len(review.get("green_checks") or {}) - len(failed)} '
+                 f'passed; failed: {", ".join(failed) or "none"}'),
+                f'report SHA-256: {report_sha}',
+            ]
+            for index, hit in enumerate(hits[:4], start=1):
+                lines.append(
+                    f'quote {index} [{hit.get("narrative", "")}; '
+                    f'negated={hit.get("negated")}]: '
+                    f'{str(hit.get("quote", ""))[:500]}')
+            if len(hits) > 4:
+                lines.append(f'{len(hits) - 4} additional quote(s) are in {report_name}.')
+            lines.extend([
+                ('Approval is an owner operational decision over these exact '
+                 'stored bytes; it is research screening, not a fatwa.'),
+                NOT_FATWA,
+            ])
+            args = {
+                'base': base,
+                'proposal_request_id': str(payload.get('request_id', '')),
+                'report_file': report_name,
+                'report_sha256': report_sha,
+                'scope_review_only': review.get('scope_review_only') is True,
+            }
+            buttons = [[confirm_button(
+                'REJECT - keep blocked', 'sharia_reject', args)]]
+            if review.get('promotable') is True:
+                buttons.insert(0, [confirm_button(
+                    'APPROVE exact evidence', 'sharia_approve', args)])
+            return '\n'.join(lines), buttons
+        except Exception:
+            continue
+    return f'No verified local review proposal found for {base}/USDT yet.', None
 
 
 def menu():
@@ -392,7 +524,7 @@ def _settings():
             'min_listing_age_days': os.getenv('MIN_LISTING_AGE_DAYS', '30'),
             'min_quote_volume_usdt': os.getenv('MIN_QUOTE_VOLUME_USDT', '1000000'),
             'max_spread_ratio': os.getenv('MAX_SPREAD_RATIO', '0.005'),
-            'sharia_signal_gate_mode': os.getenv('SHARIA_SIGNAL_GATE_MODE', 'fresh'),
+            'sharia_signal_gate_mode': os.getenv('SHARIA_SIGNAL_GATE_MODE', 'cached'),
             'telegram_owner_configured': bool(OWNER),
             'freqtrade_api_password_configured': bool(FT_PASS),
         }
@@ -473,8 +605,8 @@ def route(action, chat):
     elif action == 'scanall_confirm':
         button = confirm_button('✅ CONFIRM scan ALL Spot/USDT pairs', 'scan_all')
         send('Scan ALL current Binance Spot/USDT pairs under V19.1?\n'
-             '⚠️ This queues hundreds of AI screenings and consumes separately '
-             'billed API credit (subject to the daily quota). Bulk scans run at '
+             '⚠️ This queues local source retrieval and evidence review for '
+             'hundreds of assets. No paid AI API is used. Bulk scans run at '
              'low priority behind signal and manual scans.', chat,
              [[button], [{'text': '❌ Cancel', 'callback_data': 'do|help'}]])
     elif action == 'sharia_report_help':
@@ -520,6 +652,16 @@ def _confirm_action(action, args, chat):
         outcome = sharia_scan_request('*', priority='bulk')
         send('Queued V19.1 scan of ALL current Binance Spot/USDT pairs '
              f'(request {outcome["request_id"]}). Progress: 🕌 Sharia service.\n' + NOT_FATWA, chat)
+    elif action in {'sharia_approve', 'sharia_reject'}:
+        decision = sharia_owner_decision(
+            'APPROVE' if action == 'sharia_approve' else 'REJECT', args)
+        send(
+            f'Queued {decision["action"]} decision for '
+            f'{decision["base"]}/USDT (decision {decision["decision_id"]}). '
+            'The screener will re-hash the exact evidence and fail closed on '
+            'any mismatch. Check /shariareport again for the signed outcome.\n'
+            + NOT_FATWA,
+            chat)
     elif action in {'convert', 'break_even', 'lock_profit', 'emergency_exit', 'set_size', 'set_max'}:
         send(json.dumps(sidecar_command(action, args, wait=True), indent=2), chat)
     else:
@@ -570,7 +712,8 @@ def handle_message(message):
         base, why = normalize_pair_input(parts[1])
         if not base:
             send('Rejected: ' + why, chat); return
-        send(_latest_sharia_report(base), chat)
+        card, buttons = _latest_local_review_card(base)
+        send(card, chat, buttons)
     elif cmd == '/deploy': route('deploy', chat)
     elif cmd == '/lastsignal': route('last_signal', chat)
     elif cmd == '/settings': route('settings', chat)
@@ -687,6 +830,7 @@ def main():
     try:
         envelope.load_key(envelope.BUS_COMMAND)
         envelope.load_key(envelope.BUS_SHARIA_REQUEST)
+        envelope.load_key(envelope.BUS_SHARIA_DECISION)
     except envelope.EnvelopeError as exc:
         raise SystemExit(f'BUS KEYS MISSING: {exc}') from exc
     offset = _load_offset()

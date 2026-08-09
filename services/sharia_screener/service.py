@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """V19.1 Sharia screening service — the fifth, independent Oracle container.
 
 Responsibilities (master protocol sections 8.3–8.8):
@@ -8,9 +9,8 @@ Responsibilities (master protocol sections 8.3–8.8):
     priority) from the sidecar, the Telegram broker and the installer;
   * validate that a requested pair is currently a TRADING, spot-enabled,
     USDT-quoted Binance symbol before spending any API quota on it;
-  * execute the complete controller through the configured AI model with
-    hosted web search, strictly validate the result against OUTPUT_SCHEMA,
-    and fail closed to NO_TRADE_INFO on every error class;
+  * execute the controller locally against owner-identified, content-addressed
+    sources, with no model or separately billed API dependency;
   * write the report, the signed result envelope, the canonical status
     projection and the legacy compatibility whitelist (single-writer);
   * when idle, continuously screen the current top-50 universe and refresh
@@ -21,14 +21,12 @@ Responsibilities (master protocol sections 8.3–8.8):
 This service never receives Binance trading credentials and can never place
 an order. Its output is research screening, not a fatwa.
 """
-import json
 import logging
 import os
 import signal as os_signal
 import threading
 import time
 from datetime import datetime, timezone
-from pathlib import Path
 
 from services.common import envelope
 from services.common.atomic import atomic_write_json
@@ -36,20 +34,37 @@ from services.common.audit import audit
 from services.common.binance_public import BinancePublicClient
 from services.common.config_bounds import ConfigError, env_int
 from services.common.paths import (
-    SHARIA_CONTROLLER_FILE, SHARIA_QUEUE_INBOX, SHARIA_QUEUE_PROCESSED,
-    SHARIA_RUNTIME_DIR, UNIVERSE_CURRENT,
+    SHARIA_CONTROLLER_FILE,
+    SHARIA_DECISION_INBOX,
+    SHARIA_DECISION_PROCESSED,
+    SHARIA_EVIDENCE_DIR,
+    SHARIA_QUEUE_INBOX,
+    SHARIA_QUEUE_PROCESSED,
+    SHARIA_RESULTS_DIR,
+    SHARIA_RUNTIME_DIR,
+    SHARIA_SOURCE_REGISTRY,
+    UNIVERSE_CURRENT,
 )
 from services.common.retention import prune_files
 from services.common.sharia_attestation import load_private_key, load_public_key
 from services.common.sharia_v19 import (
-    ControllerIntegrityError, ResultValidationError, fail_closed_report,
-    load_controller, validate_result,
+    ControllerIntegrityError,
+    ResultValidationError,
+    fail_closed_report,
+    load_controller,
+    validate_result,
 )
-from services.sharia_screener.bridge import ensure_status_file_exists, write_screening_outcome
+from services.sharia_screener.approval import (
+    OwnerDecisionError,
+    apply_owner_decision,
+)
+from services.sharia_screener.bridge import (
+    ensure_status_file_exists,
+    write_screening_outcome,
+)
+from services.sharia_screener.local_runner import LocalScreeningRunner
 from services.sharia_screener.queue_store import PRIORITIES, QueueStore
-from services.sharia_screener.runner import (
-    ScreeningRunner, ScreeningUnavailable, enforce_live_screening_policy,
-)
+from services.sharia_screener.runner import ScreeningUnavailable
 from services.universe_service.snapshot_store import load_current
 
 log = logging.getLogger('sharia-screener')
@@ -58,16 +73,16 @@ REQUEST_PRODUCERS = {'execution-sidecar', 'telegram-broker', 'deploy-installer'}
 HARD_MAX_SCANS_PER_DAY = 1000
 HARD_MAX_URGENT_RESERVE = 200
 HARD_MAX_SCANS_PER_BASE_PER_DAY = 24
-HARD_MAX_SCANS_PER_ACTOR_PER_DAY = 200
+HARD_MAX_SCANS_PER_ACTOR_PER_DAY = 1000
 
 
 def _quota_settings() -> dict[str, int]:
     """Load bounded, relationally valid screening-cost controls."""
-    daily = env_int('SHARIA_MAX_SCANS_PER_DAY', 200, 1, HARD_MAX_SCANS_PER_DAY)
+    daily = env_int('SHARIA_MAX_SCANS_PER_DAY', 1000, 1, HARD_MAX_SCANS_PER_DAY)
     settings = {
         'daily': daily,
         'min_between': env_int(
-            'SHARIA_MIN_SECONDS_BETWEEN_SCANS', 120, 1, 86_400),
+            'SHARIA_MIN_SECONDS_BETWEEN_SCANS', 10, 1, 86_400),
         'urgent_reserve': env_int(
             'SHARIA_URGENT_RESERVE_PER_DAY', min(20, daily),
             1, HARD_MAX_URGENT_RESERVE),
@@ -75,7 +90,7 @@ def _quota_settings() -> dict[str, int]:
             'SHARIA_MAX_SCANS_PER_BASE_PER_DAY', min(4, daily),
             1, HARD_MAX_SCANS_PER_BASE_PER_DAY),
         'per_actor': env_int(
-            'SHARIA_MAX_SCANS_PER_ACTOR_PER_DAY', min(100, daily),
+            'SHARIA_MAX_SCANS_PER_ACTOR_PER_DAY', daily,
             1, HARD_MAX_SCANS_PER_ACTOR_PER_DAY),
     }
     for name in ('urgent_reserve', 'per_base', 'per_actor'):
@@ -89,7 +104,9 @@ class ShariaScreenerService:
     def __init__(self):
         self.controller_raw, self.controller = load_controller(SHARIA_CONTROLLER_FILE)
         self.queue = QueueStore(SHARIA_RUNTIME_DIR / 'screening_queue.sqlite')
-        self.runner = ScreeningRunner(self.controller_raw)
+        self.runner = LocalScreeningRunner(
+            self.controller, registry_path=SHARIA_SOURCE_REGISTRY,
+            evidence_root=SHARIA_EVIDENCE_DIR)
         self.public = BinancePublicClient()
         self.poll_seconds = env_int('SHARIA_POLL_SECONDS', 2, 1, 60)
         quota = _quota_settings()
@@ -111,6 +128,58 @@ class ShariaScreenerService:
         self._symbol_cache: tuple[float, dict] = (0.0, {})
 
     # ---- request ingestion ----
+    def ingest_owner_decisions(self):
+        """Apply Telegram-owner decisions through a dedicated signed bus."""
+        for path in sorted(SHARIA_DECISION_INBOX.glob('*.json')):
+            archive = True
+            try:
+                payload = envelope.read_verified_file(
+                    path, purpose=envelope.BUS_SHARIA_DECISION,
+                    expected_producers={'telegram-broker'})
+                report, request_id = apply_owner_decision(
+                    payload, reports_root=SHARIA_REPORTS_DIR,
+                    evidence_root=SHARIA_EVIDENCE_DIR)
+                result_path = SHARIA_RESULTS_DIR / f'result_{request_id}.json'
+                if result_path.exists():
+                    audit('sharia_owner_decision_duplicate', details={
+                        'decision_id': payload.get('decision_id'),
+                        'base': payload.get('base')})
+                else:
+                    base = str(payload['base']).upper()
+                    write_screening_outcome(
+                        request_id, base, f'{base}/USDT', report,
+                        validated=True,
+                        meta={
+                            'backend': 'local-oracle-v1',
+                            'owner_decision': str(payload['action']).upper(),
+                            'proposal_report_sha256': payload['report_sha256'],
+                        })
+                    audit('sharia_owner_decision_applied', actor='telegram-owner',
+                          details={
+                              'decision_id': payload['decision_id'],
+                              'base': base,
+                              'action': str(payload['action']).upper(),
+                          })
+            except (envelope.EnvelopeError, OwnerDecisionError) as exc:
+                audit('sharia_owner_decision_rejected', severity='CRITICAL',
+                      details={'file': path.name, 'error': str(exc)})
+            except Exception as exc:
+                # A valid decision must survive transient storage/signing
+                # failures. Leave it in the inbox for retry; duplicate output
+                # is suppressed by the decision-bound result filename.
+                archive = False
+                audit('sharia_owner_decision_error', severity='ERROR',
+                      details={'file': path.name,
+                               'error': f'{type(exc).__name__}: {exc}'})
+            finally:
+                if archive:
+                    try:
+                        SHARIA_DECISION_PROCESSED.mkdir(parents=True, exist_ok=True)
+                        path.rename(SHARIA_DECISION_PROCESSED / path.name)
+                    except OSError:
+                        path.unlink(missing_ok=True)
+        prune_files(SHARIA_DECISION_PROCESSED, '*.json', max_files=2000)
+
     def ingest_requests(self):
         for path in sorted(SHARIA_QUEUE_INBOX.glob('*.json')):
             try:
@@ -317,8 +386,8 @@ class ShariaScreenerService:
         if not self.idle_enabled or time.time() < self._next_idle_at:
             return
         self._next_idle_at = time.time() + self.idle_cycle_seconds
-        from services.universe_service.sharia_filter import ShariaFilter
         from services.common.paths import SHARIA_FILE
+        from services.universe_service.sharia_filter import ShariaFilter
         try:
             gate = ShariaFilter(SHARIA_FILE)
         except Exception as exc:
@@ -361,6 +430,7 @@ class ShariaScreenerService:
             add_candidate(base)
         stamp = now.strftime('%Y%m%d')
         margin = env_int('SHARIA_RESCREEN_MARGIN_SECONDS', 86_400, 0, 30 * 86_400)
+        interval_days = env_int('SHARIA_RESCAN_INTERVAL_DAYS', 7, 1, 30)
         enqueued = 0
         for base in candidates:
             if base == 'BNB':
@@ -370,7 +440,12 @@ class ShariaScreenerService:
             if record is not None and gate.is_record_verified(base):
                 try:
                     expires = datetime.fromisoformat(str(record['expires_at']).replace('Z', '+00:00'))
-                    needs_scan = (expires - now).total_seconds() < margin
+                    completed = datetime.fromisoformat(
+                        str(record['completed_at']).replace('Z', '+00:00'))
+                    needs_scan = (
+                        (expires - now).total_seconds() < margin or
+                        (now - completed).total_seconds() >= interval_days * 86_400
+                    )
                 except Exception:
                     needs_scan = True
             if needs_scan and not self.queue.has_active_for_base(base):
@@ -386,9 +461,9 @@ class ShariaScreenerService:
         available, reason = self.runner.available()
         # SHARIA-HEALTH-001 / F5-004: 'ok' was hardcoded True, so Docker (and
         # therefore the whole five-service stack) reported healthy even when the
-        # screening API was unusable and NO fresh screening could be produced.
+        # local backend was unusable and no new screening could be produced.
         # The trade gate still fails closed, so this was never a Sharia bypass —
-        # but it produced a false-green deployment in which every fresh-gated
+        # but it produced a false-green deployment in which every screening
         # signal is silently rejected. Process liveness and screening readiness
         # are now reported separately, and 'ok' requires both.
         atomic_write_json(SHARIA_RUNTIME_DIR / 'health.json', {
@@ -410,8 +485,9 @@ class ShariaScreenerService:
                 'per_actor_ceiling': self.max_scans_per_actor_per_day,
                 'minimum_spacing_seconds': self.min_between_scans,
             },
-            'api': {'available': available, 'reason': reason,
-                    'model_configured': bool(self.runner.model)},
+            'backend': {'name': self.runner.provider,
+                        'available': available, 'reason': reason,
+                        'external_ai': False},
             'last_done': self.queue.last('DONE'),
             'last_failed': self.queue.last('FAILED'),
             'idle_scanning': self.idle_enabled,
@@ -433,6 +509,7 @@ class ShariaScreenerService:
         while not STOP.is_set():
             try:
                 self.ingest_requests()
+                self.ingest_owner_decisions()
                 row = self._throttled_next()
                 if row:
                     self.process_request(row)
@@ -451,8 +528,8 @@ def main():
     logging.basicConfig(level=os.getenv('LOG_LEVEL', 'INFO'),
                         format='%(asctime)s %(levelname)s %(name)s %(message)s')
     try:
-        enforce_live_screening_policy()
         envelope.load_key(envelope.BUS_SHARIA_REQUEST)
+        envelope.load_key(envelope.BUS_SHARIA_DECISION)
         envelope.load_key(envelope.BUS_SHARIA_RESULT)
         load_private_key()
         load_public_key()

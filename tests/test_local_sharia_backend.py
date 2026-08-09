@@ -10,7 +10,10 @@ would have reported success while an expectation failed.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -31,15 +34,20 @@ from services.common.sharia_v19 import (
     ResultValidationError,
     _provider_tool_evidence_urls,
     load_controller,
+    validate_local_evidence_files,
+    validate_result,
 )
 from services.sharia_retriever.retriever import (
     MAX_REDIRECTS,
+    FetchResult,
     RetrievalBlocked,
     Retriever,
     assert_fetchable,
     classify_tier,
     html_to_text,
+    pdf_to_text,
 )
+from services.sharia_retriever.store import EvidenceStore, EvidenceStoreError
 from services.sharia_rules.engine import (
     Disposition,
     EvidenceClaim,
@@ -47,6 +55,16 @@ from services.sharia_rules.engine import (
     evaluate,
     extract_quote,
     is_negated,
+)
+from services.sharia_screener.approval import (
+    SCOPE_CONFIRMATION,
+    OwnerDecisionError,
+    apply_owner_decision,
+)
+from services.sharia_screener.local_runner import LocalScreeningRunner
+from services.sharia_screener.source_registry import (
+    SourceRegistry,
+    SourceRegistryError,
 )
 
 CONTROLLER_PATH = (ROOT / 'shared/sharia'
@@ -111,13 +129,16 @@ class ProviderRegistryTests(unittest.TestCase):
         # which emits source_urls and nests the URL under 'action'.
         self.assertEqual(required_record_keys('openai-responses'), frozenset())
 
-    def test_real_runner_evidence_shape_is_accepted(self):
-        from services.sharia_screener.runner import ScreeningRunner
-        evidence = ScreeningRunner._extract_tool_evidence({'output': [{
-            'type': 'web_search_call', 'id': 'ws_real', 'status': 'completed',
-            'action': {'type': 'open_page',
-                       'url': 'https://official.example/docs', 'sources': []},
-        }]})
+    def test_historical_runner_evidence_shape_remains_verifiable(self):
+        evidence = {
+            'provider': 'openai-responses',
+            'completed_web_search_calls': [{
+                'id': 'ws_historical', 'status': 'completed',
+                'action_type': 'open_page',
+                'source_urls': ['https://official.example/docs'],
+            }],
+            'url_citations': [],
+        }
         _all_urls, evidentiary = _provider_tool_evidence_urls(
             {'tool_evidence': evidence})
         self.assertIn('https://official.example/docs', evidentiary)
@@ -144,8 +165,10 @@ class ProviderRegistryTests(unittest.TestCase):
                 'source_urls': ['https://official.example/docs'],
                 'url': 'https://official.example/docs',
                 'retrieved_utc': '2026-08-09T00:00:00Z', 'http_status': 200,
-                'content_sha256': 'a' * 64, 'source_tier': 'TIER_1_OFFICIAL'}
-        for drop in ('content_sha256', 'http_status', 'source_tier'):
+                'content_sha256': 'a' * 64,
+                'content_path': f'sha256/aa/{"a" * 64}.bin',
+                'source_tier': 'TIER_1_OFFICIAL'}
+        for drop in ('content_sha256', 'content_path', 'http_status', 'source_tier'):
             weakened = {k: v for k, v in base.items() if k != drop}
             with self.subTest(missing=drop), self.assertRaises(
                     ResultValidationError):
@@ -160,7 +183,9 @@ class ProviderRegistryTests(unittest.TestCase):
             'source_urls': ['https://official.example/docs'],
             'url': 'https://official.example/docs',
             'retrieved_utc': '2026-08-09T00:00:00Z', 'http_status': 200,
-            'content_sha256': 'a' * 64, 'source_tier': 'TIER_1_OFFICIAL',
+            'content_sha256': 'a' * 64,
+            'content_path': f'sha256/aa/{"a" * 64}.bin',
+            'source_tier': 'TIER_1_OFFICIAL',
         }
         with self.assertRaises(ResultValidationError):
             _provider_tool_evidence_urls({'tool_evidence': {
@@ -177,13 +202,311 @@ class ProviderRegistryTests(unittest.TestCase):
             'source_urls': ['https://different.example/docs'],
             'url': 'https://official.example/docs',
             'retrieved_utc': '2026-08-09T00:00:00Z', 'http_status': 200,
-            'content_sha256': 'a' * 64, 'source_tier': 'TIER_1_OFFICIAL',
+            'content_sha256': 'a' * 64,
+            'content_path': f'sha256/aa/{"a" * 64}.bin',
+            'source_tier': 'TIER_1_OFFICIAL',
         }
         with self.assertRaises(ResultValidationError):
             _provider_tool_evidence_urls({'tool_evidence': {
                 'provider': 'local-oracle-v1',
                 'completed_web_search_calls': [record],
                 'url_citations': []}})
+
+
+class EvidenceStoreTests(unittest.TestCase):
+    def test_exact_bytes_are_content_addressed_and_reverified(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = EvidenceStore(directory)
+            digest, relative = store.put(b'exact response bytes')
+            self.assertTrue(store.verify(digest, relative))
+            self.assertEqual(store.read(digest, relative), b'exact response bytes')
+
+            target = Path(directory) / relative
+            target.write_bytes(b'tampered')
+            self.assertFalse(store.verify(digest, relative))
+            with self.assertRaises(EvidenceStoreError):
+                store.read(digest, relative)
+
+    def test_evidence_path_cannot_escape_store(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = EvidenceStore(directory)
+            with self.assertRaises(EvidenceStoreError):
+                store.read('a' * 64, '../../outside.bin')
+
+    def test_report_validation_rehashes_stored_bytes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = EvidenceStore(directory)
+            digest, relative = store.put(b'official source bytes')
+            report = {'tool_evidence': {
+                'provider': 'local-oracle-v1',
+                'completed_web_search_calls': [{
+                    'id': 'ret_1', 'status': 'completed',
+                    'action_type': 'open_page',
+                    'source_urls': ['https://official.example/docs'],
+                    'url': 'https://official.example/docs',
+                    'retrieved_utc': '2026-08-09T00:00:00Z',
+                    'http_status': 200, 'content_sha256': digest,
+                    'content_path': relative,
+                    'source_tier': 'TIER_1_OFFICIAL',
+                }], 'url_citations': []}}
+            validate_local_evidence_files(report, directory)
+            (Path(directory) / relative).write_bytes(b'changed')
+            with self.assertRaises(ResultValidationError):
+                validate_local_evidence_files(report, directory)
+
+
+class LocalRunnerIntegrationTests(unittest.TestCase):
+    @staticmethod
+    def _registry_payload():
+        utility = 'The token settles payments and pays network transaction fees.'
+        token = 'The token is classified as a payment currency.'
+        revenue = 'Project revenue consists solely of transaction fees for network use.'
+        official_url = 'https://official.example/docs'
+        sources = [{'url': official_url, 'identity_match': True}]
+        claims = {
+            'token_type': {'value': 'PAYMENT', 'quote': token, 'url': official_url},
+            'utility': {'value': 'real utility', 'quote': utility, 'url': official_url},
+            'revenue': {'value': 'clean', 'quote': revenue, 'url': official_url},
+        }
+        screeners = {}
+        bodies = {official_url: f'{token} {utility} {revenue}'}
+        for name in sorted(SCREENER_SITES):
+            host = min(SCREENER_HOSTS[name])
+            url = f'https://{host}/asset/example'
+            quote = f'{name} screening result is halal for this asset.'
+            sources.append({'url': url, 'identity_match': False})
+            screeners[name] = {'value': 'halal', 'quote': quote, 'url': url}
+            bodies[url] = quote
+        return ({'schema_version': 1, 'assets': {'XYZ': {
+            'official_hosts': ['official.example'], 'sources': sources,
+            'claims': claims, 'screeners': screeners,
+        }}}, bodies)
+
+    def test_complete_local_case_produces_review_not_trade_authority(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            registry_payload, bodies = self._registry_payload()
+            registry = root / 'source_registry.json'
+            registry.write_text(json.dumps(registry_payload), encoding='utf-8')
+            store = EvidenceStore(root / 'evidence')
+
+            class _Retriever:
+                def fetch(self, url, *, official_hosts=None, identity_match=False):
+                    body = bodies[url].encode()
+                    digest, relative = store.put(body)
+                    return FetchResult(
+                        url=url, http_status=200, content_sha256=digest,
+                        content_path=relative, text=bodies[url],
+                        retrieved_utc='2026-08-09T00:00:00Z',
+                        tier=('TIER_1_OFFICIAL' if identity_match
+                              else 'TIER_3_SECONDARY'),
+                        identity_match=identity_match)
+
+            runner = LocalScreeningRunner(
+                CONTROLLER, registry_path=registry,
+                evidence_root=root / 'evidence', retriever=_Retriever())
+            report, meta = runner.run('XYZ', 'XYZ/USDT')
+            self.assertEqual(meta['backend'], 'local-oracle-v1')
+            self.assertEqual(report['tool_evidence']['provider'], 'local-oracle-v1')
+            self.assertEqual(
+                report['local_review']['disposition'], Disposition.PROPOSE_GREEN)
+            self.assertEqual(report['final_code'], 'NO_TRADE_INFO')
+            self.assertTrue(report['human_escalation_required'])
+            self.assertTrue(report['local_review']['promotable'])
+            validate_local_evidence_files(report, root / 'evidence')
+
+    def test_owner_approval_is_bound_to_exact_report_and_evidence_bytes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            registry_payload, bodies = self._registry_payload()
+            registry = root / 'source_registry.json'
+            registry.write_text(json.dumps(registry_payload), encoding='utf-8')
+            store = EvidenceStore(root / 'evidence')
+
+            class _Retriever:
+                def fetch(self, url, *, official_hosts=None, identity_match=False):
+                    body = bodies[url].encode()
+                    digest, relative = store.put(body)
+                    return FetchResult(
+                        url=url, http_status=200, content_sha256=digest,
+                        content_path=relative, text=bodies[url],
+                        retrieved_utc='2026-08-09T00:00:00Z',
+                        tier=('TIER_1_OFFICIAL' if identity_match
+                              else 'TIER_3_SECONDARY'),
+                        identity_match=identity_match)
+
+            report, _meta = LocalScreeningRunner(
+                CONTROLLER, registry_path=registry,
+                evidence_root=root / 'evidence', retriever=_Retriever()).run(
+                    'XYZ', 'XYZ/USDT')
+            reports = root / 'reports'
+            reports.mkdir()
+            report_name = 'XYZ_manual-XYZ-test.json'
+            report_path = reports / report_name
+            report_path.write_text(
+                json.dumps(report, sort_keys=True), encoding='utf-8')
+            report_sha = hashlib.sha256(report_path.read_bytes()).hexdigest()
+            payload = {
+                'decision_id': 'a' * 32,
+                'action': 'APPROVE',
+                'base': 'XYZ',
+                'pair': 'XYZ/USDT',
+                'proposal_request_id': 'manual-XYZ-test',
+                'report_file': report_name,
+                'report_sha256': report_sha,
+                'decided_at': '2026-08-09T00:00:00+00:00',
+            }
+            approved, request_id = apply_owner_decision(
+                payload, reports_root=reports,
+                evidence_root=root / 'evidence')
+            self.assertEqual(request_id, 'decision-' + 'a' * 32)
+            self.assertEqual(approved['final_code'], 'GREEN')
+            self.assertFalse(approved['human_escalation_required'])
+            self.assertEqual(
+                approved['owner_approval']['proposal_report_sha256'], report_sha)
+            validate_result(approved, expected_base='XYZ')
+
+            payload['proposal_request_id'] = 'different-request'
+            with self.assertRaisesRegex(
+                    OwnerDecisionError, 'proposal_request_id'):
+                apply_owner_decision(
+                    payload, reports_root=reports,
+                    evidence_root=root / 'evidence')
+            payload['proposal_request_id'] = 'manual-XYZ-test'
+            payload['report_sha256'] = 'b' * 64
+            with self.assertRaises(OwnerDecisionError):
+                apply_owner_decision(
+                    payload, reports_root=reports,
+                    evidence_root=root / 'evidence')
+
+    def test_scope_disclaimer_needs_explicit_hash_bound_confirmation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            registry_payload, bodies = self._registry_payload()
+            official = 'https://official.example/docs'
+            bodies[official] += (
+                ' No fixed or guaranteed return is offered to any participant.')
+            registry = root / 'source_registry.json'
+            registry.write_text(json.dumps(registry_payload), encoding='utf-8')
+            store = EvidenceStore(root / 'evidence')
+
+            class _Retriever:
+                def fetch(self, url, *, official_hosts=None, identity_match=False):
+                    body = bodies[url].encode()
+                    digest, relative = store.put(body)
+                    return FetchResult(
+                        url=url, http_status=200, content_sha256=digest,
+                        content_path=relative, text=bodies[url],
+                        retrieved_utc='2026-08-09T00:00:00Z',
+                        tier=('TIER_1_OFFICIAL' if identity_match
+                              else 'TIER_3_SECONDARY'),
+                        identity_match=identity_match)
+
+            report, _meta = LocalScreeningRunner(
+                CONTROLLER, registry_path=registry,
+                evidence_root=root / 'evidence', retriever=_Retriever()).run(
+                    'XYZ', 'XYZ/USDT')
+            self.assertEqual(
+                report['local_review']['disposition'], Disposition.ESCALATE)
+            self.assertTrue(report['local_review']['scope_review_only'])
+            self.assertTrue(report['local_review']['promotable'])
+            reports = root / 'reports'
+            reports.mkdir()
+            report_path = reports / 'XYZ_scope-test.json'
+            report_path.write_text(json.dumps(report, sort_keys=True), encoding='utf-8')
+            payload = {
+                'decision_id': 'c' * 32,
+                'action': 'APPROVE', 'base': 'XYZ', 'pair': 'XYZ/USDT',
+                'proposal_request_id': 'scope-test',
+                'report_file': report_path.name,
+                'report_sha256': hashlib.sha256(report_path.read_bytes()).hexdigest(),
+                'decided_at': '2026-08-09T00:00:00+00:00',
+            }
+            with self.assertRaises(OwnerDecisionError):
+                apply_owner_decision(
+                    payload, reports_root=reports,
+                    evidence_root=root / 'evidence')
+            payload['scope_confirmation'] = SCOPE_CONFIRMATION
+            approved, _request_id = apply_owner_decision(
+                payload, reports_root=reports,
+                evidence_root=root / 'evidence')
+            self.assertEqual(approved['final_code'], 'GREEN')
+
+    def test_missing_asset_fails_closed_without_external_api(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            registry = root / 'source_registry.json'
+            registry.write_text(
+                json.dumps({'schema_version': 1, 'assets': {}}), encoding='utf-8')
+            runner = LocalScreeningRunner(
+                CONTROLLER, registry_path=registry,
+                evidence_root=root / 'evidence')
+            report, meta = runner.run('XYZ', 'XYZ/USDT')
+            self.assertEqual(report['final_code'], 'NO_TRADE_INFO')
+            self.assertEqual(meta['backend'], 'local-oracle-v1')
+            self.assertNotIn('openai', json.dumps(report).lower())
+
+    def test_screener_registry_identity_mismatch_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            payload, _bodies = self._registry_payload()
+            payload['assets']['XYZ']['screeners']['musaffa']['url'] = (
+                'https://cryptoummah.com/asset/example')
+            path = Path(directory) / 'registry.json'
+            path.write_text(json.dumps(payload), encoding='utf-8')
+            with self.assertRaises(SourceRegistryError):
+                SourceRegistry(path).asset('XYZ')
+
+    def test_overly_broad_official_host_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            payload, _bodies = self._registry_payload()
+            payload['assets']['XYZ']['official_hosts'] = ['com']
+            path = Path(directory) / 'registry.json'
+            path.write_text(json.dumps(payload), encoding='utf-8')
+            with self.assertRaisesRegex(SourceRegistryError, 'overly broad'):
+                SourceRegistry(path).asset('XYZ')
+
+    def test_duplicate_normalized_screener_name_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            payload, _bodies = self._registry_payload()
+            original = payload['assets']['XYZ']['screeners']['halalscreener']
+            payload['assets']['XYZ']['screeners']['halal-screener'] = dict(original)
+            path = Path(directory) / 'registry.json'
+            path.write_text(json.dumps(payload), encoding='utf-8')
+            with self.assertRaisesRegex(SourceRegistryError, 'duplicate normalized'):
+                SourceRegistry(path).asset('XYZ')
+
+    def test_active_service_constructs_only_the_local_runner(self):
+        source = (ROOT / 'services/sharia_screener/service.py').read_text(
+            encoding='utf-8')
+        self.assertIn('LocalScreeningRunner(', source)
+        self.assertNotIn('from services.sharia_screener.runner import ScreeningRunner',
+                         source)
+        self.assertNotIn('SHARIA_OPENAI_', source)
+
+    def test_transient_owner_decision_failure_remains_for_retry(self):
+        from services.sharia_screener import service as service_mod
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            inbox = root / 'inbox'
+            processed = root / 'processed'
+            inbox.mkdir()
+            decision = inbox / 'decision_test.json'
+            decision.write_text('{}', encoding='utf-8')
+            service = object.__new__(service_mod.ShariaScreenerService)
+            with mock.patch.object(service_mod, 'SHARIA_DECISION_INBOX', inbox), \
+                    mock.patch.object(
+                        service_mod, 'SHARIA_DECISION_PROCESSED', processed), \
+                    mock.patch.object(
+                        service_mod.envelope, 'read_verified_file',
+                        return_value={'decision_id': 'a' * 32}), \
+                    mock.patch.object(
+                        service_mod, 'apply_owner_decision',
+                        side_effect=OSError('disk temporarily unavailable')), \
+                    mock.patch.object(service_mod, 'audit'):
+                service.ingest_owner_decisions()
+            self.assertTrue(decision.exists())
+            self.assertFalse(any(processed.glob('*.json')))
 
 
 class NegationTests(unittest.TestCase):
@@ -451,6 +774,34 @@ class HtmlExtractionTests(unittest.TestCase):
     def test_stray_end_tag_does_not_strand_the_extractor(self):
         html = '<html><body></script><p>STILL VISIBLE</p></body></html>'
         self.assertIn('STILL VISIBLE', html_to_text(html))
+
+
+class PdfExtractionTests(unittest.TestCase):
+    def test_pdf_text_is_bounded_and_normalized(self):
+        pages = [mock.Mock(), mock.Mock()]
+        pages[0].extract_text.return_value = 'Official token utility\nstatement.'
+        pages[1].extract_text.return_value = 'Revenue comes from service fees.'
+        reader = mock.Mock(is_encrypted=False, pages=pages)
+        with mock.patch(
+                'services.sharia_retriever.retriever.PdfReader',
+                return_value=reader):
+            self.assertEqual(
+                pdf_to_text(b'%PDF-fixture'),
+                'Official token utility statement. Revenue comes from service fees.')
+
+    def test_encrypted_and_image_only_pdfs_fail_closed(self):
+        encrypted = mock.Mock(is_encrypted=True, pages=[mock.Mock()])
+        with mock.patch(
+                'services.sharia_retriever.retriever.PdfReader',
+                return_value=encrypted), self.assertRaises(RetrievalBlocked):
+            pdf_to_text(b'%PDF-encrypted')
+        blank_page = mock.Mock()
+        blank_page.extract_text.return_value = ''
+        blank = mock.Mock(is_encrypted=False, pages=[blank_page])
+        with mock.patch(
+                'services.sharia_retriever.retriever.PdfReader',
+                return_value=blank), self.assertRaises(RetrievalBlocked):
+            pdf_to_text(b'%PDF-image-only')
 
 
 class TierClassificationTests(unittest.TestCase):

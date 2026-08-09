@@ -1,7 +1,7 @@
 # Security & Secrets Guide
 
 ## Never in the repository or the release ZIP
-Binance API key/secret, Telegram token, OpenAI/Anthropic key, Freqtrade API password/JWT/WS token, the
+Binance API key/secret, Telegram token, Freqtrade API password/JWT/WS token, the
 HMAC bus keys, the Sharia Ed25519 signing private key, the live-evidence key, SSH private keys, `.env`, databases, logs. The release ships only
 `.env.example` placeholders. A secret scanner (`tests/secret_scan.py`) runs in the release verifier and CI
 and fails the build on any populated sensitive assignment or token-shaped literal.
@@ -26,6 +26,7 @@ python -c "import secrets; print(secrets.token_hex(24))"
 - `SIGNAL_HMAC_KEY` — Freqtrade (producer) + sidecar (consumer)
 - `COMMAND_HMAC_KEY` — Telegram (producer) + sidecar (consumer)
 - `SHARIA_HMAC_KEY` — Telegram/sidecar request producers + screener request consumer
+- `SHARIA_APPROVAL_HMAC_KEY` — Telegram owner-decision producer + screener only
 - `SHARIA_RESULT_HMAC_KEY` — screener result producer + sidecar/Telegram result consumers
 - `SHARIA_RESULT_SIGNING_PRIVATE_KEY_B64` — screener only; Ed25519 private DER, base64 encoded
 - `SHARIA_RESULT_VERIFY_PUBLIC_KEY_B64` — public Ed25519 DER distributed to all result/status consumers
@@ -36,7 +37,7 @@ The canonical Sharia directory is writable by the screener alone; all other cont
 
 ## Least privilege
 - Binance key: **Spot only, withdrawals disabled, IP-restricted**, on a dedicated sub-account.
-- The Sharia screener holds NO Binance trading key — only the screening-API key.
+- The Sharia screener holds no Binance key and no external AI/model API key.
 - Freqtrade holds no Binance credentials (signal-only).
 
 ## Live promotion (C-003 / H-007)
@@ -48,6 +49,6 @@ the legacy backtest gate can no longer unlock live on their own.
 
 ## Supply chain
 GitHub Actions are commit-SHA pinned; `requirements.services.lock` is the resolved dependency graph
-(`pip-audit`: no known vulnerabilities on this host). REMAINING EXTERNAL WORK: pin the base Python and
-Freqtrade images by registry digest, enable branch protection with the CODEOWNERS reviewer, and retain
-signed CI image/artifact provenance.
+(`pip-audit`: no known vulnerabilities on this host). The Python and Freqtrade base images are pinned by
+immutable registry digest. REMAINING EXTERNAL WORK: enable branch protection with the CODEOWNERS reviewer
+and retain signed CI image/artifact provenance.
