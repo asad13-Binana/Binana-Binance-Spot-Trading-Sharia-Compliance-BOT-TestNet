@@ -249,6 +249,61 @@ def _addresses_for(host: str) -> list[ipaddress._BaseAddress]:
     return resolved
 
 
+def connected_peer_address(response) -> ipaddress._BaseAddress | None:
+    """Return the address this response is actually connected to, or None.
+
+    Several urllib3 versions expose the socket at different depths, so each
+    known path is tried. Returning None means the peer could not be
+    determined, which callers must treat as a failure rather than a pass.
+    """
+    paths = (
+        lambda: response.raw._connection.sock,
+        lambda: response.raw._fp.fp.raw._sock,
+        lambda: response.raw._original_response.fp.raw._sock,
+    )
+    for path in paths:
+        try:
+            sock = path()
+        except Exception:
+            continue
+        if sock is None:
+            continue
+        try:
+            peer = sock.getpeername()
+        except Exception:
+            continue
+        try:
+            return ipaddress.ip_address(peer[0])
+        except (ValueError, IndexError, TypeError):
+            continue
+    return None
+
+
+def assert_peer_is_public(response, host: str) -> None:
+    """Verify the address actually connected to, not the one we resolved.
+
+    ``assert_fetchable`` resolves the hostname and rejects non-global
+    answers, but the HTTP stack resolves it again when it opens the socket.
+    Between those two lookups a DNS record can change, so a compromised or
+    hostile approved domain could pass validation on a public address and
+    then be connected on a loopback, private or cloud-metadata address.
+
+    Checking the connected peer closes that window, because it inspects the
+    connection that will actually deliver the bytes. An undeterminable peer
+    is treated as a failure: a security check that cannot be performed has
+    not passed.
+    """
+    peer = connected_peer_address(response)
+    if peer is None:
+        raise RetrievalBlocked(
+            f'cannot determine the connected peer address for {host!r}; '
+            'refusing to read the body rather than skip the check')
+    if not peer.is_global or peer.is_multicast:
+        raise RetrievalBlocked(
+            f'{host!r} connected to non-public address {peer} despite '
+            'resolving to a public one before the request (DNS rebinding)')
+
+
 def assert_fetchable(url: str) -> str:
     """Return the canonical URL or raise.
 
@@ -314,11 +369,16 @@ class Retriever:
 
     def __init__(self, *, session: requests.Session | None = None,
                  timeout: int = TIMEOUT_SECONDS, max_bytes: int = MAX_BYTES,
-                 evidence_store: EvidenceStore | None = None):
+                 evidence_store: EvidenceStore | None = None,
+                 verify_peer: bool = True):
         self.session = session or requests.Session()
         self.timeout = timeout
         self.max_bytes = max_bytes
         self.evidence_store = evidence_store
+        # Peer verification requires a real socket. It defaults ON so
+        # production always has it, and is disabled only by tests that inject
+        # a fake session with nothing underneath to inspect.
+        self.verify_peer = verify_peer
 
     def fetch(self, url: str, *, official_hosts: set[str] | None = None,
               identity_match: bool = False) -> FetchResult:
@@ -344,6 +404,13 @@ class Retriever:
                     target, timeout=self.timeout, allow_redirects=False,
                     stream=True,
                     headers={'User-Agent': 'binance-sharia-screener/1.0'})
+                # Validate the peer we are ACTUALLY connected to, before any
+                # body is read. assert_fetchable resolved the name earlier,
+                # but the HTTP stack resolved it again to open this socket,
+                # and the record can change in between.
+                if self.verify_peer:
+                    assert_peer_is_public(
+                        response, urlparse(target).hostname or target)
                 if response.status_code not in (301, 302, 303, 307, 308):
                     break
                 location = response.headers.get('Location') or ''

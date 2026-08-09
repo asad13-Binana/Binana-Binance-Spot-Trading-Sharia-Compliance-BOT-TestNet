@@ -316,3 +316,63 @@ class QuoteTruncationTests(unittest.TestCase):
         from services.sharia_screener.verdict_policy import containing_sentence
         self.assertTrue(containing_sentence(
             'this token is halal', 'It is false that this​ token is halal.'))
+
+
+class ConnectedPeerVerificationTests(unittest.TestCase):
+    """P2 — the address validated must be the address connected to.
+
+    assert_fetchable resolves the hostname and rejects non-global answers,
+    but the HTTP stack resolves it again when opening the socket. A hostile
+    or compromised approved domain can answer public during validation and
+    private during connection. Checking the live peer closes that window.
+    """
+
+    @staticmethod
+    def _response_connected_to(address: str | None):
+        import socket as _socket
+
+        class _Sock:
+            def getpeername(self):
+                if address is None:
+                    raise OSError('no peer')
+                return (address, 443)
+
+        class _Conn:
+            sock = _Sock()
+
+        class _Raw:
+            _connection = _Conn()
+
+        class _Resp:
+            raw = _Raw()
+
+        del _socket
+        return _Resp()
+
+    def test_a_private_peer_is_refused_after_a_public_resolution(self):
+        from services.sharia_retriever.retriever import (
+            RetrievalBlocked, assert_peer_is_public)
+        for address in ('127.0.0.1', '169.254.169.254', '10.0.0.5',
+                        '192.168.1.1', '::1'):
+            with self.subTest(address=address):
+                with self.assertRaises(RetrievalBlocked):
+                    assert_peer_is_public(
+                        self._response_connected_to(address), 'approved.example')
+
+    def test_a_public_peer_is_accepted(self):
+        from services.sharia_retriever.retriever import assert_peer_is_public
+        assert_peer_is_public(
+            self._response_connected_to('93.184.216.34'), 'approved.example')
+
+    def test_an_undeterminable_peer_fails_closed(self):
+        # A security check that cannot be performed has not passed.
+        from services.sharia_retriever.retriever import (
+            RetrievalBlocked, assert_peer_is_public)
+        with self.assertRaises(RetrievalBlocked):
+            assert_peer_is_public(
+                self._response_connected_to(None), 'approved.example')
+
+    def test_peer_verification_is_on_by_default(self):
+        from services.sharia_retriever.retriever import Retriever
+        self.assertTrue(Retriever().verify_peer,
+                        'production must verify the connected peer')

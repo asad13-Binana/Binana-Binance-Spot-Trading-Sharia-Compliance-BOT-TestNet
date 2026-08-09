@@ -84,7 +84,8 @@ class SeedHelperTests(unittest.TestCase):
         with mock.patch('services.sharia_retriever.retriever.requests.Session',
                         _Session), \
              mock.patch('services.sharia_retriever.retriever._addresses_for',
-                        lambda h: [__import__('ipaddress').ip_address('93.184.216.34')]):
+                        lambda h: [__import__('ipaddress').ip_address('93.184.216.34')]),              mock.patch('services.sharia_retriever.retriever.assert_peer_is_public',
+                        lambda response, host: None):
             return seed.main(['propose', str(self.request),
                               '--draft', str(self.draft),
                               '--review', str(self.review),
@@ -94,7 +95,8 @@ class SeedHelperTests(unittest.TestCase):
         with mock.patch('services.sharia_retriever.retriever.requests.Session',
                         _Session), \
              mock.patch('services.sharia_retriever.retriever._addresses_for',
-                        lambda h: [__import__('ipaddress').ip_address('93.184.216.34')]):
+                        lambda h: [__import__('ipaddress').ip_address('93.184.216.34')]),              mock.patch('services.sharia_retriever.retriever.assert_peer_is_public',
+                        lambda response, host: None):
             return seed.main(['apply', str(self.draft),
                               '--registry', str(self.registry),
                               '--evidence-dir', str(self.evidence)])

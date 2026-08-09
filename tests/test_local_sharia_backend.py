@@ -786,7 +786,7 @@ class RetrieverSecurityTests(unittest.TestCase):
                         lambda h: [__import__('ipaddress').ip_address(
                             '169.254.169.254' if h == '169.254.169.254'
                             else '93.184.216.34')]):
-            result = Retriever(session=session).fetch('https://example.com/')
+            result = Retriever(session=session, verify_peer=False).fetch('https://example.com/')
         self.assertFalse(result.ok)
         self.assertNotIn('https://169.254.169.254/latest', requested)
         self.assertIs(session.last.get('allow_redirects'), False)
@@ -819,7 +819,9 @@ class RetrieverSecurityTests(unittest.TestCase):
         with mock.patch('services.sharia_retriever.retriever._addresses_for',
                         lambda _h: [__import__('ipaddress').ip_address(
                             '93.184.216.34')]):
-            result = Retriever(session=_Session()).fetch(
+            # verify_peer=False: the injected session has no real socket to
+            # inspect. Peer verification is exercised separately.
+            result = Retriever(session=_Session(), verify_peer=False).fetch(
                 'https://official.example/docs',
                 official_hosts={'official.example'}, identity_match=True)
         self.assertFalse(result.ok)
