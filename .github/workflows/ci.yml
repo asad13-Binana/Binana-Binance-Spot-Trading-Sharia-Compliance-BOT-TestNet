@@ -1,6 +1,6 @@
-# V102-REM-009: display name tracks the release version; the v101
+# V103-REM-001: display name tracks the release version; the v101
 # concurrency/namespace identifiers are retained for compatibility.
-name: Verify and deploy V10.2 testnet
+name: Verify and deploy V10.3 testnet
 
 on:
   pull_request:
