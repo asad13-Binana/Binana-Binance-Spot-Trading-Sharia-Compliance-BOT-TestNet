@@ -72,6 +72,51 @@ CLAIM_CUES = {
 VERDICT_CUES = ('halal', 'haram', 'compliant', 'non-compliant',
                 'not compliant', 'permissible', 'impermissible', 'doubtful')
 
+# Wording that makes a positive verdict unsafe to accept without the owner
+# saying so explicitly. "not Shariah compliant" contains "compliant"; any
+# keyword rule that reads the positive word wins is one negation away from
+# proposing halal for a source that says the opposite.
+NEGATIVE_OR_AMBIGUOUS_CUES = (
+    'not ', "n't", 'non-', 'never', 'cannot', 'no longer', 'without',
+    'unless', 'except', 'however', 'but ', 'partially', 'partial',
+    'may ', 'might', 'unclear', 'uncertain', 'doubtful', 'review',
+    'pending', 'depends', 'conditional', 'question', 'disputed',
+    'haram', 'impermissible', 'prohibited', 'avoid',
+)
+POSITIVE_VALUES = ('halal', 'compliant', 'permissible', 'green', 'pass', 'yes')
+
+
+def positive_value_conflicts_with_quote(value: str, quote: str) -> str:
+    """Return a reason when a positive verdict contradicts its own quote.
+
+    A ``halal`` value must never be accepted alongside a quote containing
+    negative, conditional or ambiguous wording. This is the last line of
+    defence: the owner types the value, but a mistyped or copy-pasted
+    positive value paired with a negative sentence must still be refused.
+    """
+    if not any(p in value.strip().lower() for p in POSITIVE_VALUES):
+        return ''
+    low = f' {" ".join(quote.split()).lower()} '
+    hits = [cue.strip() for cue in NEGATIVE_OR_AMBIGUOUS_CUES if cue in low]
+    if hits:
+        return (f'positive value {value!r} paired with negative or ambiguous '
+                f'wording in the quote ({", ".join(sorted(set(hits)))})')
+    return ''
+
+
+def strict_bool(value, field: str):
+    """Require a real JSON boolean.
+
+    ``bool("false")`` is ``True`` in Python, so accepting a string here would
+    silently promote an unconfirmed source to an identity-matched official
+    one — the exact substitution the registry exists to prevent.
+    """
+    if not isinstance(value, bool):
+        raise ValueError(
+            f'{field} must be a JSON true/false, got {type(value).__name__} '
+            f'{value!r}')
+    return value
+
 
 def sentences(text: str) -> list[str]:
     parts = re.split(r'(?<=[.!?])\s+', ' '.join((text or '').split()))
@@ -90,15 +135,19 @@ def candidates(text: str, cues) -> list[str]:
 
 
 def infer_verdict(quote: str) -> str:
-    low = quote.lower()
-    if 'non-compliant' in low or 'not compliant' in low or 'impermissible' in low:
-        return 'haram'
-    if 'haram' in low:
-        return 'haram'
-    if 'doubtful' in low:
-        return 'doubtful'
-    if 'halal' in low or 'compliant' in low or 'permissible' in low:
-        return 'halal'
+    """Deliberately always returns '' — this tool never reads a verdict.
+
+    An earlier version pattern-matched the sentence and returned a verdict.
+    It read "This token is not Shariah compliant." as **halal**, because
+    "not compliant" is not a substring of "not Shariah compliant" and the
+    fallback matched the bare word "compliant". Four separate negative
+    phrasings produced halal. The unit test missed it because the fixture
+    used the one phrasing that happened to work.
+
+    No keyword rule decides a religious ruling here. The owner reads the
+    quote and types the value; ``apply`` then refuses a positive value whose
+    own quote contains negative or ambiguous wording.
+    """
     return ''
 
 
@@ -137,14 +186,25 @@ def do_propose(args) -> int:
         sources, texts = [], {}
         for source in spec.get('sources') or []:
             url = str(source.get('url', ''))
-            identity = bool(source.get('identity_match'))
+            try:
+                identity = strict_bool(source.get('identity_match'),
+                                       f'{base} source {url} identity_match')
+            except ValueError as exc:
+                review.append(f'  REJECTED  {url}\n            {exc}')
+                failed += 1
+                continue
             result = retriever.fetch(url, official_hosts=host_set,
                                      identity_match=identity)
             if not result.ok:
                 review.append(f'  FETCH FAILED  {url}\n                {result.error}')
                 failed += 1
                 continue
-            sources.append({'url': result.url, 'identity_match': identity})
+            # The digest is recorded so apply can prove it is verifying the
+            # SAME bytes the owner reviewed. Without it, apply re-fetched the
+            # page and would accept a materially changed version whenever the
+            # selected sentence happened to survive the edit.
+            sources.append({'url': result.url, 'identity_match': identity,
+                            'content_sha256': result.content_sha256})
             texts[result.url] = result.text
             review.append(f'  fetched  {result.url}\n'
                           f'           tier={result.tier} sha256={result.content_sha256[:16]}... '
@@ -185,11 +245,13 @@ def do_propose(args) -> int:
                 review.append(f'\n  [screener {name}] NO VERDICT SENTENCE FOUND at {url}')
                 failed += 1
                 continue
-            screeners[name] = {'value': infer_verdict(options[0]),
-                               'quote': options[0], 'url': url}
-            review.append(f'\n  [screener {name}] proposed verdict '
-                          f'"{screeners[name]["value"] or "<blank - fill in>"}"\n'
-                          f'    "{options[0]}"')
+            # The value is left blank on purpose. This tool extracts evidence;
+            # it does not read a religious ruling out of a sentence.
+            screeners[name] = {'value': '', 'quote': options[0], 'url': url}
+            review.append(f'\n  [screener {name}] READ THIS AND ENTER THE VALUE '
+                          f'YOURSELF ({url}):\n    "{options[0]}"')
+            for extra in options[1:]:
+                review.append(f'    (also found) "{extra}"')
         missing = sorted(SCREENER_SITES - set(screeners))
         if missing:
             review.append(f'\n  MISSING SCREENERS: {missing}\n'
@@ -225,13 +287,36 @@ def do_apply(args) -> int:
     for base, entry in (draft.get('assets') or {}).items():
         texts = {}
         for source in entry.get('sources') or []:
+            try:
+                strict_bool(source.get('identity_match'),
+                            f'{base} source {source.get("url")} identity_match')
+            except ValueError as exc:
+                problems.append(f'{base}: {exc}')
+                continue
+            proposed_digest = str(source.get('content_sha256', '')).strip()
+            if re.fullmatch(r'[0-9a-f]{64}', proposed_digest) is None:
+                problems.append(
+                    f'{base}: {source.get("url")} has no proposed content_sha256; '
+                    're-run propose so the reviewed bytes are recorded')
+                continue
             result = retriever.fetch(
                 source['url'],
                 official_hosts=set(entry.get('official_hosts') or []),
-                identity_match=bool(source.get('identity_match')))
+                identity_match=source['identity_match'])
             if not result.ok:
                 problems.append(f'{base}: {source["url"]} no longer retrievable '
                                 f'({result.error})')
+                continue
+            # The owner reviewed specific bytes. If the page changed at all,
+            # the surrounding context they judged is gone even when the one
+            # selected sentence survives, so a fresh proposal and a fresh
+            # review are required rather than a silent accept.
+            if result.content_sha256 != proposed_digest:
+                problems.append(
+                    f'{base}: {source["url"]} CHANGED since it was reviewed '
+                    f'(proposed {proposed_digest[:16]}..., now '
+                    f'{result.content_sha256[:16]}...); re-run propose and '
+                    're-review before applying')
                 continue
             texts[result.url] = result.text
         for name, claim in {**entry.get('claims', {}),
@@ -240,15 +325,21 @@ def do_apply(args) -> int:
             quote = str(claim.get('quote', '')).strip()
             url = normalize_evidence_url(claim.get('url'))
             if not value:
-                problems.append(f'{base}.{name}: value is empty')
+                problems.append(f'{base}.{name}: value is empty - the owner '
+                                'must supply every verdict explicitly')
             if not quote:
                 problems.append(f'{base}.{name}: quote is empty')
             elif url not in texts:
-                problems.append(f'{base}.{name}: url {url} was not retrieved')
+                problems.append(
+                    f'{base}.{name}: url {url} was not retrieved or failed '
+                    'digest verification')
             elif not quote_is_in(quote, texts[url]):
                 problems.append(
                     f'{base}.{name}: quote does NOT appear in the retrieved '
                     f'bytes for {url} - it was edited or the page changed')
+            conflict = positive_value_conflicts_with_quote(value, quote)
+            if conflict:
+                problems.append(f'{base}.{name}: {conflict}')
         current['assets'][str(base).strip().upper()] = entry
 
     if problems:
