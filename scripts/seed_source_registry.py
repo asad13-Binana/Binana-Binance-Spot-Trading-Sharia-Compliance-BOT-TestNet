@@ -14,8 +14,8 @@ Two phases, deliberately separated so nothing is written from a single run:
 
     propose   fetch the owner's confirmed URLs, store the exact bytes, and
               write a draft entry plus a readable review sheet
-    apply     re-verify every quote against the stored bytes and merge the
-              reviewed draft into the registry
+    apply     re-fetch every source, require its SHA-256 to match the exact
+              reviewed bytes, then merge the reviewed draft into the registry
 
 Safety boundaries, all enforced here rather than documented:
 
@@ -24,8 +24,8 @@ Safety boundaries, all enforced here rather than documented:
   is still required before anything becomes tradeable.
 * Every proposed quote must occur verbatim in the stored bytes for its URL.
 * A blocked, failed or empty retrieval fails closed; it never yields a claim.
-* ``apply`` re-reads the stored bytes and re-checks each quote, so editing the
-  draft by hand cannot introduce a quote the source does not contain.
+* ``apply`` requires the re-fetched SHA-256 to match the proposal and re-checks
+  each quote, so neither a changed page nor a hand-edited quote is accepted.
 """
 from __future__ import annotations
 
@@ -46,6 +46,11 @@ from services.sharia_retriever.retriever import Retriever  # noqa: E402
 from services.sharia_retriever.store import EvidenceStore  # noqa: E402
 from services.sharia_screener.source_registry import (  # noqa: E402
     SourceRegistry, SourceRegistryError,
+)
+from services.sharia_screener.verdict_policy import (  # noqa: E402
+    CANONICAL_SCREENER_VERDICTS,
+    canonical_screener_verdict,
+    positive_verdict_conflict,
 )
 
 MIN_QUOTE_WORDS = 6
@@ -72,36 +77,9 @@ CLAIM_CUES = {
 VERDICT_CUES = ('halal', 'haram', 'compliant', 'non-compliant',
                 'not compliant', 'permissible', 'impermissible', 'doubtful')
 
-# Wording that makes a positive verdict unsafe to accept without the owner
-# saying so explicitly. "not Shariah compliant" contains "compliant"; any
-# keyword rule that reads the positive word wins is one negation away from
-# proposing halal for a source that says the opposite.
-NEGATIVE_OR_AMBIGUOUS_CUES = (
-    'not ', "n't", 'non-', 'never', 'cannot', 'no longer', 'without',
-    'unless', 'except', 'however', 'but ', 'partially', 'partial',
-    'may ', 'might', 'unclear', 'uncertain', 'doubtful', 'review',
-    'pending', 'depends', 'conditional', 'question', 'disputed',
-    'haram', 'impermissible', 'prohibited', 'avoid',
-)
-POSITIVE_VALUES = ('halal', 'compliant', 'permissible', 'green', 'pass', 'yes')
-
-
 def positive_value_conflicts_with_quote(value: str, quote: str) -> str:
-    """Return a reason when a positive verdict contradicts its own quote.
-
-    A ``halal`` value must never be accepted alongside a quote containing
-    negative, conditional or ambiguous wording. This is the last line of
-    defence: the owner types the value, but a mistyped or copy-pasted
-    positive value paired with a negative sentence must still be refused.
-    """
-    if not any(p in value.strip().lower() for p in POSITIVE_VALUES):
-        return ''
-    low = f' {" ".join(quote.split()).lower()} '
-    hits = [cue.strip() for cue in NEGATIVE_OR_AMBIGUOUS_CUES if cue in low]
-    if hits:
-        return (f'positive value {value!r} paired with negative or ambiguous '
-                f'wording in the quote ({", ".join(sorted(set(hits)))})')
-    return ''
+    """Backward-compatible wrapper around the shared fail-closed policy."""
+    return positive_verdict_conflict(value, quote)
 
 
 def strict_bool(value, field: str):
@@ -249,7 +227,9 @@ def do_propose(args) -> int:
             # it does not read a religious ruling out of a sentence.
             screeners[name] = {'value': '', 'quote': options[0], 'url': url}
             review.append(f'\n  [screener {name}] READ THIS AND ENTER THE VALUE '
-                          f'YOURSELF ({url}):\n    "{options[0]}"')
+                          f'YOURSELF ({url}). Allowed values: '
+                          f'{", ".join(sorted(CANONICAL_SCREENER_VERDICTS))}:\n'
+                          f'    "{options[0]}"')
             for extra in options[1:]:
                 review.append(f'    (also found) "{extra}"')
         missing = sorted(SCREENER_SITES - set(screeners))
@@ -270,7 +250,8 @@ def do_propose(args) -> int:
     print(f'evidence bytes : {args.evidence_dir}')
     print()
     print('NEXT: read the review sheet, correct any quote or value in the draft,')
-    print('      fill every empty "value", then run this script with `apply`.')
+    print('      fill every empty "value", using only halal, haram, doubtful,')
+    print('      or unknown for screener verdicts, then run `apply`.')
     if failed:
         print(f'\n{failed} item(s) need your attention before apply will succeed.')
     return 1 if failed else 0
@@ -327,6 +308,14 @@ def do_apply(args) -> int:
             if not value:
                 problems.append(f'{base}.{name}: value is empty - the owner '
                                 'must supply every verdict explicitly')
+            if name in entry.get('screeners', {}):
+                verdict = canonical_screener_verdict(value)
+                if not verdict:
+                    problems.append(
+                        f'{base}.{name}: screener verdict must be exactly one of '
+                        f'{sorted(CANONICAL_SCREENER_VERDICTS)}')
+                else:
+                    claim['value'] = verdict
             if not quote:
                 problems.append(f'{base}.{name}: quote is empty')
             elif url not in texts:

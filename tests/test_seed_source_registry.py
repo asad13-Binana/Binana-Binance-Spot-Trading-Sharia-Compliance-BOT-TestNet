@@ -294,6 +294,28 @@ class NoAutomaticVerdictTests(unittest.TestCase):
             seed.positive_value_conflicts_with_quote(
                 'halal', 'This asset is compliant for spot holding.'), '')
 
+    def test_positive_synonyms_cannot_bypass_the_canonical_enum(self):
+        for value in ('approved', 'allowed', 'green', 'pass', 'yes',
+                      'SHARIAH_OK', 'permitted', 'halal-ish'):
+            with self.subTest(value=value):
+                self.assertEqual(seed.canonical_screener_verdict(value), '')
+
+    def test_obfuscated_negative_wording_blocks_halal(self):
+        for sentence in (
+                'This asset is NOT‑Shariah compliant.',
+                'This asset is not\u200b Shariah compliant.',
+                'This asset is halal?',
+                'This asset is halal but remains disputed.',
+                'This asset may be halal.',
+        ):
+            with self.subTest(sentence=sentence):
+                self.assertTrue(
+                    seed.positive_value_conflicts_with_quote('halal', sentence))
+
+    def test_halal_requires_an_affirmative_phrase_in_the_quote(self):
+        self.assertTrue(seed.positive_value_conflicts_with_quote(
+            'halal', 'The screening page lists this asset under spot holdings.'))
+
     def test_negative_value_is_never_blocked(self):
         self.assertEqual(
             seed.positive_value_conflicts_with_quote(

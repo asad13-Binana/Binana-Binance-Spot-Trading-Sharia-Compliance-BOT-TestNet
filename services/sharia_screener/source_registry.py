@@ -12,6 +12,10 @@ from services.common.sharia_v19 import (
     SCREENER_SITES,
     normalize_evidence_url,
 )
+from services.sharia_screener.verdict_policy import (
+    CANONICAL_SCREENER_VERDICTS,
+    canonical_screener_verdict,
+)
 
 
 class SourceRegistryError(ValueError):
@@ -140,6 +144,12 @@ class SourceRegistry:
             if name in claims:
                 normalized_claims[name] = normalized
             else:
+                verdict = canonical_screener_verdict(normalized['value'])
+                if not verdict:
+                    raise SourceRegistryError(
+                        f'{base} screener {name!r} verdict must be one of '
+                        f'{sorted(CANONICAL_SCREENER_VERDICTS)}')
+                normalized['value'] = verdict
                 normalized_screeners[name] = normalized
         seen_screener_names = set()
         canonical_screeners = {}

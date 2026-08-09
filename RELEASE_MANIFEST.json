@@ -181,16 +181,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "70095d30f47b018c1d9599d2e881606ae0bee0f2a3b1131ef29cab80c570b95e",
-      "size": 34807
+      "sha256": "9b06b4a6d02a9fac5f9f5bd428d61b87a5c0dc24b1de1b329c47c7a0a3642b9b",
+      "size": 34974
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "5206f71c5298833eea783ac61f1cb00aa7ac0590d8d789c8701d72fca9ed0a81",
-      "size": 228484
+      "sha256": "b16c25b269480b0834f5e9891fad2bdf1c8ac69366c59b107130c359e782b0ea",
+      "size": 229873
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "7c51900cd34d65cf53216d1830543e89f1175d5eab51481e5283ccb171f6df40",
@@ -513,8 +513,8 @@
       "size": 1006
     },
     "scripts/seed_source_registry.py": {
-      "sha256": "6b361a5d89c0747ba68d518d84a1b1968ca6b3adb9cfb7648a1b28dcbf4e6adc",
-      "size": 17694
+      "sha256": "e07f0c07d6bffe178035035040c0028725bcefe25ef3977be000165a1429ef8a",
+      "size": 17137
     },
     "scripts/verify_deployment_supply_chain.py": {
       "sha256": "570e4d7f0a23be4fe99e2271e06e290efaec062d5423294c2754fd0876f12232",
@@ -649,8 +649,8 @@
       "size": 870
     },
     "services/sharia_rules/engine.py": {
-      "sha256": "5cff998aa1900100a322f7f45e035a298d02bff341ddfabbe7805bc7df7788db",
-      "size": 26749
+      "sha256": "88cd6d6ad8fefb6afbcec0c962e056793656b78e4498fbc462b7f70116037d8b",
+      "size": 27590
     },
     "services/sharia_screener/__init__.py": {
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -681,8 +681,12 @@
       "size": 27104
     },
     "services/sharia_screener/source_registry.py": {
-      "sha256": "2cd564cdfbc2224505d1d886894cb58d76a7607d62e6a0b62a60a602c7d5e466",
-      "size": 7479
+      "sha256": "dd0f22a70523f82dc1054f5d6176a19916cbaa88712a59fdd399b923ad12aa19",
+      "size": 7941
+    },
+    "services/sharia_screener/verdict_policy.py": {
+      "sha256": "b6d90877e9249fe3c60d9262b9a8b22774e8bf65ca71f0ffbad6cb8dcedbca27",
+      "size": 2638
     },
     "services/telegram_broker/__init__.py": {
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -821,8 +825,8 @@
       "size": 69667
     },
     "tests/test_local_sharia_backend.py": {
-      "sha256": "5c46364b8228b1691d651f7508f40697ea37c26085dcb620bda4adb2ee41e857",
-      "size": 39834
+      "sha256": "7bbd02efbce2580e56722b18ec93877660eab9e4bba49f82d1b77e20ddabd64d",
+      "size": 43566
     },
     "tests/test_package_mode.py": {
       "sha256": "ac511c3d87fbcc2578ecba1c0f4f08f55c3f07f8ee393934439d756c4ba21ac2",
@@ -841,8 +845,8 @@
       "size": 15727
     },
     "tests/test_seed_source_registry.py": {
-      "sha256": "834a1390cbf00432141f85662d05ff20069b346567c18d372b2ef97c381647d4",
-      "size": 13997
+      "sha256": "0dfdc7e3293c727567182e4e2c731eec8f6be6bbed7ae0a554226737bd099692",
+      "size": 15069
     },
     "tests/test_sharia_quota_hardening.py": {
       "sha256": "6834faf198aa8fd8f0e5e954171bf1510f1fb3a65c71d3557b0c748744905ec2",
