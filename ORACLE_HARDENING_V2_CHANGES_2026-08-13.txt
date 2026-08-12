@@ -1,0 +1,96 @@
+BINANA ORACLE HARDENING V2 - LOCAL REVIEW CHANGE LOG
+Date: 2026-08-13
+Publication state: SOURCE MAY BE PUBLISHED; NOT DEPLOYED
+
+Purpose
+Infrastructure/deployment/security hardening only. Strategy signals, indicators,
+position/risk calculations, execution decisions, Sharia rules/decisions, pair
+selection, promotion gates, and package safety interlocks remain frozen.
+
+Major changes
+1. Replaced Ubuntu docker.io bootstrap with Docker CE from Docker's official
+   signed Ubuntu repository; ARM64/Ubuntu 24.04/Python 3.12/resource checks.
+2. Removed permanent Docker-group access from deployment, monitoring and bot
+   identities; added a root-owned constrained deployment wrapper.
+3. Made /etc/binana-freqtrade-v101/.env root:root 0600 and replaced shell
+   sourcing with strict literal-data parsing, symlink/TOCTOU/owner/mode checks.
+4. Added explicit immutable artifact SHA-256 owner approval before deployment.
+5. Added separate BINANA namespace, paths, systemd units, lock, logs, database,
+   backup root, Compose project and monitor identity.
+6. Added BOT_PRODUCT, BOT_ENVIRONMENT and BOT_INSTANCE_ID to runtime,
+   monitoring and Telegram output without altering trading logic.
+7. Added Docker live-restore/log bounds, pids limits, dropped capabilities,
+   no-new-privileges, internal control network and zero public Compose ports.
+8. Added Docker ingress and OCI metadata firewall guard without blocking OCI
+   DNS, NTP or volume traffic.
+9. Added bounded Chrony/OCI NTP synchronisation plus a 100-ms last-offset gate,
+   4-GiB swap headroom with existing-swap filesystem/owner/mode validation, swappiness 10,
+   Ubuntu-only unattended security upgrades, no automatic reboot, and manual
+   exact-version Docker upgrades.
+10. Added loopback monitor port collision detection, maintained monitor-only
+    credentials and no Docker socket/sudo/trading credentials for botmon.
+11. Added secretless Oracle diagnostics including 10-request Binance HTTPS
+    DNS/TCP/TLS/TTFB/total min/median/p95/max benchmark.
+12. Added disk-pressure monitoring with an authenticated critical pause-new-
+    entries action, bounded journald/Docker logs, Python SQLite online backups,
+    traversal-safe SHA-256 snapshot manifests and non-mutating restore checks.
+13. Added fail-safe SSH hardening with authorized-key precheck, sshd -t,
+    rollback and reload only after validation.
+14. Added infrastructure/security regression tests and regenerated exact audit
+    ledgers. Release manifest regeneration is performed only after all files and
+    reports are complete.
+15. Fixed deployment pause/reconcile generation to use HMAC-authenticated
+    deploy-installer envelopes bound to the currently installed release hash.
+16. Fixed privileged-script path/UID override, legacy-stack collision, symlink,
+    artifact staging TOCTOU, backup special-file and SSH-target edge cases.
+
+Protected baseline evidence
+- IctSmcStrategy.py: 9f6bafc78c8cd0d9b9cbde615ddce89e304ab09738584b88d05bfdf92ff4e830
+- legacy core: 70b1d67cc0092b5b8db4a68b343cf893641bde1aae580e9ef51e2adec1062459
+- sharia_v19.py: 5eb9fd5338d80fcaf0d39bb3f4935a75b57dd91136c72a83a7551b659b04d865
+- V19.1 controller JSON: 07106bb8bfc1924d8d0c6f61ced4e0c51c2ac2054988423f42c1fd67f3b2ba78
+- Full frozen set: 41 files inventoried before implementation; regression test
+  tests/test_oracle_hardening_v2.py pins the non-empty protected files.
+
+Files intentionally added
+- ORACLE_SETUP_GUIDE.md
+- ORACLE_DEPLOYMENT_HARDENING_REPORT_2026-08-13.md
+- ORACLE_HARDENING_V2_CHANGES_2026-08-13.txt
+- deploy/lib/secure_env.sh
+- deploy/binana-deploy-wrapper.sh
+- deploy/binana-approve-release.sh
+- deploy/oracle_validate.sh
+- deploy/docker_firewall.sh
+- deploy/disk_guard.sh
+- deploy/backup_state.sh
+- deploy/restore_validate.sh
+- deploy/harden_ssh.sh
+- deploy/update_docker.sh
+- monitoring/systemd/binana-*.service and binana-*.timer
+- tests/test_oracle_hardening_v2.py
+
+Files intentionally modified
+- .env.example
+- .github/workflows/ci.yml
+- deploy/install_artifact.sh
+- deploy/install_monitoring.sh
+- deploy/oracle_setup.sh
+- deploy/verify_release.sh
+- docker-compose.yml
+- ARCHITECTURE.md, README.md and Oracle/security/Sharia deployment guides
+- monitoring environment templates, read-only API/config/control/snapshot
+- monitoring/tests/test_monitoring.py
+- scripts/healthcheck.sh
+- services/telegram_broker/bot.py (identity prefix only)
+- tests/test_sharia_egress_proxy.py
+- generated audit ledgers, RELEASE_MANIFEST.json and RELEASE_SHA256.txt
+
+Files intentionally replaced/renamed
+- monitoring/systemd/binance-bot-monitor-* -> monitoring/systemd/binana-monitor-*
+
+Not performed
+- No credential creation/use.
+- No authenticated Binance request or order.
+- No Oracle deployment or soak.
+- Git publication does not constitute Oracle deployment or runtime validation.
+- No LIVE enablement or promotion.

@@ -71,7 +71,7 @@ class ComposeIsolationTests(unittest.TestCase):
 
     def test_only_secretless_proxy_bridges_internal_and_default_networks(self):
         proxy = self.compose['services']['sharia-egress-proxy']
-        self.assertEqual(set(proxy['networks']), {'default', 'sharia-egress'})
+        self.assertEqual(set(proxy['networks']), {'runtime-egress', 'sharia-egress'})
         serialized = str(proxy['environment']).upper()
         for secret_name in ('BINANCE_API', 'TELEGRAM', 'HMAC', 'SIGNING',
                             'APPROVAL'):

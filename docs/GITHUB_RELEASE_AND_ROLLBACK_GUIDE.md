@@ -13,10 +13,9 @@ Actions are **commit-SHA pinned**. Jobs:
 2. **artifact**: builds a deterministic, sorted, fixed-mtime `.tar.gz` + SHA-256, extracts it to a fresh
    directory, re-verifies the manifest, re-runs `verify_release.sh`, validates + builds the Compose image,
    and `cmp`s the extracted manifest against the workspace manifest. Uploads the immutable artifact.
-3. **deploy-oracle** (only on `main` push when `vars.ORACLE_TESTNET_DEPLOY_ENABLED == 'true'`): SSHes the verified
-   artifact to Oracle and runs `install_artifact.sh`. The service does **not** go live merely because a
-   commit was pushed — deployment is gated on CI success + explicit enablement, and live mode still requires
-   the signed evidence envelope.
+3. **deploy-oracle** (only on `main` push when `vars.ORACLE_TESTNET_DEPLOY_ENABLED == 'true'`): transfers the verified
+   artifact and invokes the root-owned `binana-deploy` wrapper. The wrapper refuses the artifact unless its
+   exact archive SHA-256 was independently approved on the host; CI cannot approve its own release.
 
 ## Required repository settings (external, not done here)
 - Replace `@OWNER` in `.github/CODEOWNERS` with the real owner.
@@ -35,9 +34,9 @@ healthy**. The deployment status file records `ROLLED_BACK_OLD_HEALTHY` or the C
 
 ## Manual rollback
 ```
-ln -sfn /opt/binance-freqtrade-v101/releases/<previous-stamp> /opt/binance-freqtrade-v101/current
-cd "$(readlink -f /opt/binance-freqtrade-v101/current)"
-RELEASE_TAG="$(cat .release-tag)" COMPOSE_PROJECT_NAME=binance-freqtrade-v101 \
-  docker compose --env-file /etc/binance-freqtrade-v101/.env up -d
+sudo ln -sfn /opt/binana-freqtrade-v101/releases/<previous-stamp> /opt/binana-freqtrade-v101/current
+cd "$(readlink -f /opt/binana-freqtrade-v101/current)"
+sudo env RELEASE_TAG="$(cat .release-tag)" COMPOSE_PROJECT_NAME=binana-freqtrade-v101 \
+  docker compose --env-file /etc/binana-freqtrade-v101/.env up -d
 bash scripts/healthcheck.sh
 ```

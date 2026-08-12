@@ -1,17 +1,17 @@
 [Unit]
-Description=V10.1 read-only monitor API (Binance Spot Testnet)
+Description=BINANA read-only monitor API (Binance Spot Testnet)
 After=network-online.target docker.service
 Wants=network-online.target
-ConditionPathExists=/etc/binance-freqtrade-v101/testnet-monitor.env
+ConditionPathExists=/etc/binana-freqtrade-v101/testnet-monitor.env
 
 [Service]
 Type=simple
 User=botmon
 Group=botmon
-EnvironmentFile=/etc/binance-freqtrade-v101/testnet-monitor.env
-WorkingDirectory=/opt/binance-freqtrade-v101/current
-ExecCondition=/opt/binance-freqtrade-v101/monitoring-current/bin/python -m monitoring.control api
-ExecStart=/opt/binance-freqtrade-v101/monitoring-current/bin/python -m uvicorn monitoring.api.app:app --host ${MONITOR_BIND_HOST} --port ${MONITOR_PORT} --no-access-log
+EnvironmentFile=/etc/binana-freqtrade-v101/testnet-monitor.env
+WorkingDirectory=/opt/binana-freqtrade-v101/current
+ExecCondition=/opt/binana-freqtrade-v101/monitoring-current/bin/python -m monitoring.control api
+ExecStart=/opt/binana-freqtrade-v101/monitoring-current/bin/python -m uvicorn monitoring.api.app:app --host ${MONITOR_BIND_HOST} --port ${MONITOR_PORT} --no-access-log
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=20
@@ -30,14 +30,15 @@ ProtectKernelLogs=true
 ProtectControlGroups=true
 ProtectHostname=true
 ProtectProc=invisible
+ProcSubset=pid
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 RestrictNamespaces=true
 RestrictRealtime=true
 RestrictSUIDSGID=true
 LockPersonality=true
 SystemCallArchitectures=native
-ReadWritePaths=/var/log/binance-freqtrade-v101/monitor
-ReadOnlyPaths=/var/lib/binance-freqtrade-v101/shared /opt/binance-freqtrade-v101/current
+ReadWritePaths=/var/log/binana-freqtrade-v101/monitor
+ReadOnlyPaths=/var/lib/binana-freqtrade-v101/shared /opt/binana-freqtrade-v101/current
 
 [Install]
 WantedBy=multi-user.target

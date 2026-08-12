@@ -397,9 +397,11 @@ def test_monitor_config_source_does_not_read_trading_credentials():
 def test_mode_templates_have_correct_topology_ports_and_isolation():
     testnet = (ROOT / "monitoring/.env.monitor.testnet.example").read_text(encoding="utf-8")
     live = (ROOT / "monitoring/.env.monitor.live.example").read_text(encoding="utf-8")
-    assert "/opt/binance-freqtrade-v101/current" in testnet + live
+    assert "/opt/binana-freqtrade-v101/current" in testnet + live
+    assert "BOT_PRODUCT=BINANA" in testnet and "BOT_PRODUCT=BINANA" in live
+    assert "BOT_ENVIRONMENT=TESTNET" in testnet and "BOT_ENVIRONMENT=LIVE" in live
     assert "MONITOR_URL=http://127.0.0.1:8090" in testnet
-    assert "MONITOR_URL=http://127.0.0.1:8091" in live
+    assert "MONITOR_URL=http://127.0.0.1:8090" in live
     assert "testnet-audit.jsonl" in testnet and "live-audit.jsonl" in live
     assert "MONITOR_ENABLED=false" in live
 
@@ -416,7 +418,7 @@ def test_systemd_pairs_and_hardening():
         text = timer.read_text(encoding="utf-8")
         target = next((line.split("=", 1)[1] for line in text.splitlines() if line.startswith("Unit=")), timer.with_suffix(".service").name)
         assert Path(target).stem in services
-    api = (units / "binance-bot-monitor-testnet.service").read_text(encoding="utf-8")
+    api = (units / "binana-monitor-testnet.service").read_text(encoding="utf-8")
     assert "User=botmon" in api and "ProtectSystem=strict" in api and "PrivateDevices=true" in api
     assert "docker.sock" not in api
 

@@ -15,9 +15,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-PROJECT = "binance-freqtrade-v101"
+PROJECT = os.getenv("BINANA_COMPOSE_PROJECT", "binana-freqtrade-v101")
 DEFAULT_OUTPUT = Path(
-    "/var/lib/binance-freqtrade-v101/shared/runtime/container_status.json"
+    os.getenv(
+        "BINANA_CONTAINER_STATUS_PATH",
+        "/var/lib/binana-freqtrade-v101/shared/runtime/container_status.json",
+    )
 )
 
 

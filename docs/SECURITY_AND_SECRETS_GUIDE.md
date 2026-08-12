@@ -7,8 +7,8 @@ HMAC bus keys, the Sharia Ed25519 signing private key, the live-evidence key, SS
 and fails the build on any populated sensitive assignment or token-shaped literal.
 
 ## Where secrets live
-Only in the Oracle host's private env file `/etc/binance-freqtrade-v101/.env`, mode `600`, owned by the
-bot user. One secret-free public source repository + Oracle-only secrets is the approved topology
+Only in the Oracle host's private env file `/etc/binana-freqtrade-v101/.env`, mode `600`, owned by
+`root:root`. One secret-free public source repository + Oracle-only secrets is the approved topology
 (V101-NEW-012). Do not keep a second divergent code copy; use one auditable codebase and environment-based
 private configuration.
 
@@ -39,6 +39,8 @@ The canonical Sharia directory is writable by the screener alone; all other cont
 - Binance key: **Spot only, withdrawals disabled, IP-restricted**, on a dedicated sub-account.
 - The Sharia screener holds no Binance key and no external AI/model API key.
 - Freqtrade holds no Binance credentials (signal-only).
+- The deployment, monitoring and bot identities are not members of the root-equivalent Docker group.
+- Monitoring is loopback-only, read-only, and receives neither the trading env nor the Docker socket.
 
 ## Live promotion (C-003 / H-007)
 Live mode requires ALL of: `EXECUTION_MODE=live`, installed `RELEASE_SHA256.txt` == `SIDECAR_RELEASE_HASH`

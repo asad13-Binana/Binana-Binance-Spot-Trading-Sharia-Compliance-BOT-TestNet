@@ -33,7 +33,7 @@ identity, after which metadata is requested by that ID. Any missing,
 ambiguous, incomplete, non-USDT or malformed match fails closed.
 
 Candidate records are written under
-`/var/lib/binance-freqtrade-v101/shared/sharia/discovery/current/`, refreshed
+`/var/lib/binana-freqtrade-v101/shared/sharia/discovery/current/`, refreshed
 at least weekly, and copied into a 90-day archive. They contain the advertised
 official website and whitepaper when available. The runtime file
 `_binance_spot_usdt_index.json` records the exact current Binance-universe
@@ -48,7 +48,7 @@ Before an asset can receive a trade-eligible Sharia result, the owner must
 review the candidate and add the evidence-bound entry to the persistent file
 configured by
 `SHARIA_SOURCE_REGISTRY` (normally
-`/var/lib/binance-freqtrade-v101/shared/sharia/source_registry.json`). Release
+`/var/lib/binana-freqtrade-v101/shared/sharia/source_registry.json`). Release
 upgrades do not overwrite this file.
 
 Each asset entry requires:

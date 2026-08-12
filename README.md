@@ -8,8 +8,9 @@ defaults to simulation and cannot place a live order without its signed
 evidence gate. Self-hosted local Sharia screening is research, not a fatwa.
 
 The release version lives in `RELEASE_VERSION`. The `v101` operational
-namespace (server paths such as `/etc/binance-freqtrade-v101`, image and
-compose names) is deliberately retained for upgrade compatibility.
+namespace now uses the collision-free `binana-freqtrade-v101` identity across
+server paths, images and Compose. Bootstrap refuses to coexist silently with
+an active legacy `binance-freqtrade-v101` deployment; migration is explicit.
 
 ## Disclaimer and risk warning
 
@@ -32,9 +33,10 @@ See `LICENSE` for the full disclaimer.
 
 ## Architecture
 
-Five Docker services provide the top-50 USDT universe, immutable V19.1 Sharia
-screening, signal-only Freqtrade, the single order-owning execution sidecar,
-and owner-only Telegram control. A separate `botmon` systemd service observes
+Six Docker services provide the top-50 USDT universe, governed Sharia egress,
+immutable V19.1 Sharia screening, signal-only Freqtrade, the single
+order-owning execution sidecar, and owner-only Telegram control. A separate
+`botmon` systemd service observes
 authoritative execution state without trading credentials or Docker-socket
 access. See `ARCHITECTURE.md`.
 

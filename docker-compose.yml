@@ -1,4 +1,4 @@
-name: binance-freqtrade-v101
+name: binana-freqtrade-v101
 
 x-logging: &default-logging
   driver: json-file
@@ -11,11 +11,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.services
-    image: binance-freqtrade-v101-services:${RELEASE_TAG:-local}
+    image: binana-freqtrade-v101-services:${RELEASE_TAG:-local}
     command: python -m services.universe_service.scanner
     user: "${BOT_UID:-1000}:${BOT_GID:-1000}"
     restart: unless-stopped
     environment:
+      BOT_PRODUCT: ${BOT_PRODUCT:?set BOT_PRODUCT}
+      BOT_ENVIRONMENT: ${BOT_ENVIRONMENT:?set BOT_ENVIRONMENT}
+      BOT_INSTANCE_ID: ${BOT_INSTANCE_ID:?set BOT_INSTANCE_ID}
       SHARED_ROOT: /app/shared
       UNIVERSE_ROOT: /app/shared/universe
       SHARIA_FILE: /app/shared/sharia/sharia_status.json
@@ -60,6 +63,8 @@ services:
       - ${SHARED_HOST_PATH:-./shared}:/app/shared
       - ${SHARED_HOST_PATH:-./shared}/sharia:/app/shared/sharia:ro
     mem_limit: 180m
+    pids_limit: 96
+    cap_drop: [ALL]
     read_only: true
     tmpfs: [/tmp]
     security_opt: [no-new-privileges:true]
@@ -69,13 +74,17 @@ services:
       timeout: 8s
       retries: 5
     logging: *default-logging
+    networks: [control, runtime-egress]
 
   sharia-egress-proxy:
-    image: binance-freqtrade-v101-services:${RELEASE_TAG:-local}
+    image: binana-freqtrade-v101-services:${RELEASE_TAG:-local}
     command: python -m services.sharia_egress_proxy.server
     user: "${BOT_UID:-1000}:${BOT_GID:-1000}"
     restart: unless-stopped
     environment:
+      BOT_PRODUCT: ${BOT_PRODUCT:?set BOT_PRODUCT}
+      BOT_ENVIRONMENT: ${BOT_ENVIRONMENT:?set BOT_ENVIRONMENT}
+      BOT_INSTANCE_ID: ${BOT_INSTANCE_ID:?set BOT_INSTANCE_ID}
       SHARIA_PROXY_LISTEN_HOST: 0.0.0.0
       SHARIA_PROXY_LISTEN_PORT: "8080"
       SHARIA_PROXY_CONNECT_TIMEOUT: ${SHARIA_PROXY_CONNECT_TIMEOUT:-15}
@@ -86,9 +95,11 @@ services:
     # rejects any non-global answer, and connects to the validated numeric IP.
     # It receives no Binance, Telegram, signing or approval secrets.
     networks:
-      - default
+      - runtime-egress
       - sharia-egress
     mem_limit: 50m
+    pids_limit: 64
+    cap_drop: [ALL]
     read_only: true
     tmpfs: [/tmp]
     security_opt: [no-new-privileges:true]
@@ -101,7 +112,7 @@ services:
     logging: *default-logging
 
   sharia-screener:
-    image: binance-freqtrade-v101-services:${RELEASE_TAG:-local}
+    image: binana-freqtrade-v101-services:${RELEASE_TAG:-local}
     command: python -m services.sharia_screener.service
     user: "${BOT_UID:-1000}:${BOT_GID:-1000}"
     restart: unless-stopped
@@ -111,6 +122,9 @@ services:
       sharia-egress-proxy:
         condition: service_healthy
     environment:
+      BOT_PRODUCT: ${BOT_PRODUCT:?set BOT_PRODUCT}
+      BOT_ENVIRONMENT: ${BOT_ENVIRONMENT:?set BOT_ENVIRONMENT}
+      BOT_INSTANCE_ID: ${BOT_INSTANCE_ID:?set BOT_INSTANCE_ID}
       EXECUTION_MODE: ${EXECUTION_MODE:-simulation}
       SHARED_ROOT: /app/shared
       SHARIA_FILE: /app/shared/sharia/sharia_status.json
@@ -167,6 +181,8 @@ services:
     networks:
       - sharia-egress
     mem_limit: 200m
+    pids_limit: 96
+    cap_drop: [ALL]
     read_only: true
     tmpfs: [/tmp]
     security_opt: [no-new-privileges:true]
@@ -181,10 +197,14 @@ services:
   freqtrade:
     image: freqtradeorg/freqtrade:2026.6@sha256:d451af021d5e08b70580c0eea5848534e9846b57391b34821c0a5814416397e6
     restart: unless-stopped
+    user: "${BOT_UID:-1000}:${BOT_GID:-1000}"
     depends_on:
       universe:
         condition: service_healthy
     environment:
+      BOT_PRODUCT: ${BOT_PRODUCT:?set BOT_PRODUCT}
+      BOT_ENVIRONMENT: ${BOT_ENVIRONMENT:?set BOT_ENVIRONMENT}
+      BOT_INSTANCE_ID: ${BOT_INSTANCE_ID:?set BOT_INSTANCE_ID}
       FREQTRADE__API_SERVER__ENABLED: "true"
       FREQTRADE__API_SERVER__LISTEN_IP_ADDRESS: "0.0.0.0"
       FREQTRADE__API_SERVER__USERNAME: ${FREQTRADE_API_USERNAME:-freqtrade}
@@ -213,6 +233,9 @@ services:
       trade --logfile /freqtrade/shared/freqtrade/logs/freqtrade.log
       --config /freqtrade/user_data/config.json --strategy IctSmcStrategy
     mem_limit: 520m
+    pids_limit: 192
+    cap_drop: [ALL]
+    tmpfs: [/tmp:size=64m,mode=1777]
     stop_grace_period: 2m
     security_opt: [no-new-privileges:true]
     healthcheck:
@@ -221,9 +244,10 @@ services:
       timeout: 8s
       retries: 8
     logging: *default-logging
+    networks: [control, runtime-egress]
 
   execution-sidecar:
-    image: binance-freqtrade-v101-services:${RELEASE_TAG:-local}
+    image: binana-freqtrade-v101-services:${RELEASE_TAG:-local}
     command: python -m services.execution_sidecar.main
     user: "${BOT_UID:-1000}:${BOT_GID:-1000}"
     restart: unless-stopped
@@ -233,6 +257,9 @@ services:
       sharia-screener:
         condition: service_healthy
     environment:
+      BOT_PRODUCT: ${BOT_PRODUCT:?set BOT_PRODUCT}
+      BOT_ENVIRONMENT: ${BOT_ENVIRONMENT:?set BOT_ENVIRONMENT}
+      BOT_INSTANCE_ID: ${BOT_INSTANCE_ID:?set BOT_INSTANCE_ID}
       EXECUTION_MODE: ${EXECUTION_MODE:-simulation}
       BINANCE_API_KEY: ${BINANCE_API_KEY:-}
       BINANCE_API_SECRET: ${BINANCE_API_SECRET:-}
@@ -279,6 +306,8 @@ services:
       - ${SHARED_HOST_PATH:-./shared}/sharia:/app/shared/sharia:ro
       - ${SHARED_HOST_PATH:-./shared}/universe:/app/shared/universe:ro
     mem_limit: 300m
+    pids_limit: 128
+    cap_drop: [ALL]
     read_only: true
     tmpfs: [/tmp]
     stop_grace_period: 2m
@@ -289,9 +318,10 @@ services:
       timeout: 8s
       retries: 5
     logging: *default-logging
+    networks: [control, runtime-egress]
 
   telegram-broker:
-    image: binance-freqtrade-v101-services:${RELEASE_TAG:-local}
+    image: binana-freqtrade-v101-services:${RELEASE_TAG:-local}
     command: python -m services.telegram_broker.bot
     user: "${BOT_UID:-1000}:${BOT_GID:-1000}"
     restart: unless-stopped
@@ -303,6 +333,9 @@ services:
       sharia-screener:
         condition: service_healthy
     environment:
+      BOT_PRODUCT: ${BOT_PRODUCT:?set BOT_PRODUCT}
+      BOT_ENVIRONMENT: ${BOT_ENVIRONMENT:?set BOT_ENVIRONMENT}
+      BOT_INSTANCE_ID: ${BOT_INSTANCE_ID:?set BOT_INSTANCE_ID}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?set TELEGRAM_BOT_TOKEN}
       TELEGRAM_OWNER_CHAT_ID: ${TELEGRAM_OWNER_CHAT_ID:?set TELEGRAM_OWNER_CHAT_ID}
       CALLBACK_TTL_SECONDS: ${CALLBACK_TTL_SECONDS:-120}
@@ -332,6 +365,8 @@ services:
       - ${SHARED_HOST_PATH:-./shared}/sharia:/app/shared/sharia:ro
       - ${SHARED_HOST_PATH:-./shared}/universe:/app/shared/universe:ro
     mem_limit: 120m
+    pids_limit: 96
+    cap_drop: [ALL]
     read_only: true
     tmpfs: [/tmp]
     security_opt: [no-new-privileges:true]
@@ -342,7 +377,11 @@ services:
       retries: 4
       start_period: 60s
     logging: *default-logging
+    networks: [control, runtime-egress]
 
 networks:
+  control:
+    internal: true
+  runtime-egress:
   sharia-egress:
     internal: true

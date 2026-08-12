@@ -4,7 +4,7 @@
 
 Use one public GitHub repository for source, tests, safe examples, Docker/deployment files, and documentation. Do not place trading credentials in any branch, including a private branch.
 
-Keep private trading material only on Oracle in `/etc/binance-freqtrade-v101/.env` with mode `600`, and runtime/private data under `/var/lib/binance-freqtrade-v101/shared`.
+Keep private trading material only on Oracle in root-owned `/etc/binana-freqtrade-v101/.env` with mode `600`, and runtime/private data under `/var/lib/binana-freqtrade-v101/shared`.
 
 Required GitHub **environment secrets**:
 
@@ -22,22 +22,21 @@ environment, persistent ownership, and rollback process are prepared.
 
 ```bash
 sudo ./deploy/oracle_setup.sh
-# Sign out and back in so Docker group membership applies.
-sudoedit /etc/binance-freqtrade-v101/.env
-sudo chmod 600 /etc/binance-freqtrade-v101/.env
+sudoedit /etc/binana-freqtrade-v101/.env
+sudo chmod 600 /etc/binana-freqtrade-v101/.env
 ```
 
 In the private `.env` set:
 
 ```text
-BOT_UID=<output of id -u for deployment user>
-BOT_GID=<output of id -g for deployment user>
-SHARED_HOST_PATH=/var/lib/binance-freqtrade-v101/shared
+BOT_UID=<BOT_UID printed by oracle_setup.sh>
+BOT_GID=<BOT_GID printed by oracle_setup.sh>
+SHARED_HOST_PATH=/var/lib/binana-freqtrade-v101/shared
 EXECUTION_MODE=testnet
 BINANCE_TESTNET=true
 ```
 
-The installer hard-fails below 1.5 GiB physical memory or 2 GiB combined RAM and swap. A 1 GiB E2 micro is not supported. Use an A1 Free Tier VM with at least 2 GiB, preferably 4 GiB.
+The installer requires Ubuntu 24.04, at least 5 GiB physical RAM and 35 GiB free disk. Use the declared A1 target of 1 OCPU, 6 GiB RAM, approximately 50 GiB boot storage and 4 GiB swap.
 
 Recommended Binance key controls:
 
@@ -50,7 +49,7 @@ Recommended Binance key controls:
 
 ## Persistent data
 
-`/var/lib/binance-freqtrade-v101/shared` retains:
+`/var/lib/binana-freqtrade-v101/shared` retains:
 
 - private Sharia records and legacy-compatible HALAL export
 - sidecar SQLite state and exchange events
@@ -66,8 +65,11 @@ A release never overwrites an existing private Sharia dataset. Release directori
 
 ## Deployment transaction
 
-A push to `main` performs the verification and, only when the testnet deploy
-variable is enabled, the deployment transaction:
+A push to `main` performs verification and artifact creation. Only when the
+testnet deployment variable is enabled may CI transfer the artifact and invoke
+the narrow wrapper; the wrapper still fails closed unless an operator has
+independently approved that exact archive digest on the host. CI cannot write
+the root-owned approval file.
 
 1. Python compilation, the complete merged core suite, and monitoring tests
 2. original 33-test V4.9.16 self-test
@@ -103,7 +105,7 @@ The `.dockerignore` is allowlist-based so the private `.env`, SQLite files, cach
 Only after all external gates pass, set `SIDECAR_RELEASE_HASH` in the private Oracle environment to the exact hash from the **installed** `RELEASE_SHA256.txt`, and place the same value in:
 
 ```text
-/var/lib/binance-freqtrade-v101/shared/runtime/SIDECAR_LIVE_OK
+/var/lib/binana-freqtrade-v101/shared/runtime/SIDECAR_LIVE_OK
 ```
 
 The sidecar refuses live mode unless the installed release hash, private environment hash and persistent marker all match. The preserved V4.9.16 live markers must independently pass. Matching values are only interlocks; they are not evidence of testnet correctness or live readiness.
