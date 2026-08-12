@@ -82,6 +82,7 @@ BOT_UID=${BOT_UID:-$(id -u)}
 BOT_GID=${BOT_GID:-$(id -g)}
 mkdir -p "$RELEASES" "$PERSIST" "$PERSIST/commands/inbox" "$PERSIST/runtime" \
   "$PERSIST/sharia" "$PERSIST/sharia/evidence" \
+  "$PERSIST/sharia/discovery/current" "$PERSIST/sharia/discovery/archive" \
   "$PERSIST/sharia_decisions/inbox" "$PERSIST/sharia_decisions/processed" \
   "$PERSIST/legacy_runtime" \
   "$PERSIST/freqtrade/logs"

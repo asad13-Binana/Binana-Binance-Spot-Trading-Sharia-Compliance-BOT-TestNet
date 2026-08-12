@@ -174,8 +174,12 @@ def write_screening_outcome(request_id: str, base: str, pair: str, report: dict,
         report_file=report_name, report_sha256=report_sha, completed_at=completed_at)
     from services.common.retention import prune_files
     keep = env_int('SHARIA_ARCHIVE_MAX_FILES', 5000, 100, 100_000)
-    prune_files(SHARIA_REPORTS_DIR, '*.json', max_files=keep)
-    prune_files(SHARIA_RESULTS_DIR, '*.json', max_files=keep)
+    retain_days = env_int('SHARIA_ARCHIVE_RETENTION_DAYS', 90, 7, 365)
+    retain_seconds = retain_days * 86_400
+    prune_files(SHARIA_REPORTS_DIR, '*.json', max_files=keep,
+                max_age_seconds=retain_seconds)
+    prune_files(SHARIA_RESULTS_DIR, '*.json', max_files=keep,
+                max_age_seconds=retain_seconds)
     audit('sharia_screening_recorded', details={
         'request_id': request_id, 'base': base, 'final_code': final_code,
         'validated': bool(validated), 'error': str(error or '')[:200]})

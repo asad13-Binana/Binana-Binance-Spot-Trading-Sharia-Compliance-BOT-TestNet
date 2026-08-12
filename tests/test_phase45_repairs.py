@@ -175,13 +175,26 @@ class AutonomousDiscoveryAndRetryRepairTests(unittest.TestCase):
             svc = object.__new__(service_mod.ShariaScreenerService)
             svc.idle_enabled = True; svc._next_idle_at = 0.0; svc.idle_cycle_seconds = 300
             svc.queue = QueueStore(root / 'queue.sqlite')
-            svc._spot_usdt_bases = lambda: {'BNB': {}, 'ETH': {}, 'ADA': {}}
+            entries = {
+                base: {
+                    'symbol': base + 'USDT', 'status': 'TRADING',
+                    'baseAsset': base, 'quoteAsset': 'USDT',
+                    'isSpotTradingAllowed': True,
+                } for base in ('BNB', 'ETH', 'ADA')
+            }
+            svc._spot_usdt_bases = lambda: entries
+            svc.source_discovery = mock.Mock()
+            svc.source_discovery.ensure.return_value = {
+                'status': 'VERIFIED_CANDIDATE', 'cache_hit': False}
             with mock.patch.object(paths_mod, 'SHARIA_FILE', status), \
                     mock.patch.object(service_mod, 'UNIVERSE_CURRENT', universe), \
                     mock.patch.object(service_mod, 'audit', mock.Mock()):
                 svc.idle_enqueue()
             queued = {row['base'] for row in svc.queue.recent(10)}
             self.assertEqual(queued, {'ETH', 'ADA'})
+            svc.source_discovery.write_universe_index.assert_called_once_with(entries)
+            svc.source_discovery.ensure.assert_called_once_with(
+                'BNB', 'BNB/USDT', entries['BNB'])
 
     def test_idle_failure_requeues_same_request_with_bounded_backoff(self):
         with tempfile.TemporaryDirectory() as td:

@@ -1,0 +1,88 @@
+AUTOMATIC SHARIA SOURCE DISCOVERY - CHANGE RECORD
+Date: 2026-08-12
+Scope: TestNet and LIVE repositories
+Status: Local review branches only; not committed, pushed, deployed, or used for orders.
+
+PURPOSE
+
+Harden the non-authoritative Binance/CoinGecko/CoinMarketCap source-discovery
+layer described in the Claude AI review while preserving the bot's protected
+strategy, legacy execution core, V19.1 controller, order/reconciliation logic,
+risk controls, signed owner-approval gate, and fail-closed trading behaviour.
+
+FUNCTIONAL CHANGES
+
+1. Binance remains the authoritative source for the current TRADING,
+   spot-enabled, USDT-quoted market universe through public exchangeInfo.
+2. CoinGecko symbol collisions are resolved through the Binance exchange
+   tickers endpoint using:
+   - stable base_target pagination;
+   - exact market identifier "binance";
+   - exact BASE and USDT target;
+   - a CoinGecko coin_id that must belong to the exact-symbol candidate set.
+3. CoinGecko metadata is requested only after exactly one stable ID is bound.
+   Incomplete pagination, no match, or multiple matches fail closed.
+4. CoinMarketCap remains the fallback. It uses /v1/cryptocurrency/map to
+   obtain one active numeric ID and /v2/cryptocurrency/info by that ID.
+   Duplicate active IDs fail closed.
+5. Candidate URLs are canonical public HTTPS URLs. Credentials, local hosts,
+   IP literals, malformed URLs, and unsafe ports are rejected.
+6. Every candidate record remains non-authoritative:
+   owner_verified=false and trade_permission=false are mandatory and included
+   in the record digest.
+7. Current records refresh after seven days by default. Failed or unavailable
+   discovery retries use the bounded failure interval.
+8. Historical candidate snapshots are retained for 90 days by default.
+9. A runtime _binance_spot_usdt_index.json file reports:
+   - current Binance base count;
+   - valid candidate record count;
+   - missing and stale bases;
+   - records left by delisted markets;
+   - status totals;
+   - universe SHA-256;
+   - the last time all listed bases had valid, non-stale records.
+   The index also has owner_verified=false and trade_permission=false.
+10. BNB remains excluded from the existing trading/screening queue, but now
+    receives a discovery-directory record so the directory covers every
+    current Binance Spot/USDT base without changing the trading exclusion.
+11. The missing SHARIA_REPORTS_DIR service import was repaired so owner
+    decisions cannot fail with NameError when a decision file is processed.
+12. Oracle install and Compose wiring create and persist the discovery current
+    and archive directories. Runtime scan JSON remains ignored by Git; Git
+    stores the code, documentation, schema explanation, and empty placeholders.
+
+TESTS ADDED OR EXPANDED
+
+- exact Binance BASE/USDT and exchange-ID binding;
+- rejection of non-USDT and wrong-exchange tickers;
+- rejection of a ticker coin_id outside the exact-symbol candidate set;
+- resolution of symbol sets larger than eight candidates;
+- stable multi-page CoinGecko ticker pagination;
+- duplicate CoinGecko and CoinMarketCap identity fail-closed behaviour;
+- tampered current-record rejection;
+- 90-day archive pruning;
+- universe-index missing/stale/delisted visibility;
+- no discovery-derived owner verification or trade permission;
+- BNB discovery coverage while preserving its queue exclusion;
+- TestNet/LIVE implementation parity.
+
+PROTECTED COMPONENTS NOT CHANGED
+
+- freqtrade/user_data/strategies/IctSmcStrategy.py
+- legacy_core/binance_bot_V4.9.16_ALL_IN_ONE.py
+- services/common/sharia_v19.py
+- shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json
+- execution-sidecar order ownership, reconciliation, and risk logic
+- signed source-registry and owner approval requirements
+
+IMPORTANT LIMITS
+
+Automatic discovery creates a trusted-for-review reading list, not a fatwa and
+not trade permission. The existing evidence-bound source registry, named
+Sharia-screening sources, V19.1 validation, Ed25519 result attestation, and
+explicit owner approval remain mandatory before GREEN can authorise a trade.
+
+This change does not prove Oracle deployment, authenticated Binance Testnet
+order lifecycle, profitability, soak stability, or LIVE certification. Those
+require separate external execution evidence at the exact final commit.
+
