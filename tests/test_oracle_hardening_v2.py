@@ -259,6 +259,10 @@ class OperationalScriptTests(unittest.TestCase):
         self.assertIn('"args": {"enabled": False}', guard)
         self.assertIn("commands/inbox", unit)
 
+    def test_ci_overrides_oracle_shared_path_with_checked_out_fixture(self):
+        workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+        self.assertIn("lines = setk(lines, 'SHARED_HOST_PATH', './shared')", workflow)
+
 
 if __name__ == "__main__":
     unittest.main()

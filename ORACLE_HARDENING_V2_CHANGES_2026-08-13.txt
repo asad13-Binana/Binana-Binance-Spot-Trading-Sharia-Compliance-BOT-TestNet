@@ -43,6 +43,10 @@ Major changes
     deploy-installer envelopes bound to the currently installed release hash.
 16. Fixed privileged-script path/UID override, legacy-stack collision, symlink,
     artifact staging TOCTOU, backup special-file and SSH-target edge cases.
+17. Fixed the GitHub integration fixture to override the production Oracle
+    `SHARED_HOST_PATH` with the checked-out `./shared` tree. This preserves
+    production paths while providing Sharia fixtures and runner-owned audit
+    state during container simulation.
 
 Protected baseline evidence
 - IctSmcStrategy.py: 9f6bafc78c8cd0d9b9cbde615ddce89e304ab09738584b88d05bfdf92ff4e830

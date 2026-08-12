@@ -1446,6 +1446,7 @@ tests/test_oracle_hardening_v2.py,OperationalScriptTests.test_diagnostics_use_te
 tests/test_oracle_hardening_v2.py,OperationalScriptTests.test_backup_uses_python_sqlite_backup_and_restore_integrity,function,top-level-or-method,238,247,-,test
 tests/test_oracle_hardening_v2.py,OperationalScriptTests.test_ssh_validation_precedes_reload,function,top-level-or-method,249,251,-,test
 tests/test_oracle_hardening_v2.py,OperationalScriptTests.test_critical_disk_pressure_queues_authenticated_entry_pause,function,top-level-or-method,253,260,-,test
+tests/test_oracle_hardening_v2.py,OperationalScriptTests.test_ci_overrides_oracle_shared_path_with_checked_out_fixture,function,top-level-or-method,262,264,-,test
 tests/test_package_mode.py,_mode_file,function,top-level-or-method,36,39,-,test
 tests/test_package_mode.py,StateStub.__init__,function,top-level-or-method,45,48,-,test
 tests/test_package_mode.py,StateStub.set_entries,function,top-level-or-method,50,51,-,test

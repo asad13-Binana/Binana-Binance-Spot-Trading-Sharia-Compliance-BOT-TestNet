@@ -206,6 +206,10 @@ jobs:
           # on events.jsonl.lock. Run as the user that owns the mount.
           lines = setk(lines, 'BOT_UID', str(os.getuid()))
           lines = setk(lines, 'BOT_GID', str(os.getgid()))
+          # The production template uses the absolute Oracle state path. CI
+          # must bind the checked-out fixture tree so Sharia inputs exist and
+          # audit/state writes use the runner-owned directory.
+          lines = setk(lines, 'SHARED_HOST_PATH', './shared')
           pathlib.Path('.env.ci').write_text(''.join(lines))
           PY
       - name: Validate compose and build the services image
