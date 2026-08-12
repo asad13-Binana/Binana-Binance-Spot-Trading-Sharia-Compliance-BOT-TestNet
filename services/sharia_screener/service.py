@@ -13,8 +13,10 @@ Responsibilities (master protocol sections 8.3–8.8):
     sources, with no model or separately billed API dependency;
   * write the report, the signed result envelope, the canonical status
     projection and the legacy compatibility whitelist (single-writer);
-  * when idle, continuously screen the current top-50 universe and refresh
-    stale records, within explicit daily/persecond quotas;
+  * when idle, continuously screen every current Binance Spot/USDT asset and
+    refresh stale records, within explicit daily/per-second quotas;
+  * discover identity-bound official-site/whitepaper candidates through
+    CoinGecko then CoinMarketCap without changing the owner approval gate;
   * expose durable health/progress state and survive restarts (durable
     SQLite queue; RUNNING requests re-queue on startup).
 
@@ -40,6 +42,7 @@ from services.common.paths import (
     SHARIA_EVIDENCE_DIR,
     SHARIA_QUEUE_INBOX,
     SHARIA_QUEUE_PROCESSED,
+    SHARIA_REPORTS_DIR,
     SHARIA_RESULTS_DIR,
     SHARIA_RUNTIME_DIR,
     SHARIA_SOURCE_REGISTRY,
@@ -65,6 +68,7 @@ from services.sharia_screener.bridge import (
 from services.sharia_screener.local_runner import LocalScreeningRunner
 from services.sharia_screener.queue_store import PRIORITIES, QueueStore
 from services.sharia_screener.runner import ScreeningUnavailable
+from services.sharia_screener.source_discovery import SourceDiscovery
 from services.universe_service.snapshot_store import load_current
 
 log = logging.getLogger('sharia-screener')
@@ -107,6 +111,11 @@ class ShariaScreenerService:
         self.runner = LocalScreeningRunner(
             self.controller, registry_path=SHARIA_SOURCE_REGISTRY,
             evidence_root=SHARIA_EVIDENCE_DIR)
+        self.source_discovery_enabled = os.getenv(
+            'SHARIA_AUTO_SOURCE_DISCOVERY_ENABLED', 'true').lower() == 'true'
+        self.source_discovery = (SourceDiscovery(
+            runtime_dir=SHARIA_RUNTIME_DIR / 'source_discovery')
+            if self.source_discovery_enabled else None)
         self.public = BinancePublicClient()
         self.poll_seconds = env_int('SHARIA_POLL_SECONDS', 2, 1, 60)
         quota = _quota_settings()
@@ -243,22 +252,22 @@ class ShariaScreenerService:
             'request_id': request_id, 'universe': len(bases), 'enqueued': added})
 
     # ---- eligibility ----
-    def _pair_eligible(self, base: str) -> tuple[bool, str]:
+    def _pair_eligible(self, base: str) -> tuple[bool, str, dict]:
         try:
             info = self.public.exchange_info(base + 'USDT')
             entry = next((s for s in info.get('symbols', [])
                           if s.get('symbol') == base + 'USDT'), None)
         except Exception as exc:
-            return False, f'exchangeInfo lookup failed: {exc}'
+            return False, f'exchangeInfo lookup failed: {exc}', {}
         if not entry:
-            return False, 'symbol does not exist on Binance Spot'
+            return False, 'symbol does not exist on Binance Spot', {}
         if entry.get('status') != 'TRADING':
-            return False, f'symbol status is {entry.get("status")!r}, not TRADING'
+            return False, f'symbol status is {entry.get("status")!r}, not TRADING', entry
         if not entry.get('isSpotTradingAllowed', False):
-            return False, 'spot trading is not allowed for this symbol'
+            return False, 'spot trading is not allowed for this symbol', entry
         if str(entry.get('quoteAsset', '')).upper() != 'USDT':
-            return False, 'symbol is not USDT-quoted'
-        return True, 'TRADING spot USDT'
+            return False, 'symbol is not USDT-quoted', entry
+        return True, 'TRADING spot USDT', entry
 
     # ---- screening execution ----
     def _mark_failed(self, row: dict, error: str) -> bool:
@@ -290,19 +299,56 @@ class ShariaScreenerService:
                 'requested_by': row.get('requested_by'),
             })
             return
-        eligible, why = self._pair_eligible(base)
+        eligible, why, binance_entry = self._pair_eligible(base)
         if not eligible:
             report = fail_closed_report(base, reason=f'pair ineligible: {why}')
             write_screening_outcome(request_id, base, pair, report,
                                     validated=False, error=why)
             self._mark_failed(row, why)
             return
+        discovery_meta: dict = {'enabled': False}
+        if self.source_discovery is not None:
+            try:
+                discovered = self.source_discovery.ensure(
+                    base, pair, binance_entry)
+                discovery_meta = {
+                    'enabled': True,
+                    'status': discovered.get('status'),
+                    'cache_hit': bool(discovered.get('cache_hit')),
+                    'provider_identity': discovered.get('provider_identity', {}),
+                    'source_candidates': discovered.get('source_candidates', []),
+                    'owner_verified': False,
+                    'trade_permission': False,
+                    'owner_action': discovered.get('owner_action', ''),
+                    'errors': discovered.get('errors', []),
+                }
+                audit('sharia_source_discovery_recorded', details={
+                    'request_id': request_id, 'base': base,
+                    'status': discovered.get('status'),
+                    'cache_hit': bool(discovered.get('cache_hit')),
+                    'provider': (discovered.get('provider_identity') or {}).get('provider'),
+                })
+            except Exception as exc:
+                # Source discovery is an availability aid, never a bypass. A
+                # registered asset can still run the original local routine;
+                # an unregistered asset remains NO_TRADE_INFO.
+                discovery_meta = {
+                    'enabled': True, 'status': 'ERROR',
+                    'owner_verified': False, 'trade_permission': False,
+                    'error': f'{type(exc).__name__}: {exc}',
+                }
+                audit('sharia_source_discovery_failed', severity='WARNING', details={
+                    'request_id': request_id, 'base': base,
+                    'error': discovery_meta['error'],
+                })
         try:
             report, meta = self.runner.run(base, pair)
+            meta = {**meta, 'source_discovery': discovery_meta}
         except ScreeningUnavailable as exc:
             report = fail_closed_report(base, reason=str(exc))
             write_screening_outcome(request_id, base, pair, report,
-                                    validated=False, error=str(exc))
+                                    validated=False, error=str(exc),
+                                    meta={'source_discovery': discovery_meta})
             self._mark_failed(row, str(exc))
             self._last_scan_at = time.time()
             return
@@ -319,7 +365,8 @@ class ShariaScreenerService:
                 'request_id': request_id, 'base': base, 'error': why})
             report = fail_closed_report(base, reason=f'provider error: {why}')
             write_screening_outcome(request_id, base, pair, report,
-                                    validated=False, error=why)
+                                    validated=False, error=why,
+                                    meta={'source_discovery': discovery_meta})
             self._mark_failed(row, why)
             self._last_scan_at = time.time()
             return
@@ -428,13 +475,38 @@ class ShariaScreenerService:
             add_candidate(base)
         for base in sorted(tradable):
             add_candidate(base)
+        discovery = getattr(self, 'source_discovery', None)
+        if discovery is not None:
+            try:
+                discovery.write_universe_index(tradable)
+            except Exception as exc:
+                audit('sharia_source_discovery_index_failed', severity='WARNING',
+                      details={'error': f'{type(exc).__name__}: {exc}'})
         stamp = now.strftime('%Y%m%d')
         margin = env_int('SHARIA_RESCREEN_MARGIN_SECONDS', 86_400, 0, 30 * 86_400)
         interval_days = env_int('SHARIA_RESCAN_INTERVAL_DAYS', 7, 1, 30)
         enqueued = 0
         for base in candidates:
             if base == 'BNB':
-                continue  # excluded from trading; do not spend quota on it
+                # Preserve the existing BNB trading exclusion while still
+                # satisfying source-directory coverage for every currently
+                # listed Binance Spot/USDT base.
+                if discovery is not None:
+                    try:
+                        discovered = discovery.ensure(
+                            base, f'{base}/USDT', tradable[base])
+                        audit('sharia_source_discovery_excluded_recorded', details={
+                            'base': base,
+                            'status': discovered.get('status'),
+                            'cache_hit': bool(discovered.get('cache_hit')),
+                        })
+                    except Exception as exc:
+                        audit('sharia_source_discovery_excluded_failed',
+                              severity='WARNING', details={
+                                  'base': base,
+                                  'error': f'{type(exc).__name__}: {exc}',
+                              })
+                continue
             record = gate.records.get(base)
             needs_scan = record is None or not gate.is_record_verified(base)
             if record is not None and gate.is_record_verified(base):
@@ -491,6 +563,9 @@ class ShariaScreenerService:
             'last_done': self.queue.last('DONE'),
             'last_failed': self.queue.last('FAILED'),
             'idle_scanning': self.idle_enabled,
+            'source_discovery': (
+                self.source_discovery.stats() if self.source_discovery is not None
+                else {'enabled': False, 'trade_permission_from_discovery': False}),
         })
 
     def run_forever(self):
@@ -505,6 +580,7 @@ class ShariaScreenerService:
             'urgent_reserve': self.urgent_reserve_per_day,
             'per_base_quota': self.max_scans_per_base_per_day,
             'per_actor_quota': self.max_scans_per_actor_per_day,
+            'source_discovery': self.source_discovery_enabled,
         })
         while not STOP.is_set():
             try:

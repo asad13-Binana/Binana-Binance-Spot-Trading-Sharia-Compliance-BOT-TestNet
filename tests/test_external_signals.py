@@ -1306,19 +1306,28 @@ class SingleWriterInvariantTests(unittest.TestCase):
     service module constructs the enrichment clients, so the single-writer
     assumption behind the free-tier budgets holds."""
 
-    def test_only_universe_scanner_uses_external_signals(self):
+    def test_external_provider_guards_have_only_two_bounded_consumers(self):
         services = ROOT / 'services'
         importers = []
         for path in services.rglob('*.py'):
             text = path.read_text(encoding='utf-8')
             if 'external_signals' in text and 'import' in text:
                 importers.append(path.relative_to(ROOT).as_posix())
-        # The package's own modules import within external_signals/; the only
-        # OUTSIDE consumer must be the universe scanner.
+        # The package's own modules import within external_signals/. Outside
+        # consumers are limited to the advisory universe scanner and the
+        # fail-closed Sharia source-discovery layer. The latter can only create
+        # owner-unverified reading-list candidates, never trade permission.
         outside = [p for p in importers
                    if not p.startswith('services/universe_service/external_signals/')]
-        self.assertEqual(outside, ['services/universe_service/scanner.py'],
+        self.assertEqual(outside, [
+            'services/sharia_screener/source_discovery.py',
+            'services/universe_service/scanner.py',
+        ],
                          msg=f'unexpected external_signals importers: {outside}')
+        discovery = (ROOT / 'services/sharia_screener/source_discovery.py').read_text(
+            encoding='utf-8')
+        self.assertIn("'trade_permission': False", discovery)
+        self.assertIn("'owner_verified': False", discovery)
 
 
 if __name__ == '__main__':

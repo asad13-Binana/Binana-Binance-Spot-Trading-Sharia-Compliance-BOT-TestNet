@@ -30,6 +30,8 @@ shared/universe/current_pairlist.json
 shared/universe/latest_rejections.json
 shared/universe/snapshots/*
 shared/universe/status.json
+shared/sharia/discovery/current/*
+shared/sharia/discovery/archive/*
 user_data/*.sqlite*
 user_data/data/
 user_data/logs/
@@ -56,3 +58,5 @@ user_data/logs/
 !shared/signals/processed/.gitkeep
 !shared/signals/rejected/.gitkeep
 !shared/universe/snapshots/.gitkeep
+!shared/sharia/discovery/current/.gitkeep
+!shared/sharia/discovery/archive/.gitkeep
