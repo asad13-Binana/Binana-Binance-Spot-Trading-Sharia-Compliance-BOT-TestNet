@@ -1,0 +1,12 @@
+[Unit]
+Description=Run BINANA disk-capacity guard every five minutes
+
+[Timer]
+OnBootSec=2m
+OnUnitActiveSec=5m
+AccuracySec=30s
+Persistent=true
+Unit=binana-disk-guard.service
+
+[Install]
+WantedBy=timers.target

@@ -155,7 +155,7 @@ print(f'systemd service/timer pairing passed ({len(services)} services)')
 PY
 if command -v systemd-analyze >/dev/null 2>&1; then
   # A-003 (deep-audit): the shipped units legitimately reference deployment
-  # paths that exist only AFTER installation (/opt/binance-freqtrade-v101/...,
+  # paths that exist only AFTER installation (/opt/binana-freqtrade-v101/...,
   # /usr/local/libexec/..., docker.service). Running `systemd-analyze verify`
   # against an UNPACKED checkout — exactly what GitHub Actions does — therefore
   # reports missing-executable/missing-unit errors that are NOT unit defects,

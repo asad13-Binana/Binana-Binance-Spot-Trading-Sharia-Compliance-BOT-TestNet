@@ -1,5 +1,5 @@
 [Unit]
-Description=Sanitized Docker status snapshot for the V10.1 read-only monitor
+Description=Sanitized Docker status snapshot for the BINANA read-only monitor
 After=docker.service
 Requires=docker.service
 
@@ -7,7 +7,9 @@ Requires=docker.service
 Type=oneshot
 User=root
 Group=root
-ExecStart=/usr/local/libexec/binance-bot-monitor-snapshot --output /var/lib/binance-freqtrade-v101/shared/runtime/container_status.json
+Environment=BINANA_COMPOSE_PROJECT=binana-freqtrade-v101
+Environment=BINANA_CONTAINER_STATUS_PATH=/var/lib/binana-freqtrade-v101/shared/runtime/container_status.json
+ExecStart=/usr/local/libexec/binana-monitor-snapshot --output /var/lib/binana-freqtrade-v101/shared/runtime/container_status.json
 UMask=0022
 NoNewPrivileges=true
 PrivateTmp=true
@@ -26,5 +28,5 @@ RestrictRealtime=true
 RestrictSUIDSGID=true
 LockPersonality=true
 SystemCallArchitectures=native
-ReadWritePaths=/var/lib/binance-freqtrade-v101/shared/runtime
+ReadWritePaths=/var/lib/binana-freqtrade-v101/shared/runtime
 ReadOnlyPaths=/var/run/docker.sock /usr/bin/docker

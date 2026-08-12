@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily consistent BINANA state backup
+
+[Timer]
+OnCalendar=*-*-* 01:25:00 UTC
+RandomizedDelaySec=15m
+Persistent=true
+Unit=binana-state-backup.service
+
+[Install]
+WantedBy=timers.target

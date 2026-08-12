@@ -1,0 +1,22 @@
+[Unit]
+Description=Consistent BINANA state and SQLite backup
+After=docker.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/opt/binana-freqtrade-v101/current/deploy/backup_state.sh
+Nice=10
+IOSchedulingClass=idle
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ReadOnlyPaths=/opt/binana-freqtrade-v101/current /var/lib/binana-freqtrade-v101/shared
+ReadWritePaths=/var/backups/binana-freqtrade-v101

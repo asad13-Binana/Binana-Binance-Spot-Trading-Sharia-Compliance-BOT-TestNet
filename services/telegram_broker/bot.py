@@ -75,6 +75,9 @@ def _release_label() -> str:
 log = logging.getLogger('telegram-broker')
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')
 OWNER = os.getenv('TELEGRAM_OWNER_CHAT_ID', '')
+BOT_PRODUCT = os.getenv('BOT_PRODUCT', 'BINANA').strip().upper()
+BOT_ENVIRONMENT = os.getenv('BOT_ENVIRONMENT', 'TESTNET').strip().upper()
+BOT_INSTANCE_ID = os.getenv('BOT_INSTANCE_ID', 'BINANA-TN-TYO-01').strip().upper()
 BASE = f'https://api.telegram.org/bot{TOKEN}'
 CB = CallbackStore(ttl=int(os.getenv('CALLBACK_TTL_SECONDS', '120')))
 FT_BASE = os.getenv('FREQTRADE_API_URL', 'http://freqtrade:8080/api/v1').rstrip('/')
@@ -89,7 +92,11 @@ NOT_FATWA = 'Research screening only — not a fatwa and not financial advice.'
 def send(text, chat_id=None, buttons=None):
     if not TOKEN:
         return
-    data = {'chat_id': chat_id or OWNER, 'text': str(text)[:4000]}
+    identity = f'[{BOT_PRODUCT} | {BOT_ENVIRONMENT} | {BOT_INSTANCE_ID}]'
+    rendered = str(text)
+    if not rendered.startswith(identity):
+        rendered = identity + '\n' + rendered
+    data = {'chat_id': chat_id or OWNER, 'text': rendered[:4000]}
     if buttons:
         data['reply_markup'] = json.dumps({'inline_keyboard': buttons})
     response = requests.post(BASE + '/sendMessage', data=data, timeout=15)

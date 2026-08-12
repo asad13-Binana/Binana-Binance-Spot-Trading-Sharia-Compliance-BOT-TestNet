@@ -1,30 +1,47 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+# shellcheck source=deploy/lib/secure_env.sh
+source "$SCRIPT_DIR/lib/secure_env.sh"
 ARTIFACT=${1:?usage: install_artifact.sh RELEASE.tar.gz RELEASE.tar.gz.sha256}
 CHECKSUM=${2:?usage: install_artifact.sh RELEASE.tar.gz RELEASE.tar.gz.sha256}
-APP_ROOT=${APP_ROOT:-/opt/binance-freqtrade-v101}
+APP_ROOT=${APP_ROOT:-/opt/binana-freqtrade-v101}
 RELEASES=${RELEASES:-$APP_ROOT/releases}
 CURRENT=${CURRENT:-$APP_ROOT/current}
-PERSIST=${PERSIST:-/var/lib/binance-freqtrade-v101/shared}
-ENV_FILE=${ENV_FILE:-/etc/binance-freqtrade-v101/.env}
+PERSIST=${PERSIST:-/var/lib/binana-freqtrade-v101/shared}
+ENV_FILE=${ENV_FILE:-/etc/binana-freqtrade-v101/.env}
 KEEP_RELEASES=${KEEP_RELEASES:-3}
-MIN_PHYSICAL_MEMORY_MIB=${MIN_PHYSICAL_MEMORY_MIB:-1500}
-MIN_TOTAL_MEMORY_MIB=${MIN_TOTAL_MEMORY_MIB:-2000}
+MIN_PHYSICAL_MEMORY_MIB=${MIN_PHYSICAL_MEMORY_MIB:-5120}
+MIN_TOTAL_MEMORY_MIB=${MIN_TOTAL_MEMORY_MIB:-8192}
+MIN_DEPLOY_FREE_DISK_GIB=${MIN_DEPLOY_FREE_DISK_GIB:-5}
 # H-004: one fixed Compose project so overlapping installs cannot start a
 # second parallel stack against the same account.
-export COMPOSE_PROJECT_NAME=binance-freqtrade-v101
+export COMPOSE_PROJECT_NAME=binana-freqtrade-v101
 REQUIRED_SERVICES=(
   universe sharia-egress-proxy sharia-screener freqtrade
   execution-sidecar telegram-broker
 )
 
 fail(){ echo "ERROR: $*" >&2; exit 1; }
+[[ $EUID -eq 0 ]] || fail 'install_artifact.sh must run through the root-owned binana-deploy wrapper'
+[[ "$APP_ROOT" == /opt/binana-freqtrade-v101 ]] || fail 'APP_ROOT must remain /opt/binana-freqtrade-v101'
+[[ "$RELEASES" == /opt/binana-freqtrade-v101/releases ]] || fail 'RELEASES must remain /opt/binana-freqtrade-v101/releases'
+[[ "$CURRENT" == /opt/binana-freqtrade-v101/current ]] || fail 'CURRENT must remain /opt/binana-freqtrade-v101/current'
+[[ "$PERSIST" == /var/lib/binana-freqtrade-v101/shared ]] || fail 'PERSIST must remain /var/lib/binana-freqtrade-v101/shared'
+[[ "$ENV_FILE" == /etc/binana-freqtrade-v101/.env ]] || fail 'ENV_FILE must remain /etc/binana-freqtrade-v101/.env'
+[[ "$KEEP_RELEASES" =~ ^[0-9]+$ ]] && (( KEEP_RELEASES >= 2 && KEEP_RELEASES <= 10 )) || fail 'KEEP_RELEASES must be an integer from 2 through 10'
+[[ "$MIN_PHYSICAL_MEMORY_MIB" =~ ^[0-9]+$ && "$MIN_TOTAL_MEMORY_MIB" =~ ^[0-9]+$ ]] || fail 'memory limits must be integers'
+[[ "$MIN_DEPLOY_FREE_DISK_GIB" =~ ^[0-9]+$ ]] && (( MIN_DEPLOY_FREE_DISK_GIB >= 2 && MIN_DEPLOY_FREE_DISK_GIB <= 20 )) || fail 'MIN_DEPLOY_FREE_DISK_GIB must be 2..20'
+for protected_path in "$APP_ROOT" "$RELEASES" "$PERSIST" "$(dirname -- "$ENV_FILE")"; do
+  [[ ! -L "$protected_path" ]] || fail "privileged path must not be a symlink: $protected_path"
+done
 
 # H-004: acquire an exclusive host lock before any mutation. A concurrent or
 # manual install running during an Actions deploy exits immediately instead of
 # racing and creating a second execution sidecar.
-LOCK_FILE=${LOCK_FILE:-/var/lock/binance-freqtrade-v101.install.lock}
+LOCK_FILE=${LOCK_FILE:-/var/lock/binana-freqtrade-v101.install.lock}
+[[ "$LOCK_FILE" == /var/lock/binana-freqtrade-v101.install.lock ]] || fail 'LOCK_FILE must remain fixed'
 mkdir -p "$(dirname "$LOCK_FILE")" 2>/dev/null || true
 exec 9>"$LOCK_FILE" || fail "cannot open deploy lock $LOCK_FILE"
 flock -n 9 || fail "another install holds $LOCK_FILE; refusing to run a second deploy"
@@ -33,8 +50,7 @@ compose_for(){
   local release_dir=$1 release_tag=$2
   shift 2
   RELEASE_TAG="$release_tag" COMPOSE_PROJECT_NAME="$COMPOSE_PROJECT_NAME" \
-    docker compose --env-file "$ENV_FILE" \
-    -f "$release_dir/docker-compose.yml" "$@"
+    docker compose -f "$release_dir/docker-compose.yml" "$@"
 }
 
 as_root(){
@@ -57,12 +73,12 @@ disable_monitoring_after_failed_first_install(){
   # Root-owned unit files and immutable venvs may remain inert for diagnosis.
   local unit
   local units=(
-    binance-bot-monitor-testnet.service
-    binance-bot-monitor-live.service
-    binance-bot-monitor-report-testnet.timer
-    binance-bot-monitor-report-live.timer
-    binance-bot-monitor-snapshot.timer
-    binance-bot-monitor-snapshot.service
+    binana-monitor-testnet.service
+    binana-monitor-live.service
+    binana-monitor-report-testnet.timer
+    binana-monitor-report-live.timer
+    binana-monitor-snapshot.timer
+    binana-monitor-snapshot.service
   )
   for unit in "${units[@]}"; do
     as_root systemctl disable --now "$unit" >/dev/null 2>&1 || true
@@ -75,31 +91,77 @@ disable_monitoring_after_failed_first_install(){
 }
 
 [[ -f "$ARTIFACT" && -f "$CHECKSUM" ]] || fail 'artifact/checksum missing'
-[[ -f "$ENV_FILE" ]] || fail "private env missing: $ENV_FILE"
-[[ $(stat -c '%a' "$ENV_FILE") == 600 ]] || fail "$ENV_FILE must be mode 600"
-set -a; source "$ENV_FILE"; set +a
-BOT_UID=${BOT_UID:-$(id -u)}
-BOT_GID=${BOT_GID:-$(id -g)}
-mkdir -p "$RELEASES" "$PERSIST" "$PERSIST/commands/inbox" "$PERSIST/runtime" \
+declare -A DEPLOY_ENV=()
+secure_env_read "$ENV_FILE" DEPLOY_ENV || exit 1
+declare -A ALLOWED_ENV=()
+while IFS= read -r key; do ALLOWED_ENV["$key"]=1; done < <(
+  python3 - "$SCRIPT_DIR/../docker-compose.yml" <<'PY'
+import pathlib, re, sys
+text = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
+names = set(re.findall(r"\$\{([A-Za-z_][A-Za-z0-9_]*)", text))
+names.update({
+    "BOT_NAMESPACE", "MIN_PHYSICAL_MEMORY_MIB", "MIN_TOTAL_MEMORY_MIB",
+    "LEGACY_HALAL_FILE", "LEGACY_RUNTIME_DIR", "SHARIA_EVIDENCE_DIR",
+    "SHARIA_FILE", "SHARIA_SOURCE_REGISTRY", "SIGNAL_INBOX", "UNIVERSE_FILE",
+})
+print("\n".join(sorted(names)))
+PY
+)
+for key in "${!DEPLOY_ENV[@]}"; do
+  [[ -v "ALLOWED_ENV[$key]" ]] || fail "unsupported environment key: $key"
+  export "$key=${DEPLOY_ENV[$key]}"
+done
+unset key ALLOWED_ENV
+for required in BOT_PRODUCT BOT_ENVIRONMENT BOT_INSTANCE_ID BOT_UID BOT_GID SHARED_HOST_PATH EXECUTION_MODE BINANCE_TESTNET; do
+  secure_env_require DEPLOY_ENV "$required" || exit 1
+done
+BOT_PRODUCT=${DEPLOY_ENV[BOT_PRODUCT]}
+BOT_ENVIRONMENT=${DEPLOY_ENV[BOT_ENVIRONMENT]}
+BOT_INSTANCE_ID=${DEPLOY_ENV[BOT_INSTANCE_ID]}
+BOT_UID=${DEPLOY_ENV[BOT_UID]}
+BOT_GID=${DEPLOY_ENV[BOT_GID]}
+EXECUTION_MODE=${DEPLOY_ENV[EXECUTION_MODE]}
+BINANCE_TESTNET=${DEPLOY_ENV[BINANCE_TESTNET]}
+SHARED_HOST_PATH=${DEPLOY_ENV[SHARED_HOST_PATH]}
+SHARIA_SIGNAL_GATE_MODE=${DEPLOY_ENV[SHARIA_SIGNAL_GATE_MODE]:-cached}
+TELEGRAM_BOT_TOKEN=${DEPLOY_ENV[TELEGRAM_BOT_TOKEN]:-}
+TELEGRAM_OWNER_CHAT_ID=${DEPLOY_ENV[TELEGRAM_OWNER_CHAT_ID]:-}
+[[ "$BOT_PRODUCT" == BINANA ]] || fail 'BOT_PRODUCT must be BINANA'
+[[ "$BOT_INSTANCE_ID" =~ ^BINANA-[A-Z0-9-]{3,48}$ ]] || fail 'BOT_INSTANCE_ID is invalid'
+[[ "$BOT_UID" =~ ^[0-9]+$ && "$BOT_GID" =~ ^[0-9]+$ ]] || fail 'BOT_UID and BOT_GID must be numeric'
+expected_bot_uid=$(id -u binanabot 2>/dev/null) || fail 'binanabot account is missing'
+expected_bot_gid=$(getent group binanabot | cut -d: -f3)
+[[ "$BOT_UID" == "$expected_bot_uid" && "$BOT_GID" == "$expected_bot_gid" ]] || \
+  fail 'BOT_UID and BOT_GID must match the dedicated binanabot account'
+install -d -m 0755 -o root -g root "$RELEASES"
+install -d -m 0750 -o "$BOT_UID" -g "$BOT_GID" \
+  "$PERSIST" "$PERSIST/commands/inbox" "$PERSIST/runtime" \
   "$PERSIST/sharia" "$PERSIST/sharia/evidence" \
   "$PERSIST/sharia/discovery/current" "$PERSIST/sharia/discovery/archive" \
   "$PERSIST/sharia_decisions/inbox" "$PERSIST/sharia_decisions/processed" \
   "$PERSIST/legacy_runtime" \
   "$PERSIST/freqtrade/logs"
+[[ ! -L "$RELEASES" && ! -L "$PERSIST" ]] || fail 'release and persistent roots must not be symlinks'
+[[ $(stat -Lc '%u' "$RELEASES") == 0 ]] || fail "$RELEASES must be root-owned"
+release_mode=$(stat -Lc '%a' "$RELEASES")
+(( (8#$release_mode & 0022) == 0 )) || fail "$RELEASES must not be group/world writable"
 [[ $(stat -c '%u' "$PERSIST") == "$BOT_UID" ]] || fail "$PERSIST owner UID must match BOT_UID=$BOT_UID"
 [[ $(stat -c '%g' "$PERSIST") == "$BOT_GID" ]] || fail "$PERSIST group GID must match BOT_GID=$BOT_GID"
-[[ "${SHARED_HOST_PATH:-}" == "$PERSIST" ]] || fail "SHARED_HOST_PATH in $ENV_FILE must equal $PERSIST"
+[[ "$SHARED_HOST_PATH" == "$PERSIST" ]] || fail "SHARED_HOST_PATH in $ENV_FILE must equal $PERSIST"
 
-# Require enough host capacity for the six-container stack. A 1 GiB E2 micro
-# is not treated as a supported target; use an A1 free-tier allocation with at
-# least 2 GiB, preferably 4 GiB for soak testing and upgrades.
+# Require the declared host capacity for the six-container stack. A 1 GiB E2
+# micro is unsupported; the Oracle target is 1 OCPU, 6 GiB physical RAM with
+# 4 GiB swap headroom and separately checked free disk capacity.
 physical_mib=$(awk '/MemTotal/{print int($2/1024)}' /proc/meminfo)
 swap_mib=$(awk '/SwapTotal/{print int($2/1024)}' /proc/meminfo)
 total_mib=$((physical_mib + swap_mib))
+free_kib=$(df -Pk / | awk 'NR==2 {print $4}')
 (( physical_mib >= MIN_PHYSICAL_MEMORY_MIB )) || fail \
   "physical memory ${physical_mib} MiB is below required ${MIN_PHYSICAL_MEMORY_MIB} MiB"
 (( total_mib >= MIN_TOTAL_MEMORY_MIB )) || fail \
   "RAM+swap ${total_mib} MiB is below required ${MIN_TOTAL_MEMORY_MIB} MiB"
+(( free_kib >= MIN_DEPLOY_FREE_DISK_GIB * 1024 * 1024 )) || fail \
+  "root filesystem needs at least ${MIN_DEPLOY_FREE_DISK_GIB} GiB free before deployment"
 
 # Verify only the supplied artifact hash; never allow a checksum file to name
 # an arbitrary path. Reject links, special files, multiple roots, and traversal
@@ -152,6 +214,14 @@ if [[ "$PACKAGE_MODE" == live && "${EXECUTION_MODE:-simulation}" == testnet ]]; 
 fi
 if [[ "${SHARIA_SIGNAL_GATE_MODE:-cached}" != cached ]]; then
   fail 'self-hosted Sharia screening requires SHARIA_SIGNAL_GATE_MODE=cached'
+fi
+if [[ "$PACKAGE_MODE" == testnet ]]; then
+  [[ "$BOT_ENVIRONMENT" == TESTNET ]] || fail 'testnet package requires BOT_ENVIRONMENT=TESTNET'
+  [[ "$BINANCE_TESTNET" == true ]] || fail 'testnet package requires BINANCE_TESTNET=true'
+  [[ "$EXECUTION_MODE" == testnet || "$EXECUTION_MODE" == simulation ]] || fail 'testnet package execution mode mismatch'
+else
+  [[ "$BOT_ENVIRONMENT" == LIVE ]] || fail 'live package requires BOT_ENVIRONMENT=LIVE'
+  [[ "$EXECUTION_MODE" != testnet ]] || fail 'live package cannot use testnet execution mode'
 fi
 NEW_TAG="v101-${RELEASE_HASH:0:16}"
 printf '%s\n' "$NEW_TAG" > "$NEW/.release-tag"
@@ -229,9 +299,14 @@ restore_monitoring(){
 # Ask the current system to pause and reconcile, and verify both acknowledgements
 # before stopping any container. Exchange-native protection remains active.
 if [[ -n "$OLD" && -d "$OLD" ]]; then
-  mapfile -t COMMAND_IDS < <(python - "$PERSIST" <<'PY'
+  [[ "$OLD_RELEASE_HASH" =~ ^[0-9a-f]{64}$ ]] || fail 'current release hash is unavailable; refusing unsigned deployment controls'
+  mapfile -t COMMAND_IDS < <(
+    PYTHONPATH="$OLD" ENVELOPE_RELEASE_HASH="$OLD_RELEASE_HASH" \
+    COMMAND_HMAC_KEY="${DEPLOY_ENV[COMMAND_HMAC_KEY]:-}" \
+    python - "$PERSIST" <<'PY'
 import json,os,sys,tempfile,time,uuid
 from pathlib import Path
+from services.common.envelope import BUS_COMMAND, sign_envelope
 root=Path(sys.argv[1]); inbox=root/'commands/inbox'; inbox.mkdir(parents=True,exist_ok=True)
 def atomic_json(path, payload):
     fd,tmp=tempfile.mkstemp(prefix='.'+path.name+'.', suffix='.tmp', dir=path.parent)
@@ -249,9 +324,12 @@ def atomic_json(path, payload):
         raise
 for command,args in [('entries',{'enabled':False}),('reconcile',{})]:
     cid=uuid.uuid4().hex
-    atomic_json(inbox/f'{cid}.json', {
+    payload = {
         'command_id':cid,'command':command,'args':args,'created_at':time.time()
-    })
+    }
+    atomic_json(inbox/f'{cid}.json', sign_envelope(
+        producer='deploy-installer', purpose=BUS_COMMAND,
+        payload=payload, ttl_seconds=120))
     print(cid)
 PY
   )
@@ -419,10 +497,20 @@ except BaseException:
 PY
 
 # Optional Telegram deployment notification without printing secrets.
-if [[ -n "${TELEGRAM_BOT_TOKEN:-}" && -n "${TELEGRAM_OWNER_CHAT_ID:-}" ]]; then
-  curl -fsS --max-time 15 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-    -d "chat_id=${TELEGRAM_OWNER_CHAT_ID}" \
-    --data-urlencode "text=$(cat "$DEST/RELEASE_VERSION" 2>/dev/null || echo release) deployment succeeded: ${RELEASE_HASH}" >/dev/null || true
+if [[ "$TELEGRAM_BOT_TOKEN" =~ ^[0-9]{6,12}:[A-Za-z0-9_-]{30,}$ \
+   && "$TELEGRAM_OWNER_CHAT_ID" =~ ^-?[0-9]+$ ]]; then
+  notification="[BINANA | ${BOT_ENVIRONMENT} | ${BOT_INSTANCE_ID}] $(cat "$DEST/RELEASE_VERSION" 2>/dev/null || echo release) deployment succeeded: ${RELEASE_HASH}"
+  # Token and owner ID are delivered through curl's standard-input config,
+  # never as process-list-visible command-line arguments.
+  curl --config - --data-urlencode "text=$notification" >/dev/null 2>&1 <<EOF || true
+url = "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
+request = "POST"
+data = "chat_id=${TELEGRAM_OWNER_CHAT_ID}"
+max-time = 15
+fail
+silent
+show-error
+EOF
 fi
 
 # Keep only the newest N release directories and their immutable service images.
@@ -433,7 +521,7 @@ find "$RELEASES" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' | sort -nr |
       tag=''
       [[ -f "$old/.release-tag" ]] && tag=$(<"$old/.release-tag")
       rm -rf "$old"
-      [[ -n "$tag" ]] && docker image rm "binance-freqtrade-v101-services:$tag" >/dev/null 2>&1 || true
+      [[ -n "$tag" ]] && docker image rm "binana-freqtrade-v101-services:$tag" >/dev/null 2>&1 || true
     fi
   done
 

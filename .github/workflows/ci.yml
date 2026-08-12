@@ -206,6 +206,10 @@ jobs:
           # on events.jsonl.lock. Run as the user that owns the mount.
           lines = setk(lines, 'BOT_UID', str(os.getuid()))
           lines = setk(lines, 'BOT_GID', str(os.getgid()))
+          # The production template uses the absolute Oracle state path. CI
+          # must bind the checked-out fixture tree so Sharia inputs exist and
+          # audit/state writes use the runner-owned directory.
+          lines = setk(lines, 'SHARED_HOST_PATH', './shared')
           pathlib.Path('.env.ci').write_text(''.join(lines))
           PY
       - name: Validate compose and build the services image
@@ -366,12 +370,18 @@ jobs:
           ORACLE_USER: ${{ secrets.ORACLE_USER }}
           ORACLE_PORT: ${{ secrets.ORACLE_SSH_PORT }}
         run: |
-          scp -P "${ORACLE_PORT:-22}" /tmp/v101-artifact/* "${ORACLE_USER}@${ORACLE_HOST}:/tmp/"
-      - name: Atomic install with reconciliation and rollback
+          scp -P "${ORACLE_PORT:-22}" \
+            /tmp/v101-artifact/binance-bot-testnet-${GITHUB_SHA}.tar.gz \
+            /tmp/v101-artifact/binance-bot-testnet-${GITHUB_SHA}.tar.gz.sha256 \
+            "${ORACLE_USER}@${ORACLE_HOST}:/var/lib/binana-deploy/inbox/"
+      - name: Owner-approved atomic install with reconciliation and rollback
         env:
           ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
           ORACLE_USER: ${{ secrets.ORACLE_USER }}
           ORACLE_PORT: ${{ secrets.ORACLE_SSH_PORT }}
         run: |
+          # This fails closed unless the operator has independently placed the
+          # exact archive SHA-256 in the root-owned approval file using
+          # binana-approve-release. CI cannot approve its own artifact.
           ssh -p "${ORACLE_PORT:-22}" "${ORACLE_USER}@${ORACLE_HOST}" \
-            "chmod +x /tmp/install_artifact.sh && /tmp/install_artifact.sh /tmp/binance-bot-testnet-${GITHUB_SHA}.tar.gz /tmp/binance-bot-testnet-${GITHUB_SHA}.tar.gz.sha256"
+            "sudo /usr/local/sbin/binana-deploy /var/lib/binana-deploy/inbox/binance-bot-testnet-${GITHUB_SHA}.tar.gz /var/lib/binana-deploy/inbox/binance-bot-testnet-${GITHUB_SHA}.tar.gz.sha256"

@@ -1,0 +1,18 @@
+[Unit]
+Description=BINANA host disk-capacity guard
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/opt/binana-freqtrade-v101/current/deploy/disk_guard.sh
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ReadWritePaths=/var/lib/binana-freqtrade-v101/shared/runtime /var/lib/binana-freqtrade-v101/shared/commands/inbox

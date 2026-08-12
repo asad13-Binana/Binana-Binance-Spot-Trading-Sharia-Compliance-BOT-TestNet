@@ -25,6 +25,11 @@ def _base(request_id: str) -> dict:
         "request_id": request_id,
         "generated": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
         "mode": CONFIG.bot_mode,
+        "identity": {
+            "product": CONFIG.bot_product,
+            "environment": CONFIG.bot_environment,
+            "instance_id": CONFIG.bot_instance_id,
+        },
         "banner": CONFIG.banner(),
     }
 

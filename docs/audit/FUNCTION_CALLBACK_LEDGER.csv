@@ -473,33 +473,33 @@ legacy_core/binance_bot_V4.9.16_ALL_IN_ONE.py,manual_scan,function,top-level-or-
 legacy_core/binance_bot_V4.9.16_ALL_IN_ONE.py,_new_coin_loop,function,top-level-or-method,9426,9462,-,preserved-core
 legacy_core/binance_bot_V4.9.16_ALL_IN_ONE.py,main_loop,function,top-level-or-method,9466,9673,-,preserved-core
 legacy_core/binance_bot_V4.9.16_ALL_IN_ONE.py,_scanner_main,function,top-level-or-method,9677,9686,-,preserved-core
-monitoring/api/app.py,_base,function,top-level-or-method,23,29,-,monitoring
-monitoring/api/app.py,_payload,function,top-level-or-method,32,33,-,monitoring
-monitoring/api/app.py,health,function,top-level-or-method,37,45,app.get(API + '/health'),monitoring
-monitoring/api/app.py,status,function,top-level-or-method,49,59,app.get(API + '/status'),monitoring
-monitoring/api/app.py,performance,function,top-level-or-method,63,72,app.get(API + '/performance'),monitoring
-monitoring/api/app.py,trades,function,top-level-or-method,76,84,app.get(API + '/trades'),monitoring
-monitoring/api/app.py,errors,function,top-level-or-method,88,96,app.get(API + '/errors'),monitoring
-monitoring/api/app.py,crashes,function,top-level-or-method,100,104,app.get(API + '/crashes'),monitoring
-monitoring/api/app.py,latency,function,top-level-or-method,108,112,app.get(API + '/latency'),monitoring
-monitoring/api/app.py,system,function,top-level-or-method,116,121,app.get(API + '/system'),monitoring
-monitoring/api/app.py,deployment,function,top-level-or-method,125,126,app.get(API + '/deployment'),monitoring
-monitoring/api/app.py,sharia,function,top-level-or-method,130,131,app.get(API + '/sharia'),monitoring
-monitoring/api/app.py,report,function,top-level-or-method,135,161,app.get(API + '/report'),monitoring
+monitoring/api/app.py,_base,function,top-level-or-method,23,34,-,monitoring
+monitoring/api/app.py,_payload,function,top-level-or-method,37,38,-,monitoring
+monitoring/api/app.py,health,function,top-level-or-method,42,50,app.get(API + '/health'),monitoring
+monitoring/api/app.py,status,function,top-level-or-method,54,64,app.get(API + '/status'),monitoring
+monitoring/api/app.py,performance,function,top-level-or-method,68,77,app.get(API + '/performance'),monitoring
+monitoring/api/app.py,trades,function,top-level-or-method,81,89,app.get(API + '/trades'),monitoring
+monitoring/api/app.py,errors,function,top-level-or-method,93,101,app.get(API + '/errors'),monitoring
+monitoring/api/app.py,crashes,function,top-level-or-method,105,109,app.get(API + '/crashes'),monitoring
+monitoring/api/app.py,latency,function,top-level-or-method,113,117,app.get(API + '/latency'),monitoring
+monitoring/api/app.py,system,function,top-level-or-method,121,126,app.get(API + '/system'),monitoring
+monitoring/api/app.py,deployment,function,top-level-or-method,130,131,app.get(API + '/deployment'),monitoring
+monitoring/api/app.py,sharia,function,top-level-or-method,135,136,app.get(API + '/sharia'),monitoring
+monitoring/api/app.py,report,function,top-level-or-method,140,166,app.get(API + '/report'),monitoring
 monitoring/api/authentication.py,audit,function,top-level-or-method,25,38,-,monitoring
 monitoring/api/authentication.py,_audit_or_503,function,top-level-or-method,41,47,-,monitoring
 monitoring/api/authentication.py,_client_ip,function,top-level-or-method,50,51,-,monitoring
 monitoring/api/authentication.py,_allowed,function,top-level-or-method,54,59,-,monitoring
 monitoring/api/authentication.py,require_bearer,function,top-level-or-method,62,92,-,monitoring
-monitoring/api/configuration.py,_int,function,top-level-or-method,15,20,-,monitoring
-monitoring/api/configuration.py,_bool,function,top-level-or-method,23,24,-,monitoring
-monitoring/api/configuration.py,secret_is_configured,function,top-level-or-method,33,35,-,monitoring
-monitoring/api/configuration.py,loopback_http_url,function,top-level-or-method,38,50,-,monitoring
-monitoring/api/configuration.py,Config.__init__,function,top-level-or-method,62,144,-,monitoring
-monitoring/api/configuration.py,Config.banner,function,top-level-or-method,146,151,-,monitoring
-monitoring/api/configuration.py,Config.allowed_networks,function,top-level-or-method,153,159,-,monitoring
-monitoring/api/configuration.py,Config.runtime_errors,function,top-level-or-method,161,176,-,monitoring
-monitoring/api/configuration.py,reload,function,top-level-or-method,182,187,-,monitoring
+monitoring/api/configuration.py,_int,function,top-level-or-method,16,21,-,monitoring
+monitoring/api/configuration.py,_bool,function,top-level-or-method,24,25,-,monitoring
+monitoring/api/configuration.py,secret_is_configured,function,top-level-or-method,34,36,-,monitoring
+monitoring/api/configuration.py,loopback_http_url,function,top-level-or-method,39,51,-,monitoring
+monitoring/api/configuration.py,Config.__init__,function,top-level-or-method,63,150,-,monitoring
+monitoring/api/configuration.py,Config.banner,function,top-level-or-method,152,161,-,monitoring
+monitoring/api/configuration.py,Config.allowed_networks,function,top-level-or-method,163,169,-,monitoring
+monitoring/api/configuration.py,Config.runtime_errors,function,top-level-or-method,171,193,-,monitoring
+monitoring/api/configuration.py,reload,function,top-level-or-method,199,204,-,monitoring
 monitoring/api/database.py,_read_only_sql,function,top-level-or-method,15,19,-,monitoring
 monitoring/api/database.py,query,function,top-level-or-method,22,40,-,monitoring
 monitoring/api/database.py,status,function,top-level-or-method,43,67,-,monitoring
@@ -533,8 +533,9 @@ monitoring/api/metrics.py,websocket_status,function,top-level-or-method,487,503,
 monitoring/api/metrics.py,sharia_status,function,top-level-or-method,506,533,-,monitoring
 monitoring/api/metrics.py,deployment_info,function,top-level-or-method,536,556,-,monitoring
 monitoring/api/metrics.py,recent_security_warnings,function,top-level-or-method,559,574,-,monitoring
-monitoring/control.py,check,function,top-level-or-method,10,29,-,monitoring
-monitoring/control.py,main,function,top-level-or-method,32,37,-,monitoring
+monitoring/control.py,monitor_port_available,function,top-level-or-method,11,24,-,monitoring
+monitoring/control.py,check,function,top-level-or-method,27,49,-,monitoring
+monitoring/control.py,main,function,top-level-or-method,52,57,-,monitoring
 monitoring/mcp/monitor_mcp_server.py,_base_url,function,top-level-or-method,18,24,-,monitoring
 monitoring/mcp/monitor_mcp_server.py,_get,function,top-level-or-method,27,45,-,monitoring
 monitoring/mcp/monitor_mcp_server.py,_clamp,function,top-level-or-method,48,52,-,monitoring
@@ -552,9 +553,9 @@ monitoring/mcp/monitor_mcp_server.py,create_server.bot_sharia_status,function,ne
 monitoring/mcp/monitor_mcp_server.py,create_server.bot_daily_report,function,nested,111,113,server.tool(),monitoring
 monitoring/mcp/monitor_mcp_server.py,create_server.bot_custom_report,function,nested,116,118,server.tool(),monitoring
 monitoring/mcp/monitor_mcp_server.py,main,function,top-level-or-method,123,125,-,monitoring
-monitoring/snapshot.py,collect,function,top-level-or-method,24,61,-,monitoring
-monitoring/snapshot.py,atomic_write,function,top-level-or-method,64,80,-,monitoring
-monitoring/snapshot.py,main,function,top-level-or-method,83,92,-,monitoring
+monitoring/snapshot.py,collect,function,top-level-or-method,27,64,-,monitoring
+monitoring/snapshot.py,atomic_write,function,top-level-or-method,67,83,-,monitoring
+monitoring/snapshot.py,main,function,top-level-or-method,86,95,-,monitoring
 monitoring/telegram/telegram_reporter.py,_failure,function,top-level-or-method,17,19,-,monitoring
 monitoring/telegram/telegram_reporter.py,_format,function,top-level-or-method,22,45,-,monitoring
 monitoring/telegram/telegram_reporter.py,_send,function,top-level-or-method,48,61,-,monitoring
@@ -604,16 +605,16 @@ monitoring/tests/test_monitoring.py,test_telegram_checks_json_ok.Response.raise_
 monitoring/tests/test_monitoring.py,test_telegram_checks_json_ok.Response.json,function,nested,378,378,-,test
 monitoring/tests/test_monitoring.py,test_loopback_url_validation,function,top-level-or-method,385,388,-,test
 monitoring/tests/test_monitoring.py,test_monitor_config_source_does_not_read_trading_credentials,function,top-level-or-method,391,394,-,test
-monitoring/tests/test_monitoring.py,test_mode_templates_have_correct_topology_ports_and_isolation,function,top-level-or-method,397,404,-,test
-monitoring/tests/test_monitoring.py,test_gitignore_keeps_monitor_examples,function,top-level-or-method,407,409,-,test
-monitoring/tests/test_monitoring.py,test_systemd_pairs_and_hardening,function,top-level-or-method,412,421,-,test
-monitoring/tests/test_monitoring.py,test_snapshot_helper_has_no_mutating_docker_commands,function,top-level-or-method,424,427,-,test
-monitoring/tests/test_monitoring.py,test_ci_and_release_gate_include_monitoring,function,top-level-or-method,430,436,-,test
-monitoring/tests/test_monitoring.py,test_monitoring_tests_install_exact_hash_locked_runtime_separately,function,top-level-or-method,439,453,-,test
-monitoring/tests/test_monitoring.py,test_oracle_installer_installs_monitoring,function,top-level-or-method,456,460,-,test
-monitoring/tests/test_monitoring.py,test_every_api_route_is_get_only_and_has_no_order_route,function,top-level-or-method,463,467,-,test
-monitoring/tests/test_monitoring.py,test_docs_are_disabled_by_default,function,top-level-or-method,470,471,-,test
-monitoring/tests/test_monitoring.py,test_control_requires_explicit_telegram_enable,function,top-level-or-method,474,477,-,test
+monitoring/tests/test_monitoring.py,test_mode_templates_have_correct_topology_ports_and_isolation,function,top-level-or-method,397,406,-,test
+monitoring/tests/test_monitoring.py,test_gitignore_keeps_monitor_examples,function,top-level-or-method,409,411,-,test
+monitoring/tests/test_monitoring.py,test_systemd_pairs_and_hardening,function,top-level-or-method,414,423,-,test
+monitoring/tests/test_monitoring.py,test_snapshot_helper_has_no_mutating_docker_commands,function,top-level-or-method,426,429,-,test
+monitoring/tests/test_monitoring.py,test_ci_and_release_gate_include_monitoring,function,top-level-or-method,432,438,-,test
+monitoring/tests/test_monitoring.py,test_monitoring_tests_install_exact_hash_locked_runtime_separately,function,top-level-or-method,441,455,-,test
+monitoring/tests/test_monitoring.py,test_oracle_installer_installs_monitoring,function,top-level-or-method,458,462,-,test
+monitoring/tests/test_monitoring.py,test_every_api_route_is_get_only_and_has_no_order_route,function,top-level-or-method,465,469,-,test
+monitoring/tests/test_monitoring.py,test_docs_are_disabled_by_default,function,top-level-or-method,472,473,-,test
+monitoring/tests/test_monitoring.py,test_control_requires_explicit_telegram_enable,function,top-level-or-method,476,479,-,test
 scripts/build_audit_ledgers.py,_iter_files,function,top-level-or-method,68,74,-,release-script
 scripts/build_audit_ledgers.py,_rel,function,top-level-or-method,77,78,-,release-script
 scripts/build_audit_ledgers.py,_file_type,function,top-level-or-method,81,89,-,release-script
@@ -1059,34 +1060,34 @@ services/sharia_screener/verdict_policy.py,quote_conflict_in_source,function,top
 services/telegram_broker/authorization.py,is_owner,function,top-level-or-method,5,8,-,runtime-service
 services/telegram_broker/bot.py,_redact_secrets,function,top-level-or-method,47,62,-,runtime-service
 services/telegram_broker/bot.py,_release_label,function,top-level-or-method,65,73,-,runtime-service
-services/telegram_broker/bot.py,send,function,top-level-or-method,89,96,-,runtime-service
-services/telegram_broker/bot.py,deliver_sidecar_notifications,function,top-level-or-method,99,145,-,runtime-service
-services/telegram_broker/bot.py,sidecar_command,function,top-level-or-method,148,171,-,runtime-service
-services/telegram_broker/bot.py,ft_call,function,top-level-or-method,174,186,-,runtime-service
-services/telegram_broker/bot.py,confirm_button,function,top-level-or-method,189,192,-,runtime-service
-services/telegram_broker/bot.py,normalize_pair_input,function,top-level-or-method,196,210,-,runtime-service
-services/telegram_broker/bot.py,sharia_scan_request,function,top-level-or-method,213,229,-,runtime-service
-services/telegram_broker/bot.py,sharia_owner_decision,function,top-level-or-method,232,260,-,runtime-service
-services/telegram_broker/bot.py,_sharia_service_status,function,top-level-or-method,263,319,-,runtime-service
-services/telegram_broker/bot.py,_universe_status,function,top-level-or-method,322,338,-,runtime-service
-services/telegram_broker/bot.py,_latest_sharia_report,function,top-level-or-method,341,368,-,runtime-service
-services/telegram_broker/bot.py,_latest_local_review_card,function,top-level-or-method,371,458,-,runtime-service
-services/telegram_broker/bot.py,menu,function,top-level-or-method,461,496,-,runtime-service
-services/telegram_broker/bot.py,help_text,function,top-level-or-method,499,509,-,runtime-service
-services/telegram_broker/bot.py,_latest_signal,function,top-level-or-method,512,519,-,runtime-service
-services/telegram_broker/bot.py,_tail_audit,function,top-level-or-method,522,527,-,runtime-service
-services/telegram_broker/bot.py,_settings,function,top-level-or-method,530,546,-,runtime-service
-services/telegram_broker/bot.py,_validation_status,function,top-level-or-method,549,554,-,runtime-service
-services/telegram_broker/bot.py,_backtest_status,function,top-level-or-method,557,571,-,runtime-service
-services/telegram_broker/bot.py,route,function,top-level-or-method,574,650,-,runtime-service
-services/telegram_broker/bot.py,_confirm_action,function,top-level-or-method,653,683,-,runtime-service
-services/telegram_broker/bot.py,_ask_confirm,function,top-level-or-method,686,688,-,runtime-service
-services/telegram_broker/bot.py,handle_message,function,top-level-or-method,691,776,-,runtime-service
-services/telegram_broker/bot.py,handle_callback,function,top-level-or-method,779,802,-,runtime-service
-services/telegram_broker/bot.py,_load_offset,function,top-level-or-method,805,811,-,runtime-service
-services/telegram_broker/bot.py,_store_offset,function,top-level-or-method,814,815,-,runtime-service
-services/telegram_broker/bot.py,_claim_update,function,top-level-or-method,818,838,-,runtime-service
-services/telegram_broker/bot.py,main,function,top-level-or-method,841,887,-,runtime-service
+services/telegram_broker/bot.py,send,function,top-level-or-method,92,103,-,runtime-service
+services/telegram_broker/bot.py,deliver_sidecar_notifications,function,top-level-or-method,106,152,-,runtime-service
+services/telegram_broker/bot.py,sidecar_command,function,top-level-or-method,155,178,-,runtime-service
+services/telegram_broker/bot.py,ft_call,function,top-level-or-method,181,193,-,runtime-service
+services/telegram_broker/bot.py,confirm_button,function,top-level-or-method,196,199,-,runtime-service
+services/telegram_broker/bot.py,normalize_pair_input,function,top-level-or-method,203,217,-,runtime-service
+services/telegram_broker/bot.py,sharia_scan_request,function,top-level-or-method,220,236,-,runtime-service
+services/telegram_broker/bot.py,sharia_owner_decision,function,top-level-or-method,239,267,-,runtime-service
+services/telegram_broker/bot.py,_sharia_service_status,function,top-level-or-method,270,326,-,runtime-service
+services/telegram_broker/bot.py,_universe_status,function,top-level-or-method,329,345,-,runtime-service
+services/telegram_broker/bot.py,_latest_sharia_report,function,top-level-or-method,348,375,-,runtime-service
+services/telegram_broker/bot.py,_latest_local_review_card,function,top-level-or-method,378,465,-,runtime-service
+services/telegram_broker/bot.py,menu,function,top-level-or-method,468,503,-,runtime-service
+services/telegram_broker/bot.py,help_text,function,top-level-or-method,506,516,-,runtime-service
+services/telegram_broker/bot.py,_latest_signal,function,top-level-or-method,519,526,-,runtime-service
+services/telegram_broker/bot.py,_tail_audit,function,top-level-or-method,529,534,-,runtime-service
+services/telegram_broker/bot.py,_settings,function,top-level-or-method,537,553,-,runtime-service
+services/telegram_broker/bot.py,_validation_status,function,top-level-or-method,556,561,-,runtime-service
+services/telegram_broker/bot.py,_backtest_status,function,top-level-or-method,564,578,-,runtime-service
+services/telegram_broker/bot.py,route,function,top-level-or-method,581,657,-,runtime-service
+services/telegram_broker/bot.py,_confirm_action,function,top-level-or-method,660,690,-,runtime-service
+services/telegram_broker/bot.py,_ask_confirm,function,top-level-or-method,693,695,-,runtime-service
+services/telegram_broker/bot.py,handle_message,function,top-level-or-method,698,783,-,runtime-service
+services/telegram_broker/bot.py,handle_callback,function,top-level-or-method,786,809,-,runtime-service
+services/telegram_broker/bot.py,_load_offset,function,top-level-or-method,812,818,-,runtime-service
+services/telegram_broker/bot.py,_store_offset,function,top-level-or-method,821,822,-,runtime-service
+services/telegram_broker/bot.py,_claim_update,function,top-level-or-method,825,845,-,runtime-service
+services/telegram_broker/bot.py,main,function,top-level-or-method,848,894,-,runtime-service
 services/telegram_broker/callbacks.py,CallbackStore.__init__,function,top-level-or-method,5,6,-,runtime-service
 services/telegram_broker/callbacks.py,CallbackStore._cleanup,function,top-level-or-method,8,10,-,runtime-service
 services/telegram_broker/callbacks.py,CallbackStore.issue,function,top-level-or-method,12,17,-,runtime-service
@@ -1424,6 +1425,28 @@ tests/test_local_sharia_backend.py,EngineAuthorityTests.test_no_disposition_is_a
 tests/test_local_sharia_backend.py,EngineAuthorityTests.test_clean_document_only_ever_proposes,function,top-level-or-method,931,937,-,test
 tests/test_local_sharia_backend.py,EngineAuthorityTests.test_nothing_retrieved_fails_closed,function,top-level-or-method,939,941,-,test
 tests/test_local_sharia_backend.py,EngineAuthorityTests.test_failed_fetch_fails_closed,function,top-level-or-method,943,945,-,test
+tests/test_oracle_hardening_v2.py,ProtectedCoreTests.test_every_protected_file_is_byte_identical_to_baseline,function,top-level-or-method,63,66,-,test
+tests/test_oracle_hardening_v2.py,OracleInstallerStaticTests.setUpClass,function,top-level-or-method,71,74,classmethod,test
+tests/test_oracle_hardening_v2.py,OracleInstallerStaticTests.test_official_docker_ce_repository_and_arm64,function,top-level-or-method,76,82,-,test
+tests/test_oracle_hardening_v2.py,OracleInstallerStaticTests.test_supported_os_resources_time_swap_and_versions,function,top-level-or-method,84,89,-,test
+tests/test_oracle_hardening_v2.py,OracleInstallerStaticTests.test_privileged_paths_and_legacy_namespace_fail_closed,function,top-level-or-method,91,101,-,test
+tests/test_oracle_hardening_v2.py,OracleInstallerStaticTests.test_secret_file_and_accounts_are_least_privilege,function,top-level-or-method,103,108,-,test
+tests/test_oracle_hardening_v2.py,OracleInstallerStaticTests.test_env_is_parsed_not_sourced,function,top-level-or-method,110,116,-,test
+tests/test_oracle_hardening_v2.py,OracleInstallerStaticTests.test_testnet_env_cannot_request_live,function,top-level-or-method,118,121,-,test
+tests/test_oracle_hardening_v2.py,OracleInstallerStaticTests.test_release_approval_lock_and_rollback_remain,function,top-level-or-method,123,138,-,test
+tests/test_oracle_hardening_v2.py,HostileEnvironmentParserTests.test_hostile_values_are_literal_and_execute_nothing,function,top-level-or-method,143,166,-,test
+tests/test_oracle_hardening_v2.py,ComposeHardeningTests.setUpClass,function,top-level-or-method,171,172,classmethod,test
+tests/test_oracle_hardening_v2.py,ComposeHardeningTests.test_unique_namespace_and_no_public_ports,function,top-level-or-method,174,178,-,test
+tests/test_oracle_hardening_v2.py,ComposeHardeningTests.test_every_service_has_resource_and_privilege_bounds,function,top-level-or-method,180,189,-,test
+tests/test_oracle_hardening_v2.py,ComposeHardeningTests.test_monitor_is_not_a_container_and_no_docker_socket_is_mounted,function,top-level-or-method,191,194,-,test
+tests/test_oracle_hardening_v2.py,MonitorHardeningTests.test_default_loopback_and_port,function,top-level-or-method,198,202,-,test
+tests/test_oracle_hardening_v2.py,MonitorHardeningTests.test_configurable_occupied_port_is_rejected,function,top-level-or-method,204,218,-,test
+tests/test_oracle_hardening_v2.py,MonitorHardeningTests.test_systemd_monitor_has_no_sudo_or_docker_socket,function,top-level-or-method,220,227,-,test
+tests/test_oracle_hardening_v2.py,OperationalScriptTests.test_diagnostics_use_ten_https_requests_and_percentiles,function,top-level-or-method,231,236,-,test
+tests/test_oracle_hardening_v2.py,OperationalScriptTests.test_backup_uses_python_sqlite_backup_and_restore_integrity,function,top-level-or-method,238,247,-,test
+tests/test_oracle_hardening_v2.py,OperationalScriptTests.test_ssh_validation_precedes_reload,function,top-level-or-method,249,251,-,test
+tests/test_oracle_hardening_v2.py,OperationalScriptTests.test_critical_disk_pressure_queues_authenticated_entry_pause,function,top-level-or-method,253,260,-,test
+tests/test_oracle_hardening_v2.py,OperationalScriptTests.test_ci_overrides_oracle_shared_path_with_checked_out_fixture,function,top-level-or-method,262,264,-,test
 tests/test_package_mode.py,_mode_file,function,top-level-or-method,36,39,-,test
 tests/test_package_mode.py,StateStub.__init__,function,top-level-or-method,45,48,-,test
 tests/test_package_mode.py,StateStub.set_entries,function,top-level-or-method,50,51,-,test

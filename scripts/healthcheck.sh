@@ -10,7 +10,7 @@ EXPECTED=(
   universe sharia-egress-proxy sharia-screener freqtrade
   execution-sidecar telegram-broker
 )
-export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-binance-freqtrade-v101}"
+export COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-binana-freqtrade-v101}"
 
 fail=0
 running="$(docker compose ps --status running --services 2>/dev/null || true)"

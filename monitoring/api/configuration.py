@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import ipaddress
 import os
+import re
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -60,8 +61,14 @@ class Config:
     MAX_LEDGER_SCAN_BYTES = 32 * 1024 * 1024
 
     def __init__(self) -> None:
+        self.bot_product = os.getenv("BOT_PRODUCT", "BINANA").strip().upper()
+        self.bot_environment = os.getenv("BOT_ENVIRONMENT", "TESTNET").strip().upper()
+        self.bot_instance_id = os.getenv(
+            "BOT_INSTANCE_ID", "BINANA-TN-TYO-01"
+        ).strip().upper()
+        self.bot_mode = os.getenv("BOT_MODE", "testnet").strip().lower()
         shared = Path(os.getenv(
-            "MONITOR_SHARED_ROOT", "/var/lib/binance-freqtrade-v101/shared"
+            "MONITOR_SHARED_ROOT", "/var/lib/binana-freqtrade-v101/shared"
         ))
         runtime = shared / "runtime"
 
@@ -76,9 +83,8 @@ class Config:
         self.allowed_ips = os.getenv(
             "MONITOR_ALLOWED_IPS", "127.0.0.1/32,::1/128"
         ).strip()
-        self.bot_mode = os.getenv("BOT_MODE", "testnet").strip().lower()
         self.bot_dir = Path(os.getenv(
-            "BOT_DIRECTORY", "/opt/binance-freqtrade-v101/current"
+            "BOT_DIRECTORY", "/opt/binana-freqtrade-v101/current"
         ))
         self.shared_root = shared
 
@@ -102,7 +108,7 @@ class Config:
 
         self.audit_path = Path(os.getenv(
             "MONITOR_AUDIT_LOG",
-            f"/var/log/binance-freqtrade-v101/monitor/{self.bot_mode}-audit.jsonl",
+            f"/var/log/binana-freqtrade-v101/monitor/{self.bot_mode}-audit.jsonl",
         ))
         self.security_audit_path = Path(os.getenv(
             "BOT_SECURITY_AUDIT_LOG", str(shared / "audit/events.jsonl")
@@ -144,11 +150,15 @@ class Config:
         self.binance_base = os.getenv("BINANCE_REST_BASE", default_base).rstrip("/")
 
     def banner(self) -> str:
+        identity = (
+            f"[{self.bot_product} | {self.bot_environment} | "
+            f"{self.bot_instance_id}]"
+        )
         if self.bot_mode == "live":
-            return "MODE: LIVE BINANCE SPOT - REAL-MONEY ENVIRONMENT"
+            return identity + " MODE: LIVE BINANCE SPOT - REAL-MONEY ENVIRONMENT"
         if self.bot_mode == "testnet":
-            return "MODE: BINANCE SPOT TESTNET - NO REAL-MONEY TRADING"
-        return "MODE: SIMULATION - NO EXCHANGE ORDERS"
+            return identity + " MODE: BINANCE SPOT TESTNET - NO REAL-MONEY TRADING"
+        return identity + " MODE: SIMULATION - NO EXCHANGE ORDERS"
 
     def allowed_networks(self):
         networks = []
@@ -160,6 +170,13 @@ class Config:
 
     def runtime_errors(self) -> list[str]:
         errors: list[str] = []
+        if self.bot_product != "BINANA":
+            errors.append("BOT_PRODUCT must be BINANA")
+        expected_environment = "LIVE" if self.bot_mode == "live" else "TESTNET"
+        if self.bot_environment != expected_environment:
+            errors.append("BOT_ENVIRONMENT does not match BOT_MODE")
+        if not re.fullmatch(r"BINANA-[A-Z0-9-]{3,48}", self.bot_instance_id):
+            errors.append("BOT_INSTANCE_ID is invalid")
         if self.bot_mode not in {"simulation", "testnet", "live"}:
             errors.append("invalid BOT_MODE")
         if self.bind_host not in {"127.0.0.1", "::1", "localhost"}:
