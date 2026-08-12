@@ -1351,7 +1351,7 @@ tests/test_external_signals.py,WriterLeaseTests.test_open_failure_fails_closed_a
 tests/test_external_signals.py,WriterLeaseTests.test_open_failure_fails_closed_and_disables_enrichment.deny_lease_open,function,nested,1271,1274,-,test
 tests/test_external_signals.py,WriterLeaseTests.test_open_failure_fails_closed_and_disables_enrichment.deny_lease_write,function,nested,1276,1279,-,test
 tests/test_external_signals.py,WriterLeaseTests.test_disabled_providers_do_not_take_a_lease,function,top-level-or-method,1294,1300,-,test
-tests/test_external_signals.py,SingleWriterInvariantTests.test_external_provider_guards_have_only_two_bounded_consumers,function,top-level-or-method,1309,1330,-,test
+tests/test_external_signals.py,SingleWriterInvariantTests.test_external_provider_guards_have_only_two_bounded_consumers,function,top-level-or-method,1309,1331,-,test
 tests/test_local_sharia_backend.py,_doc,function,top-level-or-method,81,86,-,test
 tests/test_local_sharia_backend.py,_claim,function,top-level-or-method,89,92,-,test
 tests/test_local_sharia_backend.py,_evaluate,function,top-level-or-method,95,126,-,test

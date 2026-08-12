@@ -1317,8 +1317,9 @@ class SingleWriterInvariantTests(unittest.TestCase):
         # consumers are limited to the advisory universe scanner and the
         # fail-closed Sharia source-discovery layer. The latter can only create
         # owner-unverified reading-list candidates, never trade permission.
-        outside = [p for p in importers
-                   if not p.startswith('services/universe_service/external_signals/')]
+        outside = sorted(
+            p for p in importers
+            if not p.startswith('services/universe_service/external_signals/'))
         self.assertEqual(outside, [
             'services/sharia_screener/source_discovery.py',
             'services/universe_service/scanner.py',
