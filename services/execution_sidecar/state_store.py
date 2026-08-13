@@ -1,15 +1,14 @@
 from __future__ import annotations
-import json, sqlite3, threading
+import hashlib, json, sqlite3, threading
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-from services.common.atomic import atomic_write_json, read_json
+from services.common.atomic import atomic_write_json
 from services.common.models import LifecycleState, ProtectionMode
 
+SCHEMA_VERSION = 1
 SCHEMA = '''
-PRAGMA journal_mode=WAL;
-PRAGMA synchronous=FULL;
 CREATE TABLE IF NOT EXISTS trade_records (
   trade_id TEXT PRIMARY KEY,
   pair TEXT NOT NULL,
@@ -55,16 +54,40 @@ CREATE TABLE IF NOT EXISTS exchange_events (
   event_time TEXT,
   payload_json TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS safety_halts (
+  safety_key TEXT PRIMARY KEY,
+  payload_json TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS recovery_intents (
+  safety_key TEXT PRIMARY KEY,
+  payload_json TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS risk_guard_state (
+  singleton INTEGER PRIMARY KEY CHECK(singleton = 1),
+  state_json TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS state_migrations (
+  migration_name TEXT PRIMARY KEY,
+  source_path TEXT,
+  source_sha256 TEXT,
+  migrated_at TEXT NOT NULL
+);
 '''
 
 class StateStore:
     def __init__(self, path: str | Path, db_path: str | Path | None = None):
         self.path = Path(path)
         self.db_path = Path(db_path or self.path.with_suffix('.sqlite'))
+        self._database_was_existing = self.db_path.exists()
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.lock = threading.RLock()
-        self.data = read_json(self.path, {}) or {}
+        self._durability_fault = ''
+        legacy_data, legacy_status, legacy_sha256 = self._read_legacy_json(self.path)
+        self.data = legacy_data if isinstance(legacy_data, dict) else {}
         self.data.setdefault('protection_mode', ProtectionMode.OCO_TRAILING.value)
         self.data.setdefault('entries_enabled', False)
         self.data.setdefault('simulation', True)
@@ -78,8 +101,143 @@ class StateStore:
             # store is silently damaged; the operator must restore a verified
             # backup instead.
             self._verify_integrity(con)
-            con.executescript(SCHEMA)
-        self.save()
+            con.execute('PRAGMA journal_mode=WAL')
+            con.execute('PRAGMA synchronous=FULL')
+            self._migrate_schema(con)
+        self._load_or_migrate_safety_state(
+            legacy_status=legacy_status,
+            legacy_sha256=legacy_sha256,
+        )
+        # Do not destroy a corrupt legacy file. SQLite is authoritative for
+        # safety state, while entries retain their startup-safe default.
+        if legacy_status != 'corrupt':
+            self.save()
+
+    @staticmethod
+    def _read_legacy_json(path: Path) -> tuple[dict | None, str, str | None]:
+        if not path.exists():
+            return None, 'missing', None
+        try:
+            raw = path.read_bytes()
+            value = json.loads(raw.decode('utf-8'))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            return None, 'corrupt', None
+        if not isinstance(value, dict):
+            return None, 'corrupt', hashlib.sha256(raw).hexdigest()
+        return value, 'valid', hashlib.sha256(raw).hexdigest()
+
+    @staticmethod
+    def _canonical_json(value: Any) -> str:
+        return json.dumps(value, sort_keys=True, separators=(',', ':'), default=str)
+
+    @staticmethod
+    def _validate_mapping(value: Any, label: str) -> dict:
+        if not isinstance(value, dict):
+            raise RuntimeError(f'{label} is not a JSON object; fail closed')
+        return json.loads(json.dumps(value, default=str))
+
+    def _migrate_schema(self, con) -> None:
+        version = int(con.execute('PRAGMA user_version').fetchone()[0])
+        if version > SCHEMA_VERSION:
+            raise RuntimeError(
+                f'unsupported future SQLite schema version {version}; '
+                f'maximum supported is {SCHEMA_VERSION}; fail closed')
+        while version < SCHEMA_VERSION:
+            if version != 0:
+                raise RuntimeError(f'no deterministic migration from SQLite schema {version}')
+            try:
+                con.execute('BEGIN IMMEDIATE')
+                for statement in (item.strip() for item in SCHEMA.split(';')):
+                    if statement:
+                        con.execute(statement)
+                con.execute(f'PRAGMA user_version={SCHEMA_VERSION}')
+                con.commit()
+            except Exception:
+                con.rollback()
+                raise
+            version = SCHEMA_VERSION
+
+    def _migration(self, con, name: str):
+        return con.execute(
+            'SELECT * FROM state_migrations WHERE migration_name=?', (name,)
+        ).fetchone()
+
+    def _replace_mapping_table(self, con, table: str, values: dict) -> None:
+        if table not in {'safety_halts', 'recovery_intents'}:
+            raise ValueError('invalid safety table')
+        con.execute(f'DELETE FROM {table}')  # nosec B608 - fixed allowlist above
+        now = self._now()
+        con.executemany(
+            f'INSERT INTO {table}(safety_key,payload_json,updated_at) VALUES(?,?,?)',  # nosec B608
+            [(str(key), self._canonical_json(payload), now)
+             for key, payload in sorted(values.items())],
+        )
+
+    def _read_mapping_table(self, con, table: str) -> dict:
+        if table not in {'safety_halts', 'recovery_intents'}:
+            raise ValueError('invalid safety table')
+        result = {}
+        for row in con.execute(
+                f'SELECT safety_key,payload_json FROM {table} ORDER BY safety_key'):  # nosec B608
+            try:
+                payload = json.loads(row['payload_json'])
+            except (TypeError, json.JSONDecodeError) as exc:
+                raise RuntimeError(
+                    f'authoritative SQLite {table} payload is corrupt; fail closed') from exc
+            result[str(row['safety_key'])] = self._validate_mapping(
+                payload, f'authoritative SQLite {table} payload')
+        return result
+
+    def _load_or_migrate_safety_state(
+            self, *, legacy_status: str, legacy_sha256: str | None) -> None:
+        name = 'legacy-sidecar-safety-v1'
+        with self._connect() as con:
+            migrated = self._migration(con, name)
+            if migrated:
+                halts = self._read_mapping_table(con, 'safety_halts')
+                intents = self._read_mapping_table(con, 'recovery_intents')
+            else:
+                if legacy_status == 'corrupt':
+                    raise RuntimeError(
+                        'legacy sidecar safety state is unreadable/corrupt and '
+                        'authoritative SQLite migration cannot be proven; fail closed')
+                if legacy_status == 'missing' and self._database_was_existing:
+                    raise RuntimeError(
+                        'legacy sidecar safety state is missing for an existing '
+                        'SQLite database and migration cannot be proven; fail closed')
+                halts = self._validate_mapping(
+                    self.data.get('safety_halts', {}), 'legacy safety_halts')
+                intents = self._validate_mapping(
+                    self.data.get('recovery_intents', {}), 'legacy recovery_intents')
+                self._replace_mapping_table(con, 'safety_halts', halts)
+                self._replace_mapping_table(con, 'recovery_intents', intents)
+                con.execute(
+                    '''INSERT INTO state_migrations(
+                       migration_name,source_path,source_sha256,migrated_at)
+                       VALUES(?,?,?,?)''',
+                    (name, str(self.path), legacy_sha256, self._now()),
+                )
+        self.data['safety_halts'] = halts
+        self.data['recovery_intents'] = intents
+        if legacy_status == 'corrupt':
+            self.data['entries_enabled'] = False
+            self.data['pause_reason'] = 'legacy-sidecar-corrupt-authoritative-safety-restored'
+
+    def _mark_durability_fault(self, exc: BaseException) -> None:
+        self._durability_fault = type(exc).__name__ + ': ' + str(exc)
+        self.data['entries_enabled'] = False
+        self.data['pause_reason'] = 'safety-state-durability-failure'
+
+    def _write_safety_state(self, halts: dict, intents: dict) -> None:
+        try:
+            with self._connect() as con:
+                self._replace_mapping_table(con, 'safety_halts', halts)
+                self._replace_mapping_table(con, 'recovery_intents', intents)
+        except Exception as exc:
+            self._mark_durability_fault(exc)
+            raise RuntimeError(
+                'authoritative SQLite safety-state write failed; entries remain fail closed'
+            ) from exc
 
     @staticmethod
     def _verify_integrity(con) -> None:
@@ -112,6 +270,10 @@ class StateStore:
 
     def save(self):
         with self.lock:
+            self._write_safety_state(
+                self._validate_mapping(self.data.get('safety_halts', {}), 'safety_halts'),
+                self._validate_mapping(self.data.get('recovery_intents', {}), 'recovery_intents'),
+            )
             atomic_write_json(self.path, self.data)
 
     def get_mode(self):
@@ -122,10 +284,13 @@ class StateStore:
         self.save()
 
     def entries(self):
-        return bool(self.data.get('entries_enabled', False))
+        return not self._durability_fault and bool(self.data.get('entries_enabled', False))
 
     def set_entries(self, value: bool, reason: str = ''):
         with self.lock:
+            if value and self._durability_fault:
+                raise RuntimeError(
+                    'entries remain fail-closed after a safety-state durability failure')
             if value and self.data.get('safety_halts'):
                 reasons = ', '.join(sorted(self.data['safety_halts']))
                 raise RuntimeError(
@@ -146,8 +311,10 @@ class StateStore:
             'kind': str(kind), 'details': details or {}, 'latched_at': now,
         }
         with self.lock:
-            halts = self.data.setdefault('safety_halts', {})
-            intents = self.data.setdefault('recovery_intents', {})
+            halts = self._validate_mapping(
+                self.data.setdefault('safety_halts', {}), 'safety_halts')
+            intents = self._validate_mapping(
+                self.data.setdefault('recovery_intents', {}), 'recovery_intents')
             prior_halt = halts.get(key, {})
             prior_intent = intents.get(key, {})
             if prior_halt.get('latched_at'):
@@ -157,38 +324,129 @@ class StateStore:
             # client ID, accepted order ID, or recovery stage already written.
             intents[key] = dict(prior_intent, **incident,
                                 status=prior_intent.get('status', 'PENDING'))
+            self._write_safety_state(halts, intents)
+            self.data['safety_halts'] = halts
+            self.data['recovery_intents'] = intents
             self.data['entries_enabled'] = False
             self.data['pause_reason'] = 'safety-reconciliation-required:' + key
-            self.save()
+            atomic_write_json(self.path, self.data)
         return incident
 
     def update_recovery_intent(self, key: str, **fields) -> None:
         with self.lock:
-            intents = self.data.setdefault('recovery_intents', {})
+            halts = self._validate_mapping(
+                self.data.setdefault('safety_halts', {}), 'safety_halts')
+            intents = self._validate_mapping(
+                self.data.setdefault('recovery_intents', {}), 'recovery_intents')
             if key not in intents:
                 raise KeyError(f'unknown recovery intent {key}')
             intents[key].update({k: v for k, v in fields.items() if k not in {'key'}})
             intents[key]['updated_at'] = self._now()
-            self.save()
+            self._write_safety_state(halts, intents)
+            self.data['safety_halts'] = halts
+            self.data['recovery_intents'] = intents
+            atomic_write_json(self.path, self.data)
 
     def resolve_safety(self, key: str, resolution: str) -> None:
         """Resolve one verified incident without ever re-enabling entries."""
         with self.lock:
-            incident = self.data.setdefault('recovery_intents', {}).pop(key, None)
-            self.data.setdefault('safety_halts', {}).pop(key, None)
+            halts = self._validate_mapping(
+                self.data.setdefault('safety_halts', {}), 'safety_halts')
+            intents = self._validate_mapping(
+                self.data.setdefault('recovery_intents', {}), 'recovery_intents')
+            incident = intents.pop(key, None)
+            halts.pop(key, None)
+            self._write_safety_state(halts, intents)
+            self.data['safety_halts'] = halts
+            self.data['recovery_intents'] = intents
             self.data['last_safety_resolution'] = {
                 'key': key, 'resolution': str(resolution),
                 'incident': incident or {}, 'resolved_at': self._now(),
             }
             self.data['entries_enabled'] = False
             self.data['pause_reason'] = (
-                'safety-reconciliation-required:' + ','.join(sorted(self.data['safety_halts']))
-                if self.data['safety_halts'] else 'owner-resume-required-after-safety-action')
-            self.save()
+                'safety-reconciliation-required:' + ','.join(sorted(halts))
+                if halts else 'owner-resume-required-after-safety-action')
+            atomic_write_json(self.path, self.data)
 
     def safety_halts(self) -> dict:
         with self.lock:
             return json.loads(json.dumps(self.data.get('safety_halts', {}), default=str))
+
+    def load_or_migrate_risk_guard_state(self, legacy_path: str | Path) -> dict:
+        path = Path(legacy_path)
+        legacy, status, source_sha256 = self._read_legacy_json(path)
+        name = 'legacy-fresh-signal-guard-v1'
+        with self.lock:
+            with self._connect() as con:
+                migrated = self._migration(con, name)
+                row = con.execute(
+                    'SELECT state_json FROM risk_guard_state WHERE singleton=1'
+                ).fetchone()
+                if migrated:
+                    if not row:
+                        raise RuntimeError(
+                            'authoritative SQLite risk state is missing after migration; fail closed')
+                    try:
+                        return self._validate_risk_guard_state(json.loads(row['state_json']))
+                    except (TypeError, json.JSONDecodeError) as exc:
+                        raise RuntimeError(
+                            'authoritative SQLite risk state is corrupt; fail closed') from exc
+                if row:
+                    raise RuntimeError(
+                        'SQLite risk state exists without its migration record; fail closed')
+                if status == 'corrupt':
+                    raise RuntimeError(
+                        'legacy risk state is unreadable/corrupt and authoritative '
+                        'SQLite recovery cannot be proven; fail closed')
+                if status == 'missing' and self._database_was_existing:
+                    raise RuntimeError(
+                        'legacy risk state is missing for an existing SQLite '
+                        'database and migration cannot be proven; fail closed')
+                state = self._validate_risk_guard_state(legacy or {})
+                con.execute(
+                    '''INSERT INTO risk_guard_state(singleton,state_json,updated_at)
+                       VALUES(1,?,?)''',
+                    (self._canonical_json(state), self._now()),
+                )
+                con.execute(
+                    '''INSERT INTO state_migrations(
+                       migration_name,source_path,source_sha256,migrated_at)
+                       VALUES(?,?,?,?)''',
+                    (name, str(path), source_sha256, self._now()),
+                )
+                return state
+
+    @classmethod
+    def _validate_risk_guard_state(cls, value: Any) -> dict:
+        state = cls._validate_mapping(value, 'risk guard state')
+        state.setdefault('pairs', {})
+        state.setdefault('daily', {})
+        state.setdefault('global_pause', '')
+        if not isinstance(state['pairs'], dict) or not isinstance(state['daily'], dict):
+            raise RuntimeError('risk guard pairs/daily state is invalid; fail closed')
+        if not isinstance(state['global_pause'], str):
+            raise RuntimeError('risk guard global_pause state is invalid; fail closed')
+        return state
+
+    def save_risk_guard_state(self, value: dict) -> None:
+        state = self._validate_risk_guard_state(value)
+        try:
+            with self.lock:
+                with self._connect() as con:
+                    cur = con.execute(
+                        '''UPDATE risk_guard_state
+                           SET state_json=?,updated_at=? WHERE singleton=1''',
+                        (self._canonical_json(state), self._now()),
+                    )
+                    if cur.rowcount != 1:
+                        raise RuntimeError(
+                            'authoritative SQLite risk state is not initialized')
+        except Exception as exc:
+            self._mark_durability_fault(exc)
+            raise RuntimeError(
+                'authoritative SQLite risk-state write failed; entries remain fail closed'
+            ) from exc
 
     def signal_seen(self, signal_id: str) -> bool:
         return self.signal_result(signal_id) is not None

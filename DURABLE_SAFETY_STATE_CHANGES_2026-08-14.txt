@@ -1,0 +1,49 @@
+Durable Safety-State Persistence Change Record
+Date: 2026-08-14
+Scope: GitHub TestNet issue #8
+
+Purpose
+-------
+Prevent loss or silent reset of established safety history when legacy JSON
+state files are missing, unreadable, truncated, or corrupt.
+
+Implemented changes
+-------------------
+1. SQLite is authoritative for FreshSignalGuard safety state:
+   pair signal history, cooldowns, last stop-outs, daily stop-out counters,
+   and the global risk pause.
+2. SQLite is authoritative for StateStore safety_halts and recovery_intents.
+3. PRAGMA user_version provides explicit schema versioning. Version 0 upgrades
+   deterministically to version 1 inside a transaction.
+4. Valid legacy JSON is imported once and recorded in state_migrations with
+   its source path and SHA-256 digest.
+5. After migration, missing or corrupt JSON mirrors cannot erase SQLite state.
+6. Corrupt or missing legacy state fails closed when an authoritative migration
+   cannot be proven. Missing files are accepted only for a genuinely new database.
+7. SQLite write/commit failures are not acknowledged as durable and force entry
+   permission closed for the running process.
+8. Regression tests cover upgrade, restart, corruption, missing files,
+   future schema rejection, simulated disk/commit failure, and migration
+   idempotence.
+
+Protected trading core
+----------------------
+The strategy and legacy core remain byte-for-byte unchanged:
+
+freqtrade/user_data/strategies/IctSmcStrategy.py
+SHA-256: 9f6bafc78c8cd0d9b9cbde615ddce89e304ab09738584b88d05bfdf92ff4e830
+
+legacy_core/binance_bot_V4.9.16_ALL_IN_ONE.py
+SHA-256: 70b1d67cc0092b5b8db4a68b343cf893641bde1aae580e9ef51e2adec1062459
+
+Explicit non-changes
+--------------------
+No changes were made to strategy indicators, entry or exit rules, pair
+selection, Sharia screening, position sizing, exchange order behaviour, or
+the preserved legacy trading core.
+
+Readiness boundary
+------------------
+Passing source and CI checks does not by itself prove Oracle-host deployment,
+authenticated Binance TestNet order lifecycle, soak/recovery operation, strategy
+profitability, or LIVE-money certification. Those remain separate validation gates.

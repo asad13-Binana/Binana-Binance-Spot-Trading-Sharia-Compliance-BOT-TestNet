@@ -30,8 +30,18 @@ class FreshSignalGuard:
         self.path = Path(state_path)
         self.store = state_store
         self.lock = threading.RLock()
-        try: self.state = json.loads(self.path.read_text())
-        except Exception: self.state = {}
+        if self.store is not None:
+            self.state = self.store.load_or_migrate_risk_guard_state(self.path)
+        elif not self.path.exists():
+            self.state = {}
+        else:
+            try:
+                self.state = json.loads(self.path.read_text(encoding='utf-8'))
+            except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+                raise RuntimeError(
+                    'legacy risk state is unreadable/corrupt; fail closed') from exc
+            if not isinstance(self.state, dict):
+                raise RuntimeError('legacy risk state is not a JSON object; fail closed')
         self.state.setdefault('pairs', {})
         self.state.setdefault('daily', {})
         self.state.setdefault('global_pause', '')
@@ -54,6 +64,8 @@ class FreshSignalGuard:
 
     def _save(self):
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        if self.store is not None:
+            self.store.save_risk_guard_state(self.state)
         atomic_write_json(self.path, self.state)
 
     def set_global_pause(self, reason: str):
