@@ -62,8 +62,64 @@ jobs:
       - name: Monitoring dependency vulnerability audit
         run: python -m pip_audit -r monitoring/requirements-monitoring.lock --strict --no-deps --disable-pip
 
+  sast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Install security tooling
+        run: python -m pip install -r requirements-dev.txt
+      - name: Ruff critical correctness checks
+        run: python -m ruff check --select E9,F63,F7,F82 .
+      - name: Bandit high-severity security checks
+        run: >-
+          python -m bandit -q -r services monitoring scripts legacy_core
+          freqtrade/user_data/strategies
+          --severity-level high --confidence-level high --skip B413
+      - name: Scan every reachable Git commit for high-confidence secrets
+        run: python scripts/scan_git_history_secrets.py
+
+  quality-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Install hash-locked runtime dependencies (services)
+        run: python -m pip install --require-hashes -r requirements.services.lock
+      - name: Install hash-locked runtime dependencies (monitoring)
+        run: python -m pip install --require-hashes -r monitoring/requirements-monitoring.lock
+      - name: Install test and coverage tooling
+        run: python -m pip install -r requirements-dev.txt
+      - name: Measure branch coverage and run property tests
+        run: >-
+          python -m coverage run --branch --source=services,monitoring
+          --data-file=/tmp/binana.coverage -m pytest -q tests monitoring/tests
+          -k "not test_sidecar_processes_signal_without_network_or_order"
+      - name: Enforce coverage non-regression and report the 85 percent target
+        run: |
+          python -m coverage json --data-file=/tmp/binana.coverage -o /tmp/binana-coverage.json
+          python scripts/verify_coverage_ratchet.py /tmp/binana-coverage.json --minimum 68 --target 85
+      - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
+        with:
+          name: binana-coverage-${{ github.sha }}
+          path: /tmp/binana-coverage.json
+          retention-days: 14
+          if-no-files-found: error
+
   artifact:
-    needs: verify
+    needs: [verify, sast, quality-evidence]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:

@@ -116,6 +116,7 @@ class ReleaseGateTraversalTests(unittest.TestCase):
     def test_release_gate_prunes_generated_cache_directories(self):
         source = (ROOT / 'deploy/verify_release.sh').read_text(encoding='utf-8')
         self.assertGreaterEqual(source.count("-path './.pytest_cache' -prune"), 3)
+        self.assertGreaterEqual(source.count("-path './.hypothesis' -prune"), 3)
         self.assertGreaterEqual(source.count("-path '*/__pycache__' -prune"), 3)
 
 
