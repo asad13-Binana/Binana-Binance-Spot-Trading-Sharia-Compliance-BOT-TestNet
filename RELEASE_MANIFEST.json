@@ -40,6 +40,10 @@
       "sha256": "004f6813b7d08edce4f99d4de01ebf6abeacea025a13e2d9b74d23d1696bd46c",
       "size": 4367
     },
+    "DURABLE_SAFETY_STATE_CHANGES_2026-08-14.txt": {
+      "sha256": "18c1011f7725ad2a5ad1b42b9fa549b74acf2d630fc096b8a2ff7fd16d023d57",
+      "size": 2171
+    },
     "Dockerfile.services": {
       "sha256": "4b8d5a4aa82a6bc7d1d103750704ef076fb2b80e7432bf73c703db8a94539393",
       "size": 1877
@@ -245,16 +249,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "d6098453ff61591f6e354e86a744af07cbd3aae5803329b525f827a6b8920b42",
-      "size": 40115
+      "sha256": "fc686eae1b96403032c31508414841ca746309798351f9df934ddfe4bb34abb4",
+      "size": 40427
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "d555eb564c1bdf54cbc0fbb14a5a4cc294093965e84ecfc68bf3ed9d6767684f",
-      "size": 254308
+      "sha256": "07f04f2c504873be4e3a4b7870ab8d51bf58289694fb36ac231ca55137cc70b6",
+      "size": 257777
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -701,16 +705,16 @@
       "size": 674
     },
     "services/execution_sidecar/risk_checks.py": {
-      "sha256": "d376a10a27e84eb50964e848b5d78ef6a98b8cafb76cf1d59731ccb68ee4d765",
-      "size": 9432
+      "sha256": "1664091dfbbcf8fbdcf27363dcb41d85aa4a10eab9849df829bb6d761680d93a",
+      "size": 10051
     },
     "services/execution_sidecar/simulation_adapter.py": {
       "sha256": "40b8ef41448c6a46a4b8b800a31cd314e108cfb4da481c912d760e55a8bb0e86",
       "size": 10027
     },
     "services/execution_sidecar/state_store.py": {
-      "sha256": "278956e40f08d0f61500ff7889b46637f5ed8bb6ac2f3c11a3e47096c4571bc9",
-      "size": 33069
+      "sha256": "11a25fa87b98008d38055062b13748cdec9e6d1a5e0f9112e80df4c3dbbfd087",
+      "size": 45511
     },
     "services/execution_sidecar/user_data_stream.py": {
       "sha256": "85e64a72d8b60e2e91a9a56fa46e69d3a3970221903919f3820b1ef92ee89c83",
@@ -945,7 +949,7 @@
       "size": 45086
     },
     "tests/test_oracle_hardening_v2.py": {
-      "sha256": "563b8e0b4ebc9f165d9cb868ca0aa29867f767106f81afd9c4ef4c98272c28be",
+      "sha256": "2c61e3abc71beb73e230ca52105bfd5a909025e89b8ee6bbc1273b335442c40d",
       "size": 15640
     },
     "tests/test_package_mode.py": {
@@ -963,6 +967,10 @@
     "tests/test_phase_6_8_repairs.py": {
       "sha256": "c903fd01506de67323b1e770c08a869cd35f36954f05a71b8839df0e905e57bd",
       "size": 20089
+    },
+    "tests/test_safety_state_sqlite.py": {
+      "sha256": "8bd01abb2ba02393aa58f521490786054b5ec98e1b05c55cf7a14e20cd9468eb",
+      "size": 11920
     },
     "tests/test_seed_source_registry.py": {
       "sha256": "731ab550b5c895097938407635a595b6285312a4c1ca4c42d71da4c48871038c",
