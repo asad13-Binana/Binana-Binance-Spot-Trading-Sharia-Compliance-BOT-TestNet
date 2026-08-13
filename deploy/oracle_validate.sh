@@ -139,4 +139,21 @@ PY
 
 printf '\nmonitor_state='
 systemctl is-active "binana-monitor-${package_mode}.service" 2>/dev/null || true
+printf 'local_backup_timer='
+systemctl is-active binana-state-backup.timer 2>/dev/null || true
+printf 'offhost_backup_timer='
+systemctl is-active binana-offhost-backup.timer 2>/dev/null || true
+if [[ -f "$PERSIST/runtime/offhost_backup_status.json" && ! -L "$PERSIST/runtime/offhost_backup_status.json" ]]; then
+  python3 - "$PERSIST/runtime/offhost_backup_status.json" <<'PY'
+import json, pathlib, sys
+data = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+safe = {key: data.get(key) for key in (
+    "ok", "completed_at", "failed_at", "source_backup", "object_name",
+    "encrypted_sha256", "authentication", "exit_code"
+) if key in data}
+print("offhost_backup_status=" + json.dumps(safe, sort_keys=True))
+PY
+else
+  echo 'offhost_backup_status=NOT_CONFIGURED_OR_NOT_RUN'
+fi
 printf 'validation_complete=YES; Oracle soak/fault drills are separate and are not implied.\n'

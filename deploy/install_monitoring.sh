@@ -84,6 +84,8 @@ install -m 0644 -o root -g root \
   "$UNIT_DIR/binana-disk-guard.timer" \
   "$UNIT_DIR/binana-state-backup.service" \
   "$UNIT_DIR/binana-state-backup.timer" \
+  "$UNIT_DIR/binana-offhost-backup.service" \
+  "$UNIT_DIR/binana-offhost-backup.timer" \
   /etc/systemd/system/
 
 OTHER=testnet
