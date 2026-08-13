@@ -503,6 +503,26 @@ def websocket_status() -> dict:
     }
 
 
+def telegram_alert_outbox_status() -> dict:
+    """Expose the broker's pre-redacted alert queue health record read-only."""
+    health = _health(CONFIG.telegram_alert_outbox_health_path, 180)
+    if not health["available"]:
+        return health
+    data = health.get("data", {})
+    return {
+        "available": True,
+        "fresh": health["fresh"],
+        "age_seconds": health["age_seconds"],
+        "ok": bool(data.get("ok")),
+        "pending_alert_count": int(data.get("pending_alert_count") or 0),
+        "oldest_pending_alert_age_seconds": float(
+            data.get("oldest_pending_alert_age_seconds") or 0.0
+        ),
+        "dead_letter_count": int(data.get("dead_letter_count") or 0),
+        "blocked_reason": redact(str(data.get("blocked_reason") or "")) or None,
+    }
+
+
 def sharia_status() -> dict:
     data, error = _safe_json(CONFIG.sharia_status_path)
     health = _health(CONFIG.sharia_health_path, 180)

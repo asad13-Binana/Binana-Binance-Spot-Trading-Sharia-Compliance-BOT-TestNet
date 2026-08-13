@@ -85,6 +85,8 @@ FT_USER = os.getenv('FREQTRADE_API_USERNAME', 'freqtrade')
 FT_PASS = os.getenv('FREQTRADE_API_PASSWORD', '')
 OFFSET_PATH = RUNTIME / 'telegram_offset.json'
 ALERT_DELIVERY_STATE = RUNTIME / 'telegram_alert_delivery.json'
+ALERT_QUARANTINE = RUNTIME / 'telegram_alert_quarantine'
+ALERT_OUTBOX_HEALTH = RUNTIME / 'telegram_alert_outbox_health.json'
 PAIR_RE = re.compile(r'^([A-Z0-9]{2,20})(?:/USDT|USDT)$')
 NOT_FATWA = 'Research screening only — not a fatwa and not financial advice.'
 
@@ -103,21 +105,106 @@ def send(text, chat_id=None, buttons=None):
     response.raise_for_status()
 
 
+def _load_alert_delivery_state() -> dict:
+    """Load the alert dedupe journal without silently accepting corruption."""
+    if not ALERT_DELIVERY_STATE.exists():
+        return {}
+    try:
+        state = json.loads(ALERT_DELIVERY_STATE.read_text(encoding='utf-8'))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError('Telegram alert dedupe state is unreadable; delivery paused') from exc
+    if not isinstance(state, dict) or not isinstance(state.get('delivered', {}), dict):
+        raise RuntimeError('Telegram alert dedupe state has an invalid schema; delivery paused')
+    return state
+
+
+def _quarantine_alert(path: Path, reason: str) -> None:
+    """Atomically remove an invalid alert from the live queue for inspection."""
+    ALERT_QUARANTINE.mkdir(parents=True, exist_ok=True)
+    token = uuid.uuid4().hex
+    payload_path = ALERT_QUARANTINE / f'{token}.payload'
+    metadata_path = ALERT_QUARANTINE / f'{token}.json'
+    try:
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        os.replace(path, payload_path)
+        atomic_write_json(metadata_path, {
+            'quarantine_id': token,
+            'original_name': path.name[:255],
+            'reason': str(reason)[:300],
+            'sha256': digest,
+            'quarantined_at': time.time(),
+            'payload_file': payload_path.name,
+        })
+    except Exception:
+        if payload_path.exists() and not path.exists():
+            try:
+                os.replace(payload_path, path)
+            except OSError:
+                pass
+        raise
+
+
+def _alert_outbox_health(*, blocked_reason: str = '') -> dict:
+    now = time.time()
+    pending = list(TELEGRAM_ALERT_OUTBOX.glob('*.json'))
+    ages = []
+    for path in pending:
+        try:
+            ages.append(max(0.0, now - path.stat().st_mtime))
+        except OSError:
+            continue
+    dead_letters = list(ALERT_QUARANTINE.glob('*.json')) if ALERT_QUARANTINE.exists() else []
+    payload = {
+        'ok': not blocked_reason,
+        'ts': now,
+        'pending_alert_count': len(pending),
+        'oldest_pending_alert_age_seconds': round(max(ages), 3) if ages else 0.0,
+        'dead_letter_count': len(dead_letters),
+        'blocked_reason': str(blocked_reason)[:300] or None,
+    }
+    atomic_write_json(ALERT_OUTBOX_HEALTH, payload)
+    return payload
+
+
 def deliver_sidecar_notifications(limit: int = 20) -> int:
-    """Deliver durable sidecar alerts with local replay deduplication."""
-    state = read_json(ALERT_DELIVERY_STATE, {}) or {}
+    """Deliver durable sidecar alerts without malformed-file starvation."""
+    try:
+        state = _load_alert_delivery_state()
+    except RuntimeError as exc:
+        audit('telegram_alert_dedupe_state_invalid', severity='CRITICAL',
+              details={'error': _redact_secrets(exc)})
+        _alert_outbox_health(blocked_reason=str(exc))
+        return 0
     delivered = state.get('delivered', {})
-    if not isinstance(delivered, dict):
-        delivered = {}
     processed = 0
-    for path in sorted(TELEGRAM_ALERT_OUTBOX.glob('*.json'))[:max(0, int(limit))]:
+    blocked_reason = ''
+    scan_max = env_int('TELEGRAM_ALERT_SCAN_MAX', 1000, 20, 10000)
+    for path in sorted(TELEGRAM_ALERT_OUTBOX.glob('*.json'))[:scan_max]:
+        if processed >= max(0, int(limit)):
+            break
         payload = read_json(path, None)
         if not isinstance(payload, dict):
             audit('telegram_alert_invalid', severity='ERROR', details={'file': path.name})
+            try:
+                _quarantine_alert(path, 'payload is not a JSON object')
+            except Exception as exc:
+                reason = 'failed to quarantine malformed alert: ' + _redact_secrets(exc)
+                audit('telegram_alert_quarantine_failed', severity='CRITICAL',
+                      details={'file': path.name, 'error': _redact_secrets(exc)})
+                _alert_outbox_health(blocked_reason=reason)
+                return processed
             continue
         notification_id = str(payload.get('notification_id') or '')
         if not re.fullmatch(r'[0-9a-f]{32}', notification_id) or path.stem != notification_id:
             audit('telegram_alert_invalid', severity='ERROR', details={'file': path.name})
+            try:
+                _quarantine_alert(path, 'notification_id or filename is invalid')
+            except Exception as exc:
+                reason = 'failed to quarantine invalid alert identifier: ' + _redact_secrets(exc)
+                audit('telegram_alert_quarantine_failed', severity='CRITICAL',
+                      details={'file': path.name, 'error': _redact_secrets(exc)})
+                _alert_outbox_health(blocked_reason=reason)
+                return processed
             continue
         if notification_id in delivered:
             path.unlink(missing_ok=True)
@@ -127,6 +214,7 @@ def deliver_sidecar_notifications(limit: int = 20) -> int:
             # destination for privileged account state.
             send(_redact_secrets(payload.get('text', '')), OWNER)
         except Exception as exc:
+            blocked_reason = 'Telegram alert delivery failed: ' + _redact_secrets(exc)
             audit('telegram_alert_delivery_failed', severity='ERROR', details={
                 'notification_id': notification_id, 'error': _redact_secrets(exc),
             })
@@ -142,6 +230,7 @@ def deliver_sidecar_notifications(limit: int = 20) -> int:
         except Exception as exc:
             # Retain the item. At-least-once delivery is safer than losing an
             # emergency alert when the local dedupe journal cannot be saved.
+            blocked_reason = 'Telegram alert dedupe persistence failed: ' + _redact_secrets(exc)
             audit('telegram_alert_dedupe_persist_failed', severity='CRITICAL', details={
                 'notification_id': notification_id, 'error': _redact_secrets(exc),
             })
@@ -149,6 +238,7 @@ def deliver_sidecar_notifications(limit: int = 20) -> int:
         path.unlink(missing_ok=True)
         audit('telegram_alert_delivered', details={'notification_id': notification_id})
         processed += 1
+    _alert_outbox_health(blocked_reason=blocked_reason)
     return processed
 
 
@@ -811,11 +901,20 @@ def handle_callback(callback):
 
 def _load_offset() -> int:
     """V101-NEW-009: restore the committed getUpdates offset across restarts."""
-    data = read_json(OFFSET_PATH, {}) or {}
-    try:
-        return max(0, int(data.get('offset', 0)))
-    except Exception:
+    if not OFFSET_PATH.exists():
         return 0
+    try:
+        data = json.loads(OFFSET_PATH.read_text(encoding='utf-8'))
+        if not isinstance(data, dict) or isinstance(data.get('offset'), bool):
+            raise ValueError('invalid offset schema')
+        offset = int(data['offset'])
+        if offset < 0:
+            raise ValueError('negative offset')
+        return offset
+    except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        raise RuntimeError(
+            'Telegram offset state is unreadable or corrupt; refusing to replay updates'
+        ) from exc
 
 
 def _store_offset(offset: int):

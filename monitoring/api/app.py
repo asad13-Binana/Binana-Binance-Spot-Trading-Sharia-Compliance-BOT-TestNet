@@ -46,6 +46,7 @@ def health(request_id: str = Depends(require_bearer)):
         bot=metrics.runtime_health(),
         containers=metrics.container_state(),
         databases=metrics.databases(),
+        telegram_alerts=metrics.telegram_alert_outbox_status(),
         log=metrics.log_freshness(),
     )
 
@@ -60,6 +61,7 @@ def status(request_id: str = Depends(require_bearer)):
         execution=metrics.execution_state(),
         order_quality=metrics.order_quality(1),
         websocket=metrics.websocket_status(),
+        telegram_alerts=metrics.telegram_alert_outbox_status(),
         deployment=metrics.deployment_info(),
     )
 
@@ -151,6 +153,7 @@ def report(
         ("signal_engine_performance", metrics.signal_performance, (days,)),
         ("order_quality", metrics.order_quality, (days,)),
         ("websocket", metrics.websocket_status, ()),
+        ("telegram_alerts", metrics.telegram_alert_outbox_status, ()),
         ("binance_rest", metrics.binance_latency, (5,)),
         ("system", metrics.system_resources, ()),
         ("crashes", metrics.crash_blocks, (24,)),

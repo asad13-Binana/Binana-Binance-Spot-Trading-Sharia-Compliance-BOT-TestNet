@@ -297,6 +297,8 @@ class TelegramRepairTests(unittest.TestCase):
             outbox = root / 'outbox'
             outbox.mkdir()
             delivery_state = root / 'delivery.json'
+            quarantine = root / 'quarantine'
+            health = root / 'health.json'
             with mock.patch.object(sidecar_main, 'TELEGRAM_ALERT_OUTBOX', outbox), \
                     mock.patch.object(sidecar_main, 'audit') as audit_call:
                 notification_id = sidecar_main.notify('critical execution alert')
@@ -305,16 +307,23 @@ class TelegramRepairTests(unittest.TestCase):
             payload = json.loads(path.read_text(encoding='utf-8'))
             with mock.patch.object(telegram_bot, 'TELEGRAM_ALERT_OUTBOX', outbox), \
                     mock.patch.object(telegram_bot, 'ALERT_DELIVERY_STATE', delivery_state), \
+                    mock.patch.object(telegram_bot, 'ALERT_QUARANTINE', quarantine), \
+                    mock.patch.object(telegram_bot, 'ALERT_OUTBOX_HEALTH', health), \
                     mock.patch.object(telegram_bot, 'OWNER', '4242'), \
                     mock.patch.object(telegram_bot, 'audit'), \
                     mock.patch.object(telegram_bot, 'send',
                                       side_effect=RuntimeError('mock Telegram offline')):
                 self.assertEqual(telegram_bot.deliver_sidecar_notifications(), 0)
             self.assertTrue(path.exists(), 'failed delivery must remain durable')
+            failed_health = json.loads(health.read_text(encoding='utf-8'))
+            self.assertFalse(failed_health['ok'])
+            self.assertIn('delivery failed', failed_health['blocked_reason'])
 
             delivered = mock.Mock()
             with mock.patch.object(telegram_bot, 'TELEGRAM_ALERT_OUTBOX', outbox), \
                     mock.patch.object(telegram_bot, 'ALERT_DELIVERY_STATE', delivery_state), \
+                    mock.patch.object(telegram_bot, 'ALERT_QUARANTINE', quarantine), \
+                    mock.patch.object(telegram_bot, 'ALERT_OUTBOX_HEALTH', health), \
                     mock.patch.object(telegram_bot, 'OWNER', '4242'), \
                     mock.patch.object(telegram_bot, 'audit'), \
                     mock.patch.object(telegram_bot, 'send', delivered):
@@ -325,6 +334,72 @@ class TelegramRepairTests(unittest.TestCase):
                 atomic_write_json(path, payload)
                 self.assertEqual(telegram_bot.deliver_sidecar_notifications(), 0)
             delivered.assert_called_once_with('critical execution alert', '4242')
+
+    def test_malformed_alerts_are_quarantined_without_starving_valid_alert(self):
+        with tempfile.TemporaryDirectory(prefix='alert-quarantine-') as raw:
+            root = Path(raw)
+            outbox = root / 'outbox'
+            quarantine = root / 'quarantine'
+            health = root / 'health.json'
+            state = root / 'delivery.json'
+            outbox.mkdir()
+            for index in range(25):
+                (outbox / f'000-invalid-{index:02d}.json').write_text(
+                    '{not-json', encoding='utf-8')
+            notification_id = 'f' * 32
+            atomic_write_json(outbox / f'{notification_id}.json', {
+                'notification_id': notification_id,
+                'text': 'valid emergency alert',
+            })
+            delivered = mock.Mock()
+            with mock.patch.object(telegram_bot, 'TELEGRAM_ALERT_OUTBOX', outbox), \
+                    mock.patch.object(telegram_bot, 'ALERT_DELIVERY_STATE', state), \
+                    mock.patch.object(telegram_bot, 'ALERT_QUARANTINE', quarantine), \
+                    mock.patch.object(telegram_bot, 'ALERT_OUTBOX_HEALTH', health), \
+                    mock.patch.object(telegram_bot, 'OWNER', '4242'), \
+                    mock.patch.object(telegram_bot, 'audit'), \
+                    mock.patch.object(telegram_bot, 'send', delivered):
+                self.assertEqual(telegram_bot.deliver_sidecar_notifications(limit=1), 1)
+            delivered.assert_called_once_with('valid emergency alert', '4242')
+            self.assertEqual(len(list(quarantine.glob('*.json'))), 25)
+            status = json.loads(health.read_text(encoding='utf-8'))
+            self.assertTrue(status['ok'])
+            self.assertEqual(status['pending_alert_count'], 0)
+            self.assertEqual(status['dead_letter_count'], 25)
+
+    def test_corrupt_alert_dedupe_state_pauses_delivery(self):
+        with tempfile.TemporaryDirectory(prefix='alert-dedupe-corrupt-') as raw:
+            root = Path(raw)
+            outbox = root / 'outbox'
+            quarantine = root / 'quarantine'
+            health = root / 'health.json'
+            state = root / 'delivery.json'
+            outbox.mkdir()
+            state.write_text('{broken', encoding='utf-8')
+            notification_id = 'e' * 32
+            atomic_write_json(outbox / f'{notification_id}.json', {
+                'notification_id': notification_id, 'text': 'do not duplicate',
+            })
+            delivered = mock.Mock()
+            with mock.patch.object(telegram_bot, 'TELEGRAM_ALERT_OUTBOX', outbox), \
+                    mock.patch.object(telegram_bot, 'ALERT_DELIVERY_STATE', state), \
+                    mock.patch.object(telegram_bot, 'ALERT_QUARANTINE', quarantine), \
+                    mock.patch.object(telegram_bot, 'ALERT_OUTBOX_HEALTH', health), \
+                    mock.patch.object(telegram_bot, 'audit'), \
+                    mock.patch.object(telegram_bot, 'send', delivered):
+                self.assertEqual(telegram_bot.deliver_sidecar_notifications(), 0)
+            delivered.assert_not_called()
+            status = json.loads(health.read_text(encoding='utf-8'))
+            self.assertFalse(status['ok'])
+            self.assertIn('dedupe state', status['blocked_reason'])
+
+    def test_corrupt_telegram_offset_fails_closed(self):
+        with tempfile.TemporaryDirectory(prefix='telegram-offset-corrupt-') as raw:
+            path = Path(raw) / 'telegram_offset.json'
+            path.write_text('{broken', encoding='utf-8')
+            with mock.patch.object(telegram_bot, 'OFFSET_PATH', path):
+                with self.assertRaisesRegex(RuntimeError, 'refusing to replay'):
+                    telegram_bot._load_offset()
 
 
 if __name__ == '__main__':

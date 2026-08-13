@@ -122,6 +122,10 @@ class Config:
         self.telegram_health_path = Path(os.getenv(
             "TELEGRAM_HEALTH_PATH", str(runtime / "telegram_health.json")
         ))
+        self.telegram_alert_outbox_health_path = Path(os.getenv(
+            "TELEGRAM_ALERT_OUTBOX_HEALTH_PATH",
+            str(runtime / "telegram_alert_outbox_health.json"),
+        ))
         self.user_stream_health_path = Path(os.getenv(
             "USER_STREAM_HEALTH_PATH", str(runtime / "user_stream_health.json")
         ))
