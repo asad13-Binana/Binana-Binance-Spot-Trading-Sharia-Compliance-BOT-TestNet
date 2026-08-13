@@ -104,6 +104,7 @@ case "$(uname -s 2>/dev/null || echo unknown)" in
     NON_EXEC=$(find . \
       -path './.git' -prune -o \
       -path './.pytest_cache' -prune -o \
+      -path './.hypothesis' -prune -o \
       -path '*/__pycache__' -prune -o \
       -type f -name '*.sh' ! -perm -u+x -print | head -20 || true)
     if [ -n "$NON_EXEC" ]; then
@@ -114,6 +115,7 @@ case "$(uname -s 2>/dev/null || echo unknown)" in
     WRITABLE=$(find . \
       -path './.git' -prune -o \
       -path './.pytest_cache' -prune -o \
+      -path './.hypothesis' -prune -o \
       -path '*/__pycache__' -prune -o \
       -type f -perm /022 -print | head -20 || true)
     if [ -n "$WRITABLE" ]; then
@@ -140,6 +142,7 @@ PY
 find . \
   -path './.git' -prune -o \
   -path './.pytest_cache' -prune -o \
+  -path './.hypothesis' -prune -o \
   -path '*/__pycache__' -prune -o \
   -type f -name '*.sh' -print0 | while IFS= read -r -d '' script; do bash -n "$script"; done
 

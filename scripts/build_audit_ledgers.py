@@ -34,7 +34,9 @@ AUDIT_DIR = ROOT / 'docs' / 'audit'
 FILE_LEDGER = AUDIT_DIR / 'FILE_REVIEW_LEDGER.csv'
 FUNCTION_LEDGER = AUDIT_DIR / 'FUNCTION_CALLBACK_LEDGER.csv'
 
-EXCLUDE_DIR_PARTS = {'.git', '__pycache__', '.pytest_cache', '.ruff_cache'}
+EXCLUDE_DIR_PARTS = {
+    '.git', '__pycache__', '.pytest_cache', '.ruff_cache', '.hypothesis',
+}
 # Self-referential release metadata: listed as paths, but their sha256 cell is
 # a sentinel because their bytes change as part of regenerating the release.
 SELF_REFERENTIAL = {

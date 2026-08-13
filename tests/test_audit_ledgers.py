@@ -28,7 +28,7 @@ class AuditLedgerParityTests(unittest.TestCase):
         ledger = ROOT / 'docs/audit/FILE_REVIEW_LEDGER.csv'
         with ledger.open(encoding='utf-8') as fh:
             ledger_paths = {row['relative_path'] for row in csv.DictReader(fh)}
-        exclude = {'.git', '__pycache__', '.pytest_cache', '.ruff_cache'}
+        exclude = {'.git', '__pycache__', '.pytest_cache', '.ruff_cache', '.hypothesis'}
         tree_paths = {
             p.relative_to(ROOT).as_posix()
             for p in ROOT.rglob('*')
@@ -69,7 +69,7 @@ class AuditLedgerParityTests(unittest.TestCase):
         import csv
         from collections import Counter
 
-        exclude = {'.git', '__pycache__', '.pytest_cache', '.ruff_cache'}
+        exclude = {'.git', '__pycache__', '.pytest_cache', '.ruff_cache', '.hypothesis'}
         expected = Counter()
         for path in ROOT.rglob('*.py'):
             if any(part in exclude for part in path.parts):
