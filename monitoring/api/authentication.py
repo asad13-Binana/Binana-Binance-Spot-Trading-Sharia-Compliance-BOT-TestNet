@@ -5,6 +5,8 @@ from __future__ import annotations
 import hmac
 import ipaddress
 import json
+import os
+import threading
 import time
 import uuid
 from collections import defaultdict, deque
@@ -14,12 +16,54 @@ from fastapi import HTTPException, Request
 from .configuration import CONFIG
 from .log_redaction import redact
 
+try:
+    import fcntl
+
+    def _lock_exclusive(handle):
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+
+    def _unlock(handle):
+        fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+except ImportError:  # Windows test/development hosts
+    import msvcrt
+
+    def _lock_exclusive(handle):
+        handle.seek(0)
+        msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
+
+    def _unlock(handle):
+        handle.seek(0)
+        msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+
 
 class AuditUnavailable(RuntimeError):
     pass
 
 
 _WINDOWS: dict[str, deque] = defaultdict(deque)
+_AUDIT_LOCK = threading.Lock()
+
+
+def _rotate_audit(path, incoming_bytes: int) -> None:
+    try:
+        max_bytes = max(0, min(int(os.getenv(
+            "MONITOR_AUDIT_MAX_BYTES", str(10 * 1024 * 1024)
+        )), 1024 * 1024 * 1024))
+        backups = max(0, min(int(os.getenv("MONITOR_AUDIT_BACKUPS", "5")), 50))
+    except ValueError:
+        max_bytes, backups = 10 * 1024 * 1024, 5
+    if max_bytes <= 0 or backups <= 0:
+        return
+    current = path.stat().st_size if path.exists() else 0
+    if current + incoming_bytes <= max_bytes:
+        return
+    path.with_name(f"{path.name}.{backups}").unlink(missing_ok=True)
+    for index in range(backups - 1, 0, -1):
+        source = path.with_name(f"{path.name}.{index}")
+        if source.exists():
+            source.replace(path.with_name(f"{path.name}.{index + 1}"))
+    if path.exists():
+        path.replace(path.with_name(f"{path.name}.1"))
 
 
 def audit(event: str, request_id: str, detail: str = "") -> None:
@@ -29,11 +73,20 @@ def audit(event: str, request_id: str, detail: str = "") -> None:
         "request_id": str(request_id)[:64],
         "detail": redact(str(detail))[:300],
     }
+    line = json.dumps(record, separators=(",", ":")) + "\n"
     try:
         CONFIG.audit_path.parent.mkdir(parents=True, exist_ok=True)
-        with CONFIG.audit_path.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(record, separators=(",", ":")) + "\n")
-            handle.flush()
+        lock_path = CONFIG.audit_path.with_name(CONFIG.audit_path.name + ".lock")
+        with _AUDIT_LOCK, lock_path.open("a+", encoding="utf-8") as process_lock:
+            _lock_exclusive(process_lock)
+            try:
+                _rotate_audit(CONFIG.audit_path, len(line.encode("utf-8")))
+                with CONFIG.audit_path.open("a", encoding="utf-8") as handle:
+                    handle.write(line)
+                    handle.flush()
+                    os.fsync(handle.fileno())
+            finally:
+                _unlock(process_lock)
     except OSError as exc:
         raise AuditUnavailable(type(exc).__name__) from exc
 

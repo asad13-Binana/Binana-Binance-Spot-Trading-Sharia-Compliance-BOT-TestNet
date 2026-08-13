@@ -25,7 +25,7 @@ os.environ.setdefault("MONITOR_BIND_HOST", "127.0.0.1")
 
 from monitoring.api import metrics  # noqa: E402
 from monitoring.api.app import app  # noqa: E402
-from monitoring.api.authentication import _WINDOWS  # noqa: E402
+from monitoring.api.authentication import _WINDOWS, audit as auth_audit  # noqa: E402
 from monitoring.api.configuration import CONFIG, Config, loopback_http_url  # noqa: E402
 from monitoring.api.database import query  # noqa: E402
 from monitoring.api.log_redaction import redact, redact_obj  # noqa: E402
@@ -58,6 +58,7 @@ def isolated_config(tmp_path, monkeypatch):
     CONFIG.container_status_path = tmp_path / "container_status.json"
     CONFIG.sidecar_health_path = tmp_path / "sidecar_health.json"
     CONFIG.telegram_health_path = tmp_path / "telegram_health.json"
+    CONFIG.telegram_alert_outbox_health_path = tmp_path / "telegram_alert_outbox_health.json"
     CONFIG.user_stream_health_path = tmp_path / "user_stream_health.json"
     CONFIG.sharia_health_path = tmp_path / "sharia_health.json"
     CONFIG.universe_health_path = tmp_path / "universe_health.json"
@@ -306,6 +307,23 @@ def test_websocket_state_and_reconnects_are_exposed():
     assert result["connected"] and result["subscribed"] and result["reconnect_count"] == 3
 
 
+def test_telegram_alert_backlog_and_dead_letters_are_exposed():
+    _write(CONFIG.telegram_alert_outbox_health_path, {
+        "ok": False,
+        "ts": time.time(),
+        "pending_alert_count": 4,
+        "oldest_pending_alert_age_seconds": 91.5,
+        "dead_letter_count": 2,
+        "blocked_reason": "dedupe state invalid",
+    })
+    result = metrics.telegram_alert_outbox_status()
+    assert result["fresh"]
+    assert result["ok"] is False
+    assert result["pending_alert_count"] == 4
+    assert result["oldest_pending_alert_age_seconds"] == 91.5
+    assert result["dead_letter_count"] == 2
+
+
 def test_sharia_service_queue_and_latest_scan_are_exposed():
     _write(CONFIG.sharia_status_path, {"controller_sha256": "abc", "records": [{"final_code": "GREEN", "reviewed_at": "2026-07-19"}]})
     _write(CONFIG.sharia_health_path, {"ok": True, "ts": time.time(), "queue": {"PENDING": 2}, "last_done": {"base": "ETH"}})
@@ -329,6 +347,16 @@ def test_recent_security_warnings_are_redacted():
     CONFIG.security_audit_path.write_text(json.dumps({"severity": "CRITICAL", "details": "token=abcdef"}) + "\n", encoding="utf-8")
     value = metrics.recent_security_warnings()["warnings"][0]
     assert "abcdef" not in json.dumps(value)
+
+
+def test_monitor_audit_is_durable_and_rotated(monkeypatch):
+    monkeypatch.setenv("MONITOR_AUDIT_MAX_BYTES", "200")
+    monkeypatch.setenv("MONITOR_AUDIT_BACKUPS", "2")
+    for index in range(8):
+        auth_audit("monitor_request", f"request-{index}", "x" * 80)
+    assert CONFIG.audit_path.exists()
+    assert CONFIG.audit_path.with_name(CONFIG.audit_path.name + ".1").exists()
+    assert CONFIG.audit_path.with_name(CONFIG.audit_path.name + ".lock").exists()
 
 
 # MCP and Telegram are loopback/read-only and fail without leaking secrets.

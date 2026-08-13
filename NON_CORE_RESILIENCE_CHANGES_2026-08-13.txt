@@ -1,0 +1,61 @@
+BINANA NON-CORE RESILIENCE UPDATE — 13 AUGUST 2026
+
+Scope
+-----
+This update implements the safe, non-core findings from the two external
+infrastructure/resilience reviews. It does not change trading decisions or
+claim that external Oracle/Binance validation has occurred.
+
+Implemented
+-----------
+1. Telegram alert reliability
+   - Malformed alert files are atomically removed from the live queue and
+     retained in a quarantine directory with SHA-256 metadata.
+   - Invalid files no longer consume the bounded delivery window indefinitely
+     and block later emergency alerts.
+   - A health record exposes pending count, oldest pending age, dead-letter
+     count and any delivery-blocking state.
+   - Corrupt alert-deduplication state pauses delivery instead of risking
+     duplicate emergency messages.
+   - Corrupt Telegram update-offset state stops polling instead of resetting
+     to zero and replaying old commands or scan requests.
+
+2. Read-only monitoring
+   - Health, status and combined reports now expose Telegram alert backlog and
+     dead-letter information.
+   - Monitoring audit records now use process and cross-process locking,
+     rotation, flush and fsync durability.
+   - The monitoring API and MCP bridge remain strictly read-only.
+
+3. Release evidence
+   - CI generates a detached EVIDENCE_STATUS.json after release-artifact
+     verification.
+   - The detached statement binds the final artifact SHA-256, commit SHA,
+     protected hashes, audit inventory counts and remaining external gates.
+   - The evidence remains outside the release archive, avoiding an impossible
+     circular artifact-self-hash.
+
+4. Reproducibility
+   - The CI strategy probe and offline/backtest Compose profile use the same
+     immutable Freqtrade image digest as runtime Compose.
+
+Explicitly unchanged
+--------------------
+- IctSmcStrategy.py and all strategy indicators/conditions
+- Legacy V4.9.16 execution core
+- Execution-sidecar order, risk, sizing, protection and reconciliation logic
+- Pair selection and universe-ranking logic
+- Sharia V19.1 controller, screening rules and fail-closed decisions
+- TestNet/LIVE package interlocks and LIVE promotion gates
+
+Not claimed or completed by this source update
+----------------------------------------------
+- Authenticated Binance Spot TestNet lifecycle certification
+- Real Oracle VM deployment, reboot/fault tests or sustained soak
+- Profitability or real-money certification
+- Migration of protected execution safety state from JSON to SQLite
+- Protection-gap timestamps inside the protected execution adapter
+
+The final two items would require modifying files currently included in the
+repository's protected-core hash inventory and therefore require a separate,
+explicitly authorised protected safety revision.

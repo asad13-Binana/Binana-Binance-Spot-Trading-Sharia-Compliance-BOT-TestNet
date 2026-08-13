@@ -141,6 +141,18 @@ jobs:
           docker compose --env-file .env.example build universe
           cmp RELEASE_MANIFEST.json "$GITHUB_WORKSPACE/RELEASE_MANIFEST.json"
           cmp RELEASE_SHA256.txt "$GITHUB_WORKSPACE/RELEASE_SHA256.txt"
+      - name: Generate detached machine-readable release evidence
+        run: |
+          python scripts/generate_evidence_status.py \
+            --root "$GITHUB_WORKSPACE" \
+            --artifact "/tmp/v101-artifact/binance-bot-testnet-${GITHUB_SHA}.tar.gz" \
+            --output "/tmp/v101-artifact/EVIDENCE_STATUS.json" \
+            --package-mode testnet \
+            --commit-sha "$GITHUB_SHA" \
+            --repository "$GITHUB_REPOSITORY" \
+            --workflow-run-id "$GITHUB_RUN_ID" \
+            --workflow-run-url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          python -m json.tool /tmp/v101-artifact/EVIDENCE_STATUS.json >/dev/null
       - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
         with:
           name: binance-bot-testnet-${{ github.sha }}
@@ -316,12 +328,12 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Run the strategy probe inside freqtradeorg/freqtrade:2026.6
+      - name: Run the strategy probe inside the digest-pinned Freqtrade image
         run: |
           set -o pipefail
           docker run --rm -v "$PWD":/work -w /work \
             -e PYTHONDONTWRITEBYTECODE=1 -e PYTHONPATH=/work \
-            --entrypoint python freqtradeorg/freqtrade:2026.6 \
+            --entrypoint python freqtradeorg/freqtrade:2026.6@sha256:d451af021d5e08b70580c0eea5848534e9846b57391b34821c0a5814416397e6 \
             -m unittest discover -s tests -p 'test_strategy_probe.py' -v 2>&1 | tee probe.log
           if grep -qi 'skipped' probe.log; then
             echo "FAIL: the strategy probe SKIPPED inside the pinned container; TA-Lib must be present there"
