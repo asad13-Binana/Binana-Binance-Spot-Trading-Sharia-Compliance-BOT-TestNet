@@ -1,0 +1,44 @@
+name: Binana 2.0 Foundation
+
+on:
+  pull_request:
+    paths:
+      - 'binana2/**'
+      - 'requirements-binana2*.txt'
+      - 'Dockerfile.binana2'
+      - '.env.binana2.example'
+      - 'README-BINANA2.md'
+      - '.github/workflows/binana2-foundation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'binana2/**'
+      - 'requirements-binana2*.txt'
+      - 'Dockerfile.binana2'
+      - '.env.binana2.example'
+      - 'README-BINANA2.md'
+
+permissions:
+  contents: read
+
+jobs:
+  testnet-foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-binana2-dev.txt
+      - name: Install Binana 2.0 test dependencies
+        run: python -m pip install -r requirements-binana2-dev.txt
+      - name: Compile Binana 2.0
+        run: python -m compileall -q binana2
+      - name: Run Binana 2.0 foundation tests
+        env:
+          BOT_ENVIRONMENT: TESTNET
+          BINANCE_TESTNET: 'true'
+          ENTRIES_ENABLED: 'false'
+        run: PYTHONPATH=. python -m pytest -q binana2/tests

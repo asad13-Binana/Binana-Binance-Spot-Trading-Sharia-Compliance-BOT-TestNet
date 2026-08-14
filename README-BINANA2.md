@@ -2,7 +2,8 @@
 
 This directory is the new modular-monolith implementation path. It is intentionally
 separate from the existing Freqtrade/microservice stack while Testnet parity is
-being established.
+being established. This foundation is **hard-locked to Binance Spot Testnet**;
+production Binance endpoints are rejected by configuration and adapter constructors.
 
 ## Safety posture
 
@@ -55,6 +56,7 @@ python -m binana2.app.main
 5. Protection lifecycle and protection-gap instrumentation/certification.
 6. Telegram command bus/idempotency implementation and tests.
 7. Oracle VM reboot/network/DNS/disk/clock fault programme and soak.
-8. Tiny-capital live certification before normal live sizing.
+8. A separately reviewed live-promotion implementation; this foundation cannot
+   select production Binance endpoints.
 
 This is an engineering implementation, not a fatwa or independent Sharia ruling.
