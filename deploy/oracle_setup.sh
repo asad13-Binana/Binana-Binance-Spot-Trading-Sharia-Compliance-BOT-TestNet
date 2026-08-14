@@ -91,7 +91,7 @@ getent passwd "$DEPLOY_USER" >/dev/null || fail "deployment account does not exi
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install -y ca-certificates curl gnupg git jq python3 python3-venv \
-  sqlite3 rsync chrony logrotate unattended-upgrades iptables openssh-server
+  sqlite3 rsync chrony logrotate unattended-upgrades iptables openssh-server age
 python3 - <<'PY'
 import sys
 if sys.version_info[:2] != (3, 12):
@@ -205,6 +205,14 @@ fi
 chown root:root "$PRIVATE/.env"
 chmod 0600 "$PRIVATE/.env"
 install -m 0600 -o root -g root "$ROOT_DIR/.env.example" "$PRIVATE/.env.template"
+if [[ ! -e "$PRIVATE/offhost-backup.env" ]]; then
+  install -m 0600 -o root -g root "$SCRIPT_DIR/offhost-backup.env.example" \
+    "$PRIVATE/offhost-backup.env"
+fi
+[[ -f "$PRIVATE/offhost-backup.env" && ! -L "$PRIVATE/offhost-backup.env" ]] || \
+  fail "$PRIVATE/offhost-backup.env must be a regular non-symlink file"
+chown root:root "$PRIVATE/offhost-backup.env"
+chmod 0600 "$PRIVATE/offhost-backup.env"
 
 install -m 0755 -o root -g root "$SCRIPT_DIR/binana-deploy-wrapper.sh" /usr/local/sbin/binana-deploy
 install -m 0755 -o root -g root "$SCRIPT_DIR/binana-approve-release.sh" /usr/local/sbin/binana-approve-release
@@ -275,6 +283,7 @@ systemctl restart systemd-journald
 need docker
 need python3
 need chronyc
+need age
 docker version >/dev/null
 docker compose version >/dev/null
 docker info >/dev/null
