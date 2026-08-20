@@ -20,3 +20,16 @@ Honest boundary:
 - OCI bucket, dynamic-group policy, email confirmation, alarm delivery, upload,
   restore drill and host soak require the owner's real Oracle tenancy;
 - LIVE-money readiness and profitability are not claimed.
+
+Additional API-readiness hardening in this branch:
+- GET-only credential authentication for Binance, Telegram, CoinGecko and
+  CoinMarketCap, with no order endpoints or account balances in output.
+- Root-controlled literal environment parsing and atomic sanitised status.
+- Read-only monitoring API and Telegram reporting of preflight health.
+- Repaired monitoring runtime ownership: binanabot retains write ownership;
+  botmon receives read/traverse only through its supplementary group.
+- The root-owned Docker snapshot helper publishes mode 0640 only for a fixed
+  credential-free source allowlist; links, hard links and foreign owners are
+  refused, and private queues/state/evidence remain excluded.
+- Monitoring is restarted onto the exact newly installed release.
+- See docs/API_READINESS_RUNBOOK.md for the Oracle credential procedure.

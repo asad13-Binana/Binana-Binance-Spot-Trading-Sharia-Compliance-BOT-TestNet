@@ -65,6 +65,7 @@ if problems:
 print(f'release identity consistent: {version} ({mode})')
 PY
 python -m unittest discover -s tests -p 'test_*.py' -v
+python -m pytest -q tests/test_api_readiness.py
 python -m pytest -q monitoring/tests
 python tests/secret_scan.py
 python -m services.universe_service.validate_sharia shared/sharia/sharia_status.json

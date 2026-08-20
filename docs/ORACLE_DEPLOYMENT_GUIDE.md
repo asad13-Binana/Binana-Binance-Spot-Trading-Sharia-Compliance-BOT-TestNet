@@ -8,6 +8,17 @@ free disk; a 1 GiB E2 micro is unsupported.
 > Status: this build is an OFFLINE-VERIFIED RELEASE CANDIDATE. Oracle deployment/soak has NOT been run.
 > Do not enable live trading. Keep `EXECUTION_MODE=simulation` and `BINANCE_TESTNET=true`.
 
+After credentials are placed in the root-owned Oracle environment file, run
+the GET-only check documented in `docs/API_READINESS_RUNBOOK.md`:
+
+```bash
+sudo /opt/binana-freqtrade-v101/current/deploy/api_preflight.sh
+```
+
+It verifies provider authentication without placing, testing, cancelling or
+modifying a Binance order. It does not replace the separate authenticated
+TestNet lifecycle, soak/recovery or LIVE promotion gates.
+
 ## 1. Prepare the host
 ```
 sudo bash deploy/oracle_setup.sh

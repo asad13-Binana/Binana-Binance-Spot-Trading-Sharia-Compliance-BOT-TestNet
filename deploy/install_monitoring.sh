@@ -31,9 +31,13 @@ esac
 if ! id botmon >/dev/null 2>&1; then
   useradd --system --home-dir /nonexistent --shell /usr/sbin/nologin botmon
 fi
+id binanabot >/dev/null 2>&1 || fail 'binanabot account is required before monitoring installation'
+usermod -a -G binanabot botmon
 install -d -m 0755 -o root -g root "$APP_ROOT/monitoring-venvs" /usr/local/libexec
 install -d -m 0750 -o botmon -g botmon "$MONITOR_LOG_DIR"
-install -d -m 0755 -o root -g root "$PERSIST/runtime"
+# Runtime state remains writable only by binanabot.  botmon is a supplementary
+# member with group read/traverse but receives no group write permission.
+install -d -m 0750 -o binanabot -g binanabot "$PERSIST/runtime"
 
 VENV_ROOT="$APP_ROOT/monitoring-venvs"
 VENV_TARGET="$VENV_ROOT/$RELEASE_HASH"
@@ -86,6 +90,8 @@ install -m 0644 -o root -g root \
   "$UNIT_DIR/binana-state-backup.timer" \
   "$UNIT_DIR/binana-offhost-backup.service" \
   "$UNIT_DIR/binana-offhost-backup.timer" \
+  "$UNIT_DIR/binana-api-readiness.service" \
+  "$UNIT_DIR/binana-api-readiness.timer" \
   /etc/systemd/system/
 
 OTHER=testnet
@@ -93,11 +99,14 @@ OTHER=testnet
 systemctl disable --now "binana-monitor-${OTHER}.service" \
   "binana-monitor-report-${OTHER}.timer" >/dev/null 2>&1 || true
 systemctl daemon-reload
-systemctl enable --now binana-disk-guard.timer binana-state-backup.timer
+systemctl enable --now binana-disk-guard.timer binana-state-backup.timer \
+  binana-api-readiness.timer
 
 if grep -Eq '^MONITOR_ENABLED=true$' "$ENV_FILE"; then
   systemctl enable --now binana-monitor-snapshot.timer
-  systemctl enable --now "binana-monitor-${MODE}.service"
+  systemctl start binana-monitor-snapshot.service
+  systemctl enable "binana-monitor-${MODE}.service"
+  systemctl restart "binana-monitor-${MODE}.service"
 else
   systemctl disable --now "binana-monitor-${MODE}.service" \
     binana-monitor-snapshot.timer >/dev/null 2>&1 || true

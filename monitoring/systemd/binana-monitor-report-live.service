@@ -9,6 +9,7 @@ ConditionPathExists=/etc/binana-freqtrade-v101/live-monitor.env
 Type=oneshot
 User=botmon
 Group=botmon
+SupplementaryGroups=binanabot
 EnvironmentFile=/etc/binana-freqtrade-v101/live-monitor.env
 WorkingDirectory=/opt/binana-freqtrade-v101/current
 ExecCondition=/opt/binana-freqtrade-v101/monitoring-current/bin/python -m monitoring.control telegram

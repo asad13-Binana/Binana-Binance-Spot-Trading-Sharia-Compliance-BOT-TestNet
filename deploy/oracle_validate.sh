@@ -143,6 +143,8 @@ printf 'local_backup_timer='
 systemctl is-active binana-state-backup.timer 2>/dev/null || true
 printf 'offhost_backup_timer='
 systemctl is-active binana-offhost-backup.timer 2>/dev/null || true
+printf 'api_readiness_timer='
+systemctl is-active binana-api-readiness.timer 2>/dev/null || true
 if [[ -f "$PERSIST/runtime/offhost_backup_status.json" && ! -L "$PERSIST/runtime/offhost_backup_status.json" ]]; then
   python3 - "$PERSIST/runtime/offhost_backup_status.json" <<'PY'
 import json, pathlib, sys
@@ -155,5 +157,31 @@ print("offhost_backup_status=" + json.dumps(safe, sort_keys=True))
 PY
 else
   echo 'offhost_backup_status=NOT_CONFIGURED_OR_NOT_RUN'
+fi
+if [[ -f "$PERSIST/runtime/api_readiness_status.json" && ! -L "$PERSIST/runtime/api_readiness_status.json" ]]; then
+  python3 - "$PERSIST/runtime/api_readiness_status.json" <<'PY'
+import json, pathlib, sys
+data = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+providers = data.get("providers", {}) if isinstance(data, dict) else {}
+safe = {
+    name: {
+        "status": value.get("status"),
+        "required": bool(value.get("required")),
+        "reason": (value.get("details") or {}).get("reason"),
+    }
+    for name, value in providers.items()
+    if name in {"binance", "telegram", "coingecko", "coinmarketcap"}
+    and isinstance(value, dict)
+}
+print("api_readiness_status=" + json.dumps({
+    "ok": data.get("ok"),
+    "generated_at": data.get("generated_at"),
+    "package_mode": data.get("package_mode"),
+    "network_operations": data.get("network_operations"),
+    "providers": safe,
+}, sort_keys=True))
+PY
+else
+  echo 'api_readiness_status=NOT_RUN; run sudo /opt/binana-freqtrade-v101/current/deploy/api_preflight.sh'
 fi
 printf 'validation_complete=YES; Oracle soak/fault drills are separate and are not implied.\n'

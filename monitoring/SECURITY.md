@@ -13,7 +13,13 @@
   GitHub/OpenAI keys, database URLs, signed queries, private keys, and nested
   secret fields are removed from every response.
 - Privilege: `botmon` has no trading env and no Docker socket. A fixed root-owned
-  helper publishes only container name/service/state/health/restart/start time.
+helper publishes only container name/service/state/health/restart/start time.
+- Read-only source publication: that same fixed helper grants group-read mode
+  only to an explicit allowlist of credential-free monitoring sources. It
+  refuses symlinks, multi-link files and foreign owners. Private sidecar state,
+  command/signal queues, HMAC envelopes and Sharia evidence are not allowlisted.
+- Runtime ownership: `binanabot` retains owner-write access; `botmon` is an
+  explicit supplementary-group reader and receives no group-write permission.
 - Filesystem: systemd uses `ProtectSystem=strict`, no capabilities, private
   devices/tmp, kernel/control protections, and narrow read/write paths.
 - MCP: refuses non-loopback URLs and returns structured failures.

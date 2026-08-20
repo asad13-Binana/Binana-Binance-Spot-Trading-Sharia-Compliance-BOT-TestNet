@@ -66,6 +66,7 @@ def isolated_config(tmp_path, monkeypatch):
     CONFIG.deploy_status_path = tmp_path / "deployment_status.json"
     CONFIG.validation_status_path = tmp_path / "release_validation.json"
     CONFIG.offhost_backup_status_path = tmp_path / "offhost_backup_status.json"
+    CONFIG.api_readiness_status_path = tmp_path / "api_readiness_status.json"
     CONFIG.binance_base = "https://testnet.binance.vision"
     _WINDOWS.clear()
     bridge.URL = "http://127.0.0.1:8090"
@@ -205,6 +206,38 @@ def test_offhost_backup_status_is_missing_safe_fresh_and_failed():
     assert failed["status"] == "degraded" and failed["fresh"] is True
     payload = client.get("/api/v1/health", headers=AUTH).json()
     assert payload["offhost_backup"]["status"] == "degraded"
+
+
+def test_api_readiness_status_is_sanitised_and_exposed():
+    assert metrics.api_readiness_status()["status"] == "not_run"
+    now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    _write(CONFIG.api_readiness_status_path, {
+        "schema_version": 1,
+        "ok": True,
+        "generated_at": now,
+        "package_mode": "testnet",
+        "network_operations": "GET_ONLY_NO_ORDERS",
+        "providers": {
+            "binance": {
+                "status": "PASS", "required": True,
+                "details": {"authenticated": True, "balance": "SECRET"},
+            },
+        },
+    })
+    value = metrics.api_readiness_status()
+    assert value["status"] == "healthy"
+    assert value["network_operations"] == "GET_ONLY_NO_ORDERS"
+    assert "SECRET" not in json.dumps(value)
+    payload = client.get("/api/v1/status", headers=AUTH).json()
+    assert payload["api_readiness"]["providers"]["binance"]["status"] == "PASS"
+
+
+def test_telegram_report_includes_sanitised_api_readiness():
+    text = reporter._format({
+        "banner": "TEST",
+        "api_readiness": {"status": "healthy"},
+    })
+    assert "API readiness: healthy | GET-only/no orders" in text
 
 
 def test_database_malformed_is_structured():
@@ -470,6 +503,53 @@ def test_systemd_pairs_and_hardening():
     api = (units / "binana-monitor-testnet.service").read_text(encoding="utf-8")
     assert "User=botmon" in api and "ProtectSystem=strict" in api and "PrivateDevices=true" in api
     assert "docker.sock" not in api
+
+
+def test_monitor_installer_preserves_runtime_ownership_and_refreshes_release():
+    installer = (ROOT / "deploy/install_monitoring.sh").read_text(encoding="utf-8")
+    setup = (ROOT / "deploy/oracle_setup.sh").read_text(encoding="utf-8")
+    assert 'usermod -a -G "$BOT_USER" "$MONITOR_USER"' in setup
+    assert "usermod -a -G binanabot botmon" in installer
+    assert 'install -d -m 0750 -o binanabot -g binanabot "$PERSIST/runtime"' in installer
+    assert 'install -d -m 0755 -o root -g root "$PERSIST/runtime"' not in installer
+    assert 'systemctl restart "binana-monitor-${MODE}.service"' in installer
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX ownership and modes only")
+def test_root_snapshot_publishes_only_fixed_sanitised_sources_read_only(tmp_path):
+    root = tmp_path / "shared"
+    root.mkdir()
+    source = root / "runtime/sidecar_health.json"
+    source.parent.mkdir()
+    source.write_text("{}", encoding="utf-8")
+    private = root / "runtime/sidecar_state.json"
+    private.write_text("private", encoding="utf-8")
+    (root / "runtime/telegram_health.json").symlink_to(private)
+    os.link(private, root / "runtime/user_stream_health.json")
+    published = snapshot.publish_monitor_permissions(root)
+    assert published == ["runtime/sidecar_health.json"]
+    assert source.stat().st_mode & 0o777 == 0o640
+    assert private.stat().st_mode & 0o777 != 0o640
+    allowlist = set(snapshot.READONLY_MONITOR_SOURCES)
+    assert "runtime/sidecar_state.json" not in allowlist
+    assert not any("command" in item or "inbox" in item or "evidence" in item for item in allowlist)
+
+
+def test_monitor_status_files_are_root_owned_group_readable_not_public():
+    installer = (ROOT / "deploy/install_artifact.sh").read_text(encoding="utf-8")
+    snapshot = (ROOT / "monitoring/snapshot.py").read_text(encoding="utf-8")
+    assert installer.count("os.fchmod(fd, 0o640)") >= 2
+    assert installer.count("os.fchown(fd, 0, p.parent.stat().st_gid)") >= 2
+    assert "os.fchmod(descriptor, 0o640)" in snapshot
+    assert "os.fchown(descriptor, 0, path.parent.stat().st_gid)" in snapshot
+    assert "0o644" not in snapshot
+    for name in (
+        "binana-monitor-live.service", "binana-monitor-testnet.service",
+        "binana-monitor-report-live.service", "binana-monitor-report-testnet.service",
+    ):
+        unit = (ROOT / "monitoring/systemd" / name).read_text(encoding="utf-8")
+        assert "User=botmon" in unit
+        assert "SupplementaryGroups=binanabot" in unit
 
 
 def test_snapshot_helper_has_no_mutating_docker_commands():

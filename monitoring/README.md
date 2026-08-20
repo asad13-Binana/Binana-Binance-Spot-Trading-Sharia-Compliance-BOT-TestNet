@@ -12,7 +12,10 @@ cancel, buy, sell, transfer, or configuration-write route.
 - Freqtrade: reported separately as **signal-only**, never as real execution.
 - Service/WebSocket/Sharia state: bot-produced health JSON files.
 - Docker status: a root-owned fixed helper writes a sanitized snapshot. The
-  `botmon` API user never receives Docker-socket access.
+`botmon` API user never receives Docker-socket access.
+- The helper also publishes read-only permissions for a fixed list of
+  credential-free health/database/log sources, while private queues, evidence,
+  configuration and safety state stay excluded.
 - Deployment/validation: installer-produced status files bound to the exact
   release hash.
 
