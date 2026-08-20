@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import stat
 import subprocess
 import tempfile
 from datetime import datetime, timezone
@@ -21,6 +22,32 @@ DEFAULT_OUTPUT = Path(
         "BINANA_CONTAINER_STATUS_PATH",
         "/var/lib/binana-freqtrade-v101/shared/runtime/container_status.json",
     )
+)
+SHARED_ROOT = Path("/var/lib/binana-freqtrade-v101/shared")
+# Fixed, credential-free sources consumed by monitoring/api/metrics.py.  No
+# queues, HMAC envelopes, Sharia evidence bytes, private configuration, or
+# recovery state may be added to this allowlist.
+READONLY_MONITOR_SOURCES = (
+    "runtime/sidecar_health.json",
+    "runtime/telegram_health.json",
+    "runtime/telegram_alert_outbox_health.json",
+    "runtime/user_stream_health.json",
+    "runtime/sharia_screener/health.json",
+    "runtime/deployment_status.json",
+    "runtime/release_validation.json",
+    "runtime/offhost_backup_status.json",
+    "runtime/api_readiness_status.json",
+    "runtime/execution_state.sqlite",
+    "runtime/execution_state.sqlite-wal",
+    "runtime/execution_state.sqlite-shm",
+    "sharia/sharia_status.json",
+    "universe/status.json",
+    "freqtrade/tradesv3.signal-only.sqlite",
+    "freqtrade/tradesv3.signal-only.sqlite-wal",
+    "freqtrade/tradesv3.signal-only.sqlite-shm",
+    "freqtrade/logs/freqtrade.log",
+    "legacy_runtime/logs/pnl_ledger.jsonl",
+    "audit/events.jsonl",
 )
 
 
@@ -64,16 +91,50 @@ def collect() -> dict:
     return {"generated_at": datetime.now(timezone.utc).isoformat(), "containers": containers}
 
 
+def publish_monitor_permissions(root: Path = SHARED_ROOT) -> list[str]:
+    """Grant group-read only to the fixed monitoring sources.
+
+    The helper is root-owned and sandboxed by systemd.  Every file is opened
+    without following links and is rejected when it is not a regular,
+    single-link file owned by root or the dedicated bot account.
+    """
+    root = root.resolve(strict=True)
+    root_stat = root.stat()
+    published = []
+    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    for relative in READONLY_MONITOR_SOURCES:
+        path = root / relative
+        try:
+            descriptor = os.open(path, flags)
+        except FileNotFoundError:
+            continue
+        except OSError:
+            continue
+        try:
+            current = os.fstat(descriptor)
+            if not stat.S_ISREG(current.st_mode) or current.st_nlink != 1:
+                continue
+            if current.st_uid not in {0, root_stat.st_uid}:
+                continue
+            os.fchown(descriptor, current.st_uid, root_stat.st_gid)
+            os.fchmod(descriptor, 0o640)
+            published.append(relative)
+        finally:
+            os.close(descriptor)
+    return published
+
+
 def atomic_write(path: Path, value: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary = tempfile.mkstemp(prefix=".container-status.", dir=path.parent)
     try:
+        os.fchown(descriptor, 0, path.parent.stat().st_gid)
+        os.fchmod(descriptor, 0o640)
         with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
             json.dump(value, handle, separators=(",", ":"), sort_keys=True)
             handle.write("\n")
             handle.flush()
             os.fsync(handle.fileno())
-        os.chmod(temporary, 0o644)
         os.replace(temporary, path)
     except BaseException:
         try:
@@ -91,7 +152,10 @@ def main(argv=None) -> int:
     allowed = DEFAULT_OUTPUT.parent.resolve()
     if resolved.parent != allowed:
         raise SystemExit(f"output must be directly inside {allowed}")
-    atomic_write(resolved, collect())
+    published = publish_monitor_permissions()
+    value = collect()
+    value["readonly_sources_published"] = published
+    atomic_write(resolved, value)
     return 0
 
 

@@ -1,0 +1,26 @@
+[Unit]
+Description=GET-only BINANA external API credential preflight
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/binana-freqtrade-v101/.env
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/opt/binana-freqtrade-v101/current/deploy/api_preflight.sh
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LockPersonality=true
+ReadOnlyPaths=/opt/binana-freqtrade-v101/current /etc/binana-freqtrade-v101/.env
+ReadWritePaths=/var/lib/binana-freqtrade-v101/shared/runtime

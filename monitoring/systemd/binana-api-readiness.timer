@@ -1,0 +1,12 @@
+[Unit]
+Description=Periodic GET-only BINANA external API credential preflight
+
+[Timer]
+OnBootSec=10m
+OnUnitActiveSec=6h
+RandomizedDelaySec=5m
+Persistent=true
+Unit=binana-api-readiness.service
+
+[Install]
+WantedBy=timers.target

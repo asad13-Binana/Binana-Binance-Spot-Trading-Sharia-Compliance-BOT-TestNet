@@ -397,6 +397,8 @@ p=Path(sys.argv[1])/'runtime/deployment_status.json'; p.parent.mkdir(parents=Tru
 payload={'ok':False,'status':sys.argv[2],'at':datetime.now(timezone.utc).isoformat()}
 fd,tmp=tempfile.mkstemp(prefix='.'+p.name+'.',suffix='.tmp',dir=p.parent)
 try:
+    os.fchown(fd, 0, p.parent.stat().st_gid)
+    os.fchmod(fd, 0o640)
     with os.fdopen(fd,'w',encoding='utf-8') as handle:
         json.dump(payload,handle,indent=2,sort_keys=True); handle.write('\n')
         handle.flush(); os.fsync(handle.fileno())
@@ -458,6 +460,8 @@ payload={
 }
 fd,tmp=tempfile.mkstemp(prefix='.'+p.name+'.',suffix='.tmp',dir=p.parent)
 try:
+    os.fchown(fd, 0, p.parent.stat().st_gid)
+    os.fchmod(fd, 0o640)
     with os.fdopen(fd,'w',encoding='utf-8') as handle:
         json.dump(payload,handle,indent=2,sort_keys=True); handle.write('\n')
         handle.flush(); os.fsync(handle.fileno())
