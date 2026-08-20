@@ -5,8 +5,8 @@
       "size": 693
     },
     ".env.example": {
-      "sha256": "c8e6ea9833bc97a4b60eda665eac723e0d898abf30a368cc087618149841ea64",
-      "size": 7988
+      "sha256": "8a5cc33ba7600ad2e455f6f9c6edc8a10f0ca13ef3d1d479539d049637f2d949",
+      "size": 7974
     },
     ".gitattributes": {
       "sha256": "b865af9583d2c70c38997cdc4b4fad4c82610038d0d50765ee42032f094132bf",
@@ -17,8 +17,8 @@
       "size": 825
     },
     ".github/workflows/ci.yml": {
-      "sha256": "ac9c955bc5d2fd4857dc2922ba90d31ac7003283bfa30b3925d13641ff9318b7",
-      "size": 24467
+      "sha256": "f9e30b9eaf525d14c5bda12f8d980721d65f11248f5a8c8e02aa147a93d528c5",
+      "size": 24499
     },
     ".gitignore": {
       "sha256": "80851308cc3aef5cd314b9a5bee87112443f0604bb6238348eeeb57d3ef868f7",
@@ -47,6 +47,14 @@
     "Dockerfile.services": {
       "sha256": "4b8d5a4aa82a6bc7d1d103750704ef076fb2b80e7432bf73c703db8a94539393",
       "size": 1877
+    },
+    "FOUR_BOT_COHOST_AUDIT_2026-08-21.txt": {
+      "sha256": "b2ae09b1c1f344b20e9ced20515f0efc254d36e17252a49c998671f7ab258dfc",
+      "size": 11933
+    },
+    "FOUR_BOT_ORACLE_RUNBOOK.md": {
+      "sha256": "fc28aa121ddda1b407043cb4aa0f77b6eb1d25d542a4e42ea736878b077a1b2a",
+      "size": 4682
     },
     "LICENSE": {
       "sha256": "6ad6470deb97c14a172d14ce75e1b5ed9de977c4518508cf9ee2a2c750fc9bd5",
@@ -101,76 +109,84 @@
       "size": 5565
     },
     "deploy/api_preflight.sh": {
-      "sha256": "f0cd8bccca3a698e81bdb3a627e6e5aeecc6621952330fbd01ff899e5f976713",
-      "size": 4315
+      "sha256": "b0c63df16e2ee7fa2502498d7a72fbc871e51f13603654cb5bdc81bf084de220",
+      "size": 4345
     },
     "deploy/backup_state.sh": {
-      "sha256": "489cdab1864a988542dee64a2084acb1ed1a5babc68e03e9e5a37a3b6f611e07",
-      "size": 3153
+      "sha256": "3139ab56bbcfbc6b979cb9518a8a7c1b32c511fd5e8591ef8b6b58abfb8d691d",
+      "size": 2838
     },
     "deploy/binana-approve-release.sh": {
-      "sha256": "429d6d6ad7ab378119de7eb8ac22656924bcc49a42dce6d1807a6e79e3dd9535",
-      "size": 806
+      "sha256": "f435d9545175289d8dba514b4b7c3ed31864c234f49e56b3cc40b70eeec89b0b",
+      "size": 800
     },
     "deploy/binana-deploy-wrapper.sh": {
-      "sha256": "e12c070fb128c64b67961546fe6d5983cffa947bb537c751a8a57ae7e2a4dbcf",
-      "size": 4554
+      "sha256": "cdfb338413833a58247e3c5ee588191184e0346dd9ea668ea251466003e63230",
+      "size": 4580
     },
     "deploy/configure_offhost_backup.sh": {
-      "sha256": "fa194f92e5513f6661f1aeeba703935872b99852e840f328754584aaf3df5abb",
-      "size": 1025
+      "sha256": "d1d54179fb9504b13baa2324277c4beadb677992b1c55fa1ce24211c11705822",
+      "size": 1176
     },
     "deploy/create_oci_host_loss_alarm.sh": {
       "sha256": "bf1509747ca42eeb2c67cf5580a54843968fc0ff6c01d3ca22eff4ba017f0811",
       "size": 3075
     },
     "deploy/disk_guard.sh": {
-      "sha256": "59652580c5404f8cd0d5348aa28104f6d879bd20cbd1282c1430415d7a1aee6c",
-      "size": 4640
+      "sha256": "1aa3be04898085b51c8ba1c7fb30ba4aa7bdc2ab1c91e797ce066ae7b28fbd2a",
+      "size": 4265
     },
     "deploy/docker_firewall.sh": {
       "sha256": "2f85247a50d39131b82f9e88d9b39e7b7af4fc2ccefe4be7d86d6162696b6a76",
       "size": 1441
+    },
+    "deploy/four_bot_host_contract.json": {
+      "sha256": "a7e654b2d06fddf28f937cf466274f1705ecc509bda6302019d6bc0487b70fb0",
+      "size": 4165
     },
     "deploy/harden_ssh.sh": {
       "sha256": "d05d7a71bdd2a20b2d51987b4740069ceef73423988ddabee1e18f1c4045ba87",
       "size": 2278
     },
     "deploy/install_artifact.sh": {
-      "sha256": "0c65fa2d2dc7508e3da5da2f59ccc737e5a538d104d237130aa424a039fa5b4f",
-      "size": 23973
+      "sha256": "50baf275f4944c297c274d511964ac68b53345c79620c3cef28300cfbb609c33",
+      "size": 23524
     },
     "deploy/install_monitoring.sh": {
-      "sha256": "45e4f738c6040136e9f0c95eb8fb50a97dcfc092cab9a1310e0652bf584be3b6",
-      "size": 5682
+      "sha256": "163b106c0d79ed12743eb430a3ea0bcf9c59fcc8055e2a51770178b1940078f1",
+      "size": 6923
+    },
+    "deploy/instance_identity.sh": {
+      "sha256": "f1ff060c2d0ccaad277b82395758bb900088090e33f7b4bf3831b5e98e9f829c",
+      "size": 1037
     },
     "deploy/lib/secure_env.sh": {
       "sha256": "cbfbfee36ff22eb6edbd9b19e63503c55be7ac8d299a2e3c19b398c3a3d027f8",
       "size": 3140
     },
     "deploy/offhost-backup.env.example": {
-      "sha256": "30159837dbb34323b1297baabce98474582e509b2946e33782ed9e9c363e4755",
-      "size": 364
+      "sha256": "9c8fe4919ec2c3789b7ddf9bf8ba9bcdb45cae5fb1c09084489aa14b168b68bb",
+      "size": 356
     },
     "deploy/offhost_backup.sh": {
-      "sha256": "c5ec1086720ad3177205d8b88be1c3c3ac7a02af51ea9278b995b0bba2e53346",
-      "size": 9239
+      "sha256": "2248a08042ca9641dc382058481692a24ecb686d00dd9a257acf27643c86461b",
+      "size": 9382
     },
     "deploy/oracle_setup.sh": {
-      "sha256": "1bd2d5d5f0601dad45b432036aa15c04897fa057ae977a745ba7c9b1ddca4618",
-      "size": 14766
+      "sha256": "95d7723a192f3349e3a15ccc637472e87646369dc8520662a7d3e7172d9745b4",
+      "size": 14533
     },
     "deploy/oracle_validate.sh": {
-      "sha256": "c06b8f05bff8336d6a6081733851bc60f99c3f901c0244172698c0a4368ae3f0",
-      "size": 8377
+      "sha256": "424e0d5d92f48652a7bf8dafe2ad0a7d5498b2aa973caaecb7d8e22a45735dd8",
+      "size": 7839
     },
     "deploy/restore_validate.sh": {
-      "sha256": "1c148155574ad76e460a49d21f6d5736a95b10c653c396b50c185e5b78f5e2dd",
-      "size": 2072
+      "sha256": "c429fe4ea8afc3f8b4a0b7e160f766a0160ee1807cde6a5065f256c520e47a22",
+      "size": 2091
     },
     "deploy/stage_offhost_restore.sh": {
-      "sha256": "d36719b835fc8972e07ed758ab5368452e853fadbcd0282ca41a67d520ca516a",
-      "size": 5348
+      "sha256": "3dc788f5084031ab0b70d4e7f0d3da12244179c2bdc9cea98050faefc43e9f7d",
+      "size": 5494
     },
     "deploy/update_docker.sh": {
       "sha256": "6ea7ff641dcce2c5d4915be114ee2b9823e214a173ecd4f1355b84a14a9bacba",
@@ -181,8 +197,8 @@
       "size": 11019
     },
     "docker-compose.yml": {
-      "sha256": "dc0713b870f20e626cb9429dd2061a72144f9bef18d6874aa9aa77cdbe76b766",
-      "size": 18773
+      "sha256": "d50e4d6352c43d7c719062f2c316eb646ae5fd93d88b7c4bb8d9cf02d7ef9666",
+      "size": 18821
     },
     "docs/API_READINESS_RUNBOOK.md": {
       "sha256": "c222e3c3005b467b9095ee51750084d9c705b9c50a4d22abe2ad135703d40b0a",
@@ -289,16 +305,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "e1b46d90d1291db975e68f3b525ef3c20020e9dc486c3fe2a5b10b6d5d87d955",
-      "size": 44358
+      "sha256": "9084381a457a015360d873549de5451a4b1d3e3845fef5ba7a8a09a4b7ffe78a",
+      "size": 45273
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "facd85fab2483f15e94cd1d3f2a28efc488df36c2c9bc3a7dfdf58f4238f63c0",
-      "size": 266736
+      "sha256": "b928d62679b08eef2157c9561cf74cd2e8b5ec438a24698d4b2b3eb50750b392",
+      "size": 268433
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -461,8 +477,8 @@
       "size": 1929
     },
     "monitoring/.env.monitor.testnet.example": {
-      "sha256": "93c7b1840aeffb86d08ca5dcbe7c4530a7fe86badf44da42b7928eecd3650932",
-      "size": 1865
+      "sha256": "a5b8d7b0470a8d48ca821c77f8a1d227ceea7d4892f38963a004fe661c93d747",
+      "size": 1765
     },
     "monitoring/INSTALL.md": {
       "sha256": "385bc7e11c72e8eb9977e3dfd2cfb6f720d755c9ae9190ab47ea02448b0ec273",
@@ -621,8 +637,8 @@
       "size": 0
     },
     "monitoring/tests/test_monitoring.py": {
-      "sha256": "ca96b433bb69540dbda82bb2c6ee689971d60d260d984aab6552db7e5f1a5254",
-      "size": 25901
+      "sha256": "98c53ee2663b3a31209d9a7df3c221fff21e786fa05f409e50c7f0b58f879e94",
+      "size": 26504
     },
     "requirements-dev.txt": {
       "sha256": "4ed98842d9a4ed572e9bda6db033a38b9307add5daea7af83fd6e0e6d8446f17",
@@ -683,6 +699,10 @@
     "scripts/verify_external_validation_evidence.py": {
       "sha256": "ce99f95b25226fd2cb89095d4e64ce5e84ca180f4ba90bd2ca9cae2c0c84fa90",
       "size": 5388
+    },
+    "scripts/verify_four_bot_cohost.py": {
+      "sha256": "c998c5e338e2dc95c6a441fe4da21e73ce8ed4807bb6e3a8330d7d5c1b676245",
+      "size": 18657
     },
     "scripts/verify_manifest.py": {
       "sha256": "ff0fa84437cdacc2fc5c7b45ddedfaa2f95d448a73a959362ed5d9167475dcb1",
@@ -1009,8 +1029,8 @@
       "size": 9540
     },
     "tests/test_api_readiness.py": {
-      "sha256": "5884465c3c1aa92ed150d1061e41ed1590518ae1b9ebdb1e0848dcf11460f84b",
-      "size": 7529
+      "sha256": "99a85209d8f7a3ef0623ad4c716ab89e8a81993712cbbccfed5509dee5d49707",
+      "size": 7981
     },
     "tests/test_audit_ledgers.py": {
       "sha256": "cb7f45200a98bfcb307e683eec37e4e47d8c455d9034ab4ede2dffa4cc1c47f0",
@@ -1032,6 +1052,10 @@
       "sha256": "6baa618074d85950244a9996b7cddae7ddc0068a4fa5a93ae4789ab6d9fc1769",
       "size": 3849
     },
+    "tests/test_four_bot_cohosting.py": {
+      "sha256": "7d2a150f903b7568ab3d75b64ccad16556876dfbb918a1af106bf3db28629055",
+      "size": 3729
+    },
     "tests/test_git_history_secret_scan.py": {
       "sha256": "abf60008986801328c79bdb60dff1e1ce2882e8c4d96df475a55314be71319c5",
       "size": 1661
@@ -1041,12 +1065,12 @@
       "size": 45086
     },
     "tests/test_oracle_hardening_v2.py": {
-      "sha256": "2c61e3abc71beb73e230ca52105bfd5a909025e89b8ee6bbc1273b335442c40d",
-      "size": 15640
+      "sha256": "59cfa07492c6c69b80182976932d8df458e8d55b12d97df4f73498fa0450f7be",
+      "size": 16243
     },
     "tests/test_oracle_host_loss_resilience.py": {
-      "sha256": "1184dd27937cb1a985037c0882b5fa98139d761eabcea80c76cc20dde13c273f",
-      "size": 4673
+      "sha256": "9772b93ca2deae3c6f7b690bc876ebf1132caecc6cc2a0790b2cadc965c7c548",
+      "size": 4745
     },
     "tests/test_package_mode.py": {
       "sha256": "ac511c3d87fbcc2578ecba1c0f4f08f55c3f07f8ee393934439d756c4ba21ac2",

@@ -4,11 +4,12 @@ set -Eeuo pipefail
 umask 077
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+# shellcheck source=deploy/instance_identity.sh
+source "$SCRIPT_DIR/instance_identity.sh"
 # shellcheck source=deploy/lib/secure_env.sh
 source "$SCRIPT_DIR/lib/secure_env.sh"
-ENV_FILE=/etc/binana-freqtrade-v101/.env
-APP_ROOT=/opt/binana-freqtrade-v101
-STATUS=/var/lib/binana-freqtrade-v101/shared/runtime/api_readiness_status.json
+readonly ENV_FILE=$PRIVATE_ROOT/.env
+readonly STATUS=$PERSIST/runtime/api_readiness_status.json
 
 fail(){ printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 [[ $EUID -eq 0 ]] || fail 'api_preflight.sh must run with sudo'

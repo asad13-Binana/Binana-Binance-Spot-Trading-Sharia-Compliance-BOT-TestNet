@@ -2,17 +2,12 @@
 set -euo pipefail
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+# shellcheck source=deploy/instance_identity.sh
+source "$SCRIPT_DIR/instance_identity.sh"
 # shellcheck source=deploy/lib/secure_env.sh
 source "$SCRIPT_DIR/lib/secure_env.sh"
-ENV_FILE=${ENV_FILE:-/etc/binana-freqtrade-v101/.env}
-APP_ROOT=${APP_ROOT:-/opt/binana-freqtrade-v101}
-PERSIST=${PERSIST:-/var/lib/binana-freqtrade-v101/shared}
-COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME:-binana-freqtrade-v101}
+readonly ENV_FILE=$PRIVATE_ROOT/.env
 [[ $EUID -eq 0 ]] || { echo 'ERROR: run oracle_validate.sh with sudo' >&2; exit 1; }
-[[ "$ENV_FILE" == /etc/binana-freqtrade-v101/.env ]] || { echo 'ERROR: ENV_FILE must remain fixed' >&2; exit 1; }
-[[ "$APP_ROOT" == /opt/binana-freqtrade-v101 ]] || { echo 'ERROR: APP_ROOT must remain fixed' >&2; exit 1; }
-[[ "$PERSIST" == /var/lib/binana-freqtrade-v101/shared ]] || { echo 'ERROR: PERSIST must remain fixed' >&2; exit 1; }
-[[ "$COMPOSE_PROJECT_NAME" == binana-freqtrade-v101 ]] || { echo 'ERROR: COMPOSE_PROJECT_NAME must remain fixed' >&2; exit 1; }
 
 declare -A VALUES=()
 secure_env_read "$ENV_FILE" VALUES
@@ -138,13 +133,13 @@ for index, name in enumerate(names):
 PY
 
 printf '\nmonitor_state='
-systemctl is-active "binana-monitor-${package_mode}.service" 2>/dev/null || true
+systemctl is-active "${SYSTEMD_PREFIX}-monitor-${package_mode}.service" 2>/dev/null || true
 printf 'local_backup_timer='
-systemctl is-active binana-state-backup.timer 2>/dev/null || true
+systemctl is-active "${SYSTEMD_PREFIX}-state-backup.timer" 2>/dev/null || true
 printf 'offhost_backup_timer='
-systemctl is-active binana-offhost-backup.timer 2>/dev/null || true
+systemctl is-active "${SYSTEMD_PREFIX}-offhost-backup.timer" 2>/dev/null || true
 printf 'api_readiness_timer='
-systemctl is-active binana-api-readiness.timer 2>/dev/null || true
+systemctl is-active "${SYSTEMD_PREFIX}-api-readiness.timer" 2>/dev/null || true
 if [[ -f "$PERSIST/runtime/offhost_backup_status.json" && ! -L "$PERSIST/runtime/offhost_backup_status.json" ]]; then
   python3 - "$PERSIST/runtime/offhost_backup_status.json" <<'PY'
 import json, pathlib, sys
@@ -182,6 +177,6 @@ print("api_readiness_status=" + json.dumps({
 }, sort_keys=True))
 PY
 else
-  echo 'api_readiness_status=NOT_RUN; run sudo /opt/binana-freqtrade-v101/current/deploy/api_preflight.sh'
+  echo "api_readiness_status=NOT_RUN; run sudo $APP_ROOT/current/deploy/api_preflight.sh"
 fi
 printf 'validation_complete=YES; Oracle soak/fault drills are separate and are not implied.\n'

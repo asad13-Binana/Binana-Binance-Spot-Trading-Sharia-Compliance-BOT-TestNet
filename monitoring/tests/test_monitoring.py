@@ -15,6 +15,11 @@ from fastapi.testclient import TestClient
 
 
 ROOT = Path(__file__).resolve().parents[2]
+RELEASE_MODE = (ROOT / "RELEASE_MODE").read_text(encoding="utf-8").strip()
+INSTANCE = {
+    "testnet": {"slug": "binana-testnet", "port": 8090, "bot_user": "binanatn", "monitor_user": "binanatnmon"},
+    "live": {"slug": "binana-live", "port": 8092, "bot_user": "binanalive", "monitor_user": "binanalivemon"},
+}[RELEASE_MODE]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
@@ -479,11 +484,12 @@ def test_monitor_config_source_does_not_read_trading_credentials():
 def test_mode_templates_have_correct_topology_ports_and_isolation():
     testnet = (ROOT / "monitoring/.env.monitor.testnet.example").read_text(encoding="utf-8")
     live = (ROOT / "monitoring/.env.monitor.live.example").read_text(encoding="utf-8")
-    assert "/opt/binana-freqtrade-v101/current" in testnet + live
+    active = testnet if RELEASE_MODE == "testnet" else live
+    assert f"/opt/{INSTANCE['slug']}/current" in active
+    assert f"/var/lib/{INSTANCE['slug']}/shared" in active
     assert "BOT_PRODUCT=BINANA" in testnet and "BOT_PRODUCT=BINANA" in live
     assert "BOT_ENVIRONMENT=TESTNET" in testnet and "BOT_ENVIRONMENT=LIVE" in live
-    assert "MONITOR_URL=http://127.0.0.1:8090" in testnet
-    assert "MONITOR_URL=http://127.0.0.1:8090" in live
+    assert f"MONITOR_URL=http://127.0.0.1:{INSTANCE['port']}" in active
     assert "testnet-audit.jsonl" in testnet and "live-audit.jsonl" in live
     assert "MONITOR_ENABLED=false" in live
 
@@ -509,10 +515,12 @@ def test_monitor_installer_preserves_runtime_ownership_and_refreshes_release():
     installer = (ROOT / "deploy/install_monitoring.sh").read_text(encoding="utf-8")
     setup = (ROOT / "deploy/oracle_setup.sh").read_text(encoding="utf-8")
     assert 'usermod -a -G "$BOT_USER" "$MONITOR_USER"' in setup
-    assert "usermod -a -G binanabot botmon" in installer
-    assert 'install -d -m 0750 -o binanabot -g binanabot "$PERSIST/runtime"' in installer
+    assert 'usermod -a -G "$BOT_USER" "$MONITOR_USER"' in installer
+    assert 'install -d -m 0750 -o "$BOT_USER" -g "$BOT_USER" "$PERSIST/runtime"' in installer
+    assert INSTANCE["bot_user"] in (ROOT / "deploy/instance_identity.sh").read_text(encoding="utf-8")
+    assert INSTANCE["monitor_user"] in (ROOT / "deploy/instance_identity.sh").read_text(encoding="utf-8")
     assert 'install -d -m 0755 -o root -g root "$PERSIST/runtime"' not in installer
-    assert 'systemctl restart "binana-monitor-${MODE}.service"' in installer
+    assert 'systemctl restart "$MONITOR_SERVICE"' in installer
 
 
 @pytest.mark.skipif(os.name != "posix", reason="POSIX ownership and modes only")

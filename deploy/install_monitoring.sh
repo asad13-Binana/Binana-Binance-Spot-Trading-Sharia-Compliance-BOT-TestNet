@@ -1,24 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+# shellcheck source=deploy/instance_identity.sh
+source "$SCRIPT_DIR/instance_identity.sh"
 RELEASE_DIR=${1:?usage: install_monitoring.sh RELEASE_DIR MODE RELEASE_HASH}
 MODE=${2:?usage: install_monitoring.sh RELEASE_DIR MODE RELEASE_HASH}
 RELEASE_HASH=${3:?usage: install_monitoring.sh RELEASE_DIR MODE RELEASE_HASH}
-APP_ROOT=${APP_ROOT:-/opt/binana-freqtrade-v101}
-PRIVATE=${PRIVATE:-/etc/binana-freqtrade-v101}
-PERSIST=${PERSIST:-/var/lib/binana-freqtrade-v101/shared}
-MONITOR_LOG_DIR=${MONITOR_LOG_DIR:-/var/log/binana-freqtrade-v101/monitor}
+readonly PRIVATE=$PRIVATE_ROOT
 
 fail(){ echo "ERROR: $*" >&2; exit 1; }
 [[ $EUID -eq 0 ]] || fail 'install_monitoring.sh must run as root'
-[[ "$APP_ROOT" == /opt/binana-freqtrade-v101 ]] || fail 'APP_ROOT must remain fixed'
-[[ "$PRIVATE" == /etc/binana-freqtrade-v101 ]] || fail 'PRIVATE must remain fixed'
-[[ "$PERSIST" == /var/lib/binana-freqtrade-v101/shared ]] || fail 'PERSIST must remain fixed'
-[[ "$MONITOR_LOG_DIR" == /var/log/binana-freqtrade-v101/monitor ]] || fail 'MONITOR_LOG_DIR must remain fixed'
+[[ "$APP_ROOT" == /opt/binana-testnet ]] || fail 'APP_ROOT identity mismatch'
+[[ "$PRIVATE" == /etc/binana-testnet ]] || fail 'PRIVATE identity mismatch'
+[[ "$PERSIST" == /var/lib/binana-testnet/shared ]] || fail 'PERSIST identity mismatch'
+[[ "$MONITOR_LOG_DIR" == /var/log/binana-testnet/monitor ]] || fail 'MONITOR_LOG_DIR identity mismatch'
 for protected_path in "$APP_ROOT" "$PRIVATE" "$PERSIST" "$MONITOR_LOG_DIR"; do
   [[ ! -L "$protected_path" ]] || fail "privileged monitoring path must not be a symlink: $protected_path"
 done
-[[ "$MODE" == testnet || "$MODE" == live ]] || fail 'MODE must be testnet or live'
+[[ "$MODE" == "$INSTANCE_MODE" ]] || fail "MODE must be $INSTANCE_MODE for $INSTANCE_SLUG"
 [[ "$RELEASE_HASH" =~ ^[0-9a-f]{64}$ ]] || fail 'invalid release hash'
 RELEASE_DIR=$(readlink -f "$RELEASE_DIR")
 case "$RELEASE_DIR" in
@@ -28,16 +28,16 @@ esac
 [[ -d "$RELEASE_DIR/monitoring" ]] || fail 'monitoring source missing from release'
 [[ $(<"$RELEASE_DIR/RELEASE_MODE") == "$MODE" ]] || fail 'release mode does not match installer mode'
 
-if ! id botmon >/dev/null 2>&1; then
-  useradd --system --home-dir /nonexistent --shell /usr/sbin/nologin botmon
+if ! id "$MONITOR_USER" >/dev/null 2>&1; then
+  useradd --system --home-dir /nonexistent --shell /usr/sbin/nologin "$MONITOR_USER"
 fi
-id binanabot >/dev/null 2>&1 || fail 'binanabot account is required before monitoring installation'
-usermod -a -G binanabot botmon
+id "$BOT_USER" >/dev/null 2>&1 || fail "$BOT_USER account is required before monitoring installation"
+usermod -a -G "$BOT_USER" "$MONITOR_USER"
 install -d -m 0755 -o root -g root "$APP_ROOT/monitoring-venvs" /usr/local/libexec
-install -d -m 0750 -o botmon -g botmon "$MONITOR_LOG_DIR"
-# Runtime state remains writable only by binanabot.  botmon is a supplementary
+install -d -m 0750 -o "$MONITOR_USER" -g "$MONITOR_USER" "$MONITOR_LOG_DIR"
+# Runtime state remains writable only by the instance bot. The monitor is a supplementary
 # member with group read/traverse but receives no group write permission.
-install -d -m 0750 -o binanabot -g binanabot "$PERSIST/runtime"
+install -d -m 0750 -o "$BOT_USER" -g "$BOT_USER" "$PERSIST/runtime"
 
 VENV_ROOT="$APP_ROOT/monitoring-venvs"
 VENV_TARGET="$VENV_ROOT/$RELEASE_HASH"
@@ -62,59 +62,82 @@ mv -Tf "$APP_ROOT/monitoring-current.new" "$APP_ROOT/monitoring-current"
 # tree and made root-owned. The botmon process never receives the Docker socket.
 install -m 0755 -o root -g root \
   "$RELEASE_DIR/monitoring/snapshot.py" \
-  /usr/local/libexec/binana-monitor-snapshot
+  "/usr/local/libexec/${SYSTEMD_PREFIX}-monitor-snapshot"
 
 ENV_FILE="$PRIVATE/${MODE}-monitor.env"
 TEMPLATE="$RELEASE_DIR/monitoring/.env.monitor.${MODE}.example"
 if [[ ! -f "$ENV_FILE" ]]; then
-  install -m 0640 -o root -g botmon "$TEMPLATE" "$ENV_FILE"
+  install -m 0640 -o root -g "$MONITOR_USER" "$TEMPLATE" "$ENV_FILE"
 fi
 [[ -f "$ENV_FILE" && ! -L "$ENV_FILE" ]] || fail 'monitor environment must be a regular non-symlink file'
 if grep -Eq '^MONITOR_TOKEN=(replace_on_oracle_only|changeme|)$' "$ENV_FILE"; then
   TOKEN=$(python3 -c 'import secrets; print(secrets.token_hex(32))')
   sed -i "s/^MONITOR_TOKEN=.*/MONITOR_TOKEN=${TOKEN}/" "$ENV_FILE"
 fi
-chown root:botmon "$ENV_FILE"
+chown "root:$MONITOR_USER" "$ENV_FILE"
 chmod 0640 "$ENV_FILE"
 
 UNIT_DIR="$RELEASE_DIR/monitoring/systemd"
-install -m 0644 -o root -g root \
-  "$UNIT_DIR/binana-monitor-${MODE}.service" \
-  "$UNIT_DIR/binana-monitor-report-${MODE}.service" \
-  "$UNIT_DIR/binana-monitor-report-${MODE}.timer" \
-  "$UNIT_DIR/binana-monitor-snapshot.service" \
-  "$UNIT_DIR/binana-monitor-snapshot.timer" \
-  "$UNIT_DIR/binana-disk-guard.service" \
-  "$UNIT_DIR/binana-disk-guard.timer" \
-  "$UNIT_DIR/binana-state-backup.service" \
-  "$UNIT_DIR/binana-state-backup.timer" \
-  "$UNIT_DIR/binana-offhost-backup.service" \
-  "$UNIT_DIR/binana-offhost-backup.timer" \
-  "$UNIT_DIR/binana-api-readiness.service" \
-  "$UNIT_DIR/binana-api-readiness.timer" \
-  /etc/systemd/system/
+RENDERED=$(mktemp -d "/run/${INSTANCE_SLUG}-units.XXXXXX")
+trap 'rm -rf -- "$RENDERED"' EXIT
+render_unit(){
+  local source=$1 base target
+  base=$(basename -- "$source")
+  target="$RENDERED/${SYSTEMD_PREFIX}-${base#binana-}"
+  sed \
+    -e "s#/opt/binana-freqtrade-v101#$APP_ROOT#g" \
+    -e "s#/etc/binana-freqtrade-v101#$PRIVATE#g" \
+    -e "s#/var/lib/binana-freqtrade-v101/shared#$PERSIST#g" \
+    -e "s#/var/log/binana-freqtrade-v101/monitor#$MONITOR_LOG_DIR#g" \
+    -e "s#binana-monitor#${SYSTEMD_PREFIX}-monitor#g" \
+    -e "s#binana-disk#${SYSTEMD_PREFIX}-disk#g" \
+    -e "s#binana-state#${SYSTEMD_PREFIX}-state#g" \
+    -e "s#binana-offhost#${SYSTEMD_PREFIX}-offhost#g" \
+    -e "s#binana-api#${SYSTEMD_PREFIX}-api#g" \
+    -e "s#User=botmon#User=$MONITOR_USER#g" \
+    -e "s#Group=botmon#Group=$MONITOR_USER#g" \
+    -e "s#binanabot#$BOT_USER#g" \
+    -e "s#botmon#$MONITOR_USER#g" \
+    "$source" >"$target"
+  grep -Fq '/opt/binana-freqtrade-v101' "$target" && fail "unrendered APP_ROOT in $base"
+  grep -Fq '/var/lib/binana-freqtrade-v101' "$target" && fail "unrendered PERSIST in $base"
+  install -m 0644 -o root -g root "$target" "/etc/systemd/system/$(basename -- "$target")"
+}
+for unit in \
+  "binana-monitor-${MODE}.service" \
+  "binana-monitor-report-${MODE}.service" \
+  "binana-monitor-report-${MODE}.timer" \
+  binana-monitor-snapshot.service binana-monitor-snapshot.timer \
+  binana-disk-guard.service binana-disk-guard.timer \
+  binana-state-backup.service binana-state-backup.timer \
+  binana-offhost-backup.service binana-offhost-backup.timer \
+  binana-api-readiness.service binana-api-readiness.timer; do
+  render_unit "$UNIT_DIR/$unit"
+done
 
-OTHER=testnet
-[[ "$MODE" == testnet ]] && OTHER=live
-systemctl disable --now "binana-monitor-${OTHER}.service" \
-  "binana-monitor-report-${OTHER}.timer" >/dev/null 2>&1 || true
+configured_port=$(awk -F= '$1 == "MONITOR_PORT" {print $2; exit}' "$ENV_FILE")
+[[ "$configured_port" == "$EXPECTED_MONITOR_PORT" ]] || \
+  fail "monitor template port ${configured_port:-missing} does not match instance port $EXPECTED_MONITOR_PORT"
+
+MONITOR_SERVICE="${SYSTEMD_PREFIX}-monitor-${MODE}.service"
+REPORT_TIMER="${SYSTEMD_PREFIX}-monitor-report-${MODE}.timer"
+SNAPSHOT_TIMER="${SYSTEMD_PREFIX}-monitor-snapshot.timer"
 systemctl daemon-reload
-systemctl enable --now binana-disk-guard.timer binana-state-backup.timer \
-  binana-api-readiness.timer
+systemctl enable --now "${SYSTEMD_PREFIX}-disk-guard.timer" \
+  "${SYSTEMD_PREFIX}-state-backup.timer" "${SYSTEMD_PREFIX}-api-readiness.timer"
 
 if grep -Eq '^MONITOR_ENABLED=true$' "$ENV_FILE"; then
-  systemctl enable --now binana-monitor-snapshot.timer
-  systemctl start binana-monitor-snapshot.service
-  systemctl enable "binana-monitor-${MODE}.service"
-  systemctl restart "binana-monitor-${MODE}.service"
+  systemctl enable --now "$SNAPSHOT_TIMER"
+  systemctl start "${SYSTEMD_PREFIX}-monitor-snapshot.service"
+  systemctl enable "$MONITOR_SERVICE"
+  systemctl restart "$MONITOR_SERVICE"
 else
-  systemctl disable --now "binana-monitor-${MODE}.service" \
-    binana-monitor-snapshot.timer >/dev/null 2>&1 || true
+  systemctl disable --now "$MONITOR_SERVICE" "$SNAPSHOT_TIMER" >/dev/null 2>&1 || true
 fi
 if grep -Eq '^TELEGRAM_REPORTS_ENABLED=true$' "$ENV_FILE"; then
-  systemctl enable --now "binana-monitor-report-${MODE}.timer"
+  systemctl enable --now "$REPORT_TIMER"
 else
-  systemctl disable --now "binana-monitor-report-${MODE}.timer" >/dev/null 2>&1 || true
+  systemctl disable --now "$REPORT_TIMER" >/dev/null 2>&1 || true
 fi
 
 echo "Monitoring installed for $MODE; credentials were not printed."

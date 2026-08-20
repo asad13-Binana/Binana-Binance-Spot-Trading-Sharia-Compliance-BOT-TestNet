@@ -8,6 +8,8 @@ from urllib.parse import parse_qs, urlsplit
 
 
 ROOT = Path(__file__).resolve().parents[1]
+RELEASE_MODE = (ROOT / "RELEASE_MODE").read_text(encoding="utf-8").strip()
+INSTANCE_SLUG = f"binana-{RELEASE_MODE}"
 sys.path.insert(0, str(ROOT))
 
 from scripts import api_readiness  # noqa: E402
@@ -141,8 +143,12 @@ def test_cli_reads_configuration_from_stdin_and_not_arguments():
 def test_shell_wrapper_has_fixed_paths_atomic_status_and_no_order_methods():
     wrapper = (ROOT / "deploy/api_preflight.sh").read_text(encoding="utf-8")
     assert "secure_env_read" in wrapper
-    assert "ENV_FILE=/etc/binana-freqtrade-v101/.env" in wrapper
-    assert "STATUS=/var/lib/binana-freqtrade-v101/shared/runtime/api_readiness_status.json" in wrapper
+    assert 'source "$SCRIPT_DIR/instance_identity.sh"' in wrapper
+    assert "readonly ENV_FILE=$PRIVATE_ROOT/.env" in wrapper
+    assert "readonly STATUS=$PERSIST/runtime/api_readiness_status.json" in wrapper
+    identity = (ROOT / "deploy/instance_identity.sh").read_text(encoding="utf-8")
+    assert f"readonly PRIVATE_ROOT=/etc/{INSTANCE_SLUG}" in identity
+    assert f"readonly PERSIST=/var/lib/{INSTANCE_SLUG}/shared" in identity
     assert "mktemp" in wrapper and "mv -fT" in wrapper
     assert "chmod 0640" in wrapper
     assert "network_operations=GET_ONLY_NO_ORDERS" in wrapper
@@ -166,8 +172,9 @@ def test_systemd_schedules_get_only_preflight_with_hardening():
     assert "ReadOnlyPaths=/opt/binana-freqtrade-v101/current /etc/binana-freqtrade-v101/.env" in service
     assert "ReadWritePaths=/var/lib/binana-freqtrade-v101/shared/runtime" in service
     assert "OnUnitActiveSec=6h" in timer and "Persistent=true" in timer
-    assert '"$UNIT_DIR/binana-api-readiness.service"' in installer
-    assert "enable --now binana-disk-guard.timer binana-state-backup.timer" in installer
+    assert "binana-api-readiness.service binana-api-readiness.timer" in installer
+    assert 'render_unit "$UNIT_DIR/$unit"' in installer
+    assert 'systemctl enable --now "${SYSTEMD_PREFIX}-disk-guard.timer"' in installer
     assert "binana-api-readiness.timer" in installer
 
 

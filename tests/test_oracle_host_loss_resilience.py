@@ -80,7 +80,8 @@ def test_systemd_orders_local_then_offhost_backup_and_does_not_auto_enable_it():
     assert "After=docker.service binana-state-backup.service network-online.target" in offhost_service
     assert "Persistent=true" in offhost_timer
     assert "binana-offhost-backup.service" in offhost_timer
-    assert '"$UNIT_DIR/binana-offhost-backup.service"' in installer
+    assert "binana-offhost-backup.service binana-offhost-backup.timer" in installer
+    assert 'render_unit "$UNIT_DIR/$unit"' in installer
     assert "enable --now binana-offhost-backup.timer" not in installer
 
 

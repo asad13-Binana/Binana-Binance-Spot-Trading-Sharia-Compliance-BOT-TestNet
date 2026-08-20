@@ -1,4 +1,4 @@
-name: binana-freqtrade-v101
+name: binana-testnet
 
 x-logging: &default-logging
   driver: json-file
@@ -11,7 +11,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.services
-    image: binana-freqtrade-v101-services:${RELEASE_TAG:-local}
+    image: binana-testnet-services:${RELEASE_TAG:-local}
     command: python -m services.universe_service.scanner
     user: "${BOT_UID:-1000}:${BOT_GID:-1000}"
     restart: unless-stopped
@@ -63,6 +63,7 @@ services:
       - ${SHARED_HOST_PATH:-./shared}:/app/shared
       - ${SHARED_HOST_PATH:-./shared}/sharia:/app/shared/sharia:ro
     mem_limit: 180m
+    cpus: 0.07
     pids_limit: 96
     cap_drop: [ALL]
     read_only: true
@@ -77,7 +78,7 @@ services:
     networks: [control, runtime-egress]
 
   sharia-egress-proxy:
-    image: binana-freqtrade-v101-services:${RELEASE_TAG:-local}
+    image: binana-testnet-services:${RELEASE_TAG:-local}
     command: python -m services.sharia_egress_proxy.server
     user: "${BOT_UID:-1000}:${BOT_GID:-1000}"
     restart: unless-stopped
@@ -98,6 +99,7 @@ services:
       - runtime-egress
       - sharia-egress
     mem_limit: 50m
+    cpus: 0.03
     pids_limit: 64
     cap_drop: [ALL]
     read_only: true
@@ -112,7 +114,7 @@ services:
     logging: *default-logging
 
   sharia-screener:
-    image: binana-freqtrade-v101-services:${RELEASE_TAG:-local}
+    image: binana-testnet-services:${RELEASE_TAG:-local}
     command: python -m services.sharia_screener.service
     user: "${BOT_UID:-1000}:${BOT_GID:-1000}"
     restart: unless-stopped
@@ -181,6 +183,7 @@ services:
     networks:
       - sharia-egress
     mem_limit: 200m
+    cpus: 0.08
     pids_limit: 96
     cap_drop: [ALL]
     read_only: true
@@ -233,6 +236,7 @@ services:
       trade --logfile /freqtrade/shared/freqtrade/logs/freqtrade.log
       --config /freqtrade/user_data/config.json --strategy IctSmcStrategy
     mem_limit: 520m
+    cpus: 0.15
     pids_limit: 192
     cap_drop: [ALL]
     tmpfs: [/tmp:size=64m,mode=1777]
@@ -247,7 +251,7 @@ services:
     networks: [control, runtime-egress]
 
   execution-sidecar:
-    image: binana-freqtrade-v101-services:${RELEASE_TAG:-local}
+    image: binana-testnet-services:${RELEASE_TAG:-local}
     command: python -m services.execution_sidecar.main
     user: "${BOT_UID:-1000}:${BOT_GID:-1000}"
     restart: unless-stopped
@@ -306,6 +310,7 @@ services:
       - ${SHARED_HOST_PATH:-./shared}/sharia:/app/shared/sharia:ro
       - ${SHARED_HOST_PATH:-./shared}/universe:/app/shared/universe:ro
     mem_limit: 300m
+    cpus: 0.08
     pids_limit: 128
     cap_drop: [ALL]
     read_only: true
@@ -321,7 +326,7 @@ services:
     networks: [control, runtime-egress]
 
   telegram-broker:
-    image: binana-freqtrade-v101-services:${RELEASE_TAG:-local}
+    image: binana-testnet-services:${RELEASE_TAG:-local}
     command: python -m services.telegram_broker.bot
     user: "${BOT_UID:-1000}:${BOT_GID:-1000}"
     restart: unless-stopped
@@ -365,6 +370,7 @@ services:
       - ${SHARED_HOST_PATH:-./shared}/sharia:/app/shared/sharia:ro
       - ${SHARED_HOST_PATH:-./shared}/universe:/app/shared/universe:ro
     mem_limit: 120m
+    cpus: 0.04
     pids_limit: 96
     cap_drop: [ALL]
     read_only: true
