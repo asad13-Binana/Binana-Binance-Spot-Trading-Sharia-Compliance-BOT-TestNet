@@ -1,16 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+# shellcheck source=deploy/instance_identity.sh
+source "$SCRIPT_DIR/instance_identity.sh"
 # shellcheck source=deploy/lib/secure_env.sh
 source "$SCRIPT_DIR/lib/secure_env.sh"
-PERSIST=${PERSIST:-/var/lib/binana-freqtrade-v101/shared}
-APP_ROOT=${APP_ROOT:-/opt/binana-freqtrade-v101}
-ENV_FILE=${ENV_FILE:-/etc/binana-freqtrade-v101/.env}
+readonly ENV_FILE=$PRIVATE_ROOT/.env
 WARNING_PERCENT=${DISK_WARNING_PERCENT:-80}
 CRITICAL_PERCENT=${DISK_CRITICAL_PERCENT:-90}
-[[ "$PERSIST" == /var/lib/binana-freqtrade-v101/shared ]] || { echo 'ERROR: PERSIST must remain fixed' >&2; exit 1; }
-[[ "$APP_ROOT" == /opt/binana-freqtrade-v101 ]] || { echo 'ERROR: APP_ROOT must remain fixed' >&2; exit 1; }
-[[ "$ENV_FILE" == /etc/binana-freqtrade-v101/.env ]] || { echo 'ERROR: ENV_FILE must remain fixed' >&2; exit 1; }
 [[ -d "$PERSIST" && ! -L "$PERSIST" ]] || { echo 'ERROR: persistent root unavailable' >&2; exit 1; }
 [[ "$WARNING_PERCENT" =~ ^[0-9]+$ && "$CRITICAL_PERCENT" =~ ^[0-9]+$ ]] || exit 1
 (( WARNING_PERCENT < CRITICAL_PERCENT && CRITICAL_PERCENT < 100 )) || exit 1

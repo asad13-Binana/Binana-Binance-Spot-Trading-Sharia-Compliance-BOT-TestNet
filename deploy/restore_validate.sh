@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+# shellcheck source=deploy/instance_identity.sh
+source "$SCRIPT_DIR/instance_identity.sh"
 [[ $# -eq 1 ]] || { echo 'usage: restore_validate.sh BACKUP_DIRECTORY' >&2; exit 1; }
-BACKUP_ROOT=${BACKUP_ROOT:-/var/backups/binana-freqtrade-v101}
-[[ "$BACKUP_ROOT" == /var/backups/binana-freqtrade-v101 ]] || { echo 'ERROR: BACKUP_ROOT must remain fixed' >&2; exit 1; }
+readonly BACKUP_ROOT=/var/backups/binana-testnet
 candidate=$1
 [[ -d "$candidate" && ! -L "$candidate" ]] || { echo 'ERROR: backup must be a non-symlink directory' >&2; exit 1; }
 root=$(readlink -f -- "$BACKUP_ROOT")

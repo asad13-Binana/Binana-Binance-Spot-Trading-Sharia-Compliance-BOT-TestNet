@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+# shellcheck source=deploy/instance_identity.sh
+source "$SCRIPT_DIR/instance_identity.sh"
 [[ $EUID -eq 0 ]] || { echo 'ERROR: backup_state.sh requires root' >&2; exit 1; }
-PERSIST=${PERSIST:-/var/lib/binana-freqtrade-v101/shared}
-APP_ROOT=${APP_ROOT:-/opt/binana-freqtrade-v101}
-BACKUP_ROOT=${BACKUP_ROOT:-/var/backups/binana-freqtrade-v101}
+readonly BACKUP_ROOT=/var/backups/binana-testnet
 BACKUP_RETAIN=${BACKUP_RETAIN:-14}
-[[ "$PERSIST" == /var/lib/binana-freqtrade-v101/shared ]] || { echo 'ERROR: PERSIST must remain fixed' >&2; exit 1; }
-[[ "$APP_ROOT" == /opt/binana-freqtrade-v101 ]] || { echo 'ERROR: APP_ROOT must remain fixed' >&2; exit 1; }
-[[ "$BACKUP_ROOT" == /var/backups/binana-freqtrade-v101 ]] || { echo 'ERROR: BACKUP_ROOT must remain fixed' >&2; exit 1; }
 [[ "$BACKUP_RETAIN" =~ ^[0-9]+$ ]] && (( BACKUP_RETAIN >= 2 && BACKUP_RETAIN <= 90 )) || { echo 'ERROR: BACKUP_RETAIN must be 2..90' >&2; exit 1; }
 [[ -d "$PERSIST" && ! -L "$PERSIST" ]] || { echo 'ERROR: persistent root unavailable' >&2; exit 1; }
 [[ ! -L "$BACKUP_ROOT" ]] || { echo 'ERROR: backup root must not be a symlink' >&2; exit 1; }

@@ -3,20 +3,16 @@ set -euo pipefail
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
 ROOT_DIR=$(cd -- "$SCRIPT_DIR/.." && pwd -P)
+# shellcheck source=deploy/instance_identity.sh
+source "$SCRIPT_DIR/instance_identity.sh"
 MEMINFO_PATH=${MEMINFO_PATH:-/proc/meminfo}
 OS_RELEASE_PATH=${OS_RELEASE_PATH:-/etc/os-release}
-MIN_PHYSICAL_MEMORY_MIB=${MIN_PHYSICAL_MEMORY_MIB:-5120}
-MIN_TOTAL_MEMORY_MIB=${MIN_TOTAL_MEMORY_MIB:-8192}
-MIN_FREE_DISK_GIB=${MIN_FREE_DISK_GIB:-35}
+MIN_PHYSICAL_MEMORY_MIB=${MIN_PHYSICAL_MEMORY_MIB:-11264}
+MIN_TOTAL_MEMORY_MIB=${MIN_TOTAL_MEMORY_MIB:-14336}
+MIN_FREE_DISK_GIB=${MIN_FREE_DISK_GIB:-80}
 SWAP_SIZE_GIB=${SWAP_SIZE_GIB:-4}
 DEPLOY_USER=${DEPLOY_USER:-${SUDO_USER:-ubuntu}}
-BOT_USER=${BOT_USER:-binanabot}
-MONITOR_USER=${MONITOR_USER:-botmon}
-PRIVATE=${PRIVATE:-/etc/binana-freqtrade-v101}
-APP_ROOT=${APP_ROOT:-/opt/binana-freqtrade-v101}
-PERSIST=${PERSIST:-/var/lib/binana-freqtrade-v101/shared}
-MONITOR_LOG_DIR=${MONITOR_LOG_DIR:-/var/log/binana-freqtrade-v101/monitor}
-DEPLOY_INBOX=${DEPLOY_INBOX:-/var/lib/binana-deploy/inbox}
+readonly PRIVATE=$PRIVATE_ROOT
 
 fail(){ printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 need(){ command -v "$1" >/dev/null 2>&1 || fail "required command missing after installation: $1"; }
@@ -32,7 +28,7 @@ valid_positive_integer "$SWAP_SIZE_GIB" || fail 'SWAP_SIZE_GIB must be a positiv
 physical_mib=$(awk '/MemTotal/{print int($2/1024)}' "$MEMINFO_PATH")
 swap_mib=$(awk '/SwapTotal/{print int($2/1024)}' "$MEMINFO_PATH")
 if (( physical_mib < MIN_PHYSICAL_MEMORY_MIB )); then
-  fail "unsupported host: ${physical_mib} MiB RAM; require at least ${MIN_PHYSICAL_MEMORY_MIB} MiB for the declared 1-OCPU/6-GB topology"
+  fail "unsupported shared host: ${physical_mib} MiB RAM; require at least ${MIN_PHYSICAL_MEMORY_MIB} MiB for the four-bot Oracle topology"
 fi
 
 [[ $EUID -eq 0 ]] || fail 'run oracle_setup.sh with sudo or as root'
@@ -43,11 +39,11 @@ done
 # These privileged roots are deliberate security boundaries. Environment
 # overrides are rejected so a mistyped or hostile value cannot redirect a
 # root-owned recursive operation into an arbitrary host path.
-[[ "$PRIVATE" == /etc/binana-freqtrade-v101 ]] || fail 'PRIVATE must remain /etc/binana-freqtrade-v101'
-[[ "$APP_ROOT" == /opt/binana-freqtrade-v101 ]] || fail 'APP_ROOT must remain /opt/binana-freqtrade-v101'
-[[ "$PERSIST" == /var/lib/binana-freqtrade-v101/shared ]] || fail 'PERSIST must remain /var/lib/binana-freqtrade-v101/shared'
-[[ "$MONITOR_LOG_DIR" == /var/log/binana-freqtrade-v101/monitor ]] || fail 'MONITOR_LOG_DIR must remain /var/log/binana-freqtrade-v101/monitor'
-[[ "$DEPLOY_INBOX" == /var/lib/binana-deploy/inbox ]] || fail 'DEPLOY_INBOX must remain /var/lib/binana-deploy/inbox'
+[[ "$PRIVATE" == /etc/binana-testnet ]] || fail 'PRIVATE identity mismatch'
+[[ "$APP_ROOT" == /opt/binana-testnet ]] || fail 'APP_ROOT identity mismatch'
+[[ "$PERSIST" == /var/lib/binana-testnet/shared ]] || fail 'PERSIST identity mismatch'
+[[ "$MONITOR_LOG_DIR" == /var/log/binana-testnet/monitor ]] || fail 'MONITOR_LOG_DIR identity mismatch'
+[[ "$DEPLOY_INBOX" == /var/lib/binana-testnet/deploy-inbox ]] || fail 'DEPLOY_INBOX identity mismatch'
 for protected_path in "$PRIVATE" "$APP_ROOT" "$PERSIST" "$MONITOR_LOG_DIR" "$DEPLOY_INBOX"; do
   [[ ! -L "$protected_path" ]] || fail "privileged path must not be a symlink: $protected_path"
 done
@@ -56,11 +52,15 @@ done
 # Migration is an owner-reviewed, backup-first operation, not a bootstrap side
 # effect. A dormant legacy data directory without a current release is left
 # untouched and can be handled by the documented migration procedure.
-[[ ! -e /opt/binance-freqtrade-v101/current ]] || \
-  fail 'legacy deployment detected at /opt/binance-freqtrade-v101/current; stop, back up and migrate it explicitly'
+for legacy_root in /opt/binance-freqtrade-v101 /opt/binana-freqtrade-v101; do
+  [[ ! -e "$legacy_root/current" ]] || \
+    fail "legacy deployment detected at $legacy_root/current; stop, back up and migrate it explicitly"
+done
 if command -v docker >/dev/null 2>&1; then
-  legacy_containers=$(docker ps -aq --filter label=com.docker.compose.project=binance-freqtrade-v101 2>/dev/null || true)
-  [[ -z "$legacy_containers" ]] || fail 'legacy binance-freqtrade-v101 containers detected; reconcile them before bootstrap'
+  for legacy_project in binance-freqtrade-v101 binana-freqtrade-v101; do
+    legacy_containers=$(docker ps -aq --filter "label=com.docker.compose.project=$legacy_project" 2>/dev/null || true)
+    [[ -z "$legacy_containers" ]] || fail "legacy $legacy_project containers detected; reconcile them before bootstrap"
+  done
 fi
 
 [[ -r "$OS_RELEASE_PATH" ]] || fail "cannot read $OS_RELEASE_PATH"
@@ -73,16 +73,9 @@ architecture=$(dpkg --print-architecture)
 [[ -f "$ROOT_DIR/RELEASE_MODE" ]] || fail 'RELEASE_MODE missing from installer package'
 package_mode=$(<"$ROOT_DIR/RELEASE_MODE")
 [[ "$package_mode" == testnet || "$package_mode" == live ]] || fail 'invalid RELEASE_MODE'
-if [[ "$package_mode" == testnet ]]; then
-  expected_environment=TESTNET
-  expected_instance=BINANA-TN-TYO-01
-  expected_hostname=binana-testnet-tokyo
-else
-  expected_environment=LIVE
-  expected_instance=BINANA-LIVE-TYO-01
-  expected_hostname=binana-live-tokyo
-fi
-hostnamectl set-hostname "$expected_hostname"
+[[ "$package_mode" == "$INSTANCE_MODE" ]] || fail "package mode $package_mode does not match host identity $INSTANCE_MODE"
+expected_environment=TESTNET
+expected_instance=BINANA-TN-TYO-01
 
 free_kib=$(df -Pk / | awk 'NR==2 {print $4}')
 (( free_kib >= MIN_FREE_DISK_GIB * 1024 * 1024 )) || fail "root filesystem needs at least ${MIN_FREE_DISK_GIB} GiB free"
@@ -157,8 +150,8 @@ PY
 dockerd --validate --config-file=/etc/docker/daemon.json
 systemctl enable --now docker
 systemctl restart docker
-install -m 0755 -o root -g root "$SCRIPT_DIR/docker_firewall.sh" /usr/local/sbin/binana-docker-firewall
-cat >/etc/systemd/system/binana-docker-firewall.service <<'EOF'
+install -m 0755 -o root -g root "$SCRIPT_DIR/docker_firewall.sh" /usr/local/sbin/binana-testnet-docker-firewall
+cat >/etc/systemd/system/binana-testnet-docker-firewall.service <<'EOF'
 [Unit]
 Description=BINANA Docker ingress guard
 After=docker.service network-online.target
@@ -166,14 +159,14 @@ Requires=docker.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/sbin/binana-docker-firewall
+ExecStart=/usr/local/sbin/binana-testnet-docker-firewall
 RemainAfterExit=true
 
 [Install]
 WantedBy=multi-user.target
 EOF
 systemctl daemon-reload
-systemctl enable --now binana-docker-firewall.service
+systemctl enable --now binana-testnet-docker-firewall.service
 
 # The deployment and monitoring identities never receive the root-equivalent
 # docker group.  Root-owned wrappers perform the approved operations.
@@ -214,22 +207,22 @@ fi
 chown root:root "$PRIVATE/offhost-backup.env"
 chmod 0600 "$PRIVATE/offhost-backup.env"
 
-install -m 0755 -o root -g root "$SCRIPT_DIR/binana-deploy-wrapper.sh" /usr/local/sbin/binana-deploy
-install -m 0755 -o root -g root "$SCRIPT_DIR/binana-approve-release.sh" /usr/local/sbin/binana-approve-release
+install -m 0755 -o root -g root "$SCRIPT_DIR/binana-deploy-wrapper.sh" /usr/local/sbin/binana-testnet-deploy
+install -m 0755 -o root -g root "$SCRIPT_DIR/binana-approve-release.sh" /usr/local/sbin/binana-testnet-approve-release
 install -d -m 0755 -o root -g root /etc/sudoers.d
-cat >/etc/sudoers.d/binana-deploy <<EOF
-$DEPLOY_USER ALL=(root) NOPASSWD: /usr/local/sbin/binana-deploy
+cat >/etc/sudoers.d/binana-testnet-deploy <<EOF
+$DEPLOY_USER ALL=(root) NOPASSWD: /usr/local/sbin/binana-testnet-deploy
 EOF
-chmod 0440 /etc/sudoers.d/binana-deploy
-visudo -cf /etc/sudoers.d/binana-deploy >/dev/null
-cat >/etc/default/binana-deploy <<EOF
+chmod 0440 /etc/sudoers.d/binana-testnet-deploy
+visudo -cf /etc/sudoers.d/binana-testnet-deploy >/dev/null
+cat >/etc/default/binana-testnet-deploy <<EOF
 BINANA_DEPLOY_UID=$deploy_uid
 EOF
-chmod 0644 /etc/default/binana-deploy
+chmod 0644 /etc/default/binana-testnet-deploy
 
 # Four GiB swap headroom for the 6-GB A1 target.  Existing larger swap is kept.
 if (( swap_mib < SWAP_SIZE_GIB * 1024 )); then
-  swap_path=/swapfile-binana
+  swap_path=/swapfile-oracle-trading-bots
   if [[ ! -e "$swap_path" ]]; then
     fallocate -l "${SWAP_SIZE_GIB}G" "$swap_path" || dd if=/dev/zero of="$swap_path" bs=1M count=$((SWAP_SIZE_GIB * 1024)) status=progress
     chown root:root "$swap_path"
@@ -243,7 +236,7 @@ if (( swap_mib < SWAP_SIZE_GIB * 1024 )); then
   swapon --show=NAME --noheadings | grep -qx "$swap_path" || swapon "$swap_path"
   grep -Fqx "$swap_path none swap sw 0 0" /etc/fstab || printf '%s\n' "$swap_path none swap sw 0 0" >>/etc/fstab
 fi
-cat >/etc/sysctl.d/60-binana-memory.conf <<'EOF'
+cat >/etc/sysctl.d/60-binana-testnet-memory.conf <<'EOF'
 vm.swappiness=10
 EOF
 sysctl --system >/dev/null
@@ -251,7 +244,7 @@ sysctl --system >/dev/null
 # OCI's link-local NTP service is retained.  Do not block 169.254.169.254:
 # it also provides DNS, metadata and platform services on other ports.
 install -d -m 0755 -o root -g root /etc/chrony/conf.d
-cat >/etc/chrony/conf.d/50-oci-binana.conf <<'EOF'
+cat >/etc/chrony/conf.d/50-oci-binana-testnet.conf <<'EOF'
 server 169.254.169.254 iburst prefer
 makestep 1.0 3
 EOF
@@ -261,7 +254,7 @@ chronyc -a makestep >/dev/null 2>&1 || true
 
 # Official Ubuntu security pockets remain automatic; reboots and the
 # third-party Docker repository remain deliberate maintenance actions.
-cat >/etc/apt/apt.conf.d/52binana-unattended-upgrades <<'EOF'
+cat >/etc/apt/apt.conf.d/52binana-testnet-unattended-upgrades <<'EOF'
 Unattended-Upgrade::Automatic-Reboot "false";
 Unattended-Upgrade::Origins-Pattern {
   "origin=Ubuntu,codename=${distro_codename},label=Ubuntu-Security";
@@ -272,7 +265,7 @@ EOF
 systemctl enable --now unattended-upgrades
 
 install -d -m 0755 -o root -g root /etc/systemd/journald.conf.d
-cat >/etc/systemd/journald.conf.d/60-binana.conf <<'EOF'
+cat >/etc/systemd/journald.conf.d/60-binana-testnet.conf <<'EOF'
 [Journal]
 SystemMaxUse=512M
 RuntimeMaxUse=128M

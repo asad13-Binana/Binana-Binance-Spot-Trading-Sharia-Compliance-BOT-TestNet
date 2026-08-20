@@ -2,34 +2,34 @@
 set -euo pipefail
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+# shellcheck source=deploy/instance_identity.sh
+source "$SCRIPT_DIR/instance_identity.sh"
 # shellcheck source=deploy/lib/secure_env.sh
 source "$SCRIPT_DIR/lib/secure_env.sh"
 ARTIFACT=${1:?usage: install_artifact.sh RELEASE.tar.gz RELEASE.tar.gz.sha256}
 CHECKSUM=${2:?usage: install_artifact.sh RELEASE.tar.gz RELEASE.tar.gz.sha256}
-APP_ROOT=${APP_ROOT:-/opt/binana-freqtrade-v101}
-RELEASES=${RELEASES:-$APP_ROOT/releases}
-CURRENT=${CURRENT:-$APP_ROOT/current}
-PERSIST=${PERSIST:-/var/lib/binana-freqtrade-v101/shared}
-ENV_FILE=${ENV_FILE:-/etc/binana-freqtrade-v101/.env}
+readonly RELEASES=$APP_ROOT/releases
+readonly CURRENT=$APP_ROOT/current
+readonly ENV_FILE=$PRIVATE_ROOT/.env
 KEEP_RELEASES=${KEEP_RELEASES:-3}
-MIN_PHYSICAL_MEMORY_MIB=${MIN_PHYSICAL_MEMORY_MIB:-5120}
-MIN_TOTAL_MEMORY_MIB=${MIN_TOTAL_MEMORY_MIB:-8192}
+MIN_PHYSICAL_MEMORY_MIB=${MIN_PHYSICAL_MEMORY_MIB:-11264}
+MIN_TOTAL_MEMORY_MIB=${MIN_TOTAL_MEMORY_MIB:-14336}
 MIN_DEPLOY_FREE_DISK_GIB=${MIN_DEPLOY_FREE_DISK_GIB:-5}
 # H-004: one fixed Compose project so overlapping installs cannot start a
 # second parallel stack against the same account.
-export COMPOSE_PROJECT_NAME=binana-freqtrade-v101
+export COMPOSE_PROJECT_NAME
 REQUIRED_SERVICES=(
   universe sharia-egress-proxy sharia-screener freqtrade
   execution-sidecar telegram-broker
 )
 
 fail(){ echo "ERROR: $*" >&2; exit 1; }
-[[ $EUID -eq 0 ]] || fail 'install_artifact.sh must run through the root-owned binana-deploy wrapper'
-[[ "$APP_ROOT" == /opt/binana-freqtrade-v101 ]] || fail 'APP_ROOT must remain /opt/binana-freqtrade-v101'
-[[ "$RELEASES" == /opt/binana-freqtrade-v101/releases ]] || fail 'RELEASES must remain /opt/binana-freqtrade-v101/releases'
-[[ "$CURRENT" == /opt/binana-freqtrade-v101/current ]] || fail 'CURRENT must remain /opt/binana-freqtrade-v101/current'
-[[ "$PERSIST" == /var/lib/binana-freqtrade-v101/shared ]] || fail 'PERSIST must remain /var/lib/binana-freqtrade-v101/shared'
-[[ "$ENV_FILE" == /etc/binana-freqtrade-v101/.env ]] || fail 'ENV_FILE must remain /etc/binana-freqtrade-v101/.env'
+[[ $EUID -eq 0 ]] || fail 'install_artifact.sh must run through the root-owned binana-testnet-deploy wrapper'
+[[ "$APP_ROOT" == /opt/binana-testnet ]] || fail 'APP_ROOT identity mismatch'
+[[ "$RELEASES" == /opt/binana-testnet/releases ]] || fail 'RELEASES identity mismatch'
+[[ "$CURRENT" == /opt/binana-testnet/current ]] || fail 'CURRENT identity mismatch'
+[[ "$PERSIST" == /var/lib/binana-testnet/shared ]] || fail 'PERSIST identity mismatch'
+[[ "$ENV_FILE" == /etc/binana-testnet/.env ]] || fail 'ENV_FILE identity mismatch'
 [[ "$KEEP_RELEASES" =~ ^[0-9]+$ ]] && (( KEEP_RELEASES >= 2 && KEEP_RELEASES <= 10 )) || fail 'KEEP_RELEASES must be an integer from 2 through 10'
 [[ "$MIN_PHYSICAL_MEMORY_MIB" =~ ^[0-9]+$ && "$MIN_TOTAL_MEMORY_MIB" =~ ^[0-9]+$ ]] || fail 'memory limits must be integers'
 [[ "$MIN_DEPLOY_FREE_DISK_GIB" =~ ^[0-9]+$ ]] && (( MIN_DEPLOY_FREE_DISK_GIB >= 2 && MIN_DEPLOY_FREE_DISK_GIB <= 20 )) || fail 'MIN_DEPLOY_FREE_DISK_GIB must be 2..20'
@@ -40,8 +40,7 @@ done
 # H-004: acquire an exclusive host lock before any mutation. A concurrent or
 # manual install running during an Actions deploy exits immediately instead of
 # racing and creating a second execution sidecar.
-LOCK_FILE=${LOCK_FILE:-/var/lock/binana-freqtrade-v101.install.lock}
-[[ "$LOCK_FILE" == /var/lock/binana-freqtrade-v101.install.lock ]] || fail 'LOCK_FILE must remain fixed'
+readonly LOCK_FILE=$INSTALL_LOCK
 mkdir -p "$(dirname "$LOCK_FILE")" 2>/dev/null || true
 exec 9>"$LOCK_FILE" || fail "cannot open deploy lock $LOCK_FILE"
 flock -n 9 || fail "another install holds $LOCK_FILE; refusing to run a second deploy"
@@ -73,12 +72,10 @@ disable_monitoring_after_failed_first_install(){
   # Root-owned unit files and immutable venvs may remain inert for diagnosis.
   local unit
   local units=(
-    binana-monitor-testnet.service
-    binana-monitor-live.service
-    binana-monitor-report-testnet.timer
-    binana-monitor-report-live.timer
-    binana-monitor-snapshot.timer
-    binana-monitor-snapshot.service
+    ${SYSTEMD_PREFIX}-monitor-testnet.service
+    ${SYSTEMD_PREFIX}-monitor-report-testnet.timer
+    ${SYSTEMD_PREFIX}-monitor-snapshot.timer
+    ${SYSTEMD_PREFIX}-monitor-snapshot.service
   )
   for unit in "${units[@]}"; do
     as_root systemctl disable --now "$unit" >/dev/null 2>&1 || true
@@ -127,12 +124,12 @@ SHARIA_SIGNAL_GATE_MODE=${DEPLOY_ENV[SHARIA_SIGNAL_GATE_MODE]:-cached}
 TELEGRAM_BOT_TOKEN=${DEPLOY_ENV[TELEGRAM_BOT_TOKEN]:-}
 TELEGRAM_OWNER_CHAT_ID=${DEPLOY_ENV[TELEGRAM_OWNER_CHAT_ID]:-}
 [[ "$BOT_PRODUCT" == BINANA ]] || fail 'BOT_PRODUCT must be BINANA'
-[[ "$BOT_INSTANCE_ID" =~ ^BINANA-[A-Z0-9-]{3,48}$ ]] || fail 'BOT_INSTANCE_ID is invalid'
+[[ "$BOT_INSTANCE_ID" =~ ^BINANA-TN-[A-Z0-9][A-Z0-9-]{2,47}$ ]] || fail 'BOT_INSTANCE_ID must use the BINANA-TN namespace'
 [[ "$BOT_UID" =~ ^[0-9]+$ && "$BOT_GID" =~ ^[0-9]+$ ]] || fail 'BOT_UID and BOT_GID must be numeric'
-expected_bot_uid=$(id -u binanabot 2>/dev/null) || fail 'binanabot account is missing'
-expected_bot_gid=$(getent group binanabot | cut -d: -f3)
+expected_bot_uid=$(id -u "$BOT_USER" 2>/dev/null) || fail "$BOT_USER account is missing"
+expected_bot_gid=$(getent group "$BOT_USER" | cut -d: -f3)
 [[ "$BOT_UID" == "$expected_bot_uid" && "$BOT_GID" == "$expected_bot_gid" ]] || \
-  fail 'BOT_UID and BOT_GID must match the dedicated binanabot account'
+  fail "BOT_UID and BOT_GID must match the dedicated $BOT_USER account"
 install -d -m 0755 -o root -g root "$RELEASES"
 install -d -m 0750 -o "$BOT_UID" -g "$BOT_GID" \
   "$PERSIST" "$PERSIST/commands/inbox" "$PERSIST/runtime" \
@@ -149,9 +146,8 @@ release_mode=$(stat -Lc '%a' "$RELEASES")
 [[ $(stat -c '%g' "$PERSIST") == "$BOT_GID" ]] || fail "$PERSIST group GID must match BOT_GID=$BOT_GID"
 [[ "$SHARED_HOST_PATH" == "$PERSIST" ]] || fail "SHARED_HOST_PATH in $ENV_FILE must equal $PERSIST"
 
-# Require the declared host capacity for the six-container stack. A 1 GiB E2
-# micro is unsupported; the Oracle target is 1 OCPU, 6 GiB physical RAM with
-# 4 GiB swap headroom and separately checked free disk capacity.
+# Require the declared capacity for the shared four-bot Oracle host. A 1 GiB
+# E2 micro and the former 1-OCPU/6-GB topology are unsupported.
 physical_mib=$(awk '/MemTotal/{print int($2/1024)}' /proc/meminfo)
 swap_mib=$(awk '/SwapTotal/{print int($2/1024)}' /proc/meminfo)
 total_mib=$((physical_mib + swap_mib))
@@ -525,7 +521,7 @@ find "$RELEASES" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' | sort -nr |
       tag=''
       [[ -f "$old/.release-tag" ]] && tag=$(<"$old/.release-tag")
       rm -rf "$old"
-      [[ -n "$tag" ]] && docker image rm "binana-freqtrade-v101-services:$tag" >/dev/null 2>&1 || true
+      [[ -n "$tag" ]] && docker image rm "$SERVICE_IMAGE:$tag" >/dev/null 2>&1 || true
     fi
   done
 

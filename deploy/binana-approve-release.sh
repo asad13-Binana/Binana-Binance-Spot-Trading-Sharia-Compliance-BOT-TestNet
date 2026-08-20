@@ -2,9 +2,9 @@
 set -euo pipefail
 fail(){ printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 [[ $EUID -eq 0 ]] || fail 'approval must run as root'
-[[ $# -eq 1 && "$1" =~ ^[0-9a-f]{64}$ ]] || fail 'usage: binana-approve-release SHA256'
-APPROVED_FILE=${BINANA_APPROVED_RELEASE_FILE:-/etc/binana-freqtrade-v101/approved-release.sha256}
-[[ "$APPROVED_FILE" == /etc/binana-freqtrade-v101/approved-release.sha256 ]] || fail 'approval file must remain fixed'
+[[ $# -eq 1 && "$1" =~ ^[0-9a-f]{64}$ ]] || fail 'usage: binana-testnet-approve-release SHA256'
+APPROVED_FILE=${BINANA_APPROVED_RELEASE_FILE:-/etc/binana-testnet/approved-release.sha256}
+[[ "$APPROVED_FILE" == /etc/binana-testnet/approved-release.sha256 ]] || fail 'approval file must remain fixed'
 install -d -m 0700 -o root -g root "$(dirname -- "$APPROVED_FILE")"
 temporary=$(mktemp "$(dirname -- "$APPROVED_FILE")/.approved.XXXXXX")
 trap 'rm -f -- "$temporary"' EXIT

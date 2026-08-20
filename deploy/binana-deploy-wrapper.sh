@@ -3,15 +3,15 @@ set -euo pipefail
 
 fail(){ printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 [[ $EUID -eq 0 ]] || fail 'the deployment wrapper must run as root'
-[[ $# -eq 2 ]] || fail 'usage: binana-deploy RELEASE.tar.gz RELEASE.tar.gz.sha256'
+[[ $# -eq 2 ]] || fail 'usage: binana-testnet-deploy RELEASE.tar.gz RELEASE.tar.gz.sha256'
 
 ARTIFACT=$1
 CHECKSUM=$2
-INBOX=${BINANA_DEPLOY_INBOX:-/var/lib/binana-deploy/inbox}
-APPROVED_FILE=${BINANA_APPROVED_RELEASE_FILE:-/etc/binana-freqtrade-v101/approved-release.sha256}
-DEPLOY_DEFAULTS=/etc/default/binana-deploy
-[[ "$INBOX" == /var/lib/binana-deploy/inbox ]] || fail 'deployment inbox must remain fixed'
-[[ "$APPROVED_FILE" == /etc/binana-freqtrade-v101/approved-release.sha256 ]] || fail 'approval file must remain fixed'
+INBOX=${BINANA_DEPLOY_INBOX:-/var/lib/binana-testnet/deploy-inbox}
+APPROVED_FILE=${BINANA_APPROVED_RELEASE_FILE:-/etc/binana-testnet/approved-release.sha256}
+DEPLOY_DEFAULTS=/etc/default/binana-testnet-deploy
+[[ "$INBOX" == /var/lib/binana-testnet/deploy-inbox ]] || fail 'deployment inbox must remain fixed'
+[[ "$APPROVED_FILE" == /etc/binana-testnet/approved-release.sha256 ]] || fail 'approval file must remain fixed'
 [[ -e "$DEPLOY_DEFAULTS" && ! -L "$DEPLOY_DEFAULTS" && -f "$DEPLOY_DEFAULTS" ]] || fail 'deployment identity file is missing'
 [[ $(stat -Lc '%u:%g:%a' -- "$DEPLOY_DEFAULTS") == '0:0:644' ]] || fail 'deployment identity file must be root:root 0644'
 DEPLOY_UID=$(awk -F= '$1 == "BINANA_DEPLOY_UID" && $2 ~ /^[0-9]+$/ {print $2; exit}' "$DEPLOY_DEFAULTS")
@@ -40,7 +40,7 @@ actual=$(sha256sum -- "$ARTIFACT" | awk '{print $1}')
 approved=$(awk 'NF {print $1; exit}' "$APPROVED_FILE")
 [[ "$approved" == "$actual" ]] || fail 'artifact digest has not been explicitly approved on this host'
 
-stage=$(mktemp -d /var/tmp/binana-deploy.XXXXXX)
+stage=$(mktemp -d /var/tmp/binana-testnet-deploy.XXXXXX)
 trap 'rm -rf -- "$stage"' EXIT
 install -m 0600 -o root -g root -- "$ARTIFACT" "$stage/release.tar.gz"
 staged_actual=$(sha256sum -- "$stage/release.tar.gz" | awk '{print $1}')

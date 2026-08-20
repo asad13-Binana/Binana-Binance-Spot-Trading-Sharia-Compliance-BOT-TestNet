@@ -18,6 +18,11 @@ from tests import _harness
 
 
 ROOT = Path(__file__).resolve().parents[1]
+RELEASE_MODE = (ROOT / "RELEASE_MODE").read_text(encoding="utf-8").strip()
+INSTANCE = {
+    "testnet": {"slug": "binana-testnet", "bot_user": "binanatn", "monitor_user": "binanatnmon"},
+    "live": {"slug": "binana-live", "bot_user": "binanalive", "monitor_user": "binanalivemon"},
+}[RELEASE_MODE]
 PROTECTED = {
     "freqtrade/user_data/config.json": "64b2959c3300927da27310ebf24e21bbfb57ff2993c25eb5c085efdb5e31cc39",
     "freqtrade/user_data/strategies/IctSmcStrategy.py": "9f6bafc78c8cd0d9b9cbde615ddce89e304ab09738584b88d05bfdf92ff4e830",
@@ -82,30 +87,37 @@ class OracleInstallerStaticTests(unittest.TestCase):
         self.assertNotRegex(self.setup, r"curl[^\n]*\|[^\n]*(sh|bash)")
 
     def test_supported_os_resources_time_swap_and_versions(self):
-        for marker in ("Ubuntu 24.04", "MIN_PHYSICAL_MEMORY_MIB:-5120", "MIN_FREE_DISK_GIB:-35", "SWAP_SIZE_GIB:-4", "chronyc tracking", "docker compose version"):
+        for marker in (
+            "Ubuntu 24.04", "MIN_PHYSICAL_MEMORY_MIB:-11264",
+            "MIN_TOTAL_MEMORY_MIB:-14336", "MIN_FREE_DISK_GIB:-80",
+            "SWAP_SIZE_GIB:-4", "chronyc tracking", "docker compose version",
+        ):
             self.assertIn(marker, self.setup)
         self.assertIn("clock did not synchronize within 60 seconds", self.setup)
         self.assertIn("exceeds 0.100s", self.setup)
         self.assertIn("is not a valid swap area", self.setup)
 
     def test_privileged_paths_and_legacy_namespace_fail_closed(self):
+        identity = (ROOT / "deploy/instance_identity.sh").read_text(encoding="utf-8")
         for path in (
-            "/etc/binana-freqtrade-v101",
-            "/opt/binana-freqtrade-v101",
-            "/var/lib/binana-freqtrade-v101/shared",
-            "/var/log/binana-freqtrade-v101/monitor",
-            "/var/lib/binana-deploy/inbox",
+            f"/etc/{INSTANCE['slug']}",
+            f"/opt/{INSTANCE['slug']}",
+            f"/var/lib/{INSTANCE['slug']}/shared",
+            f"/var/log/{INSTANCE['slug']}/monitor",
+            f"/var/lib/{INSTANCE['slug']}/deploy-inbox",
         ):
-            self.assertIn(f"must remain {path}", self.setup)
+            self.assertIn(path, identity)
+        self.assertIn("privileged path must not be a symlink", self.setup)
         self.assertIn("legacy deployment detected", self.setup)
-        self.assertIn("com.docker.compose.project=binance-freqtrade-v101", self.setup)
+        self.assertIn("com.docker.compose.project=$legacy_project", self.setup)
+        self.assertIn("binance-freqtrade-v101 binana-freqtrade-v101", self.setup)
 
     def test_secret_file_and_accounts_are_least_privilege(self):
         self.assertIn('chown root:root "$PRIVATE/.env"', self.setup)
         self.assertIn('chmod 0600 "$PRIVATE/.env"', self.setup)
         self.assertNotIn("usermod -aG docker", self.setup)
         self.assertIn('gpasswd -d "$account" docker', self.setup)
-        self.assertIn("/usr/local/sbin/binana-deploy", self.setup)
+        self.assertIn(f"/usr/local/sbin/{INSTANCE['slug']}-deploy", self.setup)
 
     def test_env_is_parsed_not_sourced(self):
         self.assertIn('secure_env_read "$ENV_FILE" DEPLOY_ENV', self.installer)
@@ -126,8 +138,8 @@ class OracleInstallerStaticTests(unittest.TestCase):
         self.assertIn("deployment inbox must remain fixed", wrapper)
         self.assertIn("approval file must remain fixed", wrapper)
         self.assertIn("flock -n 9", self.installer)
-        self.assertIn("BOT_UID and BOT_GID must match the dedicated binanabot account", self.installer)
-        self.assertIn("APP_ROOT must remain /opt/binana-freqtrade-v101", self.installer)
+        self.assertIn("BOT_UID and BOT_GID must match the dedicated $BOT_USER account", self.installer)
+        self.assertIn(f'[[ "$APP_ROOT" == /opt/{INSTANCE["slug"]} ]]', self.installer)
         self.assertIn("producer='deploy-installer'", self.installer)
         self.assertIn("sign_envelope(", self.installer)
         self.assertIn('ENVELOPE_RELEASE_HASH="$OLD_RELEASE_HASH"', self.installer)
@@ -172,7 +184,7 @@ class ComposeHardeningTests(unittest.TestCase):
         cls.compose = yaml.safe_load((ROOT / "docker-compose.yml").read_text(encoding="utf-8"))
 
     def test_unique_namespace_and_no_public_ports(self):
-        self.assertEqual(self.compose["name"], "binana-freqtrade-v101")
+        self.assertEqual(self.compose["name"], INSTANCE["slug"])
         for name, service in self.compose["services"].items():
             with self.subTest(service=name):
                 self.assertNotIn("ports", service)

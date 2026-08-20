@@ -441,7 +441,7 @@ jobs:
           scp -P "${ORACLE_PORT:-22}" \
             /tmp/v101-artifact/binance-bot-testnet-${GITHUB_SHA}.tar.gz \
             /tmp/v101-artifact/binance-bot-testnet-${GITHUB_SHA}.tar.gz.sha256 \
-            "${ORACLE_USER}@${ORACLE_HOST}:/var/lib/binana-deploy/inbox/"
+            "${ORACLE_USER}@${ORACLE_HOST}:/var/lib/binana-testnet/deploy-inbox/"
       - name: Owner-approved atomic install with reconciliation and rollback
         env:
           ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
@@ -452,4 +452,4 @@ jobs:
           # exact archive SHA-256 in the root-owned approval file using
           # binana-approve-release. CI cannot approve its own artifact.
           ssh -p "${ORACLE_PORT:-22}" "${ORACLE_USER}@${ORACLE_HOST}" \
-            "sudo /usr/local/sbin/binana-deploy /var/lib/binana-deploy/inbox/binance-bot-testnet-${GITHUB_SHA}.tar.gz /var/lib/binana-deploy/inbox/binance-bot-testnet-${GITHUB_SHA}.tar.gz.sha256"
+            "sudo /usr/local/sbin/binana-testnet-deploy /var/lib/binana-testnet/deploy-inbox/binance-bot-testnet-${GITHUB_SHA}.tar.gz /var/lib/binana-testnet/deploy-inbox/binance-bot-testnet-${GITHUB_SHA}.tar.gz.sha256"
