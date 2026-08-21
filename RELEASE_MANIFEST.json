@@ -16,6 +16,10 @@
       "sha256": "4497e338f245f17d1e227e856571b75e91fd0f262945ea4e33c3385b58e6cc09",
       "size": 825
     },
+    ".github/workflows/binance-contract-drift.yml": {
+      "sha256": "8f1184659e81a947fb7816630deb4e1ad55bf65872e7d0bf38070e0865b77fe0",
+      "size": 642
+    },
     ".github/workflows/ci.yml": {
       "sha256": "f9e30b9eaf525d14c5bda12f8d980721d65f11248f5a8c8e02aa147a93d528c5",
       "size": 24499
@@ -197,8 +201,8 @@
       "size": 11019
     },
     "docker-compose.yml": {
-      "sha256": "d50e4d6352c43d7c719062f2c316eb646ae5fd93d88b7c4bb8d9cf02d7ef9666",
-      "size": 18821
+      "sha256": "62180abe66f7e548ac50ee0cd7835f57b393c914151a224663c05080e06cab5b",
+      "size": 18829
     },
     "docs/API_READINESS_RUNBOOK.md": {
       "sha256": "c222e3c3005b467b9095ee51750084d9c705b9c50a4d22abe2ad135703d40b0a",
@@ -305,16 +309,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "9084381a457a015360d873549de5451a4b1d3e3845fef5ba7a8a09a4b7ffe78a",
-      "size": 45273
+      "sha256": "57b72049b940af5e43345b35eb55c11a69007c34d167772eae2f176d3f4fbf6a",
+      "size": 46088
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "b928d62679b08eef2157c9561cf74cd2e8b5ec438a24698d4b2b3eb50750b392",
-      "size": 268433
+      "sha256": "57b7b2b63ce2402989a1e08079ea0fb7412be9d4ab56e5d3dd1c5f9b05518318",
+      "size": 277086
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -656,6 +660,10 @@
       "sha256": "454cf522b850e94aee3faf15609fc354f7728d53dc8e993933acf53bba354739",
       "size": 11166
     },
+    "scripts/binance_contract_drift.py": {
+      "sha256": "2216fcf2a708b145f845baf2c588f6f35bcbc96185d862e4e88005df1c5c8542",
+      "size": 5060
+    },
     "scripts/build_audit_ledgers.py": {
       "sha256": "fd17bd3993cabb4c41b2bedf67c0e81ec8fa00e3b03fd8b7307968ae0d7086d3",
       "size": 9478
@@ -768,6 +776,10 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "size": 0
     },
+    "services/execution_sidecar/binance_contract_guard.py": {
+      "sha256": "5f9d75c9505fe89324d56e4d9efee3a177730412c5d20037f82386a6e6b865fc",
+      "size": 18954
+    },
     "services/execution_sidecar/core_adapter.py": {
       "sha256": "94370276fa6626cef89e77bbf280b8f6658541d6f8c66c4f96cbc39fb5786ee3",
       "size": 107043
@@ -775,6 +787,10 @@
     "services/execution_sidecar/filters.py": {
       "sha256": "5897ca3ab71c2bda9e096b51aeaf3e9abae40c26048cc615b3ded5bbe6d417a8",
       "size": 33819
+    },
+    "services/execution_sidecar/guarded_main.py": {
+      "sha256": "c4f952ed746e79570a0f49e75839a7e72f0a2c2a0e44efee186db32bda44a32f",
+      "size": 413
     },
     "services/execution_sidecar/live_evidence.py": {
       "sha256": "1a10ec57f479b68ba8c26b2a5bf1e9065f68cafa662c75f0ecf456a0d7c76732",
@@ -1035,6 +1051,10 @@
     "tests/test_audit_ledgers.py": {
       "sha256": "cb7f45200a98bfcb307e683eec37e4e47d8c455d9034ab4ede2dffa4cc1c47f0",
       "size": 6923
+    },
+    "tests/test_binance_filter_contract_20260822.py": {
+      "sha256": "fe5fa4ae81904127b83fa4d50d288b396e27720c288dbb7dc7d13aaf09969724",
+      "size": 12805
     },
     "tests/test_ci_evidence_status.py": {
       "sha256": "1e9d5e4b2b75ef22b110b2724c1b172044202266f921bc27f0c16d54cc199dc2",

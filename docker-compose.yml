@@ -252,7 +252,7 @@ services:
 
   execution-sidecar:
     image: binana-testnet-services:${RELEASE_TAG:-local}
-    command: python -m services.execution_sidecar.main
+    command: python -m services.execution_sidecar.guarded_main
     user: "${BOT_UID:-1000}:${BOT_GID:-1000}"
     restart: unless-stopped
     depends_on:
