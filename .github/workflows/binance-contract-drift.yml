@@ -1,0 +1,25 @@
+name: Binance Spot contract drift
+
+on:
+  schedule:
+    - cron: "17 3 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: binance-contract-drift-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  exchange-info:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@0b93645e9fea731f9e45d8d6c3b548447c85004 # v5.3.0
+        with:
+          python-version: "3.12"
+      - name: Check current tradeable Spot/USDT filter contract
+        run: python scripts/binance_contract_drift.py
