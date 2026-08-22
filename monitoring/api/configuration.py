@@ -129,6 +129,12 @@ class Config:
         self.user_stream_health_path = Path(os.getenv(
             "USER_STREAM_HEALTH_PATH", str(runtime / "user_stream_health.json")
         ))
+        self.market_context_health_path = Path(os.getenv(
+            "MARKET_CONTEXT_HEALTH_PATH", str(runtime / "market_context/health.json")
+        ))
+        self.market_context_path = Path(os.getenv(
+            "MARKET_CONTEXT_PATH", str(shared / "market_context/current.json")
+        ))
         self.sharia_health_path = Path(os.getenv(
             "SHARIA_HEALTH_PATH", str(runtime / "sharia_screener/health.json")
         ))

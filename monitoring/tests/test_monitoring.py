@@ -65,6 +65,8 @@ def isolated_config(tmp_path, monkeypatch):
     CONFIG.telegram_health_path = tmp_path / "telegram_health.json"
     CONFIG.telegram_alert_outbox_health_path = tmp_path / "telegram_alert_outbox_health.json"
     CONFIG.user_stream_health_path = tmp_path / "user_stream_health.json"
+    CONFIG.market_context_health_path = tmp_path / "market_context_health.json"
+    CONFIG.market_context_path = tmp_path / "market_context.json"
     CONFIG.sharia_health_path = tmp_path / "sharia_health.json"
     CONFIG.universe_health_path = tmp_path / "universe_health.json"
     CONFIG.sharia_status_path = tmp_path / "sharia_status.json"
@@ -235,6 +237,44 @@ def test_api_readiness_status_is_sanitised_and_exposed():
     assert "SECRET" not in json.dumps(value)
     payload = client.get("/api/v1/status", headers=AUTH).json()
     assert payload["api_readiness"]["providers"]["binance"]["status"] == "PASS"
+
+
+def test_spot_market_context_is_bearer_protected_sanitised_and_advisory_only():
+    now = datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z")
+    _write(CONFIG.market_context_health_path, {
+        "schema_version": 1, "ok": True, "ts": time.time(),
+        "advisory_only": True, "spot_only": True, "can_trade": False,
+    })
+    _write(CONFIG.market_context_path, {
+        "schema_version": 1,
+        "generated_at": now,
+        "advisory_only": True,
+        "spot_only": True,
+        "can_trade": False,
+        "package_mode": "testnet",
+        "universe_snapshot_hash": "a" * 64,
+        "symbol_count": 1,
+        "fresh_symbol_count": 1,
+        "statistics": {"accepted_agg_trades": 4},
+        "symbols": {
+            "ETHUSDT": {
+                "symbol": "ETHUSDT", "status": "fresh", "advisory_only": True,
+                "spot_aggressive_flow": {"cvd_quote_60s": "12.5"},
+                "top_of_book_liquidity": {"spread_bps": "1.2"},
+            }
+        },
+    })
+    assert client.get("/api/v1/market-context").status_code == 401
+    response = client.get(
+        "/api/v1/market-context?symbol=ETHUSDT", headers=AUTH
+    )
+    assert response.status_code == 200
+    value = response.json()["spot_market_context"]
+    assert value["fresh"] is True
+    assert value["advisory_only"] is True
+    assert value["used_for_trade_decision"] is False
+    assert value["evidence"]["spot_aggressive_flow"]["cvd_quote_60s"] == "12.5"
+    assert "secret" not in json.dumps(value).lower()
 
 
 def test_telegram_report_includes_sanitised_api_readiness():
