@@ -23,6 +23,7 @@ legacy_core/logs/*
 secrets/
 shared/audit/*
 shared/runtime/*
+shared/market_context/*
 shared/signals/inbox/*
 shared/signals/processed/*
 shared/signals/rejected/*

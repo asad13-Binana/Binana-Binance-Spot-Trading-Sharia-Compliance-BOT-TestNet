@@ -12,7 +12,7 @@ services:
       context: .
       dockerfile: Dockerfile.services
     image: binana-testnet-services:${RELEASE_TAG:-local}
-    command: python -m services.universe_service.scanner
+    command: python -m services.market_context.universe_main
     user: "${BOT_UID:-1000}:${BOT_GID:-1000}"
     restart: unless-stopped
     environment:
@@ -37,6 +37,18 @@ services:
       # identical; CI overrides it because api.binance.com answers 451
       # (Unavailable For Legal Reasons) to GitHub hosted runner IPs.
       BINANCE_PUBLIC_BASE: ${BINANCE_PUBLIC_BASE:-https://api.binance.com}
+      # Public Spot microstructure is advisory evidence only.  It runs inside
+      # this credential-free container, uses one multiplexed WebSocket for
+      # aggTrade+bookTicker, and cannot place or modify an order.
+      ENABLE_SPOT_MICROSTRUCTURE: ${ENABLE_SPOT_MICROSTRUCTURE:-true}
+      BINANCE_SPOT_MARKET_STREAM: ${BINANCE_SPOT_MARKET_STREAM:-wss://data-stream.binance.vision/ws}
+      MARKET_CONTEXT_FILE: /app/shared/market_context/current.json
+      MARKET_CONTEXT_HEALTH_FILE: /app/shared/runtime/market_context/health.json
+      MARKET_CONTEXT_PUBLISH_SECONDS: ${MARKET_CONTEXT_PUBLISH_SECONDS:-5}
+      MARKET_CONTEXT_UNIVERSE_POLL_SECONDS: ${MARKET_CONTEXT_UNIVERSE_POLL_SECONDS:-15}
+      MARKET_CONTEXT_MAX_AGE_MS: ${MARKET_CONTEXT_MAX_AGE_MS:-15000}
+      MARKET_CONTEXT_EVIDENCE_MAX_AGE_SECONDS: ${MARKET_CONTEXT_EVIDENCE_MAX_AGE_SECONDS:-30}
+      MARKET_CONTEXT_ROTATION_SECONDS: ${MARKET_CONTEXT_ROTATION_SECONDS:-82200}
       UNIVERSE_SNAPSHOT_MAX_FILES: ${UNIVERSE_SNAPSHOT_MAX_FILES:-10000}
       # External CoinGecko/CMC enrichment (V10.2-EXT-001, advisory only,
       # disabled by default). Budget values are HARD safety ceilings 4% under
@@ -272,6 +284,11 @@ services:
       MAX_POSITIONS: ${MAX_POSITIONS:-2}
       AUTO_CONFIRM: ${AUTO_CONFIRM:-false}
       SHARED_ROOT: /app/shared
+      MARKET_CONTEXT_FILE: /app/shared/market_context/current.json
+      MARKET_CONTEXT_EVIDENCE_MAX_AGE_SECONDS: ${MARKET_CONTEXT_EVIDENCE_MAX_AGE_SECONDS:-30}
+      CAPTURE_SIGNAL_MARKET_CONTEXT: ${CAPTURE_SIGNAL_MARKET_CONTEXT:-true}
+      MARKET_CONTEXT_SIGNAL_EVIDENCE_DIR: /app/shared/market_context/signal_evidence
+      MARKET_CONTEXT_SIGNAL_EVIDENCE_MAX_FILES: ${MARKET_CONTEXT_SIGNAL_EVIDENCE_MAX_FILES:-10000}
       SHARIA_FILE: /app/shared/sharia/sharia_status.json
       LEGACY_HALAL_FILE: /app/shared/sharia/halal_coins.json
       UNIVERSE_FILE: /app/shared/universe/current_pairlist.json

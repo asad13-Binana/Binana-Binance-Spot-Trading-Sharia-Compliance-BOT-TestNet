@@ -109,6 +109,7 @@ def runtime_health() -> dict:
         "telegram_broker": _health(CONFIG.telegram_health_path, 150),
         "sharia_screener": _health(CONFIG.sharia_health_path, 180),
         "universe": _health(CONFIG.universe_health_path, 1800),
+        "spot_market_context": _health(CONFIG.market_context_health_path, 45),
     }
     available = [value for value in components.values() if value["available"]]
     overall = "healthy" if available and all(value["fresh"] for value in available) else "degraded"
@@ -576,6 +577,60 @@ def websocket_status() -> dict:
         "endpoint_mode": data.get("mode"),
         "last_error": redact(str(data.get("last_error", ""))) or None,
     }
+
+
+def market_context_status(symbol: str | None = None) -> dict:
+    """Expose only public, credential-free Spot evidence through monitoring."""
+    health = _health(CONFIG.market_context_health_path, 45)
+    payload, error = _safe_json(CONFIG.market_context_path)
+    if error:
+        return {
+            "available": False,
+            "fresh": False,
+            "reason": f"snapshot_{error}",
+            "service": health,
+        }
+    if (
+        not isinstance(payload, dict)
+        or payload.get("schema_version") != 1
+        or payload.get("advisory_only") is not True
+        or payload.get("spot_only") is not True
+        or payload.get("can_trade") is not False
+        or not isinstance(payload.get("symbols"), dict)
+    ):
+        return {
+            "available": False,
+            "fresh": False,
+            "reason": "invalid_contract",
+            "service": health,
+        }
+    generated = _parse_time(payload.get("generated_at"))
+    age = None if generated is None else max(0.0, time.time() - generated)
+    fresh = age is not None and age <= 45 and bool(health.get("fresh"))
+    result = {
+        "available": True,
+        "fresh": fresh,
+        "advisory_only": True,
+        "used_for_trade_decision": False,
+        "spot_only": True,
+        "snapshot_age_seconds": None if age is None else round(age, 3),
+        "generated_at": payload.get("generated_at"),
+        "package_mode": payload.get("package_mode"),
+        "universe_snapshot_hash": payload.get("universe_snapshot_hash"),
+        "symbol_count": int(payload.get("symbol_count") or 0),
+        "fresh_symbol_count": int(payload.get("fresh_symbol_count") or 0),
+        "statistics": redact_obj(payload.get("statistics") or {}),
+        "service": health,
+    }
+    if symbol:
+        normalized = str(symbol).upper()
+        if not re.fullmatch(r"[A-Z0-9]{2,24}USDT", normalized):
+            result["symbol_error"] = "invalid_symbol"
+        else:
+            record = payload["symbols"].get(normalized)
+            result["symbol"] = normalized
+            result["evidence"] = redact_obj(record) if isinstance(record, dict) else None
+    return result
 
 
 def telegram_alert_outbox_status() -> dict:

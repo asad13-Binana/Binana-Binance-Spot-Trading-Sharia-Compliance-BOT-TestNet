@@ -47,6 +47,7 @@ def health(request_id: str = Depends(require_bearer)):
         containers=metrics.container_state(),
         databases=metrics.databases(),
         telegram_alerts=metrics.telegram_alert_outbox_status(),
+        spot_market_context=metrics.market_context_status(),
         log=metrics.log_freshness(),
         offhost_backup=metrics.offhost_backup_status(),
         api_readiness=metrics.api_readiness_status(),
@@ -63,6 +64,7 @@ def status(request_id: str = Depends(require_bearer)):
         execution=metrics.execution_state(),
         order_quality=metrics.order_quality(1),
         websocket=metrics.websocket_status(),
+        spot_market_context=metrics.market_context_status(),
         telegram_alerts=metrics.telegram_alert_outbox_status(),
         offhost_backup=metrics.offhost_backup_status(),
         api_readiness=metrics.api_readiness_status(),
@@ -142,6 +144,18 @@ def sharia(request_id: str = Depends(require_bearer)):
     return _payload(request_id, sharia=metrics.sharia_status())
 
 
+@app.get(API + "/market-context")
+def market_context(
+    symbol: str | None = Query(None, pattern=r"^[A-Za-z0-9]{2,24}USDT$"),
+    request_id: str = Depends(require_bearer),
+):
+    """Read-only Spot flow/liquidity evidence; never a trading-control API."""
+    return _payload(
+        request_id,
+        spot_market_context=metrics.market_context_status(symbol),
+    )
+
+
 @app.get(API + "/report")
 def report(
     days: int = Query(1, ge=1, le=CONFIG.MAX_REPORT_DAYS),
@@ -157,6 +171,7 @@ def report(
         ("signal_engine_performance", metrics.signal_performance, (days,)),
         ("order_quality", metrics.order_quality, (days,)),
         ("websocket", metrics.websocket_status, ()),
+        ("spot_market_context", metrics.market_context_status, ()),
         ("telegram_alerts", metrics.telegram_alert_outbox_status, ()),
         ("binance_rest", metrics.binance_latency, (5,)),
         ("system", metrics.system_resources, ()),

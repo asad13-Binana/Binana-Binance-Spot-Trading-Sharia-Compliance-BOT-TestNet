@@ -1,0 +1,26 @@
+BINANA SPOT MICROSTRUCTURE CHANGE RECORD
+Date: 2026-08-23
+
+ADDED
+- Official Binance Spot aggTrade ingestion.
+- Official Binance Spot bookTicker ingestion with local monotonic freshness.
+- Decimal-safe aggressive BUY/SELL windows for 10s, 30s and 60s.
+- Spot quote CVD, trade-flow intensity and acceleration evidence.
+- Signal-time audit evidence that is explicitly advisory and non-authorizing.
+- Bounded per-signal evidence files for later TestNet A/B analysis.
+- Bearer-protected read-only monitoring endpoint /api/v1/market-context.
+- Tests for parsing, aggressor semantics, freshness, CVD, rolling windows,
+  malformed/non-finite/duplicate/out-of-order data, subscription updates,
+  reconnect backoff, endpoint binding, stale evidence and non-core isolation.
+
+NOT ADDED
+- Futures market data, Futures trading, funding, open interest or leverage.
+- Depth streams, local order books, duplicate RVOL/VWAP/RSI/ADX/EMA/MACD.
+- Any strategy threshold, signal gate, entry/exit change, size change, Sharia
+  change, order-ownership change or automatic LIVE promotion.
+
+PROTECTED CORE
+- legacy_core/binance_bot_V4.9.16_ALL_IN_ONE.py: not edited.
+- freqtrade/user_data/strategies/IctSmcStrategy.py: not edited.
+- services/common/sharia_v19.py: not edited.
+- shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json: not edited.

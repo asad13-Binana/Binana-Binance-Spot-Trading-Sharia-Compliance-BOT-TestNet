@@ -29,3 +29,10 @@ Routes: `health`, `status`, `performance`, `trades`, `errors`, `crashes`,
 Testnet defaults to port 8090. Live uses 8091 and is programmatically disabled
 until the operator explicitly enables the live monitor after formal promotion.
 See `INSTALL.md`, `SECURITY.md`, and `../docs/OFFICIAL_DEPLOYMENT_REFERENCES.md`.
+# Spot market context
+
+`GET /api/v1/market-context` and
+`GET /api/v1/market-context?symbol=ETHUSDT` expose credential-free,
+advisory-only Spot flow/liquidity evidence. The endpoint is protected by the
+same bearer token, loopback binding, source allowlist, and rate limit as every
+other monitoring route. It has no control operation.
