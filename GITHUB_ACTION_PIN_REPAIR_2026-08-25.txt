@@ -1,0 +1,31 @@
+GITHUB ACTION PIN REPAIR - TESTNET
+Date: 2026-08-25
+Status: non-core CI repair
+
+INCIDENT
+GitHub Actions scheduled run 32807112864 failed during runner setup before
+checkout, Python setup, the Binance contract-drift script, or any API call.
+The workflow referenced a 39-character, nonexistent actions/setup-python
+revision. AWS, Oracle, Binance credentials, and trading services were not
+involved.
+
+REPAIR
+- Replaced the invalid setup-python reference with the official v5.3.0 commit:
+  0b93645e9fea7318ecaed2b359559ac225c90a2b
+- Added scripts/verify_github_action_pins.py. It scans every YAML file under
+  .github, permits repository-local actions, requires immutable verified
+  commits for external actions, and requires sha256 digests for Docker actions.
+- Added tests/test_github_action_pins.py, including a regression fixture for
+  the exact invalid revision from the failed run.
+- Added the pin verifier to the required multi-version CI job, so a bad pin in
+  another workflow is rejected before merge while required CI remains usable.
+
+OFFICIAL ACTION TAGS VERIFIED
+- actions/checkout v4.2.2 -> 11bd71901bbe5b1630ceea73d27597364c9af683
+- actions/setup-python v5.3.0 -> 0b93645e9fea7318ecaed2b359559ac225c90a2b
+- actions/upload-artifact v4.5.0 -> 6f51ac03b9356f520e9adb1b1b7802705f340c2b
+- actions/download-artifact v4.1.8 -> fa0a91b85d4f404e444e00e005971372dc801d16
+
+PROTECTED BOUNDARY
+No strategy, signal, execution, risk, position-sizing, Sharia, service, shared,
+Freqtrade, or legacy-core file was modified by this repair.
