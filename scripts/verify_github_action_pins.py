@@ -11,10 +11,10 @@ from pathlib import Path
 # repositories on 2026-08-25. Updating an action requires independently
 # resolving its official release tag and changing this allowlist in review.
 VERIFIED_ACTION_PINS = {
-    "actions/checkout": "11bd71901bbe5b1630ceea73d27597364c9af683",  # v4.2.2
-    "actions/setup-python": "0b93645e9fea7318ecaed2b359559ac225c90a2b",  # v5.3.0
-    "actions/upload-artifact": "6f51ac03b9356f520e9adb1b1b7802705f340c2b",  # v4.5.0
-    "actions/download-artifact": "fa0a91b85d4f404e444e00e005971372dc801d16",  # v4.1.8
+    "actions/checkout": "3d3c42e5aac5ba805825da76410c181273ba90b1",  # v7.0.1
+    "actions/setup-python": "5fda3b95a4ea91299a34e894583c3862153e4b97",  # v7.0.0
+    "actions/upload-artifact": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",  # v7.0.1
+    "actions/download-artifact": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",  # v8.0.1
 }
 
 USES_LINE = re.compile(r"^\s*(?:-\s*)?uses:\s*[\"']?([^\"'\s#]+)")

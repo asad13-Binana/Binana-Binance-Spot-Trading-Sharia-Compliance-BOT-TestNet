@@ -17,11 +17,11 @@
       "size": 825
     },
     ".github/workflows/binance-contract-drift.yml": {
-      "sha256": "fe754bc05b4c3dfab603977ae2e408cdba1055d0766eb8a6d5aac28e50c39f7e",
-      "size": 643
+      "sha256": "2c5c9f35481c3a48e478f2260e9f68bb592dce1cf97021e25bd3719750304f25",
+      "size": 1408
     },
     ".github/workflows/ci.yml": {
-      "sha256": "9bfdd06a68b7e430a9f13f4df5639a2a0641239748c81a80ce9cf367921032c0",
+      "sha256": "229c3d7bde0cbf451833a066c1cbdca745dd636b6ba308a5e90a7d680a66b462",
       "size": 24606
     },
     ".gitignore": {
@@ -39,6 +39,10 @@
     "AUTOMATIC_SHARIA_DISCOVERY_CHANGES_2026-08-12.txt": {
       "sha256": "29786e0d1621585de0193c601130141ec60bb284061e0d4e455b15e03c27944d",
       "size": 4340
+    },
+    "BINANCE_CONTRACT_DRIFT_RUNTIME_REPAIR_2026-08-25.txt": {
+      "sha256": "80f3cf7ab6da84bca6b69a0a8a1d155b02cae76862ba9d9dd390bfd1483b7daa",
+      "size": 1860
     },
     "BOT_SIMPLE_DESCRIPTION.txt": {
       "sha256": "004f6813b7d08edce4f99d4de01ebf6abeacea025a13e2d9b74d23d1696bd46c",
@@ -321,16 +325,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "efbfa78f444afc2046e8372c0ad9cf7a7155de19dd0e2ef8fab0768bab7d5e1c",
-      "size": 48153
+      "sha256": "3cc4e2d1d5316f61a200a40b115d2799d4a9144ead3852367cdf808655a1d97a",
+      "size": 48326
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "e972632f01d6f7988928dab48586dc46e870e224246b9d9f64fd5715dfc44773",
-      "size": 288399
+      "sha256": "45ff114c04ecc7b0518e4366d16c5280ba563398aac6eceb306a59a0ea727f93",
+      "size": 289792
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -673,8 +677,8 @@
       "size": 11166
     },
     "scripts/binance_contract_drift.py": {
-      "sha256": "2216fcf2a708b145f845baf2c588f6f35bcbc96185d862e4e88005df1c5c8542",
-      "size": 5060
+      "sha256": "022deb86589560e5e3d343305ec0db07bd2787dbed08369d391dfa6f2f06c22c",
+      "size": 7532
     },
     "scripts/build_audit_ledgers.py": {
       "sha256": "fd17bd3993cabb4c41b2bedf67c0e81ec8fa00e3b03fd8b7307968ae0d7086d3",
@@ -725,7 +729,7 @@
       "size": 18657
     },
     "scripts/verify_github_action_pins.py": {
-      "sha256": "b4d015dc82f355e9c7d9dc27ab1faa10fa3a4242a47b514faa2831ad8e557a24",
+      "sha256": "65b38789a4755f40818e5463c64057c2b221c4bb5cf9e05c56d772d9ea36bcf1",
       "size": 4009
     },
     "scripts/verify_manifest.py": {
@@ -1097,8 +1101,8 @@
       "size": 6923
     },
     "tests/test_binance_filter_contract_20260822.py": {
-      "sha256": "fe5fa4ae81904127b83fa4d50d288b396e27720c288dbb7dc7d13aaf09969724",
-      "size": 12805
+      "sha256": "2676218e8685637a3708658a849a283c96aa4a5388128896e7bbae88fed630b3",
+      "size": 14908
     },
     "tests/test_ci_evidence_status.py": {
       "sha256": "1e9d5e4b2b75ef22b110b2724c1b172044202266f921bc27f0c16d54cc199dc2",

@@ -11,7 +11,10 @@ if str(ROOT) not in sys.path:
 import tests._harness as harness  # noqa: F401
 from scripts.binance_contract_drift import (
     ContractDriftError,
+    exchange_info_candidates,
     exchange_info_url,
+    fetch_exchange_info,
+    fetch_exchange_info_for_mode,
     inspect_exchange_info,
 )
 from services.execution_sidecar.binance_contract_guard import (
@@ -302,6 +305,54 @@ class ContractDriftTests(unittest.TestCase):
             '?symbolStatus=TRADING&showPermissionSets=false')
         with self.assertRaises(ContractDriftError):
             exchange_info_url('simulation')
+
+    def test_testnet_451_uses_official_public_data_with_degraded_scope(self):
+        payload = self._payload([{'filterType': 'PRICE_FILTER'}])
+        calls = []
+
+        def fetcher(url):
+            calls.append(url)
+            if url.startswith('https://testnet.binance.vision'):
+                raise OSError('HTTP Error 451')
+            return payload
+
+        result, source = fetch_exchange_info_for_mode('testnet', fetcher)
+        self.assertIs(result, payload)
+        self.assertEqual(
+            calls,
+            [url for url, _environment in exchange_info_candidates('testnet')],
+        )
+        self.assertTrue(source['endpoint_fallback'])
+        self.assertFalse(source['exact_environment'])
+        self.assertEqual(source['contract_environment'], 'live')
+        self.assertIn('HTTP Error 451', source['unavailable_endpoints'][0])
+
+    def test_live_official_fallback_keeps_exact_contract_scope(self):
+        payload = self._payload([{'filterType': 'PRICE_FILTER'}])
+        candidates = exchange_info_candidates('live')
+
+        def fetcher(url):
+            if url != candidates[-1][0]:
+                raise OSError('HTTP Error 451')
+            return payload
+
+        result, source = fetch_exchange_info_for_mode('live', fetcher)
+        self.assertIs(result, payload)
+        self.assertTrue(source['endpoint_fallback'])
+        self.assertTrue(source['exact_environment'])
+        self.assertEqual(source['contract_environment'], 'live')
+
+    def test_all_official_endpoints_unavailable_fails_closed(self):
+        def unavailable(_url):
+            raise OSError('HTTP Error 451')
+
+        with self.assertRaisesRegex(
+                ContractDriftError, 'all official Binance'):
+            fetch_exchange_info_for_mode('live', unavailable)
+
+    def test_direct_fetch_rejects_unapproved_url_before_network_access(self):
+        with self.assertRaisesRegex(ContractDriftError, 'approved Binance'):
+            fetch_exchange_info('https://example.invalid/api/v3/exchangeInfo')
 
 
 class DeploymentWiringTests(unittest.TestCase):

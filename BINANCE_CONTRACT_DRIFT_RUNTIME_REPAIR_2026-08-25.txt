@@ -1,0 +1,35 @@
+BINANCE CONTRACT-DRIFT RUNTIME REPAIR - TESTNET
+Date: 2026-08-25
+Status: non-core monitoring and CI hardening
+
+CONFIRMED SECOND INCIDENT
+After the malformed GitHub Action pin was repaired, manual run 32838189237
+successfully completed checkout and Python setup, then Binance returned HTTP
+451 to the GitHub-hosted runner. This proves the original Action-pin failure
+was fixed and exposes a separate regional egress limitation. AWS, Oracle,
+credentials, authenticated APIs, and trading code were not involved.
+
+REPAIR
+- Keep the exact TestNet endpoint as the first and preferred source.
+- If a hosted runner cannot reach TestNet, try Binance's official public
+  market-data endpoint and report exact_environment=false. The workflow emits
+  a visible warning and step summary requiring an exact TestNet recheck from
+  the AWS or Oracle deployment host; it never labels production metadata as
+  exact TestNet metadata.
+- Fail closed if every official endpoint is unavailable, the response is
+  malformed, MAX_POSITION becomes active on a tradeable Spot/USDT symbol, or
+  an unknown order-affecting filter appears.
+- Add deterministic regressions for HTTP 451 fallback, source labelling,
+  exact LIVE scope, and total endpoint failure.
+- Upgrade all official GitHub Actions to their current Node 24 releases and
+  immutable commit pins to remove the Node 20 deprecation path.
+
+CURRENT NODE 24 ACTION PINS
+- actions/checkout v7.0.1 -> 3d3c42e5aac5ba805825da76410c181273ba90b1
+- actions/setup-python v7.0.0 -> 5fda3b95a4ea91299a34e894583c3862153e4b97
+- actions/upload-artifact v7.0.1 -> 043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+- actions/download-artifact v8.0.1 -> 3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+
+PROTECTED BOUNDARY
+No strategy, signal, execution, risk, position-sizing, Sharia, service, shared,
+Freqtrade, or legacy-core file is modified by this repair.
