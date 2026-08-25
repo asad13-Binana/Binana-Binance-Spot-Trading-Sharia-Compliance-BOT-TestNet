@@ -17,12 +17,12 @@
       "size": 825
     },
     ".github/workflows/binance-contract-drift.yml": {
-      "sha256": "8f1184659e81a947fb7816630deb4e1ad55bf65872e7d0bf38070e0865b77fe0",
-      "size": 642
+      "sha256": "fe754bc05b4c3dfab603977ae2e408cdba1055d0766eb8a6d5aac28e50c39f7e",
+      "size": 643
     },
     ".github/workflows/ci.yml": {
-      "sha256": "f9e30b9eaf525d14c5bda12f8d980721d65f11248f5a8c8e02aa147a93d528c5",
-      "size": 24499
+      "sha256": "9bfdd06a68b7e430a9f13f4df5639a2a0641239748c81a80ce9cf367921032c0",
+      "size": 24606
     },
     ".gitignore": {
       "sha256": "4f9fd03b96ad4cad58801e464808e7969aa331801b1cb30ee06f44fde36db136",
@@ -59,6 +59,10 @@
     "FOUR_BOT_ORACLE_RUNBOOK.md": {
       "sha256": "fc28aa121ddda1b407043cb4aa0f77b6eb1d25d542a4e42ea736878b077a1b2a",
       "size": 4682
+    },
+    "GITHUB_ACTION_PIN_REPAIR_2026-08-25.txt": {
+      "sha256": "c2af2d608b0449c8c9e54efe1f212f9940d04a027ce8e0fef068963feebb15de",
+      "size": 1532
     },
     "LICENSE": {
       "sha256": "6ad6470deb97c14a172d14ce75e1b5ed9de977c4518508cf9ee2a2c750fc9bd5",
@@ -317,16 +321,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "d09c50ef435ac9824b5acb335db41932c165acbc8c01fac2a4c2ab70e02fe25a",
-      "size": 47688
+      "sha256": "efbfa78f444afc2046e8372c0ad9cf7a7155de19dd0e2ef8fab0768bab7d5e1c",
+      "size": 48153
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "621286c0fa97808b1c6a9d7aa03b04614c7745228550bc083e6046d07976ec3b",
-      "size": 287387
+      "sha256": "e972632f01d6f7988928dab48586dc46e870e224246b9d9f64fd5715dfc44773",
+      "size": 288399
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -719,6 +723,10 @@
     "scripts/verify_four_bot_cohost.py": {
       "sha256": "c998c5e338e2dc95c6a441fe4da21e73ce8ed4807bb6e3a8330d7d5c1b676245",
       "size": 18657
+    },
+    "scripts/verify_github_action_pins.py": {
+      "sha256": "b4d015dc82f355e9c7d9dc27ab1faa10fa3a4242a47b514faa2831ad8e557a24",
+      "size": 4009
     },
     "scripts/verify_manifest.py": {
       "sha256": "ff0fa84437cdacc2fc5c7b45ddedfaa2f95d448a73a959362ed5d9167475dcb1",
@@ -1115,6 +1123,10 @@
     "tests/test_git_history_secret_scan.py": {
       "sha256": "abf60008986801328c79bdb60dff1e1ce2882e8c4d96df475a55314be71319c5",
       "size": 1661
+    },
+    "tests/test_github_action_pins.py": {
+      "sha256": "9dc8a6d78c772cd6e9f750962080dfd0a4115010a0eee89e8b78f89ffbde7d70",
+      "size": 1735
     },
     "tests/test_local_sharia_backend.py": {
       "sha256": "28f4685ea16cc4581137e14469ee3f2258646277ca4a7e22912838bf725b9243",

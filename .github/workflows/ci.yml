@@ -33,6 +33,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
+      - name: Verify immutable GitHub Action pins
+        run: python scripts/verify_github_action_pins.py
       # Keep the two hash-locked runtime closures in separate pip invocations
       # from the deliberately unhashed development/CI tooling.
       - name: Install hash-locked runtime dependencies (services)

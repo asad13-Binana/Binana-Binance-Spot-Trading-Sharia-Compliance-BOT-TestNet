@@ -710,6 +710,9 @@ scripts/verify_four_bot_cohost.py,read_meminfo,function,top-level-or-method,201,
 scripts/verify_four_bot_cohost.py,canonical_directory,function,top-level-or-method,209,210,-,release-script
 scripts/verify_four_bot_cohost.py,check_host,function,top-level-or-method,213,418,-,release-script
 scripts/verify_four_bot_cohost.py,main,function,top-level-or-method,421,441,-,release-script
+scripts/verify_github_action_pins.py,workflow_pin_errors,function,top-level-or-method,25,69,-,release-script
+scripts/verify_github_action_pins.py,verify_repository,function,top-level-or-method,72,94,-,release-script
+scripts/verify_github_action_pins.py,main,function,top-level-or-method,97,111,-,release-script
 scripts/verify_manifest.py,sha,function,top-level-or-method,10,11,-,release-script
 scripts/verify_manifest.py,current_release_files,function,top-level-or-method,14,25,-,release-script
 scripts/verify_manifest.py,main,function,top-level-or-method,28,82,-,release-script
@@ -1586,6 +1589,11 @@ tests/test_git_history_secret_scan.py,_git,function,top-level-or-method,9,10,-,t
 tests/test_git_history_secret_scan.py,_commit,function,top-level-or-method,13,15,-,test
 tests/test_git_history_secret_scan.py,test_deleted_historical_credential_is_still_detected,function,top-level-or-method,18,32,-,test
 tests/test_git_history_secret_scan.py,test_placeholder_only_history_passes,function,top-level-or-method,35,44,-,test
+tests/test_github_action_pins.py,GitHubActionPinTests.test_repository_uses_only_verified_immutable_action_pins,function,top-level-or-method,10,14,-,test
+tests/test_github_action_pins.py,GitHubActionPinTests.test_regression_rejects_the_invalid_setup_python_sha,function,top-level-or-method,16,23,-,test
+tests/test_github_action_pins.py,GitHubActionPinTests.test_moving_tag_is_rejected,function,top-level-or-method,25,28,-,test
+tests/test_github_action_pins.py,GitHubActionPinTests.test_unreviewed_external_action_is_rejected,function,top-level-or-method,30,36,-,test
+tests/test_github_action_pins.py,GitHubActionPinTests.test_mutable_docker_action_is_rejected,function,top-level-or-method,38,41,-,test
 tests/test_local_sharia_backend.py,_doc,function,top-level-or-method,81,86,-,test
 tests/test_local_sharia_backend.py,_claim,function,top-level-or-method,89,92,-,test
 tests/test_local_sharia_backend.py,_evaluate,function,top-level-or-method,95,126,-,test
