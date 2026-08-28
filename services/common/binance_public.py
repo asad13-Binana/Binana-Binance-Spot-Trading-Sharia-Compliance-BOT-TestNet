@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Public (unauthenticated) Binance Spot market-data client.
 
 Fixes M-004: the universe scanner previously used a bare requests wrapper with
@@ -17,6 +18,7 @@ placed through it.
 import logging
 import os
 import random
+import re
 import time
 
 import requests
@@ -54,7 +56,7 @@ class BinancePublicClient:
     def _retry_after_seconds(response, default: float, maximum: float) -> float:
         try:
             value = float(response.headers.get('Retry-After', default))
-        except Exception:
+        except (TypeError, ValueError):
             value = default
         return max(1.0, min(value, maximum))
 
@@ -101,6 +103,18 @@ class BinancePublicClient:
     def exchange_info(self, symbol: str | None = None) -> dict:
         params = {'symbol': symbol} if symbol else {'showPermissionSets': 'false'}
         return self.get('/api/v3/exchangeInfo', params)
+
+    def execution_rules(self, symbol: str) -> dict:
+        """Return current execution-time rules for one exact Spot/USDT symbol."""
+        symbol = str(symbol or '').upper()
+        if not re.fullmatch(r'[A-Z0-9]{1,16}USDT', symbol):
+            raise BinancePublicError(
+                'executionRules requires one exact uppercase-compatible USDT symbol')
+        data = self.get('/api/v3/executionRules', {'symbol': symbol})
+        if not isinstance(data, dict):
+            raise BinancePublicError(
+                f'executionRules for {symbol} returned malformed data')
+        return data
 
     def ticker_24h(self) -> list:
         return self.get('/api/v3/ticker/24hr')
@@ -152,6 +166,11 @@ class BinancePublicClient:
         # A body may also carry an in-band error code on HTTP 200 for some hosts.
         if data.get('code') == -2043:
             return self.NO_REFERENCE_PRICE
+        response_symbol = data.get('symbol')
+        if response_symbol is not None and response_symbol != symbol:
+            raise BinancePublicError(
+                f'referencePrice symbol mismatch: expected {symbol}, got '
+                f'{response_symbol!r}')
         if 'referencePrice' not in data:
             raise BinancePublicError(f'referencePrice for {symbol} response lacks referencePrice')
         ref = data.get('referencePrice')

@@ -7,10 +7,11 @@ package is structurally incapable of live execution. The live package
 defaults to simulation and cannot place a live order without its signed
 evidence gate. Self-hosted local Sharia screening is research, not a fatwa.
 
-The release version lives in `RELEASE_VERSION`. The `v101` operational
-namespace now uses the collision-free `binana-freqtrade-v101` identity across
-server paths, images and Compose. Bootstrap refuses to coexist silently with
-an active legacy `binance-freqtrade-v101` deployment; migration is explicit.
+The release version lives in `RELEASE_VERSION`. The operational namespace uses
+the collision-free `binana-testnet` identity across server paths, images and
+Compose. Bootstrap refuses to coexist silently with an active legacy
+`binance-freqtrade-v101` or `binana-freqtrade-v101` deployment; migration is
+explicit.
 
 ## Disclaimer and risk warning
 

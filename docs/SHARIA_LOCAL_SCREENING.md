@@ -33,7 +33,7 @@ identity, after which metadata is requested by that ID. Any missing,
 ambiguous, incomplete, non-USDT or malformed match fails closed.
 
 Candidate records are written under
-`/var/lib/binana-freqtrade-v101/shared/sharia/discovery/current/`, refreshed
+`/var/lib/binana-testnet/shared/sharia/discovery/current/`, refreshed
 at least weekly, and copied into a 90-day archive. They contain the advertised
 official website and whitepaper when available. The runtime file
 `_binance_spot_usdt_index.json` records the exact current Binance-universe
@@ -48,8 +48,27 @@ Before an asset can receive a trade-eligible Sharia result, the owner must
 review the candidate and add the evidence-bound entry to the persistent file
 configured by
 `SHARIA_SOURCE_REGISTRY` (normally
-`/var/lib/binana-freqtrade-v101/shared/sharia/source_registry.json`). Release
+`/var/lib/binana-testnet/shared/sharia/source_registry.json`). Release
 upgrades do not overwrite this file.
+
+The offline bridge below converts only digest-valid, exact-market-bound
+`VERIFIED_CANDIDATE` records into an owner-review request. It ignores
+ambiguous, unavailable, malformed, ticker-substituted and permission-bearing
+records. Every prepared source has `identity_match: false`; the bridge cannot
+approve identity, invent Sharia evidence or make an asset tradeable:
+
+```bash
+docker compose run --rm --no-deps sharia-screener \
+  python /app/scripts/seed_source_registry.py prepare-from-discovery \
+  /app/shared/sharia/discovery/current \
+  --output /app/shared/sharia/my_coins.json
+```
+
+Open `my_coins.json`, compare each candidate with the exact Binance asset and
+the project's own website, add the required named Sharia-screener URLs, and
+set `identity_match: true` only for a source whose identity you personally
+confirmed. Then use the existing `propose` and `apply` steps below. The output
+path is creation-only: the helper refuses to overwrite an owner-edited file.
 
 Each asset entry requires:
 
@@ -171,16 +190,29 @@ absent.
 
 1. Review the automatically discovered identity, official-site and whitepaper
    candidates in `shared/sharia/discovery/current/BASE.json`.
-2. Register and independently verify the asset's official and named Sharia
+2. Run `prepare-from-discovery` once to produce a non-authorising owner-review
+   request; confirm identity and add the required Sharia-screener URLs.
+3. Register and independently verify the asset's official and named Sharia
    screener evidence using the propose/apply flow above.
-3. Run `/scan BASE/USDT` in the owner Telegram chat.
-4. Run `/shariareport BASE` and read the disposition, proof checks, exact
+4. In Telegram choose **Sharia → Scan one coin** and type `BASE`, or queue a
+   bounded batch of 10, 25, 50 or 100. Scanning all pairs requires a separate
+   explicit confirmation. Bulk selection is deterministic and lower priority
+   than signal/manual work.
+5. Run `/shariareport BASE` and read the disposition, proof checks, exact
    report hash and quoted adverse/disclaimer evidence.
-5. Select REJECT to keep the asset blocked, or APPROVE only when the card is
+6. Select REJECT to keep the asset blocked, or APPROVE only when the card is
    mechanically promotable and the evidence supports that decision.
-6. Confirm the signed cache shows the expected result. The weekly scanner
+7. Confirm the signed cache shows the expected result. The weekly scanner
    re-fetches the sources; stale or changed evidence blocks new entries until
    a new exact proposal is approved.
+
+Telegram status intentionally distinguishes three states. The protected
+screener heartbeat reports process/backend readiness. The non-core owner panel
+independently validates the persistent registry and digest-valid discovery
+candidates, then reports whether evidence-backed operational screening is
+ready. Discovery candidates can never self-authorise. An empty or invalid
+registry therefore remains visible and fail-closed even while the discovery
+backend is alive.
 
 Git stores the discovery code, schema explanation and empty directory
 placeholders. It does not store changing runtime scans. Automatically pushing

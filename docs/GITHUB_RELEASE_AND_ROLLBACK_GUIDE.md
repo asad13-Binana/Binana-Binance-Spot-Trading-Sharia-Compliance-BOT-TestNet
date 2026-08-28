@@ -34,9 +34,9 @@ healthy**. The deployment status file records `ROLLED_BACK_OLD_HEALTHY` or the C
 
 ## Manual rollback
 ```
-sudo ln -sfn /opt/binana-freqtrade-v101/releases/<previous-stamp> /opt/binana-freqtrade-v101/current
-cd "$(readlink -f /opt/binana-freqtrade-v101/current)"
-sudo env RELEASE_TAG="$(cat .release-tag)" COMPOSE_PROJECT_NAME=binana-freqtrade-v101 \
-  docker compose --env-file /etc/binana-freqtrade-v101/.env up -d
+sudo ln -sfn /opt/binana-testnet/releases/<previous-stamp> /opt/binana-testnet/current
+cd "$(readlink -f /opt/binana-testnet/current)"
+sudo env RELEASE_TAG="$(cat .release-tag)" COMPOSE_PROJECT_NAME=binana-testnet \
+  docker compose --env-file /etc/binana-testnet/.env up -d
 bash scripts/healthcheck.sh
 ```

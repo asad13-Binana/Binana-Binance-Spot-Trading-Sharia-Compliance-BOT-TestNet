@@ -14,6 +14,7 @@ readonly ENV_FILE=$PRIVATE_ROOT/.env
 KEEP_RELEASES=${KEEP_RELEASES:-3}
 MIN_PHYSICAL_MEMORY_MIB=${MIN_PHYSICAL_MEMORY_MIB:-11264}
 MIN_TOTAL_MEMORY_MIB=${MIN_TOTAL_MEMORY_MIB:-14336}
+MIN_CPU_COUNT=${MIN_CPU_COUNT:-2}
 MIN_DEPLOY_FREE_DISK_GIB=${MIN_DEPLOY_FREE_DISK_GIB:-5}
 # H-004: one fixed Compose project so overlapping installs cannot start a
 # second parallel stack against the same account.
@@ -32,6 +33,7 @@ fail(){ echo "ERROR: $*" >&2; exit 1; }
 [[ "$ENV_FILE" == /etc/binana-testnet/.env ]] || fail 'ENV_FILE identity mismatch'
 [[ "$KEEP_RELEASES" =~ ^[0-9]+$ ]] && (( KEEP_RELEASES >= 2 && KEEP_RELEASES <= 10 )) || fail 'KEEP_RELEASES must be an integer from 2 through 10'
 [[ "$MIN_PHYSICAL_MEMORY_MIB" =~ ^[0-9]+$ && "$MIN_TOTAL_MEMORY_MIB" =~ ^[0-9]+$ ]] || fail 'memory limits must be integers'
+[[ "$MIN_CPU_COUNT" =~ ^[0-9]+$ ]] && (( MIN_CPU_COUNT >= 1 )) || fail 'MIN_CPU_COUNT must be a positive integer'
 [[ "$MIN_DEPLOY_FREE_DISK_GIB" =~ ^[0-9]+$ ]] && (( MIN_DEPLOY_FREE_DISK_GIB >= 2 && MIN_DEPLOY_FREE_DISK_GIB <= 20 )) || fail 'MIN_DEPLOY_FREE_DISK_GIB must be 2..20'
 for protected_path in "$APP_ROOT" "$RELEASES" "$PERSIST" "$(dirname -- "$ENV_FILE")"; do
   [[ ! -L "$protected_path" ]] || fail "privileged path must not be a symlink: $protected_path"
@@ -98,6 +100,7 @@ text = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
 names = set(re.findall(r"\$\{([A-Za-z_][A-Za-z0-9_]*)", text))
 names.update({
     "BOT_NAMESPACE", "MIN_PHYSICAL_MEMORY_MIB", "MIN_TOTAL_MEMORY_MIB",
+    "MIN_CPU_COUNT",
     "LEGACY_HALAL_FILE", "LEGACY_RUNTIME_DIR", "SHARIA_EVIDENCE_DIR",
     "SHARIA_FILE", "SHARIA_SOURCE_REGISTRY", "SIGNAL_INBOX", "UNIVERSE_FILE",
 })
@@ -151,11 +154,14 @@ release_mode=$(stat -Lc '%a' "$RELEASES")
 physical_mib=$(awk '/MemTotal/{print int($2/1024)}' /proc/meminfo)
 swap_mib=$(awk '/SwapTotal/{print int($2/1024)}' /proc/meminfo)
 total_mib=$((physical_mib + swap_mib))
+cpu_count=$(nproc)
 free_kib=$(df -Pk / | awk 'NR==2 {print $4}')
 (( physical_mib >= MIN_PHYSICAL_MEMORY_MIB )) || fail \
   "physical memory ${physical_mib} MiB is below required ${MIN_PHYSICAL_MEMORY_MIB} MiB"
 (( total_mib >= MIN_TOTAL_MEMORY_MIB )) || fail \
   "RAM+swap ${total_mib} MiB is below required ${MIN_TOTAL_MEMORY_MIB} MiB"
+(( cpu_count >= MIN_CPU_COUNT )) || fail \
+  "CPU count ${cpu_count} is below required ${MIN_CPU_COUNT} for the four-bot host"
 (( free_kib >= MIN_DEPLOY_FREE_DISK_GIB * 1024 * 1024 )) || fail \
   "root filesystem needs at least ${MIN_DEPLOY_FREE_DISK_GIB} GiB free before deployment"
 

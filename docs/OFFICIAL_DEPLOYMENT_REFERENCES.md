@@ -15,7 +15,8 @@ Verified for this release on 19 July 2026:
 - [OCI security rules](https://docs.oracle.com/en-us/iaas/Content/Network/Concepts/securityrules.htm): Oracle recommends network security groups for per-VNIC policy.
 - [OCI security lists](https://docs.oracle.com/en-us/iaas/Content/Network/Concepts/securitylists.htm): OCI virtual firewall behavior and the separate instance firewall requirement.
 
-Use an A1 Flex VM with at least 2 GiB RAM (4 GiB recommended here). Expose only
+Use an A1 Flex VM with at least 2 OCPUs and 12 GiB RAM for the declared
+four-bot shared host, plus 4 GiB swap and at least 80 GiB free root storage. Expose only
 SSH from a trusted `/32`; the bot, Freqtrade API, and monitoring ports remain
 loopback/private and require no public ingress rule.
 

@@ -189,9 +189,16 @@ def check_coingecko(config: Mapping[str, Any], transport: Transport) -> Result:
         payload = _call(transport, COINGECKO_BASE + "/ping", {"x-cg-demo-api-key": key})
         if not isinstance(payload, dict) or "gecko_says" not in payload:
             raise ReadinessError("provider returned an invalid ping response")
-        return _pass(required, authenticated=True, plan="demo_or_compatible")
+        return _pass(required, authenticated=True, plan="free_demo")
     except ReadinessError as exc:
-        return _fail(required, str(exc))
+        reason = str(exc)
+        if reason == "provider rejected authentication or permission":
+            # The configured repository contract intentionally uses the free
+            # Demo endpoint/header, not the Pro endpoint.  Keep the status
+            # secret-free while making a wrong, revoked or not-yet-enabled
+            # Demo key diagnosable on the host.
+            reason = "free_demo_key_rejected_or_not_enabled"
+        return _fail(required, reason)
 
 
 def check_coinmarketcap(config: Mapping[str, Any], transport: Transport) -> Result:

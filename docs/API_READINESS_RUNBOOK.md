@@ -23,22 +23,28 @@ package cannot be redirected to TestNet by a command-line option.
 ## Oracle procedure
 
 1. Install the release and put real credentials only in
-   `/etc/binana-freqtrade-v101/.env` (`root:root`, mode `0600`).
+   `/etc/binana-testnet/.env` (`root:root`, mode `0600`).
 2. Run:
 
    ```bash
-   sudo /opt/binana-freqtrade-v101/current/deploy/api_preflight.sh
+   sudo /opt/binana-testnet/current/deploy/api_preflight.sh
    ```
 
 3. Expect `api_readiness=PASS` and `network_operations=GET_ONLY_NO_ORDERS`.
 4. Read the sanitised status through the authenticated loopback monitoring API
    under `api_readiness`, or directly as root from
-   `/var/lib/binana-freqtrade-v101/shared/runtime/api_readiness_status.json`.
+   `/var/lib/binana-testnet/shared/runtime/api_readiness_status.json`.
 
 The status contains no API key, secret, Telegram token, chat title, account
 balance, asset balance, order, trade or wallet information. A failed required
 provider makes the overall result fail. CoinGecko and CoinMarketCap are
 required while automatic Sharia source discovery is enabled.
+
+If CoinGecko reports `free_demo_key_rejected_or_not_enabled`, the request has
+already used the correct free-Demo endpoint and `x-cg-demo-api-key` header.
+Create/activate a Demo key in the CoinGecko developer dashboard, replace only
+the private host value, and rerun this GET-only preflight. Do not switch to the
+paid Pro endpoint or commit the key to resolve that host-credential failure.
 
 ## What this does not prove
 
