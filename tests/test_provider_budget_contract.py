@@ -77,15 +77,21 @@ class ProviderBudgetContractTests(unittest.TestCase):
             evaluate_provider_budget_contract(_env(
                 SHARIA_CMC_PER_MINUTE_LIMIT='0'))
 
-    def test_compose_wires_guard_and_exact_testnet_execution_contract(self):
+    def test_compose_wires_guard_and_exact_package_execution_contract(self):
         root = Path(__file__).resolve().parents[1]
         compose = (root / 'docker-compose.yml').read_text(encoding='utf-8')
+        release_mode = (root / 'RELEASE_MODE').read_text(
+            encoding='utf-8').strip()
+        expected_base = {
+            'testnet': 'https://testnet.binance.vision',
+            'live': 'https://api.binance.com',
+        }[release_mode]
         self.assertIn(
             'command: python -m services.sharia_screener.guarded_main',
             compose)
         self.assertIn(
             'BINANCE_PUBLIC_BASE: '
-            '${BINANCE_EXECUTION_PUBLIC_BASE:-https://testnet.binance.vision}',
+            f'${{BINANCE_EXECUTION_PUBLIC_BASE:-{expected_base}}}',
             compose)
         self.assertIn(
             'COINGECKO_MONTHLY_LIMIT: '

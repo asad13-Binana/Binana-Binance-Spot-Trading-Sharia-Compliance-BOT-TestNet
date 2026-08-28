@@ -1881,7 +1881,7 @@ tests/test_provider_budget_contract.py,ProviderBudgetContractTests.test_any_aggr
 tests/test_provider_budget_contract.py,ProviderBudgetContractTests.test_disabled_consumers_do_not_reserve_quota,function,top-level-or-method,53,59,-,test
 tests/test_provider_budget_contract.py,ProviderBudgetContractTests.test_keyless_sharia_is_clamped_and_shared_keyless_use_blocks,function,top-level-or-method,61,70,-,test
 tests/test_provider_budget_contract.py,ProviderBudgetContractTests.test_malformed_boolean_or_budget_is_rejected,function,top-level-or-method,72,78,-,test
-tests/test_provider_budget_contract.py,ProviderBudgetContractTests.test_compose_wires_guard_and_exact_testnet_execution_contract,function,top-level-or-method,80,93,-,test
+tests/test_provider_budget_contract.py,ProviderBudgetContractTests.test_compose_wires_guard_and_exact_package_execution_contract,function,top-level-or-method,80,99,-,test
 tests/test_safety_state_sqlite.py,_write,function,top-level-or-method,25,26,-,test
 tests/test_safety_state_sqlite.py,SafetyStateSQLiteTests.test_valid_legacy_json_upgrades_an_existing_unversioned_database,function,top-level-or-method,30,80,-,test
 tests/test_safety_state_sqlite.py,SafetyStateSQLiteTests.test_valid_legacy_json_migrates_once_and_restart_uses_sqlite,function,top-level-or-method,82,142,-,test

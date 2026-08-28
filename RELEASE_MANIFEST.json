@@ -337,7 +337,7 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "e701660514f2092769ed9dcf0892301e268bf5d3b55680488df67ae37c2a59ac",
+      "sha256": "c5a9136b4cff4f101ebd3ea58cd1e0804167b24871c7b64e03b93cfb35bc8bcd",
       "size": 50555
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
@@ -345,7 +345,7 @@
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "03811226315ce5679e4712cf009494ce9fbd85874b67b0d59d6190a42d8a2beb",
+      "sha256": "d72e6bc521fccd9359fe40692c8bb3df33b3105efd7d30a2e23cdc7fd3229261",
       "size": 301214
     },
     "docs/audit/ISSUE_LEDGER.csv": {
@@ -1209,8 +1209,8 @@
       "size": 1599
     },
     "tests/test_provider_budget_contract.py": {
-      "sha256": "23149c5349fee4ff632a92610c9f2cf258c8935ac9a9888fbbcc7142f4e965b7",
-      "size": 4068
+      "sha256": "8bbc060240b9db617cc78ba17b60be74f8881c1080842c4218b75fd512ffec88",
+      "size": 4306
     },
     "tests/test_safety_state_sqlite.py": {
       "sha256": "8bd01abb2ba02393aa58f521490786054b5ec98e1b05c55cf7a14e20cd9468eb",
