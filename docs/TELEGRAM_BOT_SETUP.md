@@ -122,6 +122,25 @@ Keep `TELEGRAM_BOT_TOKEN` and `TELEGRAM_OWNER_CHAT_ID` out of screenshots,
 logs, copied ZIPs, and GitHub.  The release secret scan intentionally rejects
 real Telegram bot tokens if one is accidentally added to the source tree.
 
+## 5. Owner menu
+
+`/menu` opens a compact owner panel with five sections: Dashboard, Sharia,
+Trading, System and Emergency. Inline-button navigation edits the same message
+when Telegram permits it; if an edit is unavailable, the broker sends the same
+screen as a new message. That fallback is presentation-only and never retries
+a trading or Sharia command.
+
+The Sharia section supports one-coin input without requiring command syntax,
+bounded batches of 10, 25, 50 or 100 current Spot/USDT assets, and an explicit
+separate confirmation for all pairs. Discovery, source-registry readiness,
+owner-review backlog and trade-eligible counts are displayed independently so
+an alive backend with an empty registry cannot look operationally ready.
+
+All existing owner-only checks, one-time confirmation tokens, durable Telegram
+update claims, signed command buses and fail-closed trading controls remain in
+force. Menu layout does not alter strategy, signal, execution, risk or Sharia
+decision behaviour.
+
 Official references: Telegram's BotFather guide is at
 `https://core.telegram.org/bots/features#botfather`; the `getUpdates` method
 and update structure are documented at `https://core.telegram.org/bots/api`.

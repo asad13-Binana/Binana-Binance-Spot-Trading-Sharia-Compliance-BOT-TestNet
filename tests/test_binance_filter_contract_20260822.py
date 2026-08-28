@@ -13,9 +13,16 @@ from scripts.binance_contract_drift import (
     ContractDriftError,
     exchange_info_candidates,
     exchange_info_url,
+    execution_rules_url,
+    fetch_contract_for_mode,
     fetch_exchange_info,
     fetch_exchange_info_for_mode,
     inspect_exchange_info,
+    inspect_execution_rules,
+)
+from services.common.binance_public import (
+    BinancePublicClient,
+    BinancePublicError,
 )
 from services.execution_sidecar.binance_contract_guard import (
     AccountAwareFilterGuard,
@@ -45,8 +52,11 @@ def _filters(*extra: dict) -> list[dict]:
 class _Public:
     NO_REFERENCE_PRICE = object()
 
-    def __init__(self, filters):
+    def __init__(self, filters, *, execution_rule=False, reference='100'):
         self.filters = filters
+        self.execution_rule = execution_rule
+        self.reference = reference
+        self.execution_rule_calls = 0
 
     def exchange_info(self, symbol):
         return {'symbols': [{
@@ -57,7 +67,12 @@ class _Public:
         }]}
 
     def reference_price(self, _symbol):
-        return '100'
+        return self.reference
+
+    def execution_rules(self, symbol):
+        self.execution_rule_calls += 1
+        rules = [] if self.execution_rule is False else [self.execution_rule]
+        return {'symbolRules': [{'symbol': symbol, 'rules': rules}]}
 
     def ticker_price(self, _symbol):
         return {'price': '100'}
@@ -70,6 +85,20 @@ def _guard(*extra: dict) -> AccountAwareFilterGuard:
     validator = SpotFilterValidator(
         _Public(_filters(*extra)), max_age_seconds=300)
     return AccountAwareFilterGuard(validator)
+
+
+def _price_guard(*, rule=None, reference='100') -> AccountAwareFilterGuard:
+    public = _Public(
+        _filters(),
+        execution_rule=rule or {
+            'ruleType': 'PRICE_RANGE',
+            'bidLimitMultUp': '1.15', 'bidLimitMultDown': '0.85',
+            'askLimitMultUp': '1.15', 'askLimitMultDown': '0.85',
+        },
+        reference=reference,
+    )
+    return AccountAwareFilterGuard(
+        SpotFilterValidator(public, max_age_seconds=300))
 
 
 def _order(*, side='SELL', order_type='LIMIT', quantity='1',
@@ -266,6 +295,90 @@ class AccountFilterTests(unittest.TestCase):
                 }])
 
 
+class PriceRangeExecutionRuleTests(unittest.TestCase):
+    def test_public_client_requests_one_exact_usdt_symbol(self):
+        client = BinancePublicClient.__new__(BinancePublicClient)
+        calls = []
+        client.get = lambda path, params=None: (
+            calls.append((path, params)) or {'symbolRules': []})
+        self.assertEqual(
+            client.execution_rules('ethusdt'), {'symbolRules': []})
+        self.assertEqual(
+            calls,
+            [('/api/v3/executionRules', {'symbol': 'ETHUSDT'})])
+        with self.assertRaises(BinancePublicError):
+            client.execution_rules('ETHBTC')
+
+    def test_sell_and_buy_use_directional_execution_bands(self):
+        sell = _price_guard()
+        with self.assertRaisesRegex(FilterViolation, 'below PRICE_RANGE'):
+            _validate(sell, 'order', _order(price='84.99'))
+        summary = _validate(sell, 'order', _order(price='85.00'))
+        self.assertIn('PRICE_RANGE', summary['filters_checked'])
+        self.assertEqual(summary['execution_reference_price'], '100')
+
+        buy = _price_guard(rule={
+            'ruleType': 'PRICE_RANGE',
+            'bidLimitMultUp': '1.01', 'bidLimitMultDown': '0.99',
+            'askLimitMultUp': '2', 'askLimitMultDown': '0.5',
+        })
+        with self.assertRaisesRegex(FilterViolation, 'above PRICE_RANGE'):
+            _validate(
+                buy, 'order', _order(side='BUY', price='101.01'))
+
+    def test_stop_trigger_is_not_misclassified_as_execution_price(self):
+        params = _order(order_type='STOP_LOSS_LIMIT', price='100.00')
+        params['stopPrice'] = '10.00'
+        summary = _validate(_price_guard(), 'order', params)
+        self.assertIn('PRICE_RANGE', summary['filters_checked'])
+
+    def test_documented_missing_direction_and_reference_disable_enforcement(self):
+        missing_direction = _price_guard(rule={
+            'ruleType': 'PRICE_RANGE',
+            'bidLimitMultUp': '1.01', 'bidLimitMultDown': '0.99',
+        })
+        summary = _validate(
+            missing_direction, 'order', _order(price='1000.00'))
+        self.assertIn('PRICE_RANGE', summary['filters_checked'])
+
+        no_reference = _price_guard(
+            reference=_Public.NO_REFERENCE_PRICE)
+        summary = _validate(
+            no_reference, 'order', _order(price='1000.00'))
+        self.assertIsNone(summary['execution_reference_price'])
+
+    def test_malformed_unknown_or_ambiguous_rules_fail_closed(self):
+        cases = [
+            ({'ruleType': 'PRICE_RANGE', 'askLimitMultDown': 'NaN'},
+             'invalid'),
+            ({'ruleType': 'PRICE_RANGE', 'askLimitMultDown': '2',
+              'askLimitMultUp': '1'}, 'lower multiplier'),
+            ({'ruleType': 'NEW_EXECUTION_RULE'}, 'unsupported'),
+        ]
+        for rule, message in cases:
+            with self.subTest(rule=rule), self.assertRaisesRegex(
+                    FilterDataUnavailable, message):
+                _validate(
+                    _price_guard(rule=rule), 'order', _order())
+
+        public = _Public(_filters())
+        public.execution_rules = lambda symbol: {
+            'symbolRules': [
+                {'symbol': symbol, 'rules': []},
+                {'symbol': 'BTCUSDT', 'rules': []},
+            ]
+        }
+        guard = AccountAwareFilterGuard(SpotFilterValidator(public))
+        with self.assertRaisesRegex(FilterDataUnavailable, 'only the exact'):
+            _validate(guard, 'order', _order())
+
+    def test_rule_and_reference_are_refetched_on_every_preflight(self):
+        guard = _price_guard()
+        _validate(guard, 'order', _order())
+        _validate(guard, 'order', _order())
+        self.assertEqual(guard.validator.public.execution_rule_calls, 2)
+
+
 class ContractDriftTests(unittest.TestCase):
     @staticmethod
     def _payload(filters):
@@ -305,6 +418,10 @@ class ContractDriftTests(unittest.TestCase):
             '?symbolStatus=TRADING&showPermissionSets=false')
         with self.assertRaises(ContractDriftError):
             exchange_info_url('simulation')
+        self.assertEqual(
+            execution_rules_url('testnet'),
+            'https://testnet.binance.vision/api/v3/executionRules'
+            '?symbolStatus=TRADING')
 
     def test_testnet_451_uses_official_public_data_with_degraded_scope(self):
         payload = self._payload([{'filterType': 'PRICE_FILTER'}])
@@ -353,6 +470,65 @@ class ContractDriftTests(unittest.TestCase):
     def test_direct_fetch_rejects_unapproved_url_before_network_access(self):
         with self.assertRaisesRegex(ContractDriftError, 'approved Binance'):
             fetch_exchange_info('https://example.invalid/api/v3/exchangeInfo')
+
+    def test_execution_rule_drift_accepts_price_range_and_rejects_new_rules(self):
+        result = inspect_execution_rules({
+            'symbolRules': [{
+                'symbol': 'ETHUSDT',
+                'rules': [{
+                    'ruleType': 'PRICE_RANGE',
+                    'bidLimitMultDown': '0.85',
+                    'bidLimitMultUp': '1.15',
+                    'askLimitMultDown': '0.85',
+                    'askLimitMultUp': '1.15',
+                }],
+            }],
+        }, {'ETHUSDT'})
+        self.assertEqual(result['execution_rule_types'], ['PRICE_RANGE'])
+        with self.assertRaisesRegex(ContractDriftError, 'unknown'):
+            inspect_execution_rules({
+                'symbolRules': [{
+                    'symbol': 'ETHUSDT',
+                    'rules': [{'ruleType': 'NEW_EXECUTION_RULE'}],
+                }],
+            }, {'ETHUSDT'})
+
+    def test_execution_rule_drift_rejects_malformed_or_inverted_bounds(self):
+        for rule in (
+            {'ruleType': 'PRICE_RANGE', 'askLimitMultDown': 'NaN'},
+            {'ruleType': 'PRICE_RANGE', 'askLimitMultDown': '2',
+             'askLimitMultUp': '1'},
+        ):
+            with self.subTest(rule=rule), self.assertRaises(
+                    ContractDriftError):
+                inspect_execution_rules({
+                    'symbolRules': [{
+                        'symbol': 'ETHUSDT', 'rules': [rule],
+                    }],
+                }, {'ETHUSDT'})
+
+    def test_contract_bundle_never_mixes_testnet_and_live_payloads(self):
+        payload = self._payload([{'filterType': 'PRICE_FILTER'}])
+        calls = []
+
+        def info(url):
+            calls.append(('info', url))
+            if url.startswith('https://testnet.binance.vision'):
+                raise OSError('HTTP Error 451')
+            return payload
+
+        def rules(url):
+            calls.append(('rules', url))
+            return {'symbolRules': []}
+
+        actual, execution, source = fetch_contract_for_mode(
+            'testnet', info, rules)
+        self.assertIs(actual, payload)
+        self.assertEqual(execution, {'symbolRules': []})
+        self.assertFalse(source['exact_environment'])
+        self.assertEqual(calls[0][0], 'info')
+        self.assertEqual(calls[1][0], 'info')
+        self.assertEqual(calls[2][0], 'rules')
 
 
 class DeploymentWiringTests(unittest.TestCase):

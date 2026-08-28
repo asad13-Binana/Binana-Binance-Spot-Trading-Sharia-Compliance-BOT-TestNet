@@ -24,6 +24,7 @@ sys.path.insert(0, str(ROOT / 'scripts'))
 import seed_source_registry as seed  # noqa: E402
 
 from services.common.sharia_v19 import SCREENER_HOSTS, SCREENER_SITES  # noqa: E402
+from services.sharia_screener import source_discovery  # noqa: E402
 
 OFFICIAL_HOST = 'exampleproject.org'
 OFFICIAL_URL = f'https://{OFFICIAL_HOST}/docs'
@@ -186,6 +187,84 @@ class SeedHelperTests(unittest.TestCase):
             with self.subTest(url=source['url']):
                 self.assertRegex(source.get('content_sha256', ''),
                                  r'^[0-9a-f]{64}$')
+
+    def _discovery_record(self):
+        payload = {
+            'schema_version': 1,
+            'base': 'EXP',
+            'pair': 'EXP/USDT',
+            'status': 'VERIFIED_CANDIDATE',
+            'discovered_at': '2026-08-28T00:00:00+00:00',
+            'refresh_due_at': '2026-09-04T00:00:00+00:00',
+            'retention_days': 90,
+            'binance': {
+                'symbol': 'EXPUSDT', 'status': 'TRADING',
+                'base_asset': 'EXP', 'quote_asset': 'USDT',
+                'spot_trading_allowed': True,
+                'identity_basis': 'documented Binance Spot exchangeInfo',
+            },
+            'provider_identity': {
+                'provider': 'coingecko',
+                'provider_asset_id': 'example-project',
+                'name': 'Example Project', 'symbol': 'EXP',
+                'identity_basis': 'exact Binance market binding',
+            },
+            'official_hosts_candidates': [OFFICIAL_HOST],
+            'source_candidates': [
+                {'role': 'official_website', 'url': 'https://exampleproject.org/'},
+                {'role': 'whitepaper', 'url': OFFICIAL_URL},
+            ],
+            'errors': [],
+            'owner_verified': False,
+            'trade_permission': False,
+            'owner_action': 'review required',
+        }
+        payload['record_sha256'] = source_discovery._record_digest(payload)
+        return payload
+
+    def test_prepare_from_discovery_is_offline_and_leaves_identity_unconfirmed(self):
+        discovery = self.tmp / 'EXP.json'
+        output = self.tmp / 'owner-request.json'
+        discovery.write_text(json.dumps(self._discovery_record()), encoding='utf-8')
+        with mock.patch.dict(os.environ, {}, clear=True):
+            rc = seed.main([
+                'prepare-from-discovery', str(discovery),
+                '--output', str(output),
+            ])
+        self.assertEqual(rc, 0)
+        prepared = json.loads(output.read_text(encoding='utf-8'))['EXP']
+        self.assertTrue(prepared['official_hosts'])
+        self.assertTrue(prepared['sources'])
+        self.assertTrue(all(
+            source['identity_match'] is False
+            for source in prepared['sources']))
+        self.assertFalse(
+            prepared['discovery_provenance']['trade_permission'])
+        self.assertTrue(
+            prepared['discovery_provenance'][
+                'owner_identity_confirmation_required'])
+
+    def test_prepare_from_discovery_rejects_tampering_and_never_overwrites(self):
+        discovery = self.tmp / 'EXP.json'
+        output = self.tmp / 'owner-request.json'
+        tampered = self._discovery_record()
+        tampered['binance']['symbol'] = 'OTHERUSDT'
+        discovery.write_text(json.dumps(tampered), encoding='utf-8')
+        self.assertEqual(seed.main([
+            'prepare-from-discovery', str(discovery),
+            '--output', str(output),
+        ]), 1)
+        self.assertFalse(output.exists())
+
+        discovery.write_text(
+            json.dumps(self._discovery_record()), encoding='utf-8')
+        output.write_text('{"owner":"edited"}', encoding='utf-8')
+        self.assertEqual(seed.main([
+            'prepare-from-discovery', str(discovery),
+            '--output', str(output),
+        ]), 1)
+        self.assertEqual(output.read_text(encoding='utf-8'),
+                         '{"owner":"edited"}')
 
     def test_apply_refuses_a_page_that_changed_after_review(self):
         # The owner reviewed version A. If the page becomes version B, the

@@ -44,6 +44,7 @@ if str(ROOT) not in sys.path:
 from services.common.sharia_v19 import (  # noqa: E402
     SCREENER_HOSTS, SCREENER_SITES, normalize_evidence_url,
 )
+from services.common.atomic import atomic_write_json  # noqa: E402
 from services.sharia_retriever.retriever import Retriever  # noqa: E402
 from services.sharia_retriever.store import EvidenceStore  # noqa: E402
 from services.sharia_screener.source_registry import (  # noqa: E402
@@ -62,9 +63,13 @@ from services.sharia_screener.verdict_policy import (  # noqa: E402
     canonical_screener_verdict,
     positive_verdict_conflict,
 )
+from services.sharia_operator.source_review import (  # noqa: E402
+    validated_candidate_record,
+)
 
 MIN_QUOTE_WORDS = 6
 MAX_CANDIDATES = 4
+MAX_DISCOVERY_FILE_BYTES = 1_048_576
 
 
 def require_pinned_proxy_environment() -> None:
@@ -185,6 +190,78 @@ def screener_for(url: str) -> str | None:
 
 def quote_is_in(quote: str, text: str) -> bool:
     return ' '.join(quote.split()).lower() in ' '.join(text.split()).lower()
+
+
+def _discovery_files(path: Path) -> list[Path]:
+    if path.is_file():
+        return [path]
+    if not path.is_dir():
+        raise ValueError('discovery input must be one JSON file or a current-record directory')
+    files = [item for item in sorted(path.glob('*.json'))
+             if not item.name.startswith('_')]
+    if len(files) > 5000:
+        raise ValueError('discovery directory exceeds the 5000-file safety ceiling')
+    return files
+
+
+def do_prepare_from_discovery(args) -> int:
+    """Prepare an owner-review request without fetching or granting trust.
+
+    Every source remains ``identity_match: false``.  The owner must inspect
+    the stable Binance/provider identity and explicitly change only a truly
+    official identity source to ``true`` before ``propose`` can proceed.
+    """
+    source_path = Path(args.discovery)
+    output_path = Path(args.output)
+    if output_path.exists():
+        print('OWNER REQUEST NOT WRITTEN - output already exists; choose a new path',
+              file=sys.stderr)
+        return 1
+    try:
+        files = _discovery_files(source_path)
+        if not files:
+            raise ValueError('no discovery candidate files were found')
+        prepared: dict[str, dict] = {}
+        for path in files:
+            if path.stat().st_size > MAX_DISCOVERY_FILE_BYTES:
+                raise ValueError(f'{path.name}: discovery file exceeds 1 MiB')
+            try:
+                payload = json.loads(path.read_text(encoding='utf-8'))
+            except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+                raise ValueError(f'{path.name}: unreadable discovery JSON: {exc}') from exc
+            record = validated_candidate_record(payload)
+            base = str(record['base'])
+            if base in prepared:
+                raise ValueError(f'{base}: duplicate discovery candidate')
+            prepared[base] = {
+                'official_hosts': list(record['official_hosts_candidates']),
+                'sources': [
+                    {
+                        'role': source['role'],
+                        'url': source['url'],
+                        'identity_match': False,
+                    }
+                    for source in record['source_candidates']
+                ],
+                'discovery_provenance': {
+                    'record_sha256': record['record_sha256'],
+                    'provider': record['provider_identity']['provider'],
+                    'provider_asset_id': record['provider_identity']['provider_asset_id'],
+                    'binance_symbol': record['binance']['symbol'],
+                    'owner_identity_confirmation_required': True,
+                    'trade_permission': False,
+                },
+            }
+    except (OSError, ValueError) as exc:
+        print(f'OWNER REQUEST NOT WRITTEN - {exc}', file=sys.stderr)
+        return 1
+    atomic_write_json(output_path, prepared)
+    print(f'owner-review source request written: {output_path}')
+    print(f'candidate assets: {sorted(prepared)}')
+    print('Every identity_match remains false. Review the exact Binance/provider')
+    print('binding and source ownership before changing any one value to true.')
+    print('This file grants no Sharia verdict and no trade permission.')
+    return 0
 
 
 def do_propose(args) -> int:
@@ -519,6 +596,14 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest='command', required=True)
 
+    prepare = sub.add_parser(
+        'prepare-from-discovery',
+        help='verify discovery record(s) and prepare a fail-closed owner-review input')
+    prepare.add_argument(
+        'discovery', help='one discovery JSON file or the discovery/current directory')
+    prepare.add_argument('--output', default='owner_source_request.json')
+    prepare.set_defaults(func=do_prepare_from_discovery)
+
     propose = sub.add_parser('propose', help='fetch confirmed sources, propose quotes')
     propose.add_argument('input', help='JSON of owner-confirmed hosts and source URLs')
     propose.add_argument('--draft', default='registry_draft.json')
@@ -534,7 +619,8 @@ def main(argv=None) -> int:
     apply_cmd.set_defaults(func=do_apply)
 
     args = parser.parse_args(argv)
-    require_pinned_proxy_environment()
+    if args.command in {'propose', 'apply'}:
+        require_pinned_proxy_environment()
     return args.func(args)
 
 

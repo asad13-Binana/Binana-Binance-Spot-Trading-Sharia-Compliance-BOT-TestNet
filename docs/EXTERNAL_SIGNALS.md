@@ -43,11 +43,19 @@ provider quota**, so no configuration path can reach 100% of the free tier.
 Zero or negative values are startup errors. The status file reports both
 the configured and the effective values.
 
+Because advisory universe enrichment and automatic Sharia source discovery
+run in separate processes, their default budgets are partitioned and checked
+as one plan-wide startup contract. CoinGecko uses 84/4,800 for advisory
+enrichment plus 12/4,800 for discovery. CMC uses 42/11,400 plus 6/3,000. The
+Sharia service refuses startup if enabled consumers collectively exceed the
+96/9,600 or 48/14,400 safety ceiling. API keys are never included in this
+diagnostic output.
+
 Additional protections:
 
-- **Daily spreading** — the monthly budget is spread over a worst-case
-  31-day month (CoinGecko 309/day, CMC 464/day), so a bug can never burn a
-  month of credits in one day.
+- **Daily spreading** — each process partition is spread over a worst-case
+  31-day month (CoinGecko 154/day + 154/day; CMC 367/day + 96/day), so one
+  process cannot burn the shared month of credits in one day.
 - **Restart-surviving throttle state** (audit ISSUE 5) — daily/monthly
   counters, the per-minute request window, and circuit-breaker cool-downs
   (including 429 `Retry-After` and auth cool-downs) all persist in
@@ -75,9 +83,11 @@ With `EXTERNAL_SIGNALS_REFRESH_SECONDS=1800` (30 min), worst-case scheduled
 usage is approximately:
 
 - CoinGecko: 3 calls per refresh (2 market pages + trending) × 48 refreshes
-  × 31 days = **4,464 calls/month ≈ 46.5%** of the 9,600 safety budget.
+  × 31 days = **4,464 calls/month ≈ 93%** of the advisory process's 4,800
+  partition (and 46.5% of the plan-wide 9,600 safety ceiling).
 - CMC: 1 credit per refresh × 48 × 31 = 1,488, plus ~124 reconciliation
-  credits = **≈1,612 credits/month ≈ 11%** of the 14,400 safety budget.
+  credits = **≈1,612 credits/month ≈ 14.1%** of the advisory process's 11,400
+  partition (and about 11.2% of the plan-wide 14,400 safety ceiling).
 
 These figures are before failures, retries, manual actions, or
 provider-side billing changes. The configured limits materially reduce
@@ -191,10 +201,10 @@ need horizontal scaling here, replace the lease with a shared counter first.
 | `EXTERNAL_SIGNALS_REFRESH_SECONDS` | `1800` | Provider cache TTL, 300–86400 |
 | `EXTERNAL_MIN_MARKET_CAP_USD` | `0` (off) | Cross-verified market-cap floor (needs BOTH providers) |
 | `CMC_TRENDING_LIMIT` | `20` | Top-N momentum rows flagged as trending (1–100) |
-| `COINGECKO_PER_MINUTE_LIMIT` | `96` | Hard ceiling 96 (96% of the documented 100) |
-| `COINGECKO_MONTHLY_LIMIT` | `9600` | Hard ceiling 9,600 (96% of 10,000) |
-| `CMC_PER_MINUTE_LIMIT` | `48` | Hard ceiling 48 (96% of 50) |
-| `CMC_MONTHLY_LIMIT` | `14400` | Hard ceiling 14,400 (96% of 15,000) |
+| `COINGECKO_PER_MINUTE_LIMIT` | `84` | Advisory partition; aggregate hard ceiling remains 96 |
+| `COINGECKO_MONTHLY_LIMIT` | `4800` | Advisory partition; aggregate hard ceiling remains 9,600 |
+| `CMC_PER_MINUTE_LIMIT` | `42` | Advisory partition; aggregate hard ceiling remains 48 |
+| `CMC_MONTHLY_LIMIT` | `11400` | Advisory partition; aggregate hard ceiling remains 14,400 |
 | `EXTERNAL_BREAKER_COOLDOWN_SECONDS` | `900` | Breaker cool-down, 60–86400 |
 | `CMC_RECONCILE_SECONDS` | `21600` | `/v1/key/info` reconciliation interval, 3600–604800 |
 

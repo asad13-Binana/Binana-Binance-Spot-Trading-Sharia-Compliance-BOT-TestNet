@@ -23,11 +23,13 @@ from services.common.paths import (
     COMMAND_INBOX,
     RUNTIME,
     SHARIA_DECISION_INBOX,
+    SHARIA_DISCOVERY_CURRENT_DIR,
     SHARIA_FILE,
     SHARIA_QUEUE_INBOX,
     SHARIA_REPORTS_DIR,
     SHARIA_RESULTS_DIR,
     SHARIA_RUNTIME_DIR,
+    SHARIA_SOURCE_REGISTRY,
     SIGNAL_INBOX,
     SIGNAL_PROCESSED,
     SIGNAL_REJECTED,
@@ -35,7 +37,9 @@ from services.common.paths import (
     UNIVERSE_CURRENT,
 )
 from services.common.sharia_attestation import RESULT_PURPOSE, verify_attached
+from services.sharia_operator.source_review import candidate_bases
 from services.sharia_screener.approval import SCOPE_CONFIRMATION
+from services.sharia_screener.source_registry import SourceRegistry
 from services.telegram_broker.authorization import is_owner
 from services.telegram_broker.callbacks import CallbackStore
 from services.universe_service.sharia_filter import ShariaFilter
@@ -87,13 +91,12 @@ OFFSET_PATH = RUNTIME / 'telegram_offset.json'
 ALERT_DELIVERY_STATE = RUNTIME / 'telegram_alert_delivery.json'
 ALERT_QUARANTINE = RUNTIME / 'telegram_alert_quarantine'
 ALERT_OUTBOX_HEALTH = RUNTIME / 'telegram_alert_outbox_health.json'
-PAIR_RE = re.compile(r'^([A-Z0-9]{2,20})(?:/USDT|USDT)$')
+PAIR_RE = re.compile(r'^([A-Z0-9]{2,20}?)(?:/USDT|USDT)?$')
 NOT_FATWA = 'Research screening only — not a fatwa and not financial advice.'
+BULK_SCAN_LIMITS = frozenset({10, 25, 50, 100})
 
 
-def send(text, chat_id=None, buttons=None):
-    if not TOKEN:
-        return
+def _telegram_message_data(text, chat_id=None, buttons=None) -> dict:
     identity = f'[{BOT_PRODUCT} | {BOT_ENVIRONMENT} | {BOT_INSTANCE_ID}]'
     rendered = str(text)
     if not rendered.startswith(identity):
@@ -101,8 +104,41 @@ def send(text, chat_id=None, buttons=None):
     data = {'chat_id': chat_id or OWNER, 'text': rendered[:4000]}
     if buttons:
         data['reply_markup'] = json.dumps({'inline_keyboard': buttons})
+    return data
+
+
+def send(text, chat_id=None, buttons=None):
+    if not TOKEN:
+        return
+    data = _telegram_message_data(text, chat_id, buttons)
     response = requests.post(BASE + '/sendMessage', data=data, timeout=15)
     response.raise_for_status()
+
+
+def edit_or_send(text, chat_id, message_id=None, buttons=None):
+    """Edit a callback menu in place, falling back to a normal message.
+
+    This is presentation-only.  A failed Telegram edit never retries or
+    repeats a trading command; it merely sends the same owner-facing screen as
+    a new message.
+    """
+    if not TOKEN:
+        return
+    if message_id is None:
+        send(text, chat_id, buttons)
+        return
+    data = _telegram_message_data(text, chat_id, buttons)
+    data['message_id'] = message_id
+    try:
+        response = requests.post(BASE + '/editMessageText', data=data, timeout=15)
+        if (response.status_code == 400 and
+                'message is not modified' in response.text.lower()):
+            return
+        response.raise_for_status()
+    except Exception as exc:
+        log.debug('editMessageText failed; sending a new menu: %s',
+                  _redact_secrets(exc))
+        send(text, chat_id, buttons)
 
 
 def _load_alert_delivery_state() -> dict:
@@ -283,10 +319,13 @@ def ft_call(method, endpoint):
         return {'ok': False, 'error': str(exc)}
 
 
-def confirm_button(label, action, args=None):
+def confirm_button(label, action, args=None, *, style='danger'):
     token = CB.issue(action, args)
     audit('telegram_confirmation_issued', actor='telegram-owner', details={'action': action})
-    return {'text': label, 'callback_data': 'confirm|' + token}
+    button = {'text': label, 'callback_data': 'confirm|' + token}
+    if style in {'danger', 'success', 'primary'}:
+        button['style'] = style
+    return button
 
 
 # ---- V19.1 Sharia screening controls (master protocol 8.7) ----
@@ -308,14 +347,23 @@ def normalize_pair_input(text: str) -> tuple[str | None, str]:
 
 
 def sharia_scan_request(base: str, priority: str = 'manual') -> dict:
-    if priority == 'bulk':
+    normalized_priority = str(priority).lower().strip()
+    if normalized_priority not in {'manual', 'bulk'}:
+        raise ValueError('Sharia scan priority must be manual or bulk')
+    if normalized_priority == 'bulk' and base == '*':
         request_id = f'bulk-all-{uuid.uuid4().hex[:8]}'
         payload = {'request_id': request_id, 'pair': '*/USDT', 'base': '*',
                    'priority': 'bulk', 'requested_by': 'telegram-owner'}
     else:
-        request_id = f'manual-{base}-{uuid.uuid4().hex[:8]}'
+        normalized, reason = normalize_pair_input(base)
+        if not normalized:
+            raise ValueError('invalid Sharia scan pair: ' + reason)
+        request_id = (
+            f'{normalized_priority}-{normalized}-{uuid.uuid4().hex[:8]}')
+        base = normalized
         payload = {'request_id': request_id, 'pair': f'{base}/USDT', 'base': base,
-                   'priority': 'manual', 'requested_by': 'telegram-owner'}
+                   'priority': normalized_priority,
+                   'requested_by': 'telegram-owner'}
     signed = envelope.sign_envelope(
         producer='telegram-broker', purpose=envelope.BUS_SHARIA_REQUEST,
         payload=payload, ttl_seconds=600)
@@ -324,6 +372,44 @@ def sharia_scan_request(base: str, priority: str = 'manual') -> dict:
     audit('telegram_sharia_scan_requested', actor='telegram-owner',
           details={'request_id': request_id, 'base': base, 'priority': priority})
     return {'request_id': request_id}
+
+
+def sharia_bounded_scan_requests(limit: int) -> dict:
+    """Queue a bounded batch without changing the protected screener service.
+
+    Each exact base is sent through the existing signed request bus as ordinary
+    low-priority bulk work.  The current, hash-validated universe snapshot is
+    the only source; malformed or stale snapshots fail before any request is
+    written.
+    """
+    if isinstance(limit, bool) or limit not in BULK_SCAN_LIMITS:
+        raise ValueError('bounded scan size must be 10, 25, 50 or 100')
+    snapshot = load_current(
+        UNIVERSE_CURRENT,
+        max_age_seconds=env_int(
+            'MAX_UNIVERSE_AGE_SECONDS', 1800, 1, 86_400),
+    )
+    bases: list[str] = []
+    seen: set[str] = set()
+    for row in snapshot.get('pairs', []):
+        pair = row.get('pair') if isinstance(row, dict) else row
+        base, _ = normalize_pair_input(str(pair or ''))
+        if base and base not in seen:
+            seen.add(base)
+            bases.append(base)
+        if len(bases) >= limit:
+            break
+    if not bases:
+        raise ValueError('validated universe has no eligible Spot/USDT pairs')
+    outcomes = [
+        sharia_scan_request(base, priority='bulk') for base in bases]
+    return {
+        'requested_limit': limit,
+        'queued_count': len(outcomes),
+        'bases': bases,
+        'request_ids': [item['request_id'] for item in outcomes],
+        'snapshot_hash': snapshot['snapshot_hash'],
+    }
 
 
 def sharia_owner_decision(action: str, args: dict) -> dict:
@@ -357,10 +443,55 @@ def sharia_owner_decision(action: str, args: dict) -> dict:
             'base': payload['base']}
 
 
+def _sharia_registry_summary() -> dict:
+    """Read administrative source readiness without changing Sharia core."""
+    registry_valid = True
+    registry_error = ''
+    valid_bases: set[str] = set()
+    registered_count = 0
+    try:
+        registry = SourceRegistry(SHARIA_SOURCE_REGISTRY)
+        assets = registry.load().get('assets', {})
+        registered_count = len(assets)
+        for base in sorted(assets):
+            try:
+                registry.asset(base)
+            except Exception as exc:
+                registry_valid = False
+                if not registry_error:
+                    registry_error = f'{base}: {type(exc).__name__}: {exc}'
+            else:
+                valid_bases.add(str(base).upper())
+    except Exception as exc:
+        registry_valid = False
+        registry_error = f'{type(exc).__name__}: {exc}'
+    discovery_valid = True
+    discovery_error = ''
+    try:
+        candidates = candidate_bases(SHARIA_DISCOVERY_CURRENT_DIR)
+    except Exception as exc:
+        candidates = set()
+        discovery_valid = False
+        discovery_error = f'{type(exc).__name__}: {exc}'
+    return {
+        'registry_valid': registry_valid,
+        'registry_error': registry_error[:300],
+        'registered_asset_count': registered_count,
+        'screenable_registered_count': len(valid_bases),
+        'source_registry_ready': bool(registry_valid and valid_bases),
+        'discovery_candidate_count': len(candidates),
+        'owner_review_pending': len(candidates - valid_bases),
+        'discovery_index_valid': discovery_valid,
+        'discovery_error': discovery_error[:300],
+    }
+
+
 def _sharia_service_status() -> str:
     health = read_json(SHARIA_RUNTIME_DIR / 'health.json', None)
     lines = ['V19.1 Sharia screening service']
     health_ready = False
+    operational_ready = False
+    operational_known = False
     if not isinstance(health, dict):
         lines.append('health: NOT READY — no heartbeat file (fail-closed)')
     else:
@@ -397,6 +528,33 @@ def _sharia_service_status() -> str:
         if last_failed:
             lines.append(f'last failed: {last_failed.get("base")} ({str(last_failed.get("error"))[:120]}) at {last_failed.get("finished_at")}')
         lines.append(f'idle scanning: {health.get("idle_scanning")}')
+    registry = _sharia_registry_summary()
+    operational_known = True
+    registry_valid = registry['registry_valid'] is True
+    registered = registry['registered_asset_count']
+    operational_ready = bool(
+        health_ready and registry['source_registry_ready'] is True)
+    lines.append(
+        f'source registry: valid={registry_valid}; registered={registered}; '
+        f'screenable={registry["screenable_registered_count"]}')
+    lines.append(
+        f'discovery candidates={registry["discovery_candidate_count"]}; '
+        f'owner review pending={registry["owner_review_pending"]}')
+    if not registry['discovery_index_valid']:
+        lines.append(
+            'discovery index: UNAVAILABLE — ' +
+            str(registry['discovery_error'])[:180])
+    if operational_ready:
+        lines.append('operational screening: READY')
+    elif registry_valid and registered == 0:
+        lines.append(
+            'operational screening: BLOCKED — registry is empty; '
+            'discovery candidates cannot self-authorize')
+    else:
+        reason = str(registry['registry_error']).strip()
+        lines.append(
+            'operational screening: BLOCKED' +
+            (f' — {reason[:180]}' if reason else ''))
     try:
         gate = ShariaFilter(SHARIA_FILE)
         eligible = gate.current_halal_symbols()
@@ -412,6 +570,10 @@ def _sharia_service_status() -> str:
         lines.append('trade-eligible now: NONE (fail-closed)')
     if not health_ready:
         lines.append('new screening requests are NOT READY; cached labels are not treated as service health')
+    elif operational_known and not operational_ready:
+        lines.append(
+            'backend is live, but new evidence-backed screening is not '
+            'operationally ready until owner-reviewed sources exist')
     lines.append(NOT_FATWA)
     return '\n'.join(lines)
 
@@ -556,40 +718,88 @@ def _latest_local_review_card(base: str) -> tuple[str, list[list[dict]] | None]:
 
 
 def menu():
-    # V10.1 owner controls: original V4.9.16 set, V8.1 execution/universe
-    # controls, and the V19.1 Sharia screening controls.
+    """Compact top-level panel; every legacy owner action remains reachable."""
     return [
-        [{'text': '▶️ Resume Signals', 'callback_data': 'do|entries_on_confirm'},
-         {'text': '⛔ Stop Auto-Trade', 'callback_data': 'do|entries_off'}],
-        [{'text': '⏸ Pause New Signals', 'callback_data': 'do|entries_off'},
-         {'text': '📊 Private Status', 'callback_data': 'do|status'}],
-        [{'text': '🛑 Emergency Sell Coin', 'callback_data': 'do|emergency_help'},
-         {'text': '📈 Last Signal', 'callback_data': 'do|last_signal'}],
-        [{'text': '💰 Profit Report', 'callback_data': 'do|profit'},
-         {'text': '💵 Balance', 'callback_data': 'do|balance'}],
-        [{'text': '⚠️ Error / Logs', 'callback_data': 'do|logs'},
-         {'text': '🔁 Restart WebSocket', 'callback_data': 'do|restart_ws_confirm'}],
-        [{'text': '⚙️ Settings', 'callback_data': 'do|settings'},
-         {'text': '🧪 Self-Test Status', 'callback_data': 'do|selftest'}],
-        [{'text': '💵 Trade Size & Slots', 'callback_data': 'do|sizing_help'},
-         {'text': '📉 Backtest Status', 'callback_data': 'do|backtest'}],
-        [{'text': '🔄 Reload Configuration', 'callback_data': 'do|reload_confirm'}],
+        [{'text': '📊 Dashboard', 'callback_data': 'do|menu_dashboard',
+          'style': 'primary'},
+         {'text': '🕌 Sharia', 'callback_data': 'do|menu_sharia',
+          'style': 'primary'}],
+        [{'text': '📈 Trading', 'callback_data': 'do|menu_trading'},
+         {'text': '🌐 System', 'callback_data': 'do|menu_system'}],
+        [{'text': '🛑 Emergency', 'callback_data': 'do|menu_emergency',
+          'style': 'danger'},
+         {'text': '❓ Help', 'callback_data': 'do|menu_help'}],
+    ]
+
+
+def dashboard_menu():
+    return [
+        [{'text': '📊 Private status', 'callback_data': 'do|status'},
+         {'text': '📋 Open orders', 'callback_data': 'do|orders'}],
+        [{'text': '💵 Balance', 'callback_data': 'do|balance'},
+         {'text': '💰 Profit', 'callback_data': 'do|profit'}],
+        [{'text': '📈 Last signal', 'callback_data': 'do|last_signal'},
+         {'text': '🌐 Universe', 'callback_data': 'do|universe'}],
+        [{'text': '🏠 Home', 'callback_data': 'do|home'}],
+    ]
+
+
+def sharia_menu():
+    return [
+        [{'text': '🔍 Scan one coin', 'callback_data': 'do|scan_help',
+          'style': 'primary'}],
+        [{'text': 'Scan 10', 'callback_data': 'do|scan_bulk_10_confirm'},
+         {'text': 'Scan 25', 'callback_data': 'do|scan_bulk_25_confirm'}],
+        [{'text': 'Scan 50', 'callback_data': 'do|scan_bulk_50_confirm'},
+         {'text': 'Scan 100', 'callback_data': 'do|scan_bulk_100_confirm'}],
+        [{'text': 'Scan ALL Spot/USDT', 'callback_data': 'do|scanall_confirm',
+          'style': 'danger'}],
+        [{'text': 'Service & progress', 'callback_data': 'do|sharia_service'},
+         {'text': 'Verified cache', 'callback_data': 'do|sharia'}],
+        [{'text': 'Latest coin report', 'callback_data': 'do|sharia_report_help'},
+         {'text': '🏠 Home', 'callback_data': 'do|home'}],
+    ]
+
+
+def trading_menu():
+    return [
+        [{'text': '▶️ Resume signals', 'callback_data': 'do|entries_on_confirm',
+          'style': 'success'},
+         {'text': '⛔ Stop entries', 'callback_data': 'do|entries_off',
+          'style': 'danger'}],
         [{'text': '🛡 Fixed OCO', 'callback_data': 'do|mode_fixed'},
          {'text': '📈 Trailing only', 'callback_data': 'do|mode_trailing'}],
         [{'text': '🔗 OCO + trailing', 'callback_data': 'do|mode_oco_trailing'},
          {'text': '🔄 Convert position', 'callback_data': 'do|convert_help'}],
-        [{'text': '⚖️ Move stop to break-even', 'callback_data': 'do|be_help'},
+        [{'text': '⚖️ Break-even', 'callback_data': 'do|be_help'},
          {'text': '🔒 Lock profit', 'callback_data': 'do|profit_help'}],
-        [{'text': '🧾 Protection status', 'callback_data': 'do|status'},
-         {'text': '🔁 Reconcile orders', 'callback_data': 'do|reconcile'}],
-        [{'text': '🌐 Universe status', 'callback_data': 'do|universe'},
-         {'text': '🕌 Sharia service', 'callback_data': 'do|sharia_service'}],
-        [{'text': '🔍 Scan one coin', 'callback_data': 'do|scan_help'},
-         {'text': '🕌 Scan ALL Spot/USDT', 'callback_data': 'do|scanall_confirm'}],
-        [{'text': '📜 Sharia report', 'callback_data': 'do|sharia_report_help'},
-         {'text': '🕌 Sharia cache', 'callback_data': 'do|sharia'}],
-        [{'text': '🚀 Deployment status', 'callback_data': 'do|deploy'},
-         {'text': '❓ Help', 'callback_data': 'do|help'}],
+        [{'text': '🔁 Reconcile orders', 'callback_data': 'do|reconcile'},
+         {'text': '💵 Size & slots', 'callback_data': 'do|sizing_help'}],
+        [{'text': '🏠 Home', 'callback_data': 'do|home'}],
+    ]
+
+
+def system_menu():
+    return [
+        [{'text': '⚙️ Settings', 'callback_data': 'do|settings'},
+         {'text': '⚠️ Logs', 'callback_data': 'do|logs'}],
+        [{'text': '🔁 Restart WebSocket', 'callback_data': 'do|restart_ws_confirm'},
+         {'text': '🔄 Reload config', 'callback_data': 'do|reload_confirm'}],
+        [{'text': '🧪 Self-test', 'callback_data': 'do|selftest'},
+         {'text': '📉 Backtest', 'callback_data': 'do|backtest'}],
+        [{'text': '🚀 Deployment', 'callback_data': 'do|deploy'},
+         {'text': '🏠 Home', 'callback_data': 'do|home'}],
+    ]
+
+
+def emergency_menu():
+    return [
+        [{'text': '🛑 Emergency sell coin', 'callback_data': 'do|emergency_help',
+          'style': 'danger'}],
+        [{'text': '⛔ Stop new entries now', 'callback_data': 'do|entries_off',
+          'style': 'danger'}],
+        [{'text': '📊 Check status', 'callback_data': 'do|status'},
+         {'text': '🏠 Home', 'callback_data': 'do|home'}],
     ]
 
 
@@ -668,8 +878,37 @@ def _backtest_status():
     return '\n'.join(lines)[:3900]
 
 
-def route(action, chat):
-    if action == 'entries_on_confirm':
+def route(action, chat, message_id=None):
+    if action == 'home':
+        edit_or_send(f'{_release_label()} owner control panel', chat,
+                     message_id, menu())
+    elif action == 'menu_dashboard':
+        edit_or_send('Dashboard — read-only account and bot status.', chat,
+                     message_id, dashboard_menu())
+    elif action == 'menu_sharia':
+        edit_or_send(
+            'Sharia screening — discovery never grants permission. Every '
+            'tradeable result still requires exact evidence and your signed '
+            'owner decision.\n' + NOT_FATWA,
+            chat, message_id, sharia_menu())
+    elif action == 'menu_trading':
+        edit_or_send('Trading and protection controls.', chat,
+                     message_id, trading_menu())
+    elif action == 'menu_system':
+        edit_or_send('System, validation and deployment controls.', chat,
+                     message_id, system_menu())
+    elif action == 'menu_emergency':
+        edit_or_send('Emergency controls — confirmations remain mandatory.',
+                     chat, message_id, emergency_menu())
+    elif action == 'menu_help':
+        edit_or_send(
+            'Use the buttons to navigate. To scan one coin, open Sharia → '
+            'Scan one coin, then type a ticker such as SOL or SOL/USDT. '
+            'Sensitive actions still require a one-time confirmation.',
+            chat, message_id,
+            [[{'text': '🕌 Sharia', 'callback_data': 'do|menu_sharia'},
+              {'text': '🏠 Home', 'callback_data': 'do|home'}]])
+    elif action == 'entries_on_confirm':
         button = confirm_button('✅ CONFIRM resume entries', 'resume_entries')
         send('Confirm enabling new strategy signals and sidecar entries.', chat, [[button], [{'text': '❌ Cancel', 'callback_data': 'do|help'}]])
     elif action == 'entries_off':
@@ -707,22 +946,60 @@ def route(action, chat):
     elif action == 'universe':
         send(_universe_status()[:3900], chat)
     elif action == 'sharia':
-        send(_sharia_service_status()[:3900], chat)
+        edit_or_send(_sharia_service_status()[:3900], chat, message_id,
+                     sharia_menu())
     elif action == 'sharia_service':
-        send(_sharia_service_status(), chat)
+        edit_or_send(_sharia_service_status(), chat, message_id,
+                     sharia_menu())
     elif action == 'scan_help':
-        send('Use /scan BTC/USDT (or just type BTC/USDT). BTCUSDT is normalized. '
-             'Non-USDT, futures and leveraged symbols are rejected; the screener '
-             'verifies live Binance listing before scanning.', chat)
+        edit_or_send(
+            'Type one ticker now, for example SOL, SOLUSDT or SOL/USDT. '
+            'Non-USDT, futures and leveraged symbols are rejected, and the '
+            'screener verifies the live Binance Spot listing before scanning.\n'
+            + NOT_FATWA,
+            chat, message_id,
+            [[{'text': '⬅️ Sharia menu', 'callback_data': 'do|menu_sharia'},
+              {'text': '🏠 Home', 'callback_data': 'do|home'}]])
+    elif (action.startswith('scan_bulk_') and
+          action.endswith('_confirm')):
+        raw_limit = action.removeprefix('scan_bulk_').removesuffix('_confirm')
+        try:
+            limit = int(raw_limit)
+        except ValueError:
+            limit = -1
+        if limit not in BULK_SCAN_LIMITS:
+            edit_or_send('Invalid bounded scan size.', chat, message_id,
+                         [[{'text': '⬅️ Sharia menu',
+                            'callback_data': 'do|menu_sharia'}]])
+        else:
+            button = confirm_button(
+                f'✅ CONFIRM scan {limit} pairs', 'scan_bulk',
+                {'limit': limit}, style='primary')
+            edit_or_send(
+                f'Queue a bounded V19.1 scan for up to {limit} current '
+                'Binance Spot/USDT pairs? The selection is deterministic and '
+                'bulk work stays behind signal and manual requests.\n' + NOT_FATWA,
+                chat, message_id,
+                [[button], [{'text': '❌ Cancel',
+                             'callback_data': 'do|menu_sharia'}]])
     elif action == 'scanall_confirm':
         button = confirm_button('✅ CONFIRM scan ALL Spot/USDT pairs', 'scan_all')
-        send('Scan ALL current Binance Spot/USDT pairs under V19.1?\n'
-             '⚠️ This queues local source retrieval and evidence review for '
-             'hundreds of assets. No paid AI API is used. Bulk scans run at '
-             'low priority behind signal and manual scans.', chat,
-             [[button], [{'text': '❌ Cancel', 'callback_data': 'do|help'}]])
+        edit_or_send(
+            'Scan ALL current Binance Spot/USDT pairs under V19.1?\n'
+            '⚠️ This queues local source retrieval and evidence review for '
+            'hundreds of assets. No paid AI API is used. Bulk scans run at '
+            'low priority behind signal and manual scans.', chat, message_id,
+            [[button], [{'text': '❌ Cancel',
+                         'callback_data': 'do|menu_sharia'}]])
     elif action == 'sharia_report_help':
-        send('Use /shariareport BASE (e.g. /shariareport ETH) for the latest verified V19.1 result.', chat)
+        edit_or_send(
+            'For the latest verified V19.1 report, send '
+            '/shariareport followed by the ticker, for example '
+            '/shariareport ETH. Report approval remains bound to the exact '
+            'stored evidence and one-time confirmation.',
+            chat, message_id,
+            [[{'text': '⬅️ Sharia menu', 'callback_data': 'do|menu_sharia'},
+              {'text': '🏠 Home', 'callback_data': 'do|home'}]])
     elif action == 'deploy':
         send(json.dumps(read_json(RUNTIME / 'deployment_status.json', {}), indent=2), chat)
     elif action == 'last_signal':
@@ -764,6 +1041,18 @@ def _confirm_action(action, args, chat):
         outcome = sharia_scan_request('*', priority='bulk')
         send('Queued V19.1 scan of ALL current Binance Spot/USDT pairs '
              f'(request {outcome["request_id"]}). Progress: 🕌 Sharia service.\n' + NOT_FATWA, chat)
+    elif action == 'scan_bulk':
+        limit = args.get('limit')
+        if (isinstance(limit, bool) or not isinstance(limit, int) or
+                limit not in BULK_SCAN_LIMITS):
+            send('Bounded Sharia scan rejected: invalid scan size.', chat)
+            return
+        outcome = sharia_bounded_scan_requests(limit)
+        send(f'Queued a bounded V19.1 scan for '
+             f'{outcome["queued_count"]} current Binance Spot/USDT pairs '
+             f'(requested maximum {limit}; snapshot '
+             f'{outcome["snapshot_hash"][:12]}). '
+             'Progress: Sharia → Service & progress.\n' + NOT_FATWA, chat)
     elif action in {'sharia_approve', 'sharia_reject'}:
         decision = sharia_owner_decision(
             'APPROVE' if action == 'sharia_approve' else 'REJECT', args)
@@ -780,9 +1069,13 @@ def _confirm_action(action, args, chat):
         send('Unsupported confirmation action.', chat)
 
 
-def _ask_confirm(chat, label, action, args=None, text='Confirm action.'):
+def _ask_confirm(chat, label, action, args=None, text='Confirm action.',
+                 *, message_id=None, cancel_action='home'):
     button = confirm_button(label, action, args)
-    send(text, chat, [[button], [{'text': '❌ Cancel', 'callback_data': 'do|help'}]])
+    edit_or_send(
+        text, chat, message_id,
+        [[button], [{'text': '❌ Cancel',
+                     'callback_data': 'do|' + cancel_action}]])
 
 
 def handle_message(message):
@@ -875,7 +1168,12 @@ def handle_message(message):
 
 def handle_callback(callback):
     user_id = callback.get('from', {}).get('id')
-    chat = str(callback.get('message', {}).get('chat', {}).get('id', ''))
+    message = callback.get('message', {})
+    chat = str(message.get('chat', {}).get('id', ''))
+    raw_message_id = message.get('message_id')
+    message_id = (raw_message_id if isinstance(raw_message_id, int)
+                  and not isinstance(raw_message_id, bool)
+                  and raw_message_id > 0 else None)
     data = str(callback.get('data', ''))
     callback_id = callback.get('id')
     try:
@@ -887,7 +1185,7 @@ def handle_callback(callback):
         audit('telegram_callback_unauthorized', severity='WARNING', details={'user_id': user_id})
         return
     if data.startswith('do|'):
-        route(data.split('|', 1)[1], chat)
+        route(data.split('|', 1)[1], chat, message_id)
         return
     if data.startswith('confirm|'):
         item, reason = CB.consume(data.split('|', 1)[1])

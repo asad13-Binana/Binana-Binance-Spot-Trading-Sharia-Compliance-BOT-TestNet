@@ -4,7 +4,7 @@
 
 Use one public GitHub repository for source, tests, safe examples, Docker/deployment files, and documentation. Do not place trading credentials in any branch, including a private branch.
 
-Keep private trading material only on Oracle in root-owned `/etc/binana-freqtrade-v101/.env` with mode `600`, and runtime/private data under `/var/lib/binana-freqtrade-v101/shared`.
+Keep private trading material only on Oracle in root-owned `/etc/binana-testnet/.env` with mode `600`, and runtime/private data under `/var/lib/binana-testnet/shared`.
 
 Required GitHub **environment secrets**:
 
@@ -22,8 +22,8 @@ environment, persistent ownership, and rollback process are prepared.
 
 ```bash
 sudo ./deploy/oracle_setup.sh
-sudoedit /etc/binana-freqtrade-v101/.env
-sudo chmod 600 /etc/binana-freqtrade-v101/.env
+sudoedit /etc/binana-testnet/.env
+sudo chmod 600 /etc/binana-testnet/.env
 ```
 
 In the private `.env` set:
@@ -31,12 +31,12 @@ In the private `.env` set:
 ```text
 BOT_UID=<BOT_UID printed by oracle_setup.sh>
 BOT_GID=<BOT_GID printed by oracle_setup.sh>
-SHARED_HOST_PATH=/var/lib/binana-freqtrade-v101/shared
+SHARED_HOST_PATH=/var/lib/binana-testnet/shared
 EXECUTION_MODE=testnet
 BINANCE_TESTNET=true
 ```
 
-The installer requires Ubuntu 24.04, at least 5 GiB physical RAM and 35 GiB free disk. Use the declared A1 target of 1 OCPU, 6 GiB RAM, approximately 50 GiB boot storage and 4 GiB swap.
+The installer requires Ubuntu 24.04 ARM64 and the declared shared four-bot A1 target: at least 2 OCPUs, 12 GiB RAM, 4 GiB swap, and 80 GiB free on the root filesystem. Use a boot volume larger than 80 GiB (100 GiB is the documented working target) so the free-space gate can pass after the operating system is installed. AMD64 is blocked by default and requires an explicit reviewed override.
 
 Recommended Binance key controls:
 
@@ -49,7 +49,7 @@ Recommended Binance key controls:
 
 ## Persistent data
 
-`/var/lib/binana-freqtrade-v101/shared` retains:
+`/var/lib/binana-testnet/shared` retains:
 
 - private Sharia records and legacy-compatible HALAL export
 - sidecar SQLite state and exchange events
@@ -105,7 +105,7 @@ The `.dockerignore` is allowlist-based so the private `.env`, SQLite files, cach
 Only after all external gates pass, set `SIDECAR_RELEASE_HASH` in the private Oracle environment to the exact hash from the **installed** `RELEASE_SHA256.txt`, and place the same value in:
 
 ```text
-/var/lib/binana-freqtrade-v101/shared/runtime/SIDECAR_LIVE_OK
+/var/lib/binana-testnet/shared/runtime/SIDECAR_LIVE_OK
 ```
 
 The sidecar refuses live mode unless the installed release hash, private environment hash and persistent marker all match. The preserved V4.9.16 live markers must independently pass. Matching values are only interlocks; they are not evidence of testnet correctness or live readiness.

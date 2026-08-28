@@ -10,6 +10,8 @@ OS_RELEASE_PATH=${OS_RELEASE_PATH:-/etc/os-release}
 MIN_PHYSICAL_MEMORY_MIB=${MIN_PHYSICAL_MEMORY_MIB:-11264}
 MIN_TOTAL_MEMORY_MIB=${MIN_TOTAL_MEMORY_MIB:-14336}
 MIN_FREE_DISK_GIB=${MIN_FREE_DISK_GIB:-80}
+MIN_CPU_COUNT=${MIN_CPU_COUNT:-2}
+ALLOW_REVIEWED_AMD64=${ALLOW_REVIEWED_AMD64:-false}
 SWAP_SIZE_GIB=${SWAP_SIZE_GIB:-4}
 DEPLOY_USER=${DEPLOY_USER:-${SUDO_USER:-ubuntu}}
 readonly PRIVATE=$PRIVATE_ROOT
@@ -22,7 +24,10 @@ valid_positive_integer(){ [[ "$1" =~ ^[0-9]+$ ]] && (( 10#$1 > 0 )); }
 valid_positive_integer "$MIN_PHYSICAL_MEMORY_MIB" || fail 'MIN_PHYSICAL_MEMORY_MIB must be a positive integer'
 valid_positive_integer "$MIN_TOTAL_MEMORY_MIB" || fail 'MIN_TOTAL_MEMORY_MIB must be a positive integer'
 valid_positive_integer "$MIN_FREE_DISK_GIB" || fail 'MIN_FREE_DISK_GIB must be a positive integer'
+valid_positive_integer "$MIN_CPU_COUNT" || fail 'MIN_CPU_COUNT must be a positive integer'
 valid_positive_integer "$SWAP_SIZE_GIB" || fail 'SWAP_SIZE_GIB must be a positive integer'
+[[ "$ALLOW_REVIEWED_AMD64" == true || "$ALLOW_REVIEWED_AMD64" == false ]] || \
+  fail 'ALLOW_REVIEWED_AMD64 must be exactly true or false'
 (( SWAP_SIZE_GIB >= 1 && SWAP_SIZE_GIB <= 8 )) || fail 'SWAP_SIZE_GIB must be between 1 and 8'
 [[ -r "$MEMINFO_PATH" ]] || fail "cannot read $MEMINFO_PATH"
 physical_mib=$(awk '/MemTotal/{print int($2/1024)}' "$MEMINFO_PATH")
@@ -69,7 +74,16 @@ source "$OS_RELEASE_PATH"
 [[ "${ID:-}" == ubuntu ]] || fail 'only Ubuntu is supported by this installer'
 [[ "${VERSION_ID:-}" == 24.04 ]] || fail "Ubuntu 24.04 LTS is required (found ${VERSION_ID:-unknown})"
 architecture=$(dpkg --print-architecture)
-[[ "$architecture" == arm64 || "$architecture" == amd64 ]] || fail "unsupported architecture: $architecture"
+if [[ "$architecture" == arm64 ]]; then
+  :
+elif [[ "$architecture" == amd64 && "$ALLOW_REVIEWED_AMD64" == true ]]; then
+  printf 'WARNING: proceeding with explicitly reviewed AMD64 host\n' >&2
+else
+  fail "Oracle target requires arm64; found $architecture (set ALLOW_REVIEWED_AMD64=true only after reviewing an alternate Oracle shape)"
+fi
+cpu_count=$(nproc)
+(( cpu_count >= MIN_CPU_COUNT )) || \
+  fail "unsupported shared host: ${cpu_count} CPUs; require at least ${MIN_CPU_COUNT} for the four-bot Oracle topology"
 [[ -f "$ROOT_DIR/RELEASE_MODE" ]] || fail 'RELEASE_MODE missing from installer package'
 package_mode=$(<"$ROOT_DIR/RELEASE_MODE")
 [[ "$package_mode" == testnet || "$package_mode" == live ]] || fail 'invalid RELEASE_MODE'
@@ -220,7 +234,8 @@ BINANA_DEPLOY_UID=$deploy_uid
 EOF
 chmod 0644 /etc/default/binana-testnet-deploy
 
-# Four GiB swap headroom for the 6-GB A1 target.  Existing larger swap is kept.
+# Four GiB swap headroom for the 12-GiB four-bot A1 target. Existing larger
+# swap is kept.
 if (( swap_mib < SWAP_SIZE_GIB * 1024 )); then
   swap_path=/swapfile-oracle-trading-bots
   if [[ ! -e "$swap_path" ]]; then

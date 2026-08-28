@@ -7,7 +7,7 @@ HMAC bus keys, the Sharia Ed25519 signing private key, the live-evidence key, SS
 and fails the build on any populated sensitive assignment or token-shaped literal.
 
 ## Where secrets live
-Only in the Oracle host's private env file `/etc/binana-freqtrade-v101/.env`, mode `600`, owned by
+Only in the Oracle host's private env file `/etc/binana-testnet/.env`, mode `600`, owned by
 `root:root`. One secret-free public source repository + Oracle-only secrets is the approved topology
 (V101-NEW-012). Do not keep a second divergent code copy; use one auditable codebase and environment-based
 private configuration.

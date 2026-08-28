@@ -28,7 +28,7 @@ jobs:
           output=$(python scripts/binance_contract_drift.py)
           printf '%s\n' "$output"
           if [[ "$output" == *'"exact_environment": false'* ]]; then
-            echo "::warning title=Exact Binance package contract unavailable::The official production public-data contract passed, but exact package-environment metadata must be rechecked from the AWS or Oracle deployment host."
+            echo "::warning title=Exact Binance package contract unavailable::The official production public-data contract passed, but exact package-environment metadata must be rechecked from the Oracle deployment host."
             {
               echo "### Binance contract source degraded"
               echo "GitHub's hosted runner could not reach the exact package-environment endpoint."

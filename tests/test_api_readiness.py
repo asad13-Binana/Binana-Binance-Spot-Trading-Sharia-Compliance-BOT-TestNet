@@ -126,6 +126,21 @@ def test_provider_failure_is_sanitised_and_fail_closed():
     assert all(value["status"] == "FAIL" for value in result["providers"].values())
 
 
+def test_coingecko_demo_auth_failure_is_actionable_and_secret_free():
+    def rejected(url, headers, timeout):
+        assert headers == {"x-cg-demo-api-key": "coingecko-key"}
+        raise api_readiness.ReadinessError(
+            "provider rejected authentication or permission")
+
+    result = api_readiness.check_coingecko(_config(), rejected).as_dict()
+    assert result == {
+        "status": "FAIL",
+        "required": True,
+        "details": {"reason": "free_demo_key_rejected_or_not_enabled"},
+    }
+    assert "coingecko-key" not in json.dumps(result)
+
+
 def test_cli_reads_configuration_from_stdin_and_not_arguments():
     completed = subprocess.run(
         [sys.executable, str(ROOT / "scripts/api_readiness.py"), "--package-mode", "testnet"],

@@ -1,0 +1,192 @@
+BINANA TESTNET - LOCAL ORACLE REMEDIATION REPORT
+Date: 2026-08-28 (Asia/Karachi)
+Status: LOCAL REVIEW PACKAGE - NOT PUBLISHED OR DEPLOYED
+
+SOURCE BASELINE
+Repository: asad13-Binana/Binana-Binance-Spot-Trading-Sharia-Compliance-BOT-TestNet
+Pinned main: e272d2c4d1b9b878e8a54959dd4b9b7cbbae1e55
+Local branch: local/oracle-testnet-fixes-20260827
+
+SAFETY BOUNDARY
+- No protected strategy, legacy trading core, V19.1 controller or Sharia rule
+  was changed.
+- No LIVE capability was enabled or certified.
+- No credential was read, printed or committed.
+- No Binance order was placed, tested, cancelled or modified.
+- No AWS or Oracle deployment was performed.
+- No commit, push, pull request, merge or GitHub setting change was made.
+
+CONFIRMED ISSUES FIXED LOCALLY
+1. Replaced the deprecated empty freqtrade/user_data/halal_list.json backtest
+   source with a strict resolver over the screener-generated V19.1
+   halal_coins.json compatibility view. Missing, empty, malformed, duplicate,
+   excluded, stablecoin and leveraged-token inputs now block explicitly. Bash
+   arrays preserve exact pair boundaries.
+2. Added current Binance GET /api/v3/executionRules support and fail-closed
+   PRICE_RANGE validation in the non-core execution overlay. BUY uses bid
+   multipliers, SELL uses ask multipliers, only the executable limit price is
+   checked, referencePrice null/-2043 follows Binance's documented no-rule
+   fallback, and malformed/unknown/duplicate/wrong-symbol rules block.
+3. Bound the authenticated TestNet execution sidecar's public contract calls
+   to https://testnet.binance.vision through the separate
+   BINANCE_EXECUTION_PUBLIC_BASE setting. Universe public-market observation
+   remains independently configured.
+4. Extended the read-only scheduled Binance drift check to fetch exchangeInfo
+   and executionRules from one environment, detect unknown or malformed
+   execution rules, and avoid mixing a TestNet payload with a production
+   payload.
+5. Partitioned and aggregated CoinGecko/CoinMarketCap free-plan budgets across
+   universe enrichment and Sharia discovery. The guarded Sharia launcher
+   refuses startup when enabled processes can collectively exceed the shared
+   ceiling. The keyless CoinGecko Sharia path is clamped to five calls/minute.
+   Keys are never returned by the validator.
+6. Added an isolated Python 3.12 validation runner with explicit PASS,
+   TOOLING_UNAVAILABLE, COLLECTION_FAILED, TEST_FAILED and TIMEOUT statuses.
+   Runtime dependency closures remain hash-locked and install into a disposable
+   venv outside the checkout.
+7. Aligned Oracle bootstrap and artifact install capacity gates to the shared
+   four-bot target: ARM64 by default, at least 2 CPUs, 11,264 MiB physical RAM,
+   14,336 MiB RAM+swap, and 80 GiB free root storage at bootstrap. AMD64 now
+   requires an explicit reviewed override. Active deployment documentation now
+   uses the collision-free binana-testnet paths and Oracle-only target.
+8. Added a non-core discovery-to-owner-review bridge. It accepts only
+   digest-valid VERIFIED_CANDIDATE records whose Binance market, provider ID,
+   ticker, official host and HTTPS source URLs remain exactly bound. It writes
+   a creation-only request with every identity_match=false and no trade
+   permission. The 37-file protected inventory, including the complete Sharia
+   service/discovery/rules/registry/runner set, remains byte-identical.
+9. Replaced the Telegram command wall with a compact five-section owner panel,
+   in-place callback navigation, explicit danger/primary controls and a safe
+   presentation-only send fallback. Plain tickers such as SOL, SOLUSDT and
+   SOL/USDT now reach the existing signed manual-scan path.
+10. Added bounded Sharia batches of 10, 25, 50 and 100 without changing the
+    protected screener service. The Telegram broker reads the existing
+    hash-validated current universe and emits one exact signed low-priority
+    request per selected base. The existing scan-ALL path is unchanged and
+    still requires separate confirmation.
+11. Added a read-only owner-panel registry summary that validates persistent
+    entries and digest-valid discovery candidates independently of backend
+    liveness. An empty registry is now displayed as operationally BLOCKED;
+    discovery candidates still cannot self-authorise.
+12. Made a rejected CoinGecko free Demo credential actionable as
+    free_demo_key_rejected_or_not_enabled without printing the key or changing
+    to a paid endpoint.
+13. Classified the supplied AWS experiment transcript. Its suite failures were
+    caused by an ignored .env.external copied into the audit tree and cp -a
+    preserving unsafe host modes; the protected bot was not implicated. The
+    experiment also had only three of six required services running, so it was
+    not accepted as a complete deployment.
+
+CONFIRMED EXISTING PROTECTIONS PRESERVED (NOT DUPLICATED)
+- Authenticated /api/v3/myFilters, MAX_ASSET and exchange-wide order limits.
+- Fail-closed MAX_POSITION handling when account-aware proof is unavailable.
+- Correct TRAILING_DELTA direction semantics.
+- Symbol-scoped MAX_NUM_ORDER_LISTS and account-wide exchange list limits.
+- Owner-reviewed Sharia registry propose/apply workflow with exact evidence-byte
+  binding and final SourceRegistry validation.
+- Full-SHA GitHub Action pin verification, including the setup-python pin that
+  caused the historical scheduled-workflow failure.
+
+READ-ONLY BINANCE CONTRACT EVIDENCE
+- Exact TestNet endpoint reached successfully.
+- 489 tradeable Spot/USDT symbols inspected.
+- 489 symbols currently publish PRICE_RANGE.
+- No current tradeable Spot/USDT MAX_POSITION filter was observed.
+- No unknown current filter or execution-rule type was observed.
+
+TEST RESULTS
+- Complete local source and monitoring suite:
+  698 passed, 10 skipped, 340 subtests passed; 1 dependency deprecation
+  warning; 0 failures.
+- Exact CI-equivalent branch-coverage run:
+  697 passed, 10 skipped, 1 deliberately deselected, 340 subtests passed;
+  1 dependency deprecation warning; 0 failures.
+- Coverage: 70.30039070005765% total and 60.959271168274384% branch.
+  This is above the enforced 68% non-regression floor but remains below the
+  honest 85% target. No exclusions, denominator changes, pragma suppression or
+  threshold reduction were used. The largest remaining untested surfaces are
+  execution_sidecar/core_adapter.py, telegram_broker/bot.py,
+  execution_sidecar/main.py and the protected sharia_screener/service.py.
+- The complete deploy/verify_release.sh gate passed, including release identity,
+  legacy/unit tests, monitoring tests, secret scan, V19.1 controller integrity,
+  33/33 preserved legacy self-tests, exact manifest, exact audit ledgers, JSON,
+  systemd unit/timer pairing and Docker Compose YAML structure. Docker execution
+  and systemd-analyze were correctly reported unavailable on this Windows host.
+- git diff --check passed, and the full Git-history credential scan found no
+  high-confidence credential material.
+
+PROTECTED HASHES BEFORE CHANGES
+freqtrade/user_data/strategies/IctSmcStrategy.py
+  9f6bafc78c8cd0d9b9cbde615ddce89e304ab09738584b88d05bfdf92ff4e830
+legacy_core/binance_bot_V4.9.16_ALL_IN_ONE.py
+  70b1d67cc0092b5b8db4a68b343cf893641bde1aae580e9ef51e2adec1062459
+services/common/sharia_v19.py
+  5eb9fd5338d80fcaf0d39bb3f4935a75b57dd91136c72a83a7551b659b04d865
+shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json
+  07106bb8bfc1924d8d0c6f61ced4e0c51c2ac2054988423f42c1fd67f3b2ba78
+
+FILES CHANGED IN THIS LOCAL PACKAGE (45)
+- .env.example
+- .github/workflows/binance-contract-drift.yml
+- README.md
+- RELEASE_MANIFEST.json
+- RELEASE_SHA256.txt
+- deploy/install_artifact.sh
+- deploy/oracle_setup.sh
+- docker-compose.yml
+- docs/API_READINESS_RUNBOOK.md
+- docs/AWS_EXPERIMENT_AUDIT_2026-08-27.md
+- docs/BINANA_TESTNET_LOCAL_ORACLE_FIX_REPORT_2026-08-28.txt
+- docs/EXTERNAL_SIGNALS.md
+- docs/GITHUB_ORACLE_DEPLOYMENT.md
+- docs/GITHUB_RELEASE_AND_ROLLBACK_GUIDE.md
+- docs/OFFICIAL_DEPLOYMENT_REFERENCES.md
+- docs/ORACLE_DEPLOYMENT_GUIDE.md
+- docs/ORACLE_HOST_LOSS_RESILIENCE.md
+- docs/SECURITY_AND_SECRETS_GUIDE.md
+- docs/SHARIA_0G_SOURCE_REVIEW_2026-08-28.md
+- docs/SHARIA_LOCAL_SCREENING.md
+- docs/TELEGRAM_BOT_SETUP.md
+- docs/audit/FILE_REVIEW_LEDGER.csv
+- docs/audit/FUNCTION_CALLBACK_LEDGER.csv
+- freqtrade/scripts/backtest.sh
+- freqtrade/scripts/download_data.sh
+- scripts/api_readiness.py
+- scripts/binance_contract_drift.py
+- scripts/run_validation_venv.py
+- scripts/seed_source_registry.py
+- services/common/backtest_pairs.py
+- services/common/binance_public.py
+- services/common/provider_budget_contract.py
+- services/execution_sidecar/binance_contract_guard.py
+- services/sharia_operator/__init__.py
+- services/sharia_operator/source_review.py
+- services/sharia_screener/guarded_main.py
+- services/telegram_broker/bot.py
+- tests/test_api_readiness.py
+- tests/test_backtest_pair_gate.py
+- tests/test_binance_filter_contract_20260822.py
+- tests/test_oracle_capacity_contract.py
+- tests/test_provider_budget_contract.py
+- tests/test_seed_source_registry.py
+- tests/test_sharia_operator_workflow.py
+- tests/test_validation_runner.py
+
+EXTERNAL VALIDATION STILL REQUIRED
+- Build and run the images on the final Oracle Ubuntu 24.04 ARM64 host.
+- Configure real API credentials only in /etc/binana-testnet/.env and run the
+  GET-only API preflight. The supplied AWS evidence requires replacement or
+  activation of the CoinGecko free Demo key before this gate can pass.
+- Confirm all six required Binana services are running and healthy. The AWS
+  experiment proved only universe, Sharia proxy and Sharia screener.
+- Complete owner review of discovered project identity, official evidence and
+  every V19.1-required named Sharia screener. An empty registry is deliberately
+  not an operational screening system.
+- Complete authenticated Binance Spot TestNet lifecycle evidence without
+  enabling LIVE: submit/acknowledge/partial or full fill/cancel/reconcile,
+  restart recovery and duplicate-order prevention.
+- Prove real Telegram delivery, reboot/network-loss/disk-full/OOM recovery,
+  backup/restore, rollback and the required Oracle soak.
+- Keep LIVE-money trading disabled until separate strategy profitability and
+  promotion evidence pass. This local source remediation does not certify
+  profitability or production LIVE readiness.

@@ -33,6 +33,7 @@ SUPPORTED_ACCOUNT_EXCHANGE_FILTERS = {
     'EXCHANGE_MAX_NUM_ORDERS', 'EXCHANGE_MAX_NUM_ALGO_ORDERS',
     'EXCHANGE_MAX_NUM_ICEBERG_ORDERS', 'EXCHANGE_MAX_NUM_ORDER_LISTS',
 }
+SUPPORTED_EXECUTION_RULES = {'PRICE_RANGE'}
 ALGO_TYPES = {
     'STOP_LOSS', 'STOP_LOSS_LIMIT', 'TAKE_PROFIT', 'TAKE_PROFIT_LIMIT',
 }
@@ -214,6 +215,133 @@ class AccountAwareFilterGuard:
                 row, 'MAX_ASSET', 'limit')
         return limits
 
+    def _price_range_rule(
+            self, symbol: str) -> dict[str, Decimal | None] | None:
+        """Load one exact-symbol PRICE_RANGE rule without caching it."""
+        try:
+            payload = self.validator.public.execution_rules(symbol)
+        except Exception as exc:
+            raise FilterDataUnavailable(
+                f'execution rules for {symbol} unavailable: {exc}') from exc
+        rows = payload.get('symbolRules') if isinstance(payload, dict) else None
+        if not isinstance(rows, list):
+            raise FilterDataUnavailable(
+                f'executionRules for {symbol} lacks a symbolRules list')
+        if any(not isinstance(row, dict) for row in rows):
+            raise FilterDataUnavailable(
+                f'executionRules for {symbol} contains a malformed symbol row')
+        if not rows:
+            return None
+        matching = [
+            row for row in rows
+            if row.get('symbol') == symbol
+        ]
+        if len(rows) != 1 or len(matching) != 1:
+            raise FilterDataUnavailable(
+                f'executionRules must return only the exact symbol {symbol}')
+        rules = matching[0].get('rules')
+        if not isinstance(rules, list) or any(
+                not isinstance(rule, dict) for rule in rules):
+            raise FilterDataUnavailable(
+                f'executionRules for {symbol} contains malformed rules')
+        names: list[str] = []
+        for index, rule in enumerate(rules):
+            name = rule.get('ruleType')
+            if (not isinstance(name, str) or not name
+                    or name != name.upper()):
+                raise FilterDataUnavailable(
+                    f'{symbol} executionRules.rules[{index}].ruleType is '
+                    'missing or non-canonical')
+            names.append(name)
+        unknown = sorted(set(names) - SUPPORTED_EXECUTION_RULES)
+        if unknown:
+            raise FilterDataUnavailable(
+                f'{symbol} publishes unsupported execution rules: '
+                + ', '.join(unknown))
+        price_rules = [
+            rule for rule in rules if rule.get('ruleType') == 'PRICE_RANGE'
+        ]
+        if not price_rules:
+            return None
+        if len(price_rules) != 1:
+            raise FilterDataUnavailable(
+                f'{symbol} executionRules contains duplicate PRICE_RANGE rules')
+        parsed: dict[str, Decimal | None] = {}
+        for name in (
+            'bidLimitMultUp', 'bidLimitMultDown',
+            'askLimitMultUp', 'askLimitMultDown',
+        ):
+            raw = price_rules[0].get(name)
+            if raw in (None, ''):
+                parsed[name] = None
+                continue
+            try:
+                value = Decimal(str(raw))
+            except Exception as exc:
+                raise FilterDataUnavailable(
+                    f'{symbol} PRICE_RANGE {name} is malformed: {raw!r}') from exc
+            if not value.is_finite() or value <= 0:
+                raise FilterDataUnavailable(
+                    f'{symbol} PRICE_RANGE {name} is invalid: {value}')
+            parsed[name] = value
+        for side in ('bid', 'ask'):
+            down = parsed[f'{side}LimitMultDown']
+            up = parsed[f'{side}LimitMultUp']
+            if down is not None and up is not None and down > up:
+                raise FilterDataUnavailable(
+                    f'{symbol} PRICE_RANGE {side} lower multiplier exceeds '
+                    'upper multiplier')
+        return parsed
+
+    def _validate_price_range(
+            self, symbol: str,
+            legs: list[OrderLeg]) -> tuple[dict[str, str | None] | None,
+                                           str | None]:
+        rule = self._price_range_rule(symbol)
+        if rule is None:
+            return None, None
+        try:
+            raw_reference = self.validator.public.reference_price(symbol)
+        except Exception as exc:
+            raise FilterDataUnavailable(
+                f'reference price for {symbol} unavailable: {exc}') from exc
+        if raw_reference is self.validator.public.NO_REFERENCE_PRICE:
+            reference = None
+        else:
+            try:
+                reference = Decimal(str(raw_reference))
+            except Exception as exc:
+                raise FilterDataUnavailable(
+                    f'{symbol} referencePrice is malformed: '
+                    f'{raw_reference!r}') from exc
+            if not reference.is_finite() or reference <= 0:
+                raise FilterDataUnavailable(
+                    f'{symbol} referencePrice is invalid: {reference}')
+        if reference is not None:
+            for leg in legs:
+                # Binance applies PRICE_RANGE during the taker phase. Validate
+                # the executable limit price only, never the stop trigger.
+                if leg.price is None:
+                    continue
+                prefix = 'ask' if leg.side.upper() == 'SELL' else 'bid'
+                down = rule[f'{prefix}LimitMultDown']
+                up = rule[f'{prefix}LimitMultUp']
+                if down is not None and leg.price < reference * down:
+                    raise FilterViolation(
+                        f'{symbol} {leg.order_type} execution price {leg.price} '
+                        f'below PRICE_RANGE ({reference} x {down}); execution '
+                        'could expire')
+                if up is not None and leg.price > reference * up:
+                    raise FilterViolation(
+                        f'{symbol} {leg.order_type} execution price {leg.price} '
+                        f'above PRICE_RANGE ({reference} x {up}); execution '
+                        'could expire')
+        serialized = {
+            name: (str(value) if value is not None else None)
+            for name, value in rule.items()
+        }
+        return serialized, (str(reference) if reference is not None else None)
+
     @staticmethod
     def _open_lists(rows, symbol: str) -> tuple[list[dict], list[dict]]:
         if not isinstance(rows, list) or any(
@@ -350,6 +478,13 @@ class AccountAwareFilterGuard:
             open_orders_provider=open_orders_provider,
             open_order_lists_provider=symbol_lists,
         )
+        execution_rule, execution_reference = self._validate_price_range(
+            symbol, legs)
+        if execution_rule is not None:
+            if 'PRICE_RANGE' not in summary['filters_checked']:
+                summary['filters_checked'].append('PRICE_RANGE')
+            summary['execution_rule'] = execution_rule
+            summary['execution_reference_price'] = execution_reference
         for name in sorted(account_checked):
             if name not in summary['filters_checked']:
                 summary['filters_checked'].append(name)
@@ -357,6 +492,7 @@ class AccountAwareFilterGuard:
             'symbol': symbol,
             'endpoint': endpoint,
             'filters_checked': sorted(account_checked),
+            'execution_rule_checked': execution_rule is not None,
         })
         return summary
 
