@@ -94,6 +94,16 @@ ALERT_OUTBOX_HEALTH = RUNTIME / 'telegram_alert_outbox_health.json'
 PAIR_RE = re.compile(r'^([A-Z0-9]{2,20}?)(?:/USDT|USDT)?$')
 NOT_FATWA = 'Research screening only — not a fatwa and not financial advice.'
 BULK_SCAN_LIMITS = frozenset({10, 25, 50, 100})
+BULK_SCAN_MIN = 1
+BULK_SCAN_MAX = 100
+MARKET_CONTEXT_FILE = Path(os.getenv(
+    'MARKET_CONTEXT_FILE', RUNTIME.parent / 'market_context/current.json'))
+MARKET_CONTEXT_HEALTH_FILE = Path(os.getenv(
+    'MARKET_CONTEXT_HEALTH_FILE', RUNTIME / 'market_context/health.json'))
+EXTERNAL_SIGNALS_STATUS = Path(os.getenv(
+    'EXTERNAL_SIGNALS_STATUS',
+    RUNTIME.parent / 'universe/external' / ('external_' + 'signals.json')))
+API_READINESS_STATUS = RUNTIME / 'api_readiness_status.json'
 
 
 def _telegram_message_data(text, chat_id=None, buttons=None) -> dict:
@@ -382,8 +392,10 @@ def sharia_bounded_scan_requests(limit: int) -> dict:
     the only source; malformed or stale snapshots fail before any request is
     written.
     """
-    if isinstance(limit, bool) or limit not in BULK_SCAN_LIMITS:
-        raise ValueError('bounded scan size must be 10, 25, 50 or 100')
+    if (isinstance(limit, bool) or not isinstance(limit, int) or
+            not BULK_SCAN_MIN <= limit <= BULK_SCAN_MAX):
+        raise ValueError(
+            f'bounded scan size must be {BULK_SCAN_MIN}-{BULK_SCAN_MAX}')
     snapshot = load_current(
         UNIVERSE_CURRENT,
         max_age_seconds=env_int(
@@ -724,7 +736,11 @@ def menu():
           'style': 'primary'},
          {'text': '🕌 Sharia', 'callback_data': 'do|menu_sharia',
           'style': 'primary'}],
+        [{'text': '📡 Signals', 'callback_data': 'do|menu_signals'},
+         {'text': '🔎 Spot research', 'callback_data': 'do|menu_research'}],
         [{'text': '📈 Trading', 'callback_data': 'do|menu_trading'},
+         {'text': '🛡 Protection', 'callback_data': 'do|menu_protection'}],
+        [{'text': '🔔 Alerts', 'callback_data': 'do|menu_alerts'},
          {'text': '🌐 System', 'callback_data': 'do|menu_system'}],
         [{'text': '🛑 Emergency', 'callback_data': 'do|menu_emergency',
           'style': 'danger'},
@@ -740,6 +756,8 @@ def dashboard_menu():
          {'text': '💰 Profit', 'callback_data': 'do|profit'}],
         [{'text': '📈 Last signal', 'callback_data': 'do|last_signal'},
          {'text': '🌐 Universe', 'callback_data': 'do|universe'}],
+        [{'text': '🕌 Sharia summary', 'callback_data': 'do|sharia_service'},
+         {'text': '✅ Data readiness', 'callback_data': 'do|data_readiness'}],
         [{'text': '🏠 Home', 'callback_data': 'do|home'}],
     ]
 
@@ -752,12 +770,40 @@ def sharia_menu():
          {'text': 'Scan 25', 'callback_data': 'do|scan_bulk_25_confirm'}],
         [{'text': 'Scan 50', 'callback_data': 'do|scan_bulk_50_confirm'},
          {'text': 'Scan 100', 'callback_data': 'do|scan_bulk_100_confirm'}],
+        [{'text': 'Choose any 1–100', 'callback_data': 'do|scan_bulk_help'}],
         [{'text': 'Scan ALL Spot/USDT', 'callback_data': 'do|scanall_confirm',
           'style': 'danger'}],
         [{'text': 'Service & progress', 'callback_data': 'do|sharia_service'},
          {'text': 'Verified cache', 'callback_data': 'do|sharia'}],
+        [{'text': 'Owner review queue', 'callback_data': 'do|sharia_review_queue'},
+         {'text': 'Latest failure', 'callback_data': 'do|sharia_failures'}],
         [{'text': 'Latest coin report', 'callback_data': 'do|sharia_report_help'},
          {'text': '🏠 Home', 'callback_data': 'do|home'}],
+    ]
+
+
+def signals_menu():
+    return [
+        [{'text': '📈 Latest signal', 'callback_data': 'do|last_signal'},
+         {'text': '🗂 Recent signals', 'callback_data': 'do|signal_history'}],
+        [{'text': '🚫 Rejected signals', 'callback_data': 'do|signal_rejected'},
+         {'text': '🌊 Spot context', 'callback_data': 'do|market_context'}],
+        [{'text': '🩺 Signal health', 'callback_data': 'do|data_readiness'},
+         {'text': '📊 Performance', 'callback_data': 'do|profit'}],
+        [{'text': '🏠 Home', 'callback_data': 'do|home'}],
+    ]
+
+
+def research_menu():
+    """Read-only Spot evidence; never creates or authorizes a trade."""
+    return [
+        [{'text': '🌊 Spot flow & CVD', 'callback_data': 'do|market_context'},
+         {'text': '📚 Spot liquidity', 'callback_data': 'do|market_context'}],
+        [{'text': '🔥 Binance Spot movers', 'callback_data': 'do|universe_movers'},
+         {'text': '🌐 Coin data providers', 'callback_data': 'do|provider_status'}],
+        [{'text': '🔗 Data sources', 'callback_data': 'do|data_sources'},
+         {'text': '✅ Freshness', 'callback_data': 'do|data_readiness'}],
+        [{'text': '🏠 Home', 'callback_data': 'do|home'}],
     ]
 
 
@@ -767,14 +813,36 @@ def trading_menu():
           'style': 'success'},
          {'text': '⛔ Stop entries', 'callback_data': 'do|entries_off',
           'style': 'danger'}],
+        [{'text': '📊 Private status', 'callback_data': 'do|status'},
+         {'text': '📋 Open orders', 'callback_data': 'do|orders'}],
+        [{'text': '💵 Balance', 'callback_data': 'do|balance'},
+         {'text': '💰 Profit', 'callback_data': 'do|profit'}],
+        [{'text': '🔁 Reconcile orders', 'callback_data': 'do|reconcile'},
+         {'text': '💵 Size & slots', 'callback_data': 'do|sizing_help'}],
+        [{'text': '🏠 Home', 'callback_data': 'do|home'}],
+    ]
+
+
+def protection_menu():
+    return [
         [{'text': '🛡 Fixed OCO', 'callback_data': 'do|mode_fixed'},
          {'text': '📈 Trailing only', 'callback_data': 'do|mode_trailing'}],
         [{'text': '🔗 OCO + trailing', 'callback_data': 'do|mode_oco_trailing'},
          {'text': '🔄 Convert position', 'callback_data': 'do|convert_help'}],
         [{'text': '⚖️ Break-even', 'callback_data': 'do|be_help'},
          {'text': '🔒 Lock profit', 'callback_data': 'do|profit_help'}],
-        [{'text': '🔁 Reconcile orders', 'callback_data': 'do|reconcile'},
-         {'text': '💵 Size & slots', 'callback_data': 'do|sizing_help'}],
+        [{'text': '📋 Open orders', 'callback_data': 'do|orders'},
+         {'text': '🔁 Reconcile', 'callback_data': 'do|reconcile'}],
+        [{'text': '🏠 Home', 'callback_data': 'do|home'}],
+    ]
+
+
+def alerts_menu():
+    return [
+        [{'text': '🔔 Delivery status', 'callback_data': 'do|alert_status'},
+         {'text': '⚠️ Recent audit', 'callback_data': 'do|activity'}],
+        [{'text': '🩺 Data freshness', 'callback_data': 'do|data_readiness'},
+         {'text': '🕌 Sharia failure', 'callback_data': 'do|sharia_failures'}],
         [{'text': '🏠 Home', 'callback_data': 'do|home'}],
     ]
 
@@ -787,6 +855,8 @@ def system_menu():
          {'text': '🔄 Reload config', 'callback_data': 'do|reload_confirm'}],
         [{'text': '🧪 Self-test', 'callback_data': 'do|selftest'},
          {'text': '📉 Backtest', 'callback_data': 'do|backtest'}],
+        [{'text': '✅ API readiness', 'callback_data': 'do|data_readiness'},
+         {'text': '🌐 Providers', 'callback_data': 'do|provider_status'}],
         [{'text': '🚀 Deployment', 'callback_data': 'do|deploy'},
          {'text': '🏠 Home', 'callback_data': 'do|home'}],
     ]
@@ -808,8 +878,9 @@ def help_text():
         'Commands: /menu /status /orders /start /stop /pause /balance /profit /logs /reload '
         '/fixed_oco /trailing_only /oco_trailing /convert SYMBOL MODE /breakeven SYMBOL '
         '/lockprofit SYMBOL PCT /reconcile /universe /sharia /shariastatus '
-        '/scan BASE/USDT /scanall /shariareport BASE /deploy /lastsignal '
-        '/restartws /setsize USDT /setmax N /selftest /backtest. '
+        '/scan BASE/USDT /scanbulk N /scanall /shariareport BASE /deploy '
+        '/lastsignal /signals /rejected /spotcontext /providers /readiness '
+        '/alerts /restartws /setsize USDT /setmax N /selftest /backtest. '
         'Typing a pair like BTC/USDT (or BTCUSDT) queues a V19.1 scan for it. '
         'Start, reload, WebSocket restart, protection conversion, break-even, profit-lock, '
         'scan-all, and emergency exit require one-time confirmation.'
@@ -824,6 +895,209 @@ def _latest_signal():
         return 'No signal file has been recorded.'
     path = max(files, key=lambda p: p.stat().st_mtime)
     return json.dumps({'location': path.parent.name, 'signal': read_json(path, {})}, indent=2)[:3800]
+
+
+def _signal_history(folder: Path | None = None, limit: int = 10) -> str:
+    """Render bounded, identity-only signal history without leaking payloads."""
+    folders = (folder,) if folder is not None else (
+        SIGNAL_INBOX, SIGNAL_PROCESSED, SIGNAL_REJECTED)
+    files: list[Path] = []
+    for current in folders:
+        files.extend(current.glob('*.json'))
+    try:
+        files.sort(key=lambda path: path.stat().st_mtime, reverse=True)
+    except OSError:
+        return 'Signal history is temporarily unreadable.'
+    rows = []
+    for path in files[:max(1, min(int(limit), 20))]:
+        raw = read_json(path, {}) or {}
+        if not isinstance(raw, dict):
+            raw = {}
+        payload = raw.get('payload')
+        if not isinstance(payload, dict):
+            payload = raw
+        rows.append({
+            'queue': path.parent.name,
+            'file': path.name,
+            'signal_id': payload.get('signal_id'),
+            'pair': payload.get('pair'),
+            'side': payload.get('side'),
+            'reason': payload.get('reason') or raw.get('reason'),
+            'created_at': payload.get('created_at') or payload.get('timestamp'),
+        })
+    return json.dumps({'count': len(rows), 'signals': rows}, indent=2)[:3800]
+
+
+def _market_context_status() -> str:
+    """Show the existing Spot-only advisory layer; it cannot authorize trades."""
+    context = read_json(MARKET_CONTEXT_FILE, None)
+    health = read_json(MARKET_CONTEXT_HEALTH_FILE, None)
+    if not isinstance(context, dict):
+        return 'Spot market context: UNAVAILABLE — no valid current snapshot.'
+    symbols = context.get('symbols') if isinstance(context.get('symbols'), dict) else {}
+    fresh = sorted(
+        symbol for symbol, row in symbols.items()
+        if isinstance(row, dict) and row.get('status') == 'fresh')
+    health_row = health if isinstance(health, dict) else {}
+    stream = health_row.get('stream')
+    if not isinstance(stream, dict):
+        stream = {}
+    return '\n'.join([
+        'Spot market context (read-only evidence)',
+        (f'status={health_row.get("status", "unknown")}; '
+         f'health_ok={health_row.get("ok")}; '
+         f'subscription_ready={stream.get("subscription_ready")}'),
+        f'generated_at={context.get("generated_at")}',
+        (f'fresh symbols={context.get("fresh_symbol_count", len(fresh))}/'
+         f'{context.get("symbol_count", len(symbols))}'),
+        (f'advisory_only={context.get("advisory_only")}; '
+         f'spot_only={context.get("spot_only")}; '
+         f'can_trade={context.get("can_trade")}'),
+        'fresh sample=' + (', '.join(fresh[:12]) or 'NONE'),
+        'features=' + ', '.join(str(item) for item in
+                               (context.get('features') or [])[:8]),
+        ('This screen observes flow, CVD, spread and liquidity; it does not '
+         'approve, reject or alter the protected strategy.'),
+    ])[:3900]
+
+
+def _external_provider_status() -> str:
+    """Render a strict allow-list of non-secret provider health fields."""
+    status = read_json(EXTERNAL_SIGNALS_STATUS, None)
+    if not isinstance(status, dict):
+        return 'Coin data providers: no valid status snapshot.'
+
+    def provider(name: str) -> dict:
+        row = status.get(name)
+        if not isinstance(row, dict):
+            return {'enabled': False, 'status': 'unavailable'}
+        breaker = row.get('breaker')
+        if not isinstance(breaker, dict):
+            breaker = {}
+        return {
+            'enabled': row.get('enabled'),
+            'keyless': row.get('keyless') if name == 'coingecko' else None,
+            'missing_key': row.get('requested_but_missing_key'),
+            'cache_age_seconds': row.get('cache_age_seconds'),
+            'breaker_state': breaker.get('state'),
+            'ambiguous_symbols_excluded':
+                row.get('ambiguous_symbols_excluded'),
+        }
+
+    role = status.get('config')
+    role = role.get('role') if isinstance(role, dict) else None
+    return json.dumps({
+        'generated_at': status.get('generated_at'),
+        'role': role,
+        'CoinGecko': provider('coingecko'),
+        'CoinMarketCap': provider('cmc'),
+        'trade_authority': False,
+    }, indent=2)[:3800]
+
+
+def _universe_movers() -> str:
+    try:
+        snapshot = load_current(
+            UNIVERSE_CURRENT,
+            max_age_seconds=env_int(
+                'MAX_UNIVERSE_AGE_SECONDS', 1800, 1, 86_400),
+        )
+    except Exception as exc:
+        return 'Binance Spot movers unavailable (fail-closed universe): ' + str(exc)[:300]
+    rows = []
+    for item in snapshot.get('ranking', [])[:10]:
+        if not isinstance(item, dict):
+            continue
+        rows.append({
+            'rank': item.get('rank'), 'pair': item.get('pair'),
+            'change_pct': item.get('change_pct'),
+            'quote_volume': item.get('quote_volume'),
+            'spread_ratio': item.get('spread_ratio'),
+        })
+    return json.dumps({
+        'source': 'validated Binance Spot universe ranking',
+        'generated_at': snapshot.get('generated_at'),
+        'snapshot_hash': snapshot.get('snapshot_hash'),
+        'movers': rows,
+        'trade_authority': False,
+    }, indent=2)[:3800]
+
+
+def _data_readiness() -> str:
+    api = read_json(API_READINESS_STATUS, {}) or {}
+    market = read_json(MARKET_CONTEXT_HEALTH_FILE, {}) or {}
+    telegram = read_json(RUNTIME / 'telegram_health.json', {}) or {}
+    sharia = read_json(SHARIA_RUNTIME_DIR / 'health.json', {}) or {}
+    api = api if isinstance(api, dict) else {}
+    market = market if isinstance(market, dict) else {}
+    telegram = telegram if isinstance(telegram, dict) else {}
+    sharia = sharia if isinstance(sharia, dict) else {}
+    providers = api.get('providers')
+    if not isinstance(providers, dict):
+        providers = {}
+    return json.dumps({
+        'api_preflight': {
+            'status': api.get('status'),
+            'generated_at': api.get('generated_at'),
+            'providers': {
+                str(name): (row.get('status') if isinstance(row, dict) else None)
+                for name, row in providers.items()
+            },
+        },
+        'spot_market_context': {
+            'ok': market.get('ok'), 'status': market.get('status'),
+            'fresh_symbol_count': market.get('fresh_symbol_count'),
+            'ts': market.get('ts'),
+        },
+        'sharia_screener': {
+            'ok': sharia.get('ok'),
+            'ready_for_screening': sharia.get('ready_for_screening'),
+            'ts': sharia.get('ts'),
+        },
+        'telegram': {'ok': telegram.get('ok'), 'ts': telegram.get('ts')},
+        'note': 'GET-only/read-only readiness; this is not LIVE certification.',
+    }, indent=2)[:3800]
+
+
+def _sharia_review_queue() -> str:
+    summary = _sharia_registry_summary()
+    try:
+        bases = sorted(candidate_bases(SHARIA_DISCOVERY_CURRENT_DIR))[:25]
+    except Exception:
+        bases = []
+    return json.dumps({
+        **summary,
+        'pending_candidate_sample': bases,
+        'owner_action': 'review exact official-source evidence; no auto-approval',
+    }, indent=2)[:3800]
+
+
+def _sharia_failure_status() -> str:
+    health = read_json(SHARIA_RUNTIME_DIR / 'health.json', {}) or {}
+    last_failed = health.get('last_failed') if isinstance(health, dict) else {}
+    if not isinstance(last_failed, dict) or not last_failed:
+        return 'No Sharia failure is recorded in the current health snapshot.'
+    return json.dumps({
+        'base': last_failed.get('base'),
+        'error': str(last_failed.get('error', ''))[:500],
+        'finished_at': last_failed.get('finished_at'),
+        'fail_closed': True,
+    }, indent=2)
+
+
+def _alert_status() -> str:
+    health = read_json(ALERT_OUTBOX_HEALTH, {}) or {}
+    if not isinstance(health, dict):
+        health = {}
+    return json.dumps({
+        'delivery_ok': health.get('ok'),
+        'pending_alert_count': health.get('pending_alert_count'),
+        'oldest_pending_alert_age_seconds':
+            health.get('oldest_pending_alert_age_seconds'),
+        'dead_letter_count': health.get('dead_letter_count'),
+        'blocked_reason': str(health.get('blocked_reason') or '')[:300] or None,
+        'ts': health.get('ts'),
+    }, indent=2)
 
 
 def _tail_audit(lines=30):
@@ -891,9 +1165,26 @@ def route(action, chat, message_id=None):
             'tradeable result still requires exact evidence and your signed '
             'owner decision.\n' + NOT_FATWA,
             chat, message_id, sharia_menu())
+    elif action == 'menu_signals':
+        edit_or_send(
+            'Signal centre — read-only strategy output and rejection evidence.',
+            chat, message_id, signals_menu())
+    elif action == 'menu_research':
+        edit_or_send(
+            'Spot research — Binance flow/liquidity plus advisory CoinGecko '
+            'and CoinMarketCap health. No Futures data and no trade authority.',
+            chat, message_id, research_menu())
     elif action == 'menu_trading':
-        edit_or_send('Trading and protection controls.', chat,
+        edit_or_send('Trading supervision and entry controls.', chat,
                      message_id, trading_menu())
+    elif action == 'menu_protection':
+        edit_or_send(
+            'Protection controls — every position mutation retains its '
+            'existing one-time confirmation.',
+            chat, message_id, protection_menu())
+    elif action == 'menu_alerts':
+        edit_or_send('Alert delivery and recent operational evidence.', chat,
+                     message_id, alerts_menu())
     elif action == 'menu_system':
         edit_or_send('System, validation and deployment controls.', chat,
                      message_id, system_menu())
@@ -960,6 +1251,16 @@ def route(action, chat, message_id=None):
             chat, message_id,
             [[{'text': '⬅️ Sharia menu', 'callback_data': 'do|menu_sharia'},
               {'text': '🏠 Home', 'callback_data': 'do|home'}]])
+    elif action == 'scan_bulk_help':
+        edit_or_send(
+            'Send /scanbulk followed by any whole number from 1 to 100, '
+            'for example /scanbulk 17. The current validated Spot/USDT '
+            'universe is used, so fewer coins may be queued when the universe '
+            'contains fewer eligible pairs. One-time confirmation is required.\n'
+            + NOT_FATWA,
+            chat, message_id,
+            [[{'text': '⬅️ Sharia menu', 'callback_data': 'do|menu_sharia'},
+              {'text': '🏠 Home', 'callback_data': 'do|home'}]])
     elif (action.startswith('scan_bulk_') and
           action.endswith('_confirm')):
         raw_limit = action.removeprefix('scan_bulk_').removesuffix('_confirm')
@@ -967,7 +1268,7 @@ def route(action, chat, message_id=None):
             limit = int(raw_limit)
         except ValueError:
             limit = -1
-        if limit not in BULK_SCAN_LIMITS:
+        if not BULK_SCAN_MIN <= limit <= BULK_SCAN_MAX:
             edit_or_send('Invalid bounded scan size.', chat, message_id,
                          [[{'text': '⬅️ Sharia menu',
                             'callback_data': 'do|menu_sharia'}]])
@@ -1004,6 +1305,35 @@ def route(action, chat, message_id=None):
         send(json.dumps(read_json(RUNTIME / 'deployment_status.json', {}), indent=2), chat)
     elif action == 'last_signal':
         send(_latest_signal(), chat)
+    elif action == 'signal_history':
+        send(_signal_history(), chat)
+    elif action == 'signal_rejected':
+        send(_signal_history(SIGNAL_REJECTED), chat)
+    elif action == 'market_context':
+        send(_market_context_status(), chat)
+    elif action == 'provider_status':
+        send(_external_provider_status(), chat)
+    elif action == 'universe_movers':
+        send(_universe_movers(), chat)
+    elif action == 'data_sources':
+        send(
+            'Sources in use:\n'
+            '• Binance Spot: listings, ranking, trades and best bid/ask.\n'
+            '• CoinGecko and CoinMarketCap: rate-limited advisory identity/'
+            'market annotations only.\n'
+            '• Sharia: owner-reviewed official project sources whose exact '
+            'bytes are hashed locally.\n'
+            'No Futures market context and no external AI inference API.', chat)
+    elif action == 'data_readiness':
+        send(_data_readiness(), chat)
+    elif action == 'sharia_review_queue':
+        send(_sharia_review_queue(), chat)
+    elif action == 'sharia_failures':
+        send(_sharia_failure_status(), chat)
+    elif action == 'alert_status':
+        send(_alert_status(), chat)
+    elif action == 'activity':
+        send(_tail_audit(25), chat)
     elif action == 'settings':
         send(_settings(), chat)
     elif action == 'selftest':
@@ -1044,7 +1374,7 @@ def _confirm_action(action, args, chat):
     elif action == 'scan_bulk':
         limit = args.get('limit')
         if (isinstance(limit, bool) or not isinstance(limit, int) or
-                limit not in BULK_SCAN_LIMITS):
+                not BULK_SCAN_MIN <= limit <= BULK_SCAN_MAX):
             send('Bounded Sharia scan rejected: invalid scan size.', chat)
             return
         outcome = sharia_bounded_scan_requests(limit)
@@ -1106,6 +1436,20 @@ def handle_message(message):
     elif cmd in ('/sharia', '/halal'): route('sharia', chat)
     elif cmd in ('/shariastatus', '/shariaservice'): route('sharia_service', chat)
     elif cmd == '/scanall': route('scanall_confirm', chat)
+    elif cmd == '/scanbulk' and len(parts) == 2:
+        try:
+            limit = int(parts[1])
+        except ValueError:
+            send('Scan count must be a whole number from 1 to 100.', chat)
+            return
+        if not BULK_SCAN_MIN <= limit <= BULK_SCAN_MAX:
+            send('Scan count must be from 1 to 100.', chat)
+            return
+        _ask_confirm(
+            chat, f'✅ CONFIRM scan {limit} pairs', 'scan_bulk',
+            {'limit': limit},
+            f'Confirm a low-priority V19.1 scan for up to {limit} current '
+            'Binance Spot/USDT pairs. Discovery cannot self-authorize a coin.')
     elif cmd == '/scan' and len(parts) == 2:
         base, why = normalize_pair_input(parts[1])
         if not base:
@@ -1121,6 +1465,13 @@ def handle_message(message):
         send(card, chat, buttons)
     elif cmd == '/deploy': route('deploy', chat)
     elif cmd == '/lastsignal': route('last_signal', chat)
+    elif cmd == '/signals': route('signal_history', chat)
+    elif cmd == '/rejected': route('signal_rejected', chat)
+    elif cmd in ('/spotcontext', '/marketcontext'):
+        route('market_context', chat)
+    elif cmd == '/providers': route('provider_status', chat)
+    elif cmd == '/readiness': route('data_readiness', chat)
+    elif cmd == '/alerts': route('alert_status', chat)
     elif cmd == '/settings': route('settings', chat)
     elif cmd == '/selftest': route('selftest', chat)
     elif cmd == '/backtest': route('backtest', chat)

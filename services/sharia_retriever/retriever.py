@@ -21,7 +21,7 @@ import socket
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from html.parser import HTMLParser
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, urlunparse
 
 import requests
 from pypdf import PdfReader
@@ -348,8 +348,33 @@ def assert_peer_is_public(response, host: str) -> None:
             'resolving to a public one before the request (DNS rebinding)')
 
 
-def assert_fetchable(url: str) -> str:
-    """Return the canonical URL or raise.
+def _transport_url(url: str) -> str:
+    """Validate evidence identity while preserving the exact HTTP path.
+
+    ``normalize_evidence_url`` deliberately removes a non-root trailing slash
+    so evidence references compare consistently.  That canonical identity is
+    not always a safe transport target: some official sites redirect
+    ``/document`` to ``/document/``.  Re-stripping the slash on every redirect
+    turns the valid redirect into a loop.  The authority is therefore taken
+    from the canonical URL, while the caller's path, parameters and query are
+    retained exactly for the network request.  Fragments remain excluded.
+    """
+    canonical = normalize_evidence_url(url)
+    if not canonical:
+        return ''
+    try:
+        source = urlparse(str(url or '').strip())
+        identity = urlparse(canonical)
+    except (TypeError, ValueError):
+        return ''
+    return urlunparse((
+        'https', identity.netloc, source.path or '/', source.params,
+        source.query, '',
+    ))
+
+
+def assert_fetchable(url: str, *, resolve_dns: bool = True) -> str:
+    """Return a validated transport URL or raise.
 
     HTTPS only, never a model-inference host, and never an address that is not
     globally routable. The address check is the substantive control: a
@@ -359,11 +384,11 @@ def assert_fetchable(url: str) -> str:
     screening service from being turned into an SSRF primitive against the
     Oracle host or its cloud metadata endpoint.
     """
-    canonical = normalize_evidence_url(url)
-    if not canonical:
+    transport = _transport_url(url)
+    if not transport:
         raise RetrievalBlocked(f'not a fetchable HTTPS URL: {url!r}')
     try:
-        parsed = urlparse(canonical)
+        parsed = urlparse(transport)
         host = (parsed.hostname or '').lower()
         port = parsed.port
     except ValueError as exc:
@@ -375,17 +400,31 @@ def assert_fetchable(url: str) -> str:
         raise RetrievalBlocked(f'refusing non-443 port {port} on {host!r}')
     if not host:
         raise RetrievalBlocked(f'no host in {url!r}')
+    try:
+        ipaddress.ip_address(host)
+    except ValueError:
+        pass
+    else:
+        # The pinned CONNECT proxy accepts credential-free DNS names only and
+        # performs the authoritative resolve-once/public-IP check itself.  Keep
+        # the direct and proxy paths consistent and avoid allowing an owner
+        # source entry to bypass hostname identity with an IP literal.
+        raise RetrievalBlocked(
+            f'refusing IP-literal source host {host!r}; an official DNS name '
+            'is required')
     if host in AI_ENDPOINT_HOSTS or any(
             host.endswith('.' + h) for h in AI_ENDPOINT_HOSTS):
         raise RetrievalBlocked(
             f'refusing to contact model-inference host {host!r}: screening '
             'must not depend on an external AI service')
-    for address in _addresses_for(host):
-        if not address.is_global or address.is_multicast:
-            raise RetrievalBlocked(
-                f'refusing non-public destination {address} for host {host!r} '
-                '(loopback, private, link-local, multicast or reserved)')
-    return canonical
+    if resolve_dns:
+        for address in _addresses_for(host):
+            if not address.is_global or address.is_multicast:
+                raise RetrievalBlocked(
+                    f'refusing non-public destination {address} for host '
+                    f'{host!r} (loopback, private, link-local, multicast or '
+                    'reserved)')
+    return transport
 
 
 def _same_redirect_origin(current: str, target: str) -> bool:
@@ -425,16 +464,18 @@ class Retriever:
         # rejects non-public answers and connects to the validated numeric IP.
         # The explicit flag prevents an unrelated ambient HTTPS_PROXY from
         # weakening the direct-path check.
-        proxy_enforced = os.environ.get(
+        self.proxy_enforced = os.environ.get(
             'SHARIA_PINNED_EGRESS_PROXY', '').strip().lower() == 'true'
         self.verify_peer = (
-            not proxy_enforced if verify_peer is None else bool(verify_peer))
+            not self.proxy_enforced if verify_peer is None
+            else bool(verify_peer))
 
     def fetch(self, url: str, *, official_hosts: set[str] | None = None,
               identity_match: bool = False) -> FetchResult:
         now = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
         try:
-            canonical = assert_fetchable(url)
+            canonical = assert_fetchable(
+                url, resolve_dns=not self.proxy_enforced)
         except RetrievalBlocked as exc:
             return FetchResult(url=str(url), http_status=0, content_sha256='',
                                text='', retrieved_utc=now,
@@ -479,7 +520,9 @@ class Retriever:
                         url=canonical, http_status=0, content_sha256='',
                         text='', retrieved_utc=now, tier=tier,
                         error=f'exceeded {MAX_REDIRECTS} redirects')
-                next_target = assert_fetchable(urljoin(target, location))
+                next_target = assert_fetchable(
+                    urljoin(target, location),
+                    resolve_dns=not self.proxy_enforced)
                 if not _same_redirect_origin(target, next_target):
                     return FetchResult(
                         url=canonical, http_status=0, content_sha256='',

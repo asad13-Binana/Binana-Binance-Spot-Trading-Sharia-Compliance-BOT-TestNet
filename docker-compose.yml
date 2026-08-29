@@ -232,6 +232,12 @@ services:
       FREQTRADE__API_SERVER__PASSWORD: ${FREQTRADE_API_PASSWORD:?set FREQTRADE_API_PASSWORD}
       FREQTRADE__API_SERVER__JWT_SECRET_KEY: ${FREQTRADE_API_JWT_SECRET:?set FREQTRADE_API_JWT_SECRET}
       FREQTRADE__API_SERVER__WS_TOKEN: ${FREQTRADE_API_WS_TOKEN:?set FREQTRADE_API_WS_TOKEN}
+      # Freqtrade 2026.6 removes the file:// prefix before opening a local
+      # RemotePairList. Four slashes therefore preserve the required leading
+      # slash. Use the supported environment override so the protected base
+      # config and strategy remain byte-identical.
+      FREQTRADE__PAIRLISTS: >-
+        [{"method":"RemotePairList","number_assets":50,"refresh_period":300,"pairlist_url":"file:////freqtrade/shared/universe/current_pairlist.json","keep_pairlist_on_failure":false,"read_timeout":10}]
       SHARIA_FILE: /freqtrade/shared/sharia/sharia_status.json
       UNIVERSE_FILE: /freqtrade/shared/universe/current_pairlist.json
       SIGNAL_INBOX: /freqtrade/shared/signals/inbox
