@@ -762,6 +762,92 @@ class EvidenceDerivedFactTests(unittest.TestCase):
 
 
 class RetrieverSecurityTests(unittest.TestCase):
+    class _Response:
+        encoding = 'utf-8'
+
+        def __init__(self, status=200, *, location=None, body=b'official body'):
+            self.status_code = status
+            self.headers = {'Content-Type': 'text/plain'}
+            if location is not None:
+                self.headers['Location'] = location
+            self._body = body
+            self.closed = False
+
+        def close(self):
+            self.closed = True
+
+        def iter_content(self, _size):
+            yield self._body
+
+    def test_pinned_proxy_mode_does_not_require_screener_dns(self):
+        """The isolated screener delegates DNS/public-IP pinning to the proxy."""
+        requested = []
+
+        class _Session:
+            def get(self, url, **_kwargs):
+                requested.append(url)
+                return RetrieverSecurityTests._Response()
+
+        with mock.patch.dict(
+                'os.environ', {'SHARIA_PINNED_EGRESS_PROXY': 'true'}), \
+                mock.patch(
+                    'services.sharia_retriever.retriever._addresses_for',
+                    side_effect=AssertionError(
+                        'the DNS-isolated screener must not resolve')):
+            result = Retriever(session=_Session()).fetch(
+                'https://official.example/project/')
+        self.assertTrue(result.ok, result.error)
+        self.assertEqual(requested, ['https://official.example/project/'])
+
+    def test_direct_mode_still_fails_before_network_on_private_dns(self):
+        class _Session:
+            def get(self, *_args, **_kwargs):
+                raise AssertionError('network request must not be attempted')
+
+        with mock.patch.dict(
+                'os.environ', {'SHARIA_PINNED_EGRESS_PROXY': 'false'}), \
+                mock.patch(
+                    'services.sharia_retriever.retriever._addresses_for',
+                    return_value=[__import__('ipaddress').ip_address(
+                        '169.254.169.254')]):
+            result = Retriever(session=_Session(), verify_peer=False).fetch(
+                'https://official.example/project')
+        self.assertFalse(result.ok)
+        self.assertIn('non-public destination', result.error)
+
+    def test_ip_literal_is_rejected_even_when_proxy_is_enforced(self):
+        with mock.patch.dict(
+                'os.environ', {'SHARIA_PINNED_EGRESS_PROXY': 'true'}):
+            result = Retriever(session=mock.Mock()).fetch(
+                'https://93.184.216.34/project')
+        self.assertFalse(result.ok)
+        self.assertIn('IP-literal', result.error)
+
+    def test_transport_preserves_meaningful_trailing_slash_redirect(self):
+        requested = []
+
+        class _Session:
+            def get(self, url, **_kwargs):
+                requested.append(url)
+                if url.endswith('/project'):
+                    return RetrieverSecurityTests._Response(
+                        301, location='/project/')
+                return RetrieverSecurityTests._Response(200)
+
+        with mock.patch(
+                'services.sharia_retriever.retriever._addresses_for',
+                return_value=[__import__('ipaddress').ip_address(
+                    '93.184.216.34')]):
+            result = Retriever(
+                session=_Session(), verify_peer=False).fetch(
+                    'https://official.example/project')
+        self.assertTrue(result.ok, result.error)
+        self.assertEqual(requested, [
+            'https://official.example/project',
+            'https://official.example/project/',
+        ])
+        self.assertEqual(result.url, 'https://official.example/project/')
+
     """C3 — the fetcher must not become an SSRF primitive."""
 
     def test_non_public_destinations_are_refused(self):

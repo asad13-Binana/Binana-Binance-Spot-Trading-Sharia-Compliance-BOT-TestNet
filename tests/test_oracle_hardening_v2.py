@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import socket
 import subprocess
@@ -69,6 +70,22 @@ class ProtectedCoreTests(unittest.TestCase):
         for relative, expected in PROTECTED.items():
             with self.subTest(relative=relative):
                 self.assertEqual(hashlib.sha256((ROOT / relative).read_bytes()).hexdigest(), expected)
+
+    def test_runtime_pairlist_override_is_absolute_without_editing_base_config(self):
+        """Keep the protected base config while fixing Freqtrade 2026.6 I/O."""
+        compose = yaml.safe_load(
+            (ROOT / 'docker-compose.yml').read_text(encoding='utf-8'))
+        raw = compose['services']['freqtrade']['environment'][
+            'FREQTRADE__PAIRLISTS']
+        self.assertEqual(json.loads(raw), [{
+            'method': 'RemotePairList',
+            'number_assets': 50,
+            'refresh_period': 300,
+            'pairlist_url':
+                'file:////freqtrade/shared/universe/current_pairlist.json',
+            'keep_pairlist_on_failure': False,
+            'read_timeout': 10,
+        }])
 
 
 class OracleInstallerStaticTests(unittest.TestCase):

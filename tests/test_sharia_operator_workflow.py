@@ -117,14 +117,26 @@ class TelegramOperatorTests(unittest.TestCase):
             button['callback_data'] for row in rows for button in row}
         self.assertLessEqual(len(rows), 6)
         self.assertTrue({
-            'do|menu_dashboard', 'do|menu_sharia', 'do|menu_trading',
-            'do|menu_system', 'do|menu_emergency', 'do|menu_help',
+            'do|menu_dashboard', 'do|menu_sharia', 'do|menu_signals',
+            'do|menu_research', 'do|menu_trading', 'do|menu_protection',
+            'do|menu_alerts', 'do|menu_system', 'do|menu_emergency',
+            'do|menu_help',
         }.issubset(callbacks))
         sharia_callbacks = {
             button['callback_data']
             for row in bot.sharia_menu() for button in row}
         for limit in bot.BULK_SCAN_LIMITS:
             self.assertIn(f'do|scan_bulk_{limit}_confirm', sharia_callbacks)
+        self.assertIn('do|scan_bulk_help', sharia_callbacks)
+
+    def test_research_menu_is_spot_only_and_never_offers_futures(self):
+        labels = ' '.join(
+            button['text'] for row in bot.research_menu() for button in row
+        ).lower()
+        self.assertIn('spot', labels)
+        self.assertNotIn('future', labels)
+        self.assertNotIn('funding', labels)
+        self.assertNotIn('open interest', labels)
 
     def test_edit_failure_falls_back_to_presentation_only_send(self):
         with mock.patch.object(bot, 'TOKEN', '123456:' + 'T' * 32), \
@@ -185,9 +197,74 @@ class TelegramOperatorTests(unittest.TestCase):
         self.assertEqual(outcome['bases'][-1], 'Z25')
         self.assertEqual(outcome['snapshot_hash'], 'a' * 64)
         self.assertEqual(request.call_count, 25)
-        for bad in (True, 0, 11, 101, '25'):
+        with mock.patch.object(bot, 'load_current', return_value=snapshot), \
+                mock.patch.object(
+                    bot, 'sharia_scan_request',
+                    side_effect=lambda base, priority: {
+                        'request_id': f'{priority}-{base}'}):
+            custom = bot.sharia_bounded_scan_requests(11)
+        self.assertEqual(custom['queued_count'], 11)
+        for bad in (True, 0, 101, '25'):
             with self.subTest(limit=bad), self.assertRaises(ValueError):
                 bot.sharia_bounded_scan_requests(bad)
+
+    def test_scanbulk_command_accepts_any_integer_from_one_to_one_hundred(self):
+        message = {
+            'chat': {'id': 123}, 'from': {'id': 1}, 'text': '/scanbulk 17'}
+        with mock.patch.object(bot, 'is_owner', return_value=True), \
+                mock.patch.object(bot, 'audit'), \
+                mock.patch.object(bot, '_ask_confirm') as confirm:
+            bot.handle_message(message)
+        self.assertEqual(confirm.call_args.args[2], 'scan_bulk')
+        self.assertEqual(confirm.call_args.args[3], {'limit': 17})
+
+    def test_market_context_summary_exposes_spot_advisory_freshness_only(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            current = root / 'current.json'
+            health = root / 'health.json'
+            current.write_text(json.dumps({
+                'schema_version': 1, 'spot_only': True,
+                'advisory_only': True, 'can_trade': False,
+                'generated_at': '2026-08-29T00:00:00Z',
+                'symbol_count': 2, 'fresh_symbol_count': 1,
+                'universe_snapshot_hash': 'a' * 64,
+                'symbols': {
+                    'ETHUSDT': {'status': 'fresh'},
+                    'SOLUSDT': {'status': 'stale'},
+                },
+            }), encoding='utf-8')
+            health.write_text(json.dumps({
+                'ok': True, 'status': 'fresh', 'ts': time.time(),
+                'stream': {'subscription_ready': True},
+            }), encoding='utf-8')
+            with mock.patch.object(bot, 'MARKET_CONTEXT_FILE', current), \
+                    mock.patch.object(bot, 'MARKET_CONTEXT_HEALTH_FILE', health):
+                rendered = bot._market_context_status()
+        self.assertIn('Spot market context', rendered)
+        self.assertIn('advisory_only=True', rendered)
+        self.assertIn('can_trade=False', rendered)
+        self.assertIn('fresh symbols=1/2', rendered)
+
+    def test_provider_status_does_not_expose_credentials(self):
+        with tempfile.TemporaryDirectory() as raw:
+            status = Path(raw) / 'external_signals.json'
+            status.write_text(json.dumps({
+                'generated_at': 123,
+                'coingecko': {'enabled': True, 'keyless': True,
+                              'cache_age_seconds': 5,
+                              'breaker': {'state': 'closed'}},
+                'cmc': {'enabled': True, 'cache_age_seconds': 10,
+                        'breaker': {'state': 'closed'},
+                        'api_key': 'must-not-render'},
+                'config': {'role': 'advisory-annotation-only'},
+            }), encoding='utf-8')
+            with mock.patch.object(bot, 'EXTERNAL_SIGNALS_STATUS', status):
+                rendered = bot._external_provider_status()
+        self.assertIn('CoinGecko', rendered)
+        self.assertIn('CoinMarketCap', rendered)
+        self.assertNotIn('must-not-render', rendered)
+        self.assertNotIn('api_key', rendered)
 
     def test_empty_registry_status_cannot_look_ready(self):
         with tempfile.TemporaryDirectory() as raw:
