@@ -39,8 +39,12 @@ systemctl is-active docker
 docker info --format 'driver={{.Driver}} logging={{.LoggingDriver}} live_restore={{.LiveRestoreEnabled}}'
 docker ps --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME" \
   --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
-docker stats --no-stream --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME" \
-  --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.PIDs}}' || true
+container_ids=$(docker ps -q --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME")
+if [[ -n "$container_ids" ]]; then
+  mapfile -t instance_containers <<<"$container_ids"
+  docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.PIDs}}' \
+    "${instance_containers[@]}"
+fi
 
 printf '\n=== TIME ===\n'
 systemctl is-active chrony

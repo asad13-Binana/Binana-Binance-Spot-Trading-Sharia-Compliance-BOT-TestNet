@@ -12,6 +12,8 @@ MIN_TOTAL_MEMORY_MIB=${MIN_TOTAL_MEMORY_MIB:-14336}
 MIN_FREE_DISK_GIB=${MIN_FREE_DISK_GIB:-80}
 MIN_CPU_COUNT=${MIN_CPU_COUNT:-2}
 ALLOW_REVIEWED_AMD64=${ALLOW_REVIEWED_AMD64:-false}
+HOST_PROVIDER=${HOST_PROVIDER:-oracle}
+[[ "$HOST_PROVIDER" == oracle || "$HOST_PROVIDER" == aws ]] || { echo 'ERROR: HOST_PROVIDER must be oracle or aws' >&2; exit 1; }
 SWAP_SIZE_GIB=${SWAP_SIZE_GIB:-4}
 DEPLOY_USER=${DEPLOY_USER:-${SUDO_USER:-ubuntu}}
 readonly PRIVATE=$PRIVATE_ROOT
@@ -259,11 +261,12 @@ vm.swappiness=10
 EOF
 sysctl --system >/dev/null
 
-# OCI's link-local NTP service is retained.  Do not block 169.254.169.254:
-# it also provides DNS, metadata and platform services on other ports.
+# Select the provider's local NTP endpoint explicitly; no metadata probing.
+ntp_server=169.254.169.254
+[[ "$HOST_PROVIDER" != aws ]] || ntp_server=169.254.169.123
 install -d -m 0755 -o root -g root /etc/chrony/conf.d
-cat >/etc/chrony/conf.d/50-oci-binana-testnet.conf <<'EOF'
-server 169.254.169.254 iburst prefer
+cat >/etc/chrony/conf.d/50-oci-binana-testnet.conf <<EOF
+server $ntp_server iburst prefer
 makestep 1.0 3
 EOF
 systemctl disable --now systemd-timesyncd.service >/dev/null 2>&1 || true

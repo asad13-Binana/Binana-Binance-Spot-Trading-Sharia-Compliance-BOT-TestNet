@@ -641,7 +641,7 @@ class DeploymentMonitoringTransactionTests(unittest.TestCase):
                 '"$RELEASE_HASH" || rollback'
             )
             success_record = (
-                'python - "$PERSIST" "$RELEASE_HASH" "$DEST" "$NEW_TAG" <<\'PY\''
+                'python3 - "$PERSIST" "$RELEASE_HASH" "$DEST" "$NEW_TAG" <<\'PY\''
             )
             self.assertIn(activation, source)
             self.assertLess(source.index(activation), source.index(success_record),

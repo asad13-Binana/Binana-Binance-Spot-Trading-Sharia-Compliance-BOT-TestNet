@@ -67,6 +67,8 @@ envelope = sign_envelope(
 )
 descriptor, temporary = tempfile.mkstemp(prefix=f".{command_id}.", suffix=".tmp", dir=inbox)
 try:
+    os.fchown(descriptor, inbox.stat().st_uid, inbox.stat().st_gid)
+    os.fchmod(descriptor, 0o600)
     with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
         json.dump(envelope, handle, separators=(",", ":"), sort_keys=True)
         handle.write("\n")

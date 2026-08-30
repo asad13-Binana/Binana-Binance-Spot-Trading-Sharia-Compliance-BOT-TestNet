@@ -54,9 +54,13 @@ def deployment_supply_chain_errors(root: Path = ROOT) -> list[str]:
 
     locks = (
         root / 'requirements.services.lock',
+        root / 'requirements.host.lock',
         root / 'monitoring/requirements-monitoring.lock',
     )
     for lock in locks:
+        if not lock.is_file():
+            errors.append(f'{lock.relative_to(root).as_posix()} is missing')
+            continue
         records = _logical_requirements(lock)
         unhashed = [record for record in records
                     if not HASH_OPTION.search(record)]
