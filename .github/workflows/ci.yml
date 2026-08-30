@@ -301,7 +301,9 @@ jobs:
       - name: Prove Sharia network isolation and pinned HTTPS egress
         run: |
           docker compose --env-file .env.ci up -d sharia-egress-proxy
-          for i in $(seq 1 20); do
+          # Keep the security/health gate strict, but allow the configured
+          # startup and retry window on CPU-limited GitHub runners (185s).
+          for i in $(seq 1 120); do
             state=$(docker inspect --format '{{ .State.Health.Status }}' $(docker compose --env-file .env.ci ps -q sharia-egress-proxy) 2>/dev/null || echo starting)
             [ "$state" = "healthy" ] && break
             sleep 2

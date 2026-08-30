@@ -1561,8 +1561,10 @@ tests/test_clean_host_deployment.py,CleanHostDeploymentTests.test_host_lock_matc
 tests/test_clean_host_deployment.py,CleanHostDeploymentTests.test_host_dependency_bootstrap_precedes_sharia_validation,function,top-level-or-method,44,47,-,test
 tests/test_clean_host_deployment.py,CleanHostDeploymentTests.test_monitor_rendering_has_no_legacy_project_or_backup_root,function,top-level-or-method,49,53,-,test
 tests/test_clean_host_deployment.py,CleanHostDeploymentTests.test_transaction_catches_early_start_and_write_failure,function,top-level-or-method,55,58,-,test
-tests/test_clean_host_deployment.py,CleanHostDeploymentTests.test_all_shared_bind_sources_are_precreated,function,top-level-or-method,60,64,-,test
-tests/test_clean_host_deployment.py,CleanHostDeploymentTests.test_readonly_core_matches_prior_release,function,top-level-or-method,66,74,-,test
+tests/test_clean_host_deployment.py,CleanHostDeploymentTests.test_ci_proxy_wait_covers_configured_health_window,function,top-level-or-method,60,76,-,test
+tests/test_clean_host_deployment.py,CleanHostDeploymentTests.test_ci_proxy_wait_covers_configured_health_window.seconds,function,nested,64,65,-,test
+tests/test_clean_host_deployment.py,CleanHostDeploymentTests.test_all_shared_bind_sources_are_precreated,function,top-level-or-method,78,82,-,test
+tests/test_clean_host_deployment.py,CleanHostDeploymentTests.test_readonly_core_matches_prior_release,function,top-level-or-method,84,92,-,test
 tests/test_codex_revision_j_hardening.py,_symbol,function,top-level-or-method,40,45,-,test
 tests/test_codex_revision_j_hardening.py,_position,function,top-level-or-method,48,53,-,test
 tests/test_codex_revision_j_hardening.py,_filters,function,top-level-or-method,56,74,-,test

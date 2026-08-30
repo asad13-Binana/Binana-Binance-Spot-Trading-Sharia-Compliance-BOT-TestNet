@@ -57,6 +57,24 @@ class CleanHostDeploymentTests(unittest.TestCase):
         self.assertIn("trap 'rollback' ERR", source)
         self.assertIn('[[ ${#COMMAND_IDS[@]} -eq 2 ]]', source)
 
+    def test_ci_proxy_wait_covers_configured_health_window(self):
+        import yaml
+        compose = yaml.safe_load((ROOT / 'docker-compose.yml').read_text())
+        health = compose['services']['sharia-egress-proxy']['healthcheck']
+        def seconds(value):
+            return int(str(value).removesuffix('s'))
+        required = seconds(health['start_period']) + health['retries'] * (
+            seconds(health['interval']) + seconds(health['timeout']))
+        workflow = yaml.safe_load((ROOT / '.github/workflows/ci.yml').read_text())
+        step = next(step for step in workflow['jobs']['integration-simulation']['steps']
+                    if step.get('name') == 'Prove Sharia network isolation and pinned HTTPS egress')
+        script = step['run']
+        attempts = int(re.search(r'for i in \$\(seq 1 (\d+)\)', script)[1])
+        interval = int(re.search(r'sleep (\d+)', script)[1])
+        self.assertGreaterEqual(attempts * interval, required)
+        self.assertIn('test "$state" = "healthy" ||', script)
+        self.assertIn("assert b'403 Forbidden' in reply", script)
+
     def test_all_shared_bind_sources_are_precreated(self):
         source = (ROOT / "deploy/install_artifact.sh").read_text()
         self.assertIn('"$PERSIST/universe"', source)

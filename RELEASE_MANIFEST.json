@@ -21,8 +21,8 @@
       "size": 1401
     },
     ".github/workflows/ci.yml": {
-      "sha256": "f51878008d380cc666eea37541f3138d31988520082f9e1d24d9659b07b27cd6",
-      "size": 25170
+      "sha256": "2fef85e5e25085ddb218015f3468209027ebe90e9ba50df0fd4f696564e7158f",
+      "size": 25321
     },
     ".gitignore": {
       "sha256": "4f9fd03b96ad4cad58801e464808e7969aa331801b1cb30ee06f44fde36db136",
@@ -357,7 +357,7 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "b95fbe560455530d276ed1e5fda223f98f52875bc8914eff141512ceb7ca66c2",
+      "sha256": "b9dd5e2c2aac6eb964e11224f3e713978195e4a22c31d88f0053849f64fdb6fa",
       "size": 52990
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
@@ -365,8 +365,8 @@
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "c5463dc28b05684590b0ee0406ba55c6b1abb07dc32aa7cf67d1122489bb97e6",
-      "size": 314848
+      "sha256": "91138ccc1313e49151d7bd8d0a7db6b25fe5992f7c65ff36917e511b070f32f7",
+      "size": 315151
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -1201,8 +1201,8 @@
       "size": 2633
     },
     "tests/test_clean_host_deployment.py": {
-      "sha256": "d91f118ccd6b620ff1341fec8c83de9a085f9729733003d6aba75c8ff975f830",
-      "size": 3848
+      "sha256": "a6125b6193cfb2bb51a9e77c63a97cfb3b45251a226041870ed01682601b100f",
+      "size": 4942
     },
     "tests/test_codex_revision_j_hardening.py": {
       "sha256": "53294f19101484fdf1e22a1e70ab6fda3cfd86cbe9c182e220d3828804dfa848",
