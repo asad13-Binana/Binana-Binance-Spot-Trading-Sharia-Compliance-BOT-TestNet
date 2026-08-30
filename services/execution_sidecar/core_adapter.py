@@ -274,13 +274,14 @@ class CoreAdapter:
                 if mode is ProtectionMode.OCO_TRAILING:
                     # Keep the protected legacy request construction/submission,
                     # but only after the equivalent payload passed strict checks.
-                    return original(sym, qty, entry, tp, trail_bips)
+                    return self._entry_transport(lambda: original(sym, qty, entry, tp, trail_bips))
                 coid = params['listClientOrderId']
                 def send():
                     out = this.c._post(endpoint, True, data=params)
                     this._sync_weight()
                     return out
-                return this._place_idempotent(send, lambda: this._find_list(coid), f'{mode.value} {sym.symbol}')
+                return self._entry_transport(lambda: this._place_idempotent(
+                    send, lambda: this._find_list(coid), f'{mode.value} {sym.symbol}'))
 
             broker.place_otoco = types.MethodType(place_mode_aware, broker)
 
@@ -293,7 +294,7 @@ class CoreAdapter:
                     'price': legacy.dstr(rounded_price), 'timeInForce': 'GTC',
                 }
                 self._validate_replacement_filters(this, sym.symbol, 'order', params)
-                return original_limit_buy(sym, qty, price)
+                return self._entry_transport(lambda: original_limit_buy(sym, qty, price))
 
             broker.limit_buy = types.MethodType(limit_buy_strict, broker)
 
@@ -323,7 +324,16 @@ class CoreAdapter:
         return self.trader.set_autotrade(on)
 
     def submit(self, symbol, note=''):
+        # A preflight refusal is known local rejection. Once the placement
+        # boundary is crossed, an exception/false result is NOT proof of absence.
+        self.last_submission_outcome = 'REJECTED' if self._patched else 'UNKNOWN'
         return self.trader.submit_signal(symbol, note)
+
+    def _entry_transport(self, send):
+        self.last_submission_outcome = 'UNKNOWN'
+        result = send()
+        self.last_submission_outcome = 'ACCEPTED'
+        return result
 
     def status(self):
         return self.trader.status_text()

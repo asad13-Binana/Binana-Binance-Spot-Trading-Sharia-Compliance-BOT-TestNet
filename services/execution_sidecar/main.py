@@ -1,5 +1,5 @@
 from __future__ import annotations
-import json, logging, math, os, re, signal, threading, time, uuid
+import json, logging, math, os, re, signal, shutil, threading, time, uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from services.common.paths import (
@@ -100,6 +100,42 @@ def _disarm_execution(adapter, state: StateStore, reason: str) -> str:
     if errors:
         raise RuntimeError('; '.join(errors))
     return result
+
+def shutdown_adapter(adapter, state: StateStore) -> bool:
+    """Best-effort disarm AND portfolio flush on normal stop or loop failure."""
+    errors = []
+    try:
+        _disarm_execution(adapter, state, 'sidecar-shutdown')
+    except Exception as exc:
+        errors.append(type(exc).__name__)
+    try:
+        portfolio = getattr(getattr(adapter, 'trader', None), 'pf', None)
+        if portfolio is not None:
+            portfolio.save()
+    except Exception as exc:
+        errors.append(type(exc).__name__)
+    try:
+        audit('sidecar_stopped', severity='ERROR' if errors else 'INFO',
+              details={'clean_shutdown': not errors, 'errors': errors})
+    except Exception:
+        log.error('shutdown audit unavailable')
+        errors.append('audit-unavailable')
+    return not errors
+
+
+def disk_pressure_reason() -> str:
+    """Read actual runtime volume pressure, even when no status file can be written."""
+    try:
+        threshold = env_int('DISK_CRITICAL_PERCENT', 90, 50, 99)
+        usage = shutil.disk_usage(RUNTIME)
+        if usage.total <= 0:
+            return 'disk-capacity-unknown'
+        if usage.used * 100 >= usage.total * threshold:
+            return 'critical-disk-pressure'
+    except Exception:
+        return 'disk-capacity-unknown'
+    return ''
+
 
 def _write_command_result(cid: str, cmd: str, ok: bool, result: object, state: StateStore):
     payload = {'ok': bool(ok), 'result': str(result), 'command_id': cid, 'command': cmd}
@@ -458,107 +494,116 @@ def main():
     next_maintenance = 0.0
     next_backup = 0.0
 
-    while not STOP.is_set():
-        for path in sorted(COMMAND_INBOX.glob('*.json')):
-            try:
-                process_command(adapter, state, guard, path)
-            except Exception as exc:
-                log.exception('command processing failed for %s', path.name)
+    try:
+        while not STOP.is_set():
+            for path in sorted(COMMAND_INBOX.glob('*.json')):
                 try:
-                    _disarm_execution(adapter, state, 'command-processing-failure')
-                except Exception as disarm_exc:
-                    log.critical('fail-closed command disarm also failed: %s', disarm_exc)
-                audit('command_processing_failed', severity='CRITICAL', details={
-                    'file': path.name, 'error': str(exc),
-                })
-        if time.time() >= next_maintenance:
-            prune_files(
-                RUNTIME, 'command_result_*.json',
-                max_files=max(0, int(os.getenv('COMMAND_RESULT_MAX_FILES', '1000'))),
-                max_age_seconds=max(0, int(os.getenv('COMMAND_RESULT_MAX_AGE_SECONDS', '86400'))),
-            )
-            # H-006: periodic verified online backup of the authoritative DB.
-            try:
-                backup_interval = int(os.getenv('SQLITE_BACKUP_INTERVAL_SECONDS', '86400'))
-                if backup_interval > 0 and time.time() >= next_backup:
-                    destination = state.backup(RUNTIME / 'db_backups',
-                                               retain=int(os.getenv('SQLITE_BACKUP_RETAIN', '14')))
-                    audit('sqlite_backup_verified', details={'path': str(destination)})
-                    next_backup = time.time() + backup_interval
-            except Exception as exc:
-                audit('sqlite_backup_failed', severity='ERROR', details={'error': str(exc)})
-                next_backup = time.time() + 3600
-            next_maintenance = time.time() + 60
-        pairs, universe_hash, fresh = universe_state()
-        if not fresh and state.entries():
-            disarm_error = None
-            try:
-                _disarm_execution(adapter, state, 'stale-or-missing-universe')
-            except Exception as exc:
-                disarm_error = str(exc)
-                log.critical('stale-universe fail-closed disarm was incomplete: %s', exc)
-            try:
-                guard.set_global_pause('stale-or-missing-universe')
-            except Exception as exc:
-                log.critical('could not persist stale-universe global pause: %s', exc)
-                disarm_error = (disarm_error + '; ' if disarm_error else '') + str(exc)
-            audit('entries_paused_universe_stale', severity='CRITICAL' if disarm_error else 'ERROR',
-                  details={'disarm_error': disarm_error or ''})
-        for path in sorted(SIGNAL_INBOX.glob('*.json')):
-            try:
-                manager.process_signal(path, pairs, universe_hash)
-            except Exception as exc:
-                log.exception('signal processing failed for %s', path.name)
-                pause_error = None
-                try:
-                    _disarm_execution(adapter, state, 'signal-processing-failure')
-                except Exception as disarm_exc:
-                    log.critical('fail-closed signal disarm also failed: %s', disarm_exc)
-                # V101-NEW-003 fix: pause persistence can itself fail (disk
-                # full, read-only filesystem). That failure must never kill
-                # the supervision loop during exactly the incident where the
-                # loop matters most.
-                try:
-                    guard.set_global_pause('signal-processing-failure-reconcile-required')
-                except Exception as pause_exc:
-                    pause_error = str(pause_exc)
-                    log.critical('could not persist signal-failure global pause: %s', pause_exc)
+                    process_command(adapter, state, guard, path)
+                except Exception as exc:
+                    log.exception('command processing failed for %s', path.name)
                     try:
-                        guard.state['global_pause'] = 'signal-processing-failure-reconcile-required'
-                    except Exception:
-                        pass
-                audit('signal_processing_failed', severity='CRITICAL', details={
-                    'file': path.name, 'error': str(exc),
-                    'pause_persist_error': pause_error or '',
-                })
-        if adapter.trader.is_running():
-            adapter.mirror_positions('PERIODIC_RECONCILIATION')
-        # H-001: 'ok' was hardcoded True, so Docker reported the sidecar healthy
-        # even when the user-data stream was connected-but-unsubscribed and no
-        # order/account events were arriving. Health must reflect the stream
-        # that authoritative order state depends on. Simulation has no exchange
-        # stream, so it is exempt.
-        stream_ok, stream_detail = user_stream_state(mode)
-        runtime_faults = (
-            adapter.runtime_safety_faults()
-            if callable(getattr(adapter, 'runtime_safety_faults', None)) else {})
-        atomic_write_json(RUNTIME / 'sidecar_health.json', {
-            'ok': bool(stream_ok and not runtime_faults),
-            'ts': time.time(), 'execution_mode': mode.value,
-            'user_stream_ok': stream_ok, 'user_stream': stream_detail,
-            'entries_enabled': state.entries(), 'pause_reason': state.data.get('pause_reason', ''),
-            'simulation': state.data.get('simulation', True), 'protection_mode': state.get_mode(),
-            'universe_count': len(pairs), 'universe_fresh': fresh,
-            'sharia_signal_gate_mode': os.getenv('SHARIA_SIGNAL_GATE_MODE', 'cached'),
-            'last_reconciliation_status': state.data.get('last_reconciliation_status', 'NOT_RUN'),
-            'safety_halts': state.data.get('safety_halts', {}),
-            'runtime_safety_faults': runtime_faults,
-        })
-        STOP.wait(1)
+                        _disarm_execution(adapter, state, 'command-processing-failure')
+                    except Exception as disarm_exc:
+                        log.critical('fail-closed command disarm also failed: %s', disarm_exc)
+                    audit('command_processing_failed', severity='CRITICAL', details={
+                        'file': path.name, 'error': str(exc),
+                    })
+            pressure = disk_pressure_reason()
+            if pressure:
+                _disarm_execution(adapter, state, pressure)
+            if time.time() >= next_maintenance:
+                prune_files(
+                    RUNTIME, 'command_result_*.json',
+                    max_files=max(0, int(os.getenv('COMMAND_RESULT_MAX_FILES', '1000'))),
+                    max_age_seconds=max(0, int(os.getenv('COMMAND_RESULT_MAX_AGE_SECONDS', '86400'))),
+                )
+                # H-006: periodic verified online backup of the authoritative DB.
+                try:
+                    backup_interval = int(os.getenv('SQLITE_BACKUP_INTERVAL_SECONDS', '86400'))
+                    if backup_interval > 0 and time.time() >= next_backup:
+                        destination = state.backup(RUNTIME / 'db_backups',
+                                                   retain=int(os.getenv('SQLITE_BACKUP_RETAIN', '14')))
+                        audit('sqlite_backup_verified', details={'path': str(destination)})
+                        next_backup = time.time() + backup_interval
+                except Exception as exc:
+                    audit('sqlite_backup_failed', severity='ERROR', details={'error': str(exc)})
+                    next_backup = time.time() + 3600
+                next_maintenance = time.time() + 60
+            pairs, universe_hash, fresh = universe_state()
+            if not fresh and state.entries():
+                disarm_error = None
+                try:
+                    _disarm_execution(adapter, state, 'stale-or-missing-universe')
+                except Exception as exc:
+                    disarm_error = str(exc)
+                    log.critical('stale-universe fail-closed disarm was incomplete: %s', exc)
+                try:
+                    guard.set_global_pause('stale-or-missing-universe')
+                except Exception as exc:
+                    log.critical('could not persist stale-universe global pause: %s', exc)
+                    disarm_error = (disarm_error + '; ' if disarm_error else '') + str(exc)
+                audit('entries_paused_universe_stale', severity='CRITICAL' if disarm_error else 'ERROR',
+                      details={'disarm_error': disarm_error or ''})
+            for path in sorted(SIGNAL_INBOX.glob('*.json')):
+                try:
+                    manager.process_signal(path, pairs, universe_hash)
+                except Exception as exc:
+                    log.exception('signal processing failed for %s', path.name)
+                    pause_error = None
+                    try:
+                        _disarm_execution(adapter, state, 'signal-processing-failure')
+                    except Exception as disarm_exc:
+                        log.critical('fail-closed signal disarm also failed: %s', disarm_exc)
+                    # V101-NEW-003 fix: pause persistence can itself fail (disk
+                    # full, read-only filesystem). That failure must never kill
+                    # the supervision loop during exactly the incident where the
+                    # loop matters most.
+                    try:
+                        guard.set_global_pause('signal-processing-failure-reconcile-required')
+                    except Exception as pause_exc:
+                        pause_error = str(pause_exc)
+                        log.critical('could not persist signal-failure global pause: %s', pause_exc)
+                        try:
+                            guard.state['global_pause'] = 'signal-processing-failure-reconcile-required'
+                        except Exception:
+                            pass
+                    audit('signal_processing_failed', severity='CRITICAL', details={
+                        'file': path.name, 'error': str(exc),
+                        'pause_persist_error': pause_error or '',
+                    })
+            if adapter.trader.is_running():
+                adapter.mirror_positions('PERIODIC_RECONCILIATION')
+            # H-001: 'ok' was hardcoded True, so Docker reported the sidecar healthy
+            # even when the user-data stream was connected-but-unsubscribed and no
+            # order/account events were arriving. Health must reflect the stream
+            # that authoritative order state depends on. Simulation has no exchange
+            # stream, so it is exempt.
+            stream_ok, stream_detail = user_stream_state(mode)
+            runtime_faults = (
+                adapter.runtime_safety_faults()
+                if callable(getattr(adapter, 'runtime_safety_faults', None)) else {})
+            atomic_write_json(RUNTIME / 'sidecar_health.json', {
+                'ok': bool(stream_ok and not runtime_faults),
+                'ts': time.time(), 'execution_mode': mode.value,
+                'user_stream_ok': stream_ok, 'user_stream': stream_detail,
+                'entries_enabled': state.entries(), 'pause_reason': state.data.get('pause_reason', ''),
+                'simulation': state.data.get('simulation', True), 'protection_mode': state.get_mode(),
+                'universe_count': len(pairs), 'universe_fresh': fresh,
+                'trading_ready': bool(stream_ok and fresh and pairs and state.entries()
+                                      and not runtime_faults and not state.safety_halts()),
+                'readiness_blockers': (["NO_ELIGIBLE_PAIRS"] if not pairs else []) +
+                    (["UNIVERSE_STALE"] if not fresh else []) +
+                    (["ENTRIES_DISARMED"] if not state.entries() else []) +
+                    (["USER_STREAM_UNHEALTHY"] if not stream_ok else []),
+                'sharia_signal_gate_mode': os.getenv('SHARIA_SIGNAL_GATE_MODE', 'cached'),
+                'last_reconciliation_status': state.data.get('last_reconciliation_status', 'NOT_RUN'),
+                'safety_halts': state.data.get('safety_halts', {}),
+                'runtime_safety_faults': runtime_faults,
+            })
+            STOP.wait(1)
 
-    if adapter.trader.is_running() and adapter.trader.pf:
-        adapter.trader.pf.save()
-    audit('sidecar_stopped')
+    finally:
+        shutdown_adapter(adapter, state)
 
 if __name__ == '__main__':
     main()

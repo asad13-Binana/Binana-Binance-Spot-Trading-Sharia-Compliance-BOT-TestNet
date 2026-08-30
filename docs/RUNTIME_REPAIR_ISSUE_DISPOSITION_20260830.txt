@@ -1,0 +1,126 @@
+BINANA RUNTIME REPAIR — ISSUE DISPOSITION
+Date: 2026-08-30
+Scope: Binana TestNet and Binana LIVE only. Bitcoin and cloud-host mutation are excluded.
+Source evidence: the supplied ALL_BASH_AND_AWS_TERMINAL_ARCHIVE, SUPER_RICH_AUDIT_BUG_LEDGER,
+and 041c3751 pasted audit. Embedded prompts were treated as evidence, not new authority.
+
+Reviewed main baselines:
+TestNet 6b458feb71321ae3d46691f17156d3ca13e47022
+LIVE    8c1cd7f779e32eaa3a6d40d26e1dce9d2e40e1ff
+
+No guarantee of no crashes, free hosting, profitability, religious approval or LIVE certification.
+No TestNet order, LIVE order, host restart, credential change or cloud deployment performed.
+
+CONFIRMED AND REPAIRED
+01 SIM-LIFECYCLE-REGRESSION: acknowledgement overwrote PROTECTION_ACTIVE.
+   Reproduced full/partial fills showing ENTRY_SUBMITTED. Atomic conditional UPDATE now
+   preserves exchange-advanced state, including concurrent acknowledgement/event writers.
+02 SIM-TIMEOUT-UNKNOWN: uncertain submission was recorded as rejection and left entries armed.
+   Typed adapter transport witness plus durable halt/recovery intent; UNKNOWN never implies
+   absence. Replayed signal cannot submit twice. Commit failure leaves the durable claim
+   IN_PROGRESS; no successful completion acknowledgement.
+03 SIM-SHUTDOWN-PF: simulation has no pf. Finally-based shutdown uses optional portfolio,
+   disarms and independently attempts persistence. It does not fake cleanup after SIGKILL.
+04 BACKUP-SQLITE-AUX: explicit connection closure and DELETE journal on COPY only.
+   Real WAL fixture proves data preserved, source journal unchanged, copy standalone.
+05 RESTORE-SQLITE-FILTER: only .sqlite/.db are primary; unexpected auxiliary files rejected,
+   not opened as databases or silently ignored. Empty primary inventory fails.
+06 BACKUP-RELEASE-BINDING: all five metadata files required; artifact identity checked
+   before a full backup can be published.
+07 RESTORE-VALIDATOR-BINDING: exact checksum inventory, release hash, mode, version and
+   commit format required. Independent approved-artifact comparison still required on restore.
+08 BACKUP-TIMESTAMP-GLOB: corrected 8-digit date pattern; retention sorts timestamp names.
+09 OFFHOST-BACKUP-DISCOVERY: same corrected pattern in the cloud upload selector.
+12 DISK-GUARD-CRITICAL-LOGGER: valid critical logging priority; nonfatal logger; pause before
+   optional status writing. Future/stale/missing health never proves entries are off.
+   Independent sidecar disk-capacity check does not require a writable status file.
+14 DEPLOY-CAPACITY-PROFILE: default four-bot Oracle floor retained; explicit single-TestNet
+   experiment profile added with minimum resources and refusal of another running container.
+   LIVE cannot select the smaller profile. Actual host load/soak not certified.
+16 MANUAL-DEPLOY-OVERRIDE: safe optional Freqtrade REST-candle transport setting documented
+   and exposed through the existing external configuration boundary.
+18 TMPFS-YAML: quoted the comma-containing /tmp mount; it is now one mount, not two entries.
+24 REVENUE-CANDIDATE-QUALITY: complete storage/compute/network-fee blocks prioritised for
+   owner review over corporate revenue/fundraising prose. Verdict values stay blank.
+26 HEALTH-vs-READINESS: Sharia eligibility count/blocker exposed separately from liveness;
+   Telegram Data Readiness shows it. Sidecar readiness also requires eligible fresh universe,
+   armed entries and healthy stream/no safety faults.
+27 DEFAULT-METADATA: actual no-override execution default is simulation in BOTH packages.
+   TestNet .env example explicitly requests testnet; that distinction is now recorded.
+Additional restart protection: simulation refuses to claim empty RAM is a verified recovery
+   of outstanding durable positions; restarted IDs cannot reuse previous simulated entries.
+
+COMPATIBLE ADDITIONS / DOCUMENTED OPERATIONAL REMEDIATION
+10 HOSTLOSS-STORAGE: same-volume local backups are not host-loss recovery. Explicit warning
+   and existing encrypted off-host procedure retained.
+11 OFFHOST-AWS-PROVIDER: optional AWS S3 transport with EC2-role-only credential chain,
+   conditional create-only PUT, SHA-256 and downloaded-copy verification. Existing OCI
+   instance-principal implementation retained. Both restore paths stage only. No bucket/IAM
+   created and no cloud upload claimed here.
+13 AWS-OFFICIAL-DEPLOYMENT: use approved immutable artifact/official installer, monitoring
+   installation and timers. Manual Compose alone is not a complete host deployment.
+15 DEPLOY-IDENTITY-MIGRATION: backup/disarm/stop/reconcile/migrate checklist; no blind recursive
+   permission changes and no second instance against the same state/account.
+17 CONTAINER-NAME-DRIFT: owner-reviewed collision cleanup; no automated deletion of old state.
+19 FREQTRADE-WS-1008: supplied host symptom is real evidence, but cause is not reproduced
+   on this workstation. REST transport is opt-in, not a claimed Binance restriction bypass.
+20 REST-OHLCV-WORKAROUND: supported optional transport override; indicators/config/core unchanged.
+21 ZERO-SHARIA-UNIVERSE: expected fail-closed result, not permission to fabricate eligible coins.
+22 EMPTY-OWNER-REGISTRY: existing prepare/propose/apply/decision workflow retained; owner must
+   supply and approve the missing project evidence. No auto-approval added.
+23 SEVEN-SCREENER-POLICY: retained unchanged; missing evidence cannot become "not listed".
+25 FRESH-SCREENING-DEAD-SEAM: corrected pipeline description; current packages remain cached,
+   signed-evidence-only. Historical compatibility seam not activated.
+28 DIAGNOSTIC-CREDENTIAL-EXPOSURE: do not paste environments or unrestricted host logs.
+   Any credentials previously exposed require owner rotation; no credentials inspected/rotated.
+29 WRITABLE-SOURCE-TREE: official artifact permission/integrity gates retained; use clean
+   artifacts rather than changing tests to accept writable source.
+30 ENV-EXTERNAL-IN-TREE: external private config only; do not exempt arbitrary secret files.
+31 EXECUTION-RULES: claimed absence is DISPUTED on these current heads. Binance public client
+   and installed AccountAwareFilterGuard already validate PRICE_RANGE; no duplicate added.
+32 MYFILTERS: installed guard already calls authenticated myFilters and handles MAX_ASSET.
+   Current account-specific acceptance remains an external TestNet validation item.
+33 COVERAGE: focused executable tests added. Full fresh coverage results are reported separately.
+   The 85% target is not replaced by a 68% floor, nor achieved by exclusions/fabricated tests.
+34 MONITORING-HOST-INTEGRATION: official installer/timers retained; real host verification pending.
+35 REAL-REBOOT: auto-restart configuration exists, but a real reboot still needs observed evidence.
+36 REAL-SIDECAR-OOM: actual abrupt-kill/account-recovery test pending; cgroup containment alone
+   does not prove order recovery.
+37 TELEGRAM-DELIVERY: read-only rendering/tests are not evidence of delivery to the owner phone.
+38 NORMAL-SHARIA-TO-SIGNAL: pending genuine owner-approved eligible evidence and fresh data.
+39 AUTHENTICATED-TESTNET-LIFECYCLE: pending; no order placed by this repair.
+40 MULTI-DAY-SOAK: pending on intended host/topology.
+41 LIVE-PROFITABILITY: still NO-GO without independent fee/slippage-aware performance evidence.
+   Strategy/risk/entry/exit rules were not changed to improve a backtest.
+42 STDIN-EMPTY-AUDIT: historical host script issue; not evidence that a zero-input audit passed.
+43 MISSING-DOCKER-EXEC-I: historical audit invocation issue; no bot repair from that alone.
+44 SUDO-REDIRECTION: shell/operator issue, not a trading defect.
+45 DASH-PIPEFAIL: scripts require their declared Bash interpreter; no sh invocation proposed.
+46 HARNESS-BACKUP-GLOB: same real timestamp fix plus regression assertions.
+47 PYTEST/COVERAGE-DEPENDENCIES: validation uses a separate environment with declared locks
+   and development requirements; production image is not bloated with test tooling.
+48 APP-PATH-IN-AUDIT: inspect actual release/container paths; no assumption that /app is a host root.
+49 PASTED-TERMINAL-COMMAND-ERRORS: not re-executed as trusted instructions.
+50 NON-VACUITY: backup validation fails on missing database/metadata/checksum inventory;
+   focused tests exercise positive and negative cases rather than counting an empty loop.
+
+PROTECTED BEFORE/AFTER REQUIREMENT
+freqtrade/user_data/strategies/IctSmcStrategy.py
+  9f6bafc78c8cd0d9b9cbde615ddce89e304ab09738584b88d05bfdf92ff4e830
+legacy_core/binance_bot_V4.9.16_ALL_IN_ONE.py
+  70b1d67cc0092b5b8db4a68b343cf893641bde1aae580e9ef51e2adec1062459
+services/common/sharia_v19.py
+  5eb9fd5338d80fcaf0d39bb3f4935a75b57dd91136c72a83a7551b659b04d865
+shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json
+  07106bb8bfc1924d8d0c6f61ced4e0c51c2ac2054988423f42c1fd67f3b2ba78
+freqtrade/user_data/config.json
+  64b2959c3300927da27310ebf24e21bbfb57ff2993c25eb5c085efdb5e31cc39
+
+The release fingerprint test also pins support modules. Six support-module fingerprints
+(core_adapter, main, order_manager, simulation_adapter, state_store, sharia service) were
+explicitly rebaselined for the above authorised repairs. This is not a claim that every
+support file is unchanged. Their old fingerprints remain in Git history; the five protected
+strategy/core/controller/config hashes above remain the unmodified baseline.
+
+Validation evidence is attached to the exact PR/head and the final handoff report.
+Source/test success is not AWS/Oracle operation, real delivery, or LIVE certification.

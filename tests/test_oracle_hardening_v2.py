@@ -31,17 +31,17 @@ PROTECTED = {
     "services/common/evidence_providers.py": "e8c76e1cd75a2847903420b764d4d4669283c1420ebbb0729021b5e565b282cf",
     "services/common/sharia_attestation.py": "55fc7d9b206cf0d4193124bab4d770ae80371dd939054c737c4cfa363c998757",
     "services/common/sharia_v19.py": "5eb9fd5338d80fcaf0d39bb3f4935a75b57dd91136c72a83a7551b659b04d865",
-    "services/execution_sidecar/core_adapter.py": "94370276fa6626cef89e77bbf280b8f6658541d6f8c66c4f96cbc39fb5786ee3",
+    "services/execution_sidecar/core_adapter.py": "647ca0f0e80d2307c98df966f0062830a4616036eff1bf24bdb6927720267da3",
     "services/execution_sidecar/filters.py": "5897ca3ab71c2bda9e096b51aeaf3e9abae40c26048cc615b3ded5bbe6d417a8",
     "services/execution_sidecar/live_evidence.py": "1a10ec57f479b68ba8c26b2a5bf1e9065f68cafa662c75f0ecf456a0d7c76732",
-    "services/execution_sidecar/main.py": "e2608191a2cf427c471c311274cd8e62395f2f4c47ee612c56587baaaab9e788",
-    "services/execution_sidecar/order_manager.py": "e89d143777ba60266a2fafca215ed1293bbb5aee423663596be94892566eded1",
+    "services/execution_sidecar/main.py": "3f9a3beea2d975fc9d8fedcb96d89775b3f5e37e0ff13cfdd3c69dbbb4a0a919",
+    "services/execution_sidecar/order_manager.py": "f1bccb6c9d9003f1966ec672cc6dc845fa5d579e874ae46d1cee4dbc8d147631",
     "services/execution_sidecar/package_mode.py": "4a09dd03e4c23b770d2eaa31fd2ccc6ffe0e8f1c29d2c7b1bc159a1c5db61f22",
     "services/execution_sidecar/protection_modes.py": "fcaf83f7209ff458a8b4c0e14243fc7a4bc5e4166a53c3c44fa9c9dddcc4e541",
     "services/execution_sidecar/reconciler.py": "c3ef1c46abb44001901b9988d94586ff4e33ae928f159385ab004ca4309fa92f",
     "services/execution_sidecar/risk_checks.py": "1664091dfbbcf8fbdcf27363dcb41d85aa4a10eab9849df829bb6d761680d93a",
-    "services/execution_sidecar/simulation_adapter.py": "40b8ef41448c6a46a4b8b800a31cd314e108cfb4da481c912d760e55a8bb0e86",
-    "services/execution_sidecar/state_store.py": "11a25fa87b98008d38055062b13748cdec9e6d1a5e0f9112e80df4c3dbbfd087",
+    "services/execution_sidecar/simulation_adapter.py": "b438c33d8b7e9c1c46432d2a7996aa4070a57cfdc06fb0004f4f01276d311432",
+    "services/execution_sidecar/state_store.py": "fd77b9688970978cfedaa53f526ce6fa4f7f00a12efc20f641f793e5cf9bb767",
     "services/execution_sidecar/user_data_stream.py": "85e64a72d8b60e2e91a9a56fa46e69d3a3970221903919f3820b1ef92ee89c83",
     "services/sharia_rules/engine.py": "3a0b0bea1e2a3bfceda1a7e21e7de4298be3a60f40b6cc17fdc11592b953fce3",
     "services/sharia_screener/approval.py": "f5451c9edb7c36fe73e99e685ce44f9c0569eb60611b2f4a98e4f1eb677abafe",
@@ -50,7 +50,7 @@ PROTECTED = {
     "services/sharia_screener/local_runner.py": "e93fed8ec286dd2978df1bcf518110891523f138030b3c1c4a95731cce65e74f",
     "services/sharia_screener/queue_store.py": "20880168d329a979a75e45a114d80a83fc624ed3387d0c0e3747ea0ff89999d9",
     "services/sharia_screener/runner.py": "7298f5ebad396b7d45849d3344d7218f6be92e70de930dfe19f92973656d4f66",
-    "services/sharia_screener/service.py": "53dd856d8a0cb1243412431802a6a6673d4217a388bbf19c47cc0dd81886f3c6",
+    "services/sharia_screener/service.py": "077f8570d1320ef8aa0af710ce7a4401e50f9e1f76141a2949e8cf191a0a499d",
     "services/sharia_screener/source_discovery.py": "a77c0cab0af7905953761bd8479baa40881e9167b873ceb3e2b9aac9a96522da",
     "services/sharia_screener/source_registry.py": "eab4294edb6d077a8a99e1cafde8d3190fee7881b257b5936d14b0cb0cddecce",
     "services/sharia_screener/verdict_policy.py": "afde5fc2733d6e5a4aea50e436adf3cf55ff83e5d1e32428214f57f8dc6f55e2",
@@ -267,12 +267,15 @@ class OperationalScriptTests(unittest.TestCase):
     def test_backup_uses_python_sqlite_backup_and_restore_integrity(self):
         backup = (ROOT / "deploy/backup_state.sh").read_text(encoding="utf-8")
         restore = (ROOT / "deploy/restore_validate.sh").read_text(encoding="utf-8")
-        self.assertIn("source_db.backup(target_db)", backup)
+        helper = (ROOT / "scripts/backup_integrity.py").read_text(encoding="utf-8")
+        self.assertIn("backup_integrity.py", backup)
+        self.assertIn("backup_integrity.py", restore)
+        self.assertIn("source_db.backup(target_db)", helper)
         self.assertNotIn(".backup '", backup)
         self.assertIn("--no-links --no-devices --no-specials", backup)
         self.assertIn("backup contains a link or special file", restore)
-        self.assertIn("unsafe SHA256SUMS path", restore)
-        self.assertIn("PRAGMA integrity_check", backup + restore)
+        self.assertIn("unsafe SHA256SUMS path", helper)
+        self.assertIn("PRAGMA integrity_check", helper)
         self.assertNotIn(".env", backup)
 
     def test_ssh_validation_precedes_reload(self):

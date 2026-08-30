@@ -35,13 +35,16 @@ while IFS= read -r raw || [[ -n "$raw" ]]; do
   [[ "$raw" =~ ^([A-Z][A-Z0-9_]*)=([^[:space:]]+)$ ]] || fail 'configuration contains an invalid line'
   key=${BASH_REMATCH[1]}; value=${BASH_REMATCH[2]}
   case "$key" in
-    OFFHOST_BACKUP_ENABLED|OCI_NAMESPACE|OCI_BUCKET|OCI_OBJECT_PREFIX|AGE_RECIPIENT) ;;
+    OFFHOST_BACKUP_ENABLED|OFFHOST_PROVIDER|AWS_REGION|AWS_S3_BUCKET|AWS_BUCKET_OWNER|AWS_OBJECT_PREFIX|OCI_NAMESPACE|OCI_BUCKET|OCI_OBJECT_PREFIX|AGE_RECIPIENT) ;;
     *) fail "unsupported configuration key: $key" ;;
   esac
   [[ ! -v "cfg[$key]" ]] || fail "duplicate configuration key: $key"
   cfg[$key]=$value
 done <"$CONFIG"
 namespace=${cfg[OCI_NAMESPACE]:-}; bucket=${cfg[OCI_BUCKET]:-}; prefix=${cfg[OCI_OBJECT_PREFIX]:-}
+provider=${cfg[OFFHOST_PROVIDER]:-oci}
+[[ "$provider" == oci || "$provider" == aws-s3 ]] || fail 'unsupported off-host provider'
+if [[ "$provider" == oci ]]; then
 [[ "$namespace" =~ ^[A-Za-z0-9._-]{1,128}$ ]] || fail 'OCI_NAMESPACE is invalid'
 [[ "$bucket" =~ ^[A-Za-z0-9._-]{1,256}$ ]] || fail 'OCI_BUCKET is invalid'
 [[ "$prefix" =~ ^[A-Za-z0-9._/-]{1,128}$ && "$prefix" != /* && "$prefix" != */ && "$prefix" != *..* ]] || fail 'OCI_OBJECT_PREFIX is invalid'
@@ -51,12 +54,23 @@ case $(dpkg --print-architecture) in
   *) fail 'OCI CLI image is pinned only for arm64 and amd64' ;;
 esac
 docker image inspect "$oci_image" >/dev/null 2>&1 || fail 'pinned OCI CLI image is not installed'
+else
+  prefix=${cfg[AWS_OBJECT_PREFIX]:-}
+  [[ "$prefix" == "$INSTANCE_SLUG" ]] || fail 'S3 prefix must match instance identity'
+  command -v aws >/dev/null || fail 'operator-installed AWS CLI v2 is required'
+fi
 [[ ! -e "$BACKUP_ROOT/$stamp" ]] || fail 'that timestamp already exists locally; refusing overwrite'
 
 stage=$(mktemp -d "$BACKUP_ROOT/.restore.XXXXXX")
 trap 'rm -rf --one-file-system -- "$stage"' EXIT
 object=$prefix/$stamp.tar.age
 for suffix in '' .sha256; do
+  if [[ "$provider" == aws-s3 ]]; then
+    python3 "$SCRIPT_DIR/../scripts/s3_backup_transport.py" --download \
+      "${cfg[AWS_REGION]:-}" "${cfg[AWS_S3_BUCKET]:-}" "${cfg[AWS_BUCKET_OWNER]:-}" \
+      "$object$suffix" "$stage/$stamp.tar.age$suffix"
+    continue
+  fi
   docker run --rm --pull never --read-only --cap-drop ALL \
     --security-opt no-new-privileges --pids-limit 100 --memory 512m --cpus 1 \
     --tmpfs /tmp:rw,noexec,nosuid,nodev,size=64m \

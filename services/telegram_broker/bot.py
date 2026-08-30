@@ -1052,6 +1052,9 @@ def _data_readiness() -> str:
         'sharia_screener': {
             'ok': sharia.get('ok'),
             'ready_for_screening': sharia.get('ready_for_screening'),
+            'sharia_trade_ready': sharia.get('sharia_trade_ready'),
+            'eligible_assets': sharia.get('eligible_assets'),
+            'eligibility_blocker': sharia.get('eligibility_blocker'),
             'ts': sharia.get('ts'),
         },
         'telegram': {'ok': telegram.get('ok'), 'ts': telegram.get('ts')},

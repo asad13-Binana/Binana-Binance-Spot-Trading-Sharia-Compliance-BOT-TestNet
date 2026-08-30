@@ -530,6 +530,8 @@ class ShariaScreenerService:
 
     # ---- health ----
     def write_health(self):
+        from services.sharia_screener.readiness import screening_readiness
+        from services.common.paths import SHARIA_FILE
         available, reason = self.runner.available()
         # SHARIA-HEALTH-001 / F5-004: 'ok' was hardcoded True, so Docker (and
         # therefore the whole five-service stack) reported healthy even when the
@@ -539,6 +541,7 @@ class ShariaScreenerService:
         # signal is silently rejected. Process liveness and screening readiness
         # are now reported separately, and 'ok' requires both.
         atomic_write_json(SHARIA_RUNTIME_DIR / 'health.json', {
+            **screening_readiness(SHARIA_FILE),
             'ok': bool(available), 'process_alive': True,
             'ready_for_screening': bool(available),
             'degraded_reason': '' if available else (reason or 'screening API unavailable'),

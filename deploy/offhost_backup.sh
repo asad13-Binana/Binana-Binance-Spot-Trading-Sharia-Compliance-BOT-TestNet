@@ -20,12 +20,13 @@ fail(){ printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 [[ $# -le 1 ]] || fail 'usage: offhost_backup.sh [--preflight]'
 mode=${1:---upload}
 [[ "$mode" == --upload || "$mode" == --preflight ]] || fail 'unknown option'
+provider=oci
 stage=
 on_exit(){
   code=$?
   [[ -z "$stage" || ! -d "$stage" ]] || rm -rf --one-file-system -- "$stage"
   if (( code != 0 )) && [[ -d $(dirname "$STATUS") && ! -L $(dirname "$STATUS") ]]; then
-    python3 - "$STATUS" "$code" <<'PY' >/dev/null 2>&1 || true
+    python3 - "$STATUS" "$code" "$provider" <<'PY' >/dev/null 2>&1 || true
 import json, os, pathlib, sys, tempfile
 from datetime import datetime, timezone
 path = pathlib.Path(sys.argv[1])
@@ -33,7 +34,7 @@ payload = {
     "ok": False,
     "failed_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     "exit_code": int(sys.argv[2]),
-    "authentication": "instance_principal",
+    "authentication": "ec2_instance_role" if sys.argv[3] == "aws-s3" else "instance_principal",
 }
 fd, temporary = tempfile.mkstemp(prefix=".offhost-status.", dir=path.parent)
 with os.fdopen(fd, "w", encoding="utf-8") as handle:
@@ -66,7 +67,7 @@ while IFS= read -r raw || [[ -n "$raw" ]]; do
   key=${BASH_REMATCH[1]}
   value=${BASH_REMATCH[2]}
   case "$key" in
-    OFFHOST_BACKUP_ENABLED|OCI_NAMESPACE|OCI_BUCKET|OCI_OBJECT_PREFIX|AGE_RECIPIENT) ;;
+    OFFHOST_BACKUP_ENABLED|OFFHOST_PROVIDER|AWS_REGION|AWS_S3_BUCKET|AWS_BUCKET_OWNER|AWS_OBJECT_PREFIX|OCI_NAMESPACE|OCI_BUCKET|OCI_OBJECT_PREFIX|AGE_RECIPIENT) ;;
     *) fail "unsupported configuration key: $key" ;;
   esac
   [[ ! -v "cfg[$key]" ]] || fail "duplicate configuration key: $key"
@@ -74,15 +75,24 @@ while IFS= read -r raw || [[ -n "$raw" ]]; do
 done <"$CONFIG"
 
 [[ ${cfg[OFFHOST_BACKUP_ENABLED]:-} == true ]] || fail 'off-host backup is not explicitly enabled'
+provider=${cfg[OFFHOST_PROVIDER]:-oci}
+[[ "$provider" == oci || "$provider" == aws-s3 ]] || fail 'unsupported off-host provider'
 namespace=${cfg[OCI_NAMESPACE]:-}
 bucket=${cfg[OCI_BUCKET]:-}
 prefix=${cfg[OCI_OBJECT_PREFIX]:-}
 recipient=${cfg[AGE_RECIPIENT]:-}
+if [[ "$provider" == oci ]]; then
 [[ "$namespace" =~ ^[A-Za-z0-9._-]{1,128}$ ]] || fail 'OCI_NAMESPACE is invalid'
 [[ "$bucket" =~ ^[A-Za-z0-9._-]{1,256}$ ]] || fail 'OCI_BUCKET is invalid'
 [[ "$prefix" =~ ^[A-Za-z0-9._/-]{1,128}$ && "$prefix" != /* && "$prefix" != */ && "$prefix" != *..* ]] || fail 'OCI_OBJECT_PREFIX is invalid'
+else
+  prefix=${cfg[AWS_OBJECT_PREFIX]:-}
+  [[ "$prefix" == "$INSTANCE_SLUG" ]] || fail 'AWS_OBJECT_PREFIX must match the immutable instance slug'
+  command -v aws >/dev/null || fail 'operator-installed AWS CLI v2 is required'
+fi
 [[ "$recipient" =~ ^age1[0-9a-z]{20,100}$ ]] || fail 'AGE_RECIPIENT is not an age public recipient'
 
+if [[ "$provider" == oci ]]; then
 case $(dpkg --print-architecture) in
   arm64) oci_image=$OCI_IMAGE_ARM64 ;;
   amd64) oci_image=$OCI_IMAGE_AMD64 ;;
@@ -90,6 +100,8 @@ case $(dpkg --print-architecture) in
 esac
 [[ "$oci_image" == *@sha256:* ]] || fail 'OCI CLI image is not digest pinned'
 docker image inspect "$oci_image" >/dev/null 2>&1 || fail 'pinned OCI CLI image is not installed; run configure_offhost_backup.sh'
+
+fi
 
 run_oci(){
   docker run --rm --pull never --read-only --cap-drop ALL \
@@ -102,16 +114,25 @@ run_oci(){
 exec 9>"$LOCK"
 flock -n 9 || fail 'another off-host backup is running'
 
-# Prove the instance principal can see exactly the configured private bucket.
+run_s3(){
+  python3 "$SCRIPT_DIR/../scripts/s3_backup_transport.py" \
+    "${cfg[AWS_REGION]:-}" "${cfg[AWS_S3_BUCKET]:-}" "${cfg[AWS_BUCKET_OWNER]:-}" "$@"
+}
+
+# Prove access to exactly the configured bucket without reading bot secrets.
+if [[ "$provider" == oci ]]; then
 run_oci os bucket get --auth instance_principal \
   --namespace-name "$namespace" --name "$bucket" >/dev/null
+else
+  run_s3 "$prefix/preflight"
+fi
 if [[ "$mode" == --preflight ]]; then
   echo 'offhost_backup_preflight=PASS; no backup was uploaded'
   exit 0
 fi
 
 latest=$(find "$BACKUP_ROOT" -mindepth 1 -maxdepth 1 -type d \
-  -name '20????????T??????Z' -printf '%f\n' | sort -r | sed -n '1p')
+  -name '20??????T??????Z' -printf '%f\n' | sort -r | sed -n '1p')
 [[ "$latest" =~ ^20[0-9]{6}T[0-9]{6}Z$ ]] || fail 'no timestamped local backup is available'
 source_backup=$BACKUP_ROOT/$latest
 "$VALIDATOR" "$source_backup" >/dev/null
@@ -129,7 +150,11 @@ import hashlib
 import pathlib
 import sys
 
-digest = hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).digest()
+hasher = hashlib.sha256()
+with pathlib.Path(sys.argv[1]).open('rb') as handle:
+    for block in iter(lambda: handle.read(1024 * 1024), b''):
+        hasher.update(block)
+digest = hasher.digest()
 print(digest.hex(), base64.b64encode(digest).decode("ascii"))
 PY
 )
@@ -137,6 +162,7 @@ PY
 printf '%s  %s\n' "$sha_hex" "$(basename "$encrypted")" >"$stage/$latest.tar.age.sha256"
 chmod 0600 "$stage/$latest.tar.age.sha256"
 
+if [[ "$provider" == oci ]]; then
 docker run --rm --pull never --read-only --cap-drop ALL \
   --security-opt no-new-privileges --pids-limit 100 --memory 512m --cpus 1 \
   --tmpfs /tmp:rw,noexec,nosuid,nodev,size=64m \
@@ -160,6 +186,9 @@ docker run --rm --pull never --read-only --cap-drop ALL \
   --name "$remote_object" --file /backup/verified-download.age >/dev/null
 [[ $(sha256sum "$stage/verified-download.age" | awk '{print $1}') == "$sha_hex" ]] || \
   fail 'downloaded Object Storage copy does not match the encrypted local backup'
+else
+  run_s3 "$remote_object" "$encrypted"
+fi
 
 sidecar=$stage/$latest.tar.age.sha256
 sidecar_sha_b64=$(python3 - "$sidecar" <<'PY'
@@ -167,6 +196,7 @@ import base64, hashlib, pathlib, sys
 print(base64.b64encode(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).digest()).decode("ascii"))
 PY
 )
+if [[ "$provider" == oci ]]; then
 docker run --rm --pull never --read-only --cap-drop ALL \
   --security-opt no-new-privileges --pids-limit 100 --memory 512m --cpus 1 \
   --tmpfs /tmp:rw,noexec,nosuid,nodev,size=64m \
@@ -177,10 +207,13 @@ docker run --rm --pull never --read-only --cap-drop ALL \
   --name "$remote_object.sha256" --file "/backup/$(basename "$sidecar")" \
   --no-overwrite --no-multipart --verify-checksum --opc-checksum-algorithm SHA256 \
   --opc-content-sha256 "$sidecar_sha_b64" --content-type text/plain >/dev/null
+else
+  run_s3 "$remote_object.sha256" "$sidecar"
+fi
 
 status_dir=$(dirname "$STATUS")
 [[ -d "$status_dir" && ! -L "$status_dir" ]] || fail 'status directory is unavailable or a symlink'
-python3 - "$STATUS" "$latest" "$remote_object" "$sha_hex" <<'PY'
+python3 - "$STATUS" "$latest" "$remote_object" "$sha_hex" "$provider" <<'PY'
 import json
 import os
 import pathlib
@@ -195,7 +228,7 @@ payload = {
     "source_backup": sys.argv[2],
     "object_name": sys.argv[3],
     "encrypted_sha256": sys.argv[4],
-    "authentication": "instance_principal",
+    "authentication": "ec2_instance_role" if sys.argv[5] == "aws-s3" else "instance_principal",
 }
 fd, temporary = tempfile.mkstemp(prefix=".offhost-status.", dir=path.parent)
 with os.fdopen(fd, "w", encoding="utf-8") as handle:

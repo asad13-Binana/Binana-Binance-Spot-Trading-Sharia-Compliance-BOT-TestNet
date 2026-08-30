@@ -241,7 +241,7 @@ class ShippedPackageConsistencyTests(unittest.TestCase):
         self.assertEqual(validation['package_interlock']['release_mode'], mode)
         self.assertEqual(
             validation['default_execution_mode'],
-            'simulation' if mode == 'live' else 'testnet')
+            'simulation')
         self.assertIs(validation['production_live_certified'], False)
         self.assertIs(validation['core_strategy_changed'], False)
         self.assertEqual(manifest['release'], f'{version}-{mode.upper()}')

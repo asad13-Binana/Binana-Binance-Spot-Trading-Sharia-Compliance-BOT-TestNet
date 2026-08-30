@@ -31,11 +31,9 @@ class OrderManager:
       4. cached V19.1 status gate (current GREEN/GREEN_AVOID_OPTIONAL record);
       5. freshness/universe/risk guard;
       6. entries armed check;
-      7. FRESH V19.1 screening of the exact pair (master protocol 8.5):
-         a signed screening request is enqueued and the signal waits — without
-         blocking the command loop — for a signed, validated, trade-eligible
-         result. Timeout, invalid, mismatched or non-eligible results reject
-         the signal;
+      7. The package requires cached, signed V19.1 evidence. The legacy fresh
+         screening seam below is retained for compatibility, not activated;
+         no signal-time network scan replaces the existing evidence gate.
       8. durable claim, then submission through the adapter lifecycle (the
          deterministic simulator in simulation mode — C-004 — or the preserved
          core in testnet/live).
@@ -222,15 +220,29 @@ class OrderManager:
         simulation = bool(self.state.data.get('simulation', True))
         # C-004 fix: simulation submits through the same adapter lifecycle as
         # testnet/live (the adapter is the deterministic simulator there).
-        accepted, msg = self.adapter.submit(
-            sig['symbol'], f"Freqtrade signal {sig['signal_id']} candle {sig['candle_time']}")
+        try:
+            accepted, msg = self.adapter.submit(
+                sig['symbol'], f"Freqtrade signal {sig['signal_id']} candle {sig['candle_time']}")
+            outcome = 'ACCEPTED' if accepted else (
+                'REJECTED' if getattr(self.adapter, 'last_submission_outcome', None)
+                == 'REJECTED' else 'UNKNOWN')
+        except Exception:
+            accepted, msg, outcome = False, 'submission outcome unknown; reconcile required', 'UNKNOWN'
+        if outcome == 'UNKNOWN':
+            # Disarm both paths even when persistence subsequently fails. The
+            # IN_PROGRESS token remains reserved until a durable outcome exists.
+            self._pause_entries('submission-unknown-reconcile-required')
+            self.store.latch_safety(
+                'submission:' + trade_id, 'submission outcome unknown',
+                symbol=sig['symbol'], kind='reconciliation',
+                details={'signal_id': trade_id, 'outcome': 'UNKNOWN'})
+            self.guard.set_global_pause('submission-unknown-reconcile-required')
+        self.store.finalize_submission(trade_id, outcome)
         label = 'simulated:' if simulation else ''
-        result = (label + 'accepted') if accepted else (label + 'rejected:' + str(msg))
+        result = (label + 'UNKNOWN:reconcile-required' if outcome == 'UNKNOWN' else
+                  (label + 'accepted') if accepted else (label + 'rejected:' + str(msg)))
         self.guard.record(sig, result)
         self.store.record_signal(sig, result)
-        self.store.upsert_trade(trade_id, sig['pair'],
-                                lifecycle_state='ENTRY_SUBMITTED' if accepted else 'ERROR',
-                                reconciliation_status='SUBMITTED' if accepted else 'ENTRY_REJECTED')
         if accepted:
             # Close the gap between REST acceptance, an early user-stream event,
             # and the next periodic reconciliation pass.

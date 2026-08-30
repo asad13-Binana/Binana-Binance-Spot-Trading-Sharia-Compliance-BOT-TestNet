@@ -31,7 +31,7 @@ status = json.loads((root / 'VALIDATION_STATUS.json').read_text(encoding='utf-8'
 manifest = json.loads((root / 'RELEASE_MANIFEST.json').read_text(encoding='utf-8'))
 problems = []
 revision = status.get('revision')
-expected_default = 'simulation' if mode == 'live' else 'testnet'
+expected_default = 'simulation'
 if status.get('release') != version:
     problems.append(f'validation release {status.get("release")!r} != {version!r}')
 if not isinstance(revision, str) or not revision or not version.endswith(revision):

@@ -564,6 +564,31 @@ class StateStore:
         with self._connect() as con:
             con.execute(sql, values)
 
+    def finalize_submission(self, trade_id: str, outcome: str):
+        """Record the transport result without overwriting an earlier stream fill.
+
+        The conditional UPDATE is atomic with concurrent SQLite writers. UNKNOWN
+        never means rejected/flat, even when an exchange event arrived first.
+        """
+        states = {'ACCEPTED': ('ENTRY_SUBMITTED', 'SUBMITTED'),
+                  'REJECTED': ('ERROR', 'ENTRY_REJECTED'),
+                  'UNKNOWN': ('RECONCILIATION_REQUIRED', 'SUBMISSION_UNKNOWN')}
+        lifecycle, status = states[outcome]
+        try:
+            with self._connect() as con:
+                con.execute(
+                    '''UPDATE trade_records SET lifecycle_state=?,
+                       reconciliation_status=?,updated_at=?
+                       WHERE trade_id=? AND lifecycle_state='SIGNAL_APPROVED' ''',
+                    (lifecycle, status, self._now(), trade_id))
+                if outcome == 'UNKNOWN':
+                    con.execute(
+                        '''UPDATE trade_records SET reconciliation_status=?,updated_at=?
+                           WHERE trade_id=?''', (status, self._now(), trade_id))
+        except Exception as exc:
+            self._mark_durability_fault(exc)
+            raise
+
     @staticmethod
     def _symbol_to_pair(symbol: str) -> str:
         symbol = str(symbol or '').upper()
