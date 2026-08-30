@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
 # shellcheck source=deploy/instance_identity.sh
 source "$SCRIPT_DIR/instance_identity.sh"
@@ -12,6 +13,7 @@ BACKUP_RETAIN=${BACKUP_RETAIN:-14}
 install -d -m 0700 -o root -g root "$BACKUP_ROOT"
 exec 9>"$BACKUP_ROOT/.backup.lock"
 flock -n 9 || { echo 'ERROR: another backup is running' >&2; exit 1; }
+python3 "$SCRIPT_DIR/../scripts/backup_integrity.py" release "$APP_ROOT/current" "$INSTANCE_MODE" >/dev/null
 stamp=$(date -u +%Y%m%dT%H%M%SZ)
 stage=$(mktemp -d "$BACKUP_ROOT/.stage.XXXXXX")
 trap 'rm -rf -- "$stage"' EXIT
@@ -23,31 +25,19 @@ while IFS= read -r -d '' database; do
   relative=${database#"$PERSIST/"}
   target="$stage/sqlite/$relative"
   install -d -m 0700 "$(dirname -- "$target")"
-  python3 - "$database" "$target" <<'PY'
-import pathlib
-import sqlite3
-import sys
-
-source = pathlib.Path(sys.argv[1])
-target = pathlib.Path(sys.argv[2])
-with sqlite3.connect(f"file:{source.as_posix()}?mode=ro", uri=True, timeout=10) as source_db:
-    with sqlite3.connect(target, timeout=10) as target_db:
-        source_db.backup(target_db)
-with sqlite3.connect(f"file:{target.as_posix()}?mode=ro", uri=True, timeout=10) as check_db:
-    result = check_db.execute("PRAGMA integrity_check").fetchone()
-if result != ("ok",):
-    raise SystemExit(f"SQLite backup failed integrity check: {source}")
-PY
+  python3 "$SCRIPT_DIR/../scripts/backup_integrity.py" snapshot "$database" "$target"
 done < <(find "$PERSIST" -xdev -type f \( -name '*.sqlite' -o -name '*.db' \) -print0)
 for metadata in RELEASE_VERSION RELEASE_MODE RELEASE_SHA256.txt RELEASE_MANIFEST.json .git-commit; do
-  [[ -f "$APP_ROOT/current/$metadata" ]] && install -m 0600 "$APP_ROOT/current/$metadata" "$stage/release/$metadata"
+  install -m 0600 "$APP_ROOT/current/$metadata" "$stage/release/$metadata"
 done
 (cd "$stage" && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum >SHA256SUMS)
 destination="$BACKUP_ROOT/$stamp"
-mv "$stage" "$destination"
+[[ ! -e "$destination" ]] || { echo 'ERROR: timestamped backup already exists' >&2; exit 1; }
+python3 "$SCRIPT_DIR/../scripts/backup_integrity.py" validate "$stage" "$INSTANCE_MODE" >/dev/null
+mv -T "$stage" "$destination"
 trap - EXIT
-find "$BACKUP_ROOT" -mindepth 1 -maxdepth 1 -type d -name '20????????T??????Z' -printf '%T@ %p\n' | \
-  sort -nr | awk -v keep="$BACKUP_RETAIN" 'NR>keep {$1=""; sub(/^ /,""); print}' | while IFS= read -r old; do
+find "$BACKUP_ROOT" -mindepth 1 -maxdepth 1 -type d -name '20??????T??????Z' -printf '%p\n' | \
+  sort -r | awk -v keep="$BACKUP_RETAIN" 'NR>keep {print}' | while IFS= read -r old; do
     [[ -n "$old" && "$(dirname -- "$(readlink -f -- "$old")")" == "$(readlink -f -- "$BACKUP_ROOT")" ]] && rm -rf -- "$old"
   done
 echo "backup_created=$destination (secrets excluded)"

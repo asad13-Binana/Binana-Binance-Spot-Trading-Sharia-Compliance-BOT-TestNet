@@ -21,6 +21,9 @@ need(){ command -v "$1" >/dev/null 2>&1 || fail "required command missing after 
 valid_account(){ [[ "$1" =~ ^[a-z_][a-z0-9_-]{0,30}$ ]]; }
 valid_positive_integer(){ [[ "$1" =~ ^[0-9]+$ ]] && (( 10#$1 > 0 )); }
 
+source "$SCRIPT_DIR/lib/capacity_profile.sh"
+apply_capacity_profile || fail 'capacity profile rejected'
+
 valid_positive_integer "$MIN_PHYSICAL_MEMORY_MIB" || fail 'MIN_PHYSICAL_MEMORY_MIB must be a positive integer'
 valid_positive_integer "$MIN_TOTAL_MEMORY_MIB" || fail 'MIN_TOTAL_MEMORY_MIB must be a positive integer'
 valid_positive_integer "$MIN_FREE_DISK_GIB" || fail 'MIN_FREE_DISK_GIB must be a positive integer'

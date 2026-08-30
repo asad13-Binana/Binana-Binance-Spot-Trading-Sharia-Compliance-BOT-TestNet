@@ -232,6 +232,9 @@ services:
       FREQTRADE__API_SERVER__PASSWORD: ${FREQTRADE_API_PASSWORD:?set FREQTRADE_API_PASSWORD}
       FREQTRADE__API_SERVER__JWT_SECRET_KEY: ${FREQTRADE_API_JWT_SECRET:?set FREQTRADE_API_JWT_SECRET}
       FREQTRADE__API_SERVER__WS_TOKEN: ${FREQTRADE_API_WS_TOKEN:?set FREQTRADE_API_WS_TOKEN}
+      # Optional transport-only workaround for hosts whose market WebSocket
+      # is rejected. Candles/strategy stay unchanged; REST freshness still gates.
+      FREQTRADE__EXCHANGE__ENABLE_WS: ${FREQTRADE_ENABLE_WS:-true}
       # Freqtrade 2026.6 removes the file:// prefix before opening a local
       # RemotePairList. Four slashes therefore preserve the required leading
       # slash. Use the supported environment override so the protected base
@@ -263,7 +266,7 @@ services:
     cpus: 0.15
     pids_limit: 192
     cap_drop: [ALL]
-    tmpfs: [/tmp:size=64m,mode=1777]
+    tmpfs: ["/tmp:size=64m,mode=1777"]
     stop_grace_period: 2m
     security_opt: [no-new-privileges:true]
     healthcheck:
@@ -289,6 +292,7 @@ services:
       BOT_ENVIRONMENT: ${BOT_ENVIRONMENT:?set BOT_ENVIRONMENT}
       BOT_INSTANCE_ID: ${BOT_INSTANCE_ID:?set BOT_INSTANCE_ID}
       EXECUTION_MODE: ${EXECUTION_MODE:-simulation}
+      DISK_CRITICAL_PERCENT: ${DISK_CRITICAL_PERCENT:-90}
       BINANCE_API_KEY: ${BINANCE_API_KEY:-}
       BINANCE_API_SECRET: ${BINANCE_API_SECRET:-}
       BINANCE_TESTNET: ${BINANCE_TESTNET:-true}

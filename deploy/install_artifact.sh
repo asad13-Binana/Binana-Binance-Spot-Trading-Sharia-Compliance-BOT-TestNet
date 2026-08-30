@@ -100,7 +100,7 @@ text = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
 names = set(re.findall(r"\$\{([A-Za-z_][A-Za-z0-9_]*)", text))
 names.update({
     "BOT_NAMESPACE", "MIN_PHYSICAL_MEMORY_MIB", "MIN_TOTAL_MEMORY_MIB",
-    "MIN_CPU_COUNT",
+    "MIN_CPU_COUNT", "DEPLOYMENT_PROFILE",
     "LEGACY_HALAL_FILE", "LEGACY_RUNTIME_DIR", "SHARIA_EVIDENCE_DIR",
     "SHARIA_FILE", "SHARIA_SOURCE_REGISTRY", "SIGNAL_INBOX", "UNIVERSE_FILE",
 })
@@ -151,6 +151,8 @@ release_mode=$(stat -Lc '%a' "$RELEASES")
 
 # Require the declared capacity for the shared four-bot Oracle host. A 1 GiB
 # E2 micro and the former 1-OCPU/6-GB topology are unsupported.
+source "$SCRIPT_DIR/lib/capacity_profile.sh"
+apply_capacity_profile || fail 'capacity profile rejected'
 physical_mib=$(awk '/MemTotal/{print int($2/1024)}' /proc/meminfo)
 swap_mib=$(awk '/SwapTotal/{print int($2/1024)}' /proc/meminfo)
 total_mib=$((physical_mib + swap_mib))

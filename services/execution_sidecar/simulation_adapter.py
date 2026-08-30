@@ -48,11 +48,25 @@ class SimulationAdapter:
 
     # ---- lifecycle ----
     def start(self):
+        if self.state_store is not None:
+            with self.state_store._connect() as con:
+                maximum = con.execute('SELECT MAX(entry_order_id) FROM trade_records').fetchone()[0]
+                active = con.execute(
+                    "SELECT COUNT(*) FROM trade_records WHERE lifecycle_state NOT IN ('EXIT_FILLED','ERROR')").fetchone()[0]
+            # Reusing simulation IDs after restart can correlate a new event
+            # with an old position. Continue the deterministic ID sequence.
+            self._counter = max(self._counter, (int(maximum or 100000) - 100000) // 10)
+            if active and not self.sim_positions:
+                self.state_store.latch_safety(
+                    'simulation-restart', 'simulation positions require recovery after restart',
+                    kind='reconciliation', details={'active_records': active})
         self.trader._running = True
         audit('simulation_adapter_started', details={'deterministic': True})
         return True
 
     def set_enabled(self, on: bool):
+        if on and self.state_store and self.state_store.safety_halts():
+            raise RuntimeError('simulation remains disabled while reconciliation is pending')
         return 'ON' if on else 'OFF'
 
     def _next_fault(self) -> str:
@@ -82,6 +96,7 @@ class SimulationAdapter:
 
     def submit(self, symbol: str, note: str = ''):
         """Deterministic entry + protection lifecycle with injectable faults."""
+        self.last_submission_outcome = 'REJECTED'
         if not self.trader.is_running():
             return False, 'simulation adapter not started'
         symbol = str(symbol).upper()
@@ -97,6 +112,7 @@ class SimulationAdapter:
         ts = int(time.time() * 1000)
 
         if fault == 'timeout':
+            self.last_submission_outcome = 'UNKNOWN'
             audit('simulated_submit_timeout', severity='WARNING',
                   details={'symbol': symbol, 'note': note})
             return False, ('SIMULATED network timeout after possible acceptance — '
@@ -136,6 +152,7 @@ class SimulationAdapter:
             'partial': fault == 'partial_fill',
         }
         detail = 'partial fill protected' if fault == 'partial_fill' else 'filled and protected'
+        self.last_submission_outcome = 'ACCEPTED'
         return True, (f'SIMULATED {symbol} entry {detail} '
                       f'(order {entry_order_id}, list {list_id})')
 
@@ -217,6 +234,15 @@ class SimulationAdapter:
         return len(self.sim_positions)
 
     def verified_reconcile(self) -> dict:
+        if self.state_store is not None:
+            # The simulator has no external exchange from which to recover an
+            # uncertain order. Never clear a durable incident using empty RAM.
+            with self.state_store._connect() as con:
+                active = {row[0].replace('/', '') for row in con.execute(
+                    "SELECT pair FROM trade_records WHERE lifecycle_state NOT IN ('EXIT_FILLED','ERROR')")}
+            if self.state_store.safety_halts() or active != set(self.sim_positions):
+                return {'ok': False, 'mirrored': 0,
+                        'detail': 'simulation state uncertain; durable reconciliation required'}
         mirrored = self.mirror_positions('RECONCILED_SIMULATION')
         return {'ok': True, 'endpoints': {'simulation': {'ok': True}},
                 'mirrored': mirrored,

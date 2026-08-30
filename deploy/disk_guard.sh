@@ -19,20 +19,6 @@ exit_code=0
 if (( used >= CRITICAL_PERCENT )); then status=critical; severity=CRITICAL; exit_code=2
 elif (( used >= WARNING_PERCENT )); then status=warning; severity=WARNING; exit_code=1
 fi
-python3 - "$PERSIST/runtime/disk_status.json" "$status" "$used" "$WARNING_PERCENT" "$CRITICAL_PERCENT" <<'PY'
-import json, os, pathlib, sys, tempfile
-from datetime import datetime, timezone
-path = pathlib.Path(sys.argv[1])
-path.parent.mkdir(parents=True, exist_ok=True)
-payload = {"status": sys.argv[2], "used_percent": int(sys.argv[3]),
-           "warning_percent": int(sys.argv[4]), "critical_percent": int(sys.argv[5]),
-           "generated_at": datetime.now(timezone.utc).isoformat()}
-fd, temporary = tempfile.mkstemp(prefix=".disk-status.", dir=path.parent)
-with os.fdopen(fd, "w", encoding="utf-8") as handle:
-    json.dump(payload, handle, sort_keys=True); handle.write("\n"); handle.flush(); os.fsync(handle.fileno())
-os.replace(temporary, path)
-PY
-logger -p "user.$severity" -t binana-disk-guard "status=$status used_percent=$used"
 if [[ "$status" == critical ]]; then
   entries_enabled=$(python3 - "$PERSIST/runtime/sidecar_health.json" <<'PY'
 import json
@@ -42,7 +28,7 @@ import time
 path = pathlib.Path(sys.argv[1])
 try:
     value = json.loads(path.read_text(encoding="utf-8")).get("entries_enabled")
-    fresh = time.time() - path.stat().st_mtime <= 30
+    fresh = 0 <= time.time() - path.stat().st_mtime <= 30
 except Exception:
     value = None
     fresh = False
@@ -51,10 +37,10 @@ PY
   )
   if [[ "$entries_enabled" == true ]]; then
     release_hash=$(awk 'NF {print $1; exit}' "$APP_ROOT/current/RELEASE_SHA256.txt" 2>/dev/null || true)
-    [[ "$release_hash" =~ ^[0-9a-f]{64}$ ]] || { logger -p user.crit -t binana-disk-guard 'cannot pause entries: release hash unavailable'; exit 3; }
+    [[ "$release_hash" =~ ^[0-9a-f]{64}$ ]] || { logger -p user.crit -t binana-disk-guard 'cannot pause entries: release hash unavailable' || true; exit 3; }
     declare -A DISK_ENV=()
-    secure_env_read "$ENV_FILE" DISK_ENV || { logger -p user.crit -t binana-disk-guard 'cannot pause entries: secure env invalid'; exit 3; }
-    [[ -n "${DISK_ENV[COMMAND_HMAC_KEY]:-}" ]] || { logger -p user.crit -t binana-disk-guard 'cannot pause entries: command key unavailable'; exit 3; }
+    secure_env_read "$ENV_FILE" DISK_ENV || { logger -p user.crit -t binana-disk-guard 'cannot pause entries: secure env invalid' || true; exit 3; }
+    [[ -n "${DISK_ENV[COMMAND_HMAC_KEY]:-}" ]] || { logger -p user.crit -t binana-disk-guard 'cannot pause entries: command key unavailable' || true; exit 3; }
     PYTHONPATH="$APP_ROOT/current" ENVELOPE_RELEASE_HASH="$release_hash" \
       COMMAND_HMAC_KEY="${DISK_ENV[COMMAND_HMAC_KEY]}" python3 - "$PERSIST/commands/inbox" <<'PY'
 import json
@@ -94,7 +80,21 @@ except BaseException:
         pass
     raise
 PY
-    logger -p user.crit -t binana-disk-guard 'critical disk pressure: authenticated pause-new-entries command queued'
+    logger -p user.crit -t binana-disk-guard 'critical disk pressure: authenticated pause-new-entries command queued' || true
   fi
 fi
+python3 - "$PERSIST/runtime/disk_status.json" "$status" "$used" "$WARNING_PERCENT" "$CRITICAL_PERCENT" <<'PY' || exit_code=3
+import json, os, pathlib, sys, tempfile
+from datetime import datetime, timezone
+path = pathlib.Path(sys.argv[1])
+path.parent.mkdir(parents=True, exist_ok=True)
+payload = {"status": sys.argv[2], "used_percent": int(sys.argv[3]),
+           "warning_percent": int(sys.argv[4]), "critical_percent": int(sys.argv[5]),
+           "generated_at": datetime.now(timezone.utc).isoformat()}
+fd, temporary = tempfile.mkstemp(prefix=".disk-status.", dir=path.parent)
+with os.fdopen(fd, "w", encoding="utf-8") as handle:
+    json.dump(payload, handle, sort_keys=True); handle.write("\n"); handle.flush(); os.fsync(handle.fileno())
+os.replace(temporary, path)
+PY
+logger -p "user.$([[ $severity == CRITICAL ]] && echo crit || echo "${severity,,}")" -t binana-disk-guard "status=$status used_percent=$used" || true
 exit "$exit_code"

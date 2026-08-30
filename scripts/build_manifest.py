@@ -69,7 +69,7 @@ def main():
         'package_mode': package_mode,
         'lineage': 'V8.1-MERGED-AUDITED (safety baseline) + reviewed V10 operational imports',
         'manifest_format': 2,
-        'safety_default': 'testnet' if package_mode == 'testnet' else 'simulation',
+        'safety_default': 'simulation',
         'live_certified': False,
         'source_archives': {
             'binance_bot_V4.9.16_COMPLETE-1.zip': 'e89c4025ce423bcaea67be226dbc7243d929c2da7a7e5e3a44152ab570fef41a',

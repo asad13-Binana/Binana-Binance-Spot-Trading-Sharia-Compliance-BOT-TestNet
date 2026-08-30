@@ -7,6 +7,9 @@ SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
 source "$SCRIPT_DIR/instance_identity.sh"
 SCRIPT=$APP_ROOT/current/deploy/offhost_backup.sh
 [[ -f "$SCRIPT" && ! -L "$SCRIPT" ]] || { echo 'ERROR: installed off-host backup script is unavailable' >&2; exit 1; }
+config=$PRIVATE_ROOT/offhost-backup.env
+[[ -f "$config" && ! -L "$config" && $(stat -c '%U:%G:%a' "$config") == root:root:600 ]] || exit 1
+if ! grep -qx 'OFFHOST_PROVIDER=aws-s3' "$config"; then
 case $(dpkg --print-architecture) in
   arm64) image='ghcr.io/oracle/oci-cli:sha-45aa4a4@sha256:efaeca93e2adc0411151bcde39a9c945bc6245cbf8d3117fa7c526653492eb19' ;;
   amd64) image='ghcr.io/oracle/oci-cli:sha-45aa4a4@sha256:e781329f06b345e1322260a5594d365a088dac77cef2b0bb394a5acf40804cea' ;;
@@ -14,6 +17,7 @@ case $(dpkg --print-architecture) in
 esac
 docker pull "$image"
 docker image inspect "$image" >/dev/null
+fi
 "$SCRIPT" --preflight
 systemctl daemon-reload
 systemctl enable --now "${SYSTEMD_PREFIX}-offhost-backup.timer"

@@ -107,6 +107,8 @@ CLAIM_CUES = {
     'revenue': (
         'revenue', 'fees are', 'fee revenue', 'treasury', 'protocol income',
         'protocol earns', 'burned', 'buyback', 'distributed to',
+        'storage fee', 'compute fee', 'transaction fee', 'network fee',
+        'gas fee', 'fees paid', 'users pay',
     ),
 }
 VERDICT_CUES = ('halal', 'haram', 'compliant', 'non-compliant',
@@ -157,7 +159,16 @@ def candidates(text: str, cues) -> list[str]:
         low = candidate.lower()
         if any(cue in low for cue in cues):
             found.append(candidate)
-    found.sort(key=lambda s: -len(s.split()))
+    if tuple(cues) == CLAIM_CUES['revenue']:
+        # A long corporate fundraising paragraph is not token economics.
+        # Prefer complete service-fee blocks for REVIEW only; never derive a
+        # clean/halal value or discard the surrounding bound context.
+        fee_cues = ('storage fee', 'compute fee', 'transaction fee', 'network fee',
+                    'gas fee', 'fees paid', 'users pay', 'protocol income')
+        found.sort(key=lambda s: (
+            -sum(cue in s.lower() for cue in fee_cues), -len(s.split())))
+    else:
+        found.sort(key=lambda s: -len(s.split()))
     return found[:MAX_CANDIDATES]
 
 
