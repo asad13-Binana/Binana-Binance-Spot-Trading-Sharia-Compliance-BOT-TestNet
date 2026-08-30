@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 022
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
 # shellcheck source=deploy/instance_identity.sh
@@ -34,6 +35,8 @@ fi
 id "$BOT_USER" >/dev/null 2>&1 || fail "$BOT_USER account is required before monitoring installation"
 usermod -a -G "$BOT_USER" "$MONITOR_USER"
 install -d -m 0755 -o root -g root "$APP_ROOT/monitoring-venvs" /usr/local/libexec
+[[ ! -L "/var/backups/$INSTANCE_SLUG" ]] || fail 'backup root must not be a symlink'
+install -d -m 0700 -o root -g root "/var/backups/$INSTANCE_SLUG"
 install -d -m 0750 -o "$MONITOR_USER" -g "$MONITOR_USER" "$MONITOR_LOG_DIR"
 # Runtime state remains writable only by the instance bot. The monitor is a supplementary
 # member with group read/traverse but receives no group write permission.
@@ -42,27 +45,34 @@ install -d -m 0750 -o "$BOT_USER" -g "$BOT_USER" "$PERSIST/runtime"
 VENV_ROOT="$APP_ROOT/monitoring-venvs"
 VENV_TARGET="$VENV_ROOT/$RELEASE_HASH"
 if [[ ! -f "$VENV_TARGET/.complete" ]]; then
-  [[ ! -e "$VENV_TARGET" ]] || fail "incomplete monitoring venv exists: $VENV_TARGET"
-  BUILD=$(mktemp -d "$VENV_ROOT/.build.XXXXXX")
-  python3 -m venv "$BUILD/venv"
+  [[ ! -L "$VENV_TARGET" ]] || fail 'monitoring venv must not be a symlink'
+  if [[ -e "$VENV_TARGET" ]]; then
+    mv -T "$VENV_TARGET" "$VENV_TARGET.incomplete-$(date -u +%s%N)"
+  fi
+  # Create at the final path; moving venvs leaves broken pip/console shebangs.
+  /usr/bin/python3 -I -m venv "$VENV_TARGET"
   # DEP-HASH-001: reject substituted or tampered distributions before the
   # monitoring environment can be activated on the Oracle host.
-  "$BUILD/venv/bin/python" -m pip install --disable-pip-version-check \
+  env -i PATH=/usr/bin:/bin HOME=/root PIP_CONFIG_FILE=/dev/null \
+    "$VENV_TARGET/bin/python" -I -m pip install --disable-pip-version-check \
     --require-hashes \
     --requirement "$RELEASE_DIR/monitoring/requirements-monitoring.lock"
-  "$BUILD/venv/bin/python" -m pip check
-  touch "$BUILD/venv/.complete"
-  mv "$BUILD/venv" "$VENV_TARGET"
-  rmdir "$BUILD"
+  "$VENV_TARGET/bin/python" -I -m pip check
+  chmod -R go-w "$VENV_TARGET"
+  touch "$VENV_TARGET/.complete"
 fi
 ln -sfn "$VENV_TARGET" "$APP_ROOT/monitoring-current.new"
 mv -Tf "$APP_ROOT/monitoring-current.new" "$APP_ROOT/monitoring-current"
 
 # The privileged Docker helper is copied out of the user-controlled release
 # tree and made root-owned. The botmon process never receives the Docker socket.
-install -m 0755 -o root -g root \
-  "$RELEASE_DIR/monitoring/snapshot.py" \
+helper=$(mktemp "/usr/local/libexec/.${INSTANCE_SLUG}-snapshot.XXXXXX")
+sed -e "s#/var/lib/binana-freqtrade-v101/shared#$PERSIST#g" \
+    -e "s#binana-freqtrade-v101#$INSTANCE_SLUG#g" \
+    "$RELEASE_DIR/monitoring/snapshot.py" >"$helper"
+install -m 0755 -o root -g root "$helper" \
   "/usr/local/libexec/${SYSTEMD_PREFIX}-monitor-snapshot"
+rm -f -- "$helper"
 
 ENV_FILE="$PRIVATE/${MODE}-monitor.env"
 TEMPLATE="$RELEASE_DIR/monitoring/.env.monitor.${MODE}.example"
@@ -98,6 +108,7 @@ render_unit(){
     -e "s#Group=botmon#Group=$MONITOR_USER#g" \
     -e "s#binanabot#$BOT_USER#g" \
     -e "s#botmon#$MONITOR_USER#g" \
+    -e "s#binana-freqtrade-v101#$INSTANCE_SLUG#g" \
     "$source" >"$target"
   grep -Fq '/opt/binana-freqtrade-v101' "$target" && fail "unrendered APP_ROOT in $base"
   grep -Fq '/var/lib/binana-freqtrade-v101' "$target" && fail "unrendered PERSIST in $base"
@@ -131,6 +142,7 @@ if grep -Eq '^MONITOR_ENABLED=true$' "$ENV_FILE"; then
   systemctl start "${SYSTEMD_PREFIX}-monitor-snapshot.service"
   systemctl enable "$MONITOR_SERVICE"
   systemctl restart "$MONITOR_SERVICE"
+  systemctl is-active --quiet "$MONITOR_SERVICE" || fail 'monitor API did not become active'
 else
   systemctl disable --now "$MONITOR_SERVICE" "$SNAPSHOT_TIMER" >/dev/null 2>&1 || true
 fi

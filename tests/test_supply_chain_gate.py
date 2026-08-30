@@ -25,6 +25,8 @@ def _write_tree(root: Path, *, pinned: bool) -> None:
         f'    image: freqtradeorg/freqtrade:2026.6{image_suffix}\n')
     (root / 'requirements.services.lock').write_text(
         f'requests==2.34.2{hash_suffix}\n')
+    (root / 'requirements.host.lock').write_text(
+        f'pycryptodome==3.23.0{hash_suffix}\n')
     (root / 'monitoring/requirements-monitoring.lock').write_text(
         f'fastapi==0.139.2{hash_suffix}\n')
     (root / 'deploy/install_monitoring.sh').write_text(
@@ -43,10 +45,10 @@ class DeploymentSupplyChainGateTests(unittest.TestCase):
             root = Path(td)
             _write_tree(root, pinned=False)
             errors = deployment_supply_chain_errors(root)
-        self.assertEqual(len(errors), 6)
+        self.assertEqual(len(errors), 7)
         self.assertTrue(any('base image' in error for error in errors))
         self.assertTrue(any('Freqtrade' in error for error in errors))
-        self.assertEqual(sum('without sha256 hashes' in error for error in errors), 2)
+        self.assertEqual(sum('without sha256 hashes' in error for error in errors), 3)
         self.assertEqual(sum('--require-hashes' in error for error in errors), 2)
 
     def test_malformed_hash_is_rejected_even_when_a_valid_hash_is_present(self):
@@ -64,7 +66,7 @@ class DeploymentSupplyChainGateTests(unittest.TestCase):
 
     def test_oracle_installer_runs_gate_before_activation(self):
         installer = (ROOT / 'deploy/install_artifact.sh').read_text(encoding='utf-8')
-        gate = 'python "$NEW/scripts/verify_deployment_supply_chain.py"'
+        gate = 'python3 "$NEW/scripts/verify_deployment_supply_chain.py"'
         self.assertIn(gate, installer)
         self.assertLess(installer.index(gate), installer.index('RELEASE_HASH='))
 

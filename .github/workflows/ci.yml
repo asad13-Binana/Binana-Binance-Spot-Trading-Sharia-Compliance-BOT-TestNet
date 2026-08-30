@@ -120,8 +120,20 @@ jobs:
           retention-days: 14
           if-no-files-found: error
 
+  clean-host-installer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Fresh Ubuntu installer transactions (no credentials or real orders)
+        run: |
+          docker run --rm --pids-limit 512 --memory 2g --cpus 2 \
+            --mount "type=bind,src=$PWD,dst=/source,readonly" \
+            ubuntu:24.04@sha256:33ceb71981b602c1a7443a53469e4dba065f7503eab3078a2d7a57a2ab987517 \
+            bash /source/tests/clean_host/run.sh
+
   artifact:
-    needs: [verify, sast, quality-evidence]
+    needs: [verify, sast, quality-evidence, clean-host-installer]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -289,7 +301,9 @@ jobs:
       - name: Prove Sharia network isolation and pinned HTTPS egress
         run: |
           docker compose --env-file .env.ci up -d sharia-egress-proxy
-          for i in $(seq 1 20); do
+          # Keep the security/health gate strict, but allow the configured
+          # startup and retry window on CPU-limited GitHub runners (185s).
+          for i in $(seq 1 120); do
             state=$(docker inspect --format '{{ .State.Health.Status }}' $(docker compose --env-file .env.ci ps -q sharia-egress-proxy) 2>/dev/null || echo starting)
             [ "$state" = "healthy" ] && break
             sleep 2

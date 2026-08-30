@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
+umask 027
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
 # shellcheck source=deploy/instance_identity.sh
@@ -32,6 +33,11 @@ fail(){ echo "ERROR: $*" >&2; exit 1; }
 [[ "$PERSIST" == /var/lib/binana-testnet/shared ]] || fail 'PERSIST identity mismatch'
 [[ "$ENV_FILE" == /etc/binana-testnet/.env ]] || fail 'ENV_FILE identity mismatch'
 [[ "$KEEP_RELEASES" =~ ^[0-9]+$ ]] && (( KEEP_RELEASES >= 2 && KEEP_RELEASES <= 10 )) || fail 'KEEP_RELEASES must be an integer from 2 through 10'
+[[ ! -e "$CURRENT" || -L "$CURRENT" ]] || fail 'current must be a release symlink, not a file or directory'
+if [[ -L "$CURRENT" ]]; then
+  resolved_current=$(readlink -f "$CURRENT") || fail 'current release link cannot be resolved'
+  [[ -d "$resolved_current" && "$(dirname "$resolved_current")" == "$RELEASES" ]] || fail 'current release link is stale or outside releases; review recovery before deployment'
+fi
 [[ "$MIN_PHYSICAL_MEMORY_MIB" =~ ^[0-9]+$ && "$MIN_TOTAL_MEMORY_MIB" =~ ^[0-9]+$ ]] || fail 'memory limits must be integers'
 [[ "$MIN_CPU_COUNT" =~ ^[0-9]+$ ]] && (( MIN_CPU_COUNT >= 1 )) || fail 'MIN_CPU_COUNT must be a positive integer'
 [[ "$MIN_DEPLOY_FREE_DISK_GIB" =~ ^[0-9]+$ ]] && (( MIN_DEPLOY_FREE_DISK_GIB >= 2 && MIN_DEPLOY_FREE_DISK_GIB <= 20 )) || fail 'MIN_DEPLOY_FREE_DISK_GIB must be 2..20'
@@ -50,8 +56,8 @@ flock -n 9 || fail "another install holds $LOCK_FILE; refusing to run a second d
 compose_for(){
   local release_dir=$1 release_tag=$2
   shift 2
-  RELEASE_TAG="$release_tag" COMPOSE_PROJECT_NAME="$COMPOSE_PROJECT_NAME" \
-    docker compose -f "$release_dir/docker-compose.yml" "$@"
+  RELEASE_TAG="$release_tag" docker compose --project-name "$COMPOSE_PROJECT_NAME" \
+    --env-file "$ENV_FILE" -f "$release_dir/docker-compose.yml" "$@"
 }
 
 as_root(){
@@ -78,6 +84,11 @@ disable_monitoring_after_failed_first_install(){
     ${SYSTEMD_PREFIX}-monitor-report-testnet.timer
     ${SYSTEMD_PREFIX}-monitor-snapshot.timer
     ${SYSTEMD_PREFIX}-monitor-snapshot.service
+    ${SYSTEMD_PREFIX}-monitor-report-${INSTANCE_MODE}.service
+    ${SYSTEMD_PREFIX}-disk-guard.timer ${SYSTEMD_PREFIX}-disk-guard.service
+    ${SYSTEMD_PREFIX}-state-backup.timer ${SYSTEMD_PREFIX}-state-backup.service
+    ${SYSTEMD_PREFIX}-offhost-backup.timer ${SYSTEMD_PREFIX}-offhost-backup.service
+    ${SYSTEMD_PREFIX}-api-readiness.timer ${SYSTEMD_PREFIX}-api-readiness.service
   )
   for unit in "${units[@]}"; do
     as_root systemctl disable --now "$unit" >/dev/null 2>&1 || true
@@ -93,7 +104,7 @@ disable_monitoring_after_failed_first_install(){
 declare -A DEPLOY_ENV=()
 secure_env_read "$ENV_FILE" DEPLOY_ENV || exit 1
 declare -A ALLOWED_ENV=()
-while IFS= read -r key; do ALLOWED_ENV["$key"]=1; done < <(
+allowed_keys=$(
   python3 - "$SCRIPT_DIR/../docker-compose.yml" <<'PY'
 import pathlib, re, sys
 text = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
@@ -107,6 +118,7 @@ names.update({
 print("\n".join(sorted(names)))
 PY
 )
+while IFS= read -r key; do ALLOWED_ENV["$key"]=1; done <<<"$allowed_keys"
 for key in "${!DEPLOY_ENV[@]}"; do
   [[ -v "ALLOWED_ENV[$key]" ]] || fail "unsupported environment key: $key"
   export "$key=${DEPLOY_ENV[$key]}"
@@ -140,6 +152,8 @@ install -d -m 0750 -o "$BOT_UID" -g "$BOT_GID" \
   "$PERSIST/sharia/discovery/current" "$PERSIST/sharia/discovery/archive" \
   "$PERSIST/sharia_decisions/inbox" "$PERSIST/sharia_decisions/processed" \
   "$PERSIST/legacy_runtime" \
+  "$PERSIST/universe" "$PERSIST/signals/inbox" "$PERSIST/signals/processed" \
+  "$PERSIST/signals/rejected" "$PERSIST/audit" \
   "$PERSIST/freqtrade/logs"
 [[ ! -L "$RELEASES" && ! -L "$PERSIST" ]] || fail 'release and persistent roots must not be symlinks'
 [[ $(stat -Lc '%u' "$RELEASES") == 0 ]] || fail "$RELEASES must be root-owned"
@@ -174,7 +188,7 @@ EXPECTED=$(awk 'NF{print $1;exit}' "$CHECKSUM")
 [[ "$EXPECTED" =~ ^[0-9a-fA-F]{64}$ ]] || fail 'invalid checksum file'
 ACTUAL=$(sha256sum "$ARTIFACT" | awk '{print $1}')
 [[ "${ACTUAL,,}" == "${EXPECTED,,}" ]] || fail 'artifact checksum mismatch'
-python - "$ARTIFACT" <<'PY'
+python3 - "$ARTIFACT" <<'PY'
 import pathlib, sys, tarfile
 p=sys.argv[1]
 roots=set()
@@ -203,9 +217,11 @@ tar -xzf "$ARTIFACT" -C "$TMP"
 NEW=$(find "$TMP" -mindepth 1 -maxdepth 1 -type d | head -1)
 [[ -n "$NEW" && -f "$NEW/RELEASE_MANIFEST.json" && -f "$NEW/RELEASE_SHA256.txt" \
    && -f "$NEW/RELEASE_MODE" ]] || fail 'invalid release root'
-python "$NEW/scripts/verify_manifest.py"
-python "$NEW/scripts/verify_deployment_supply_chain.py"
-python "$NEW/tests/secret_scan.py"
+python3 "$NEW/scripts/verify_manifest.py"
+python3 "$NEW/scripts/verify_deployment_supply_chain.py"
+python3 "$NEW/tests/secret_scan.py"
+source "$NEW/deploy/lib/host_python.sh"
+prepare_host_python "$NEW" || fail 'locked host validation environment could not be prepared'
 RELEASE_HASH=$(awk 'NF{print $1;exit}' "$NEW/RELEASE_SHA256.txt")
 [[ "$RELEASE_HASH" =~ ^[0-9a-f]{64}$ ]] || fail 'invalid release hash'
 PACKAGE_MODE=$(<"$NEW/RELEASE_MODE")
@@ -234,20 +250,28 @@ ln -sfn "$ENV_FILE" "$NEW/.env"
 # Seed private/persistent Sharia data only once; releases never overwrite the
 # screener-written status. The immutable V19.1 controller, however, is always
 # refreshed from the release so the persistent copy stays byte-identical.
+for state_file in sharia_status.json halal_coins.json source_registry.json HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json; do
+  [[ ! -L "$PERSIST/sharia/$state_file" ]] || fail 'Sharia state must not be a symlink'
+done
 if [[ ! -f "$PERSIST/sharia/sharia_status.json" ]]; then
-  cp "$NEW/shared/sharia/sharia_status.json" "$PERSIST/sharia/sharia_status.json"
+  install -m 0640 -o "$BOT_UID" -g "$BOT_GID" "$NEW/shared/sharia/sharia_status.json" "$PERSIST/sharia/sharia_status.json"
 fi
 if [[ ! -f "$PERSIST/sharia/halal_coins.json" ]]; then
-  cp "$NEW/shared/sharia/halal_coins.json" "$PERSIST/sharia/halal_coins.json"
+  install -m 0640 -o "$BOT_UID" -g "$BOT_GID" "$NEW/shared/sharia/halal_coins.json" "$PERSIST/sharia/halal_coins.json"
 fi
 if [[ ! -f "$PERSIST/sharia/source_registry.json" ]]; then
-  cp "$NEW/shared/sharia/source_registry.json" \
+  install -m 0640 -o "$BOT_UID" -g "$BOT_GID" "$NEW/shared/sharia/source_registry.json" \
      "$PERSIST/sharia/source_registry.json"
 fi
-cp "$NEW/shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json" \
+install -m 0640 -o "$BOT_UID" -g "$BOT_GID" "$NEW/shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json" \
    "$PERSIST/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json"
+# Repair permissions only, never replace existing screening/approval history.
+for state_file in sharia_status.json halal_coins.json source_registry.json; do
+  chown "$BOT_UID:$BOT_GID" "$PERSIST/sharia/$state_file"
+  chmod 0640 "$PERSIST/sharia/$state_file"
+done
 # Verify the seeded controller is byte-identical before anything starts.
-PYTHONPATH="$NEW" python - "$PERSIST/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json" <<'PY'
+PYTHONPATH="$NEW" "$HOST_PYTHON" - "$PERSIST/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json" <<'PY'
 import sys
 from services.common.sharia_v19 import controller_sha256, V19_CONTROLLER_SHA256
 actual = controller_sha256(sys.argv[1])
@@ -255,7 +279,7 @@ if actual != V19_CONTROLLER_SHA256:
     raise SystemExit(f'V19.1 controller hash mismatch after seeding: {actual}')
 print('V19.1 controller byte-integrity verified')
 PY
-PYTHONPATH="$NEW" python -m services.universe_service.validate_sharia "$PERSIST/sharia/sharia_status.json"
+PYTHONPATH="$NEW" "$HOST_PYTHON" -m services.universe_service.validate_sharia "$PERSIST/sharia/sharia_status.json"
 
 # Validate and build an immutable service-image tag before touching the running release.
 compose_for "$NEW" "$NEW_TAG" config -q
@@ -281,6 +305,7 @@ if [[ -L "$CURRENT" ]]; then
 fi
 
 restore_monitoring(){
+  [[ ${stop_result:-0} -eq 0 ]] || return 1
   if [[ -n "$OLD" && -d "$OLD" ]]; then
     [[ "$OLD_MODE" == testnet || "$OLD_MODE" == live ]] || {
       echo 'CRITICAL: rollback target has invalid monitoring mode metadata.' >&2
@@ -304,10 +329,10 @@ restore_monitoring(){
 # before stopping any container. Exchange-native protection remains active.
 if [[ -n "$OLD" && -d "$OLD" ]]; then
   [[ "$OLD_RELEASE_HASH" =~ ^[0-9a-f]{64}$ ]] || fail 'current release hash is unavailable; refusing unsigned deployment controls'
-  mapfile -t COMMAND_IDS < <(
+  command_ids=$(
     PYTHONPATH="$OLD" ENVELOPE_RELEASE_HASH="$OLD_RELEASE_HASH" \
     COMMAND_HMAC_KEY="${DEPLOY_ENV[COMMAND_HMAC_KEY]:-}" \
-    python - "$PERSIST" <<'PY'
+    python3 - "$PERSIST" <<'PY'
 import json,os,sys,tempfile,time,uuid
 from pathlib import Path
 from services.common.envelope import BUS_COMMAND, sign_envelope
@@ -315,6 +340,8 @@ root=Path(sys.argv[1]); inbox=root/'commands/inbox'; inbox.mkdir(parents=True,ex
 def atomic_json(path, payload):
     fd,tmp=tempfile.mkstemp(prefix='.'+path.name+'.', suffix='.tmp', dir=path.parent)
     try:
+        os.fchown(fd, int(os.environ['BOT_UID']), int(os.environ['BOT_GID']))
+        os.fchmod(fd, 0o600)
         with os.fdopen(fd,'w',encoding='utf-8') as handle:
             json.dump(payload,handle,separators=(',',':'),sort_keys=True)
             handle.flush(); os.fsync(handle.fileno())
@@ -337,6 +364,11 @@ for command,args in [('entries',{'enabled':False}),('reconcile',{})]:
     print(cid)
 PY
   )
+  mapfile -t COMMAND_IDS <<<"$command_ids"
+  [[ ${#COMMAND_IDS[@]} -eq 2 ]] || fail 'both signed deployment controls must be created'
+  for cid in "${COMMAND_IDS[@]}"; do
+    [[ "$cid" =~ ^[0-9a-f]{32}$ ]] || fail 'invalid deployment command identifier'
+  done
   for cid in "${COMMAND_IDS[@]}"; do
     result="$PERSIST/runtime/command_result_${cid}.json"
     for _ in $(seq 1 30); do
@@ -344,7 +376,7 @@ PY
       sleep 1
     done
     [[ -s "$result" ]] || fail "current sidecar did not acknowledge deployment command $cid"
-    python - "$result" <<'PY'
+    python3 - "$result" <<'PY'
 import json,sys
 payload=json.load(open(sys.argv[1],encoding='utf-8'))
 if not payload.get('ok'):
@@ -355,16 +387,23 @@ PY
 fi
 
 DEST="$RELEASES/$STAMP"
+[[ ! -e "$DEST" ]] || fail 'release timestamp already exists; retry after one second'
 mv "$NEW" "$DEST"
 trap - EXIT
 rm -rf "$TMP"
 ln -sfn "$ENV_FILE" "$DEST/.env"
 
 rollback(){
+  trap - ERR EXIT INT TERM
+  set +e
   echo 'New release health check failed; rolling back.' >&2
-  compose_for "$DEST" "$NEW_TAG" down --remove-orphans || true
+  compose_for "$DEST" "$NEW_TAG" down --remove-orphans
+  stop_result=$?
   rollback_status='ROLLED_BACK'
-  if [[ -n "$OLD" && -d "$OLD" ]]; then
+  if (( stop_result != 0 )); then
+    echo 'CRITICAL: new stack could not be stopped; refusing to start another stack.' >&2
+    rollback_status='ROLLBACK_STOP_FAILED_CRITICAL'
+  elif [[ -n "$OLD" && -d "$OLD" ]]; then
     ln -sfn "$OLD" "$CURRENT.new" && mv -Tf "$CURRENT.new" "$CURRENT"
     compose_for "$OLD" "$OLD_TAG" up -d --remove-orphans
     # M-009: verify the recovered old release is actually healthy; a rollback
@@ -393,7 +432,7 @@ rollback(){
     rollback_status="${rollback_status}_MONITORING_UNHEALTHY_CRITICAL"
     echo 'CRITICAL: monitoring rollback failed; all entries remain paused and manual recovery is required.' >&2
   fi
-  python - "$PERSIST" "$rollback_status" <<'PY'
+  python3 - "$PERSIST" "$rollback_status" <<'PY'
 import json,os,sys,tempfile
 from datetime import datetime,timezone
 from pathlib import Path
@@ -418,8 +457,12 @@ PY
   exit 1
 }
 
+# Catch partial startup, monitoring and status-write failures after switching.
+trap 'rollback' ERR
+trap 'rollback' INT TERM
+
 if [[ -n "$OLD" && -d "$OLD" ]]; then
-  compose_for "$OLD" "$OLD_TAG" down --remove-orphans || true
+  compose_for "$OLD" "$OLD_TAG" down --remove-orphans
 fi
 ln -sfn "$DEST" "$CURRENT.new" && mv -Tf "$CURRENT.new" "$CURRENT"
 rm -f "$PERSIST/runtime/sidecar_health.json" \
@@ -452,7 +495,7 @@ done
 # state (or disables all monitoring units on a failed first install).
 install_monitoring_for "$DEST" "$PACKAGE_MODE" "$RELEASE_HASH" || rollback
 
-python - "$PERSIST" "$RELEASE_HASH" "$DEST" "$NEW_TAG" <<'PY'
+python3 - "$PERSIST" "$RELEASE_HASH" "$DEST" "$NEW_TAG" <<'PY'
 import json,os,sys,tempfile
 from datetime import datetime,timezone
 from pathlib import Path
@@ -480,7 +523,7 @@ except BaseException:
 PY
 
 # Record the exact on-host release gates exposed by the read-only monitor.
-python - "$PERSIST" "$RELEASE_HASH" "$PACKAGE_MODE" <<'PY'
+python3 - "$PERSIST" "$RELEASE_HASH" "$PACKAGE_MODE" <<'PY'
 import json,os,sys,tempfile
 from datetime import datetime,timezone
 from pathlib import Path
@@ -494,6 +537,8 @@ payload={
 }
 fd,tmp=tempfile.mkstemp(prefix='.'+p.name+'.',suffix='.tmp',dir=p.parent)
 try:
+    os.fchown(fd, 0, p.parent.stat().st_gid)
+    os.fchmod(fd, 0o640)
     with os.fdopen(fd,'w',encoding='utf-8') as handle:
         json.dump(payload,handle,indent=2,sort_keys=True); handle.write('\n')
         handle.flush(); os.fsync(handle.fileno())
@@ -505,6 +550,7 @@ except BaseException:
 PY
 
 # Optional Telegram deployment notification without printing secrets.
+trap - ERR INT TERM
 if [[ "$TELEGRAM_BOT_TOKEN" =~ ^[0-9]{6,12}:[A-Za-z0-9_-]{30,}$ \
    && "$TELEGRAM_OWNER_CHAT_ID" =~ ^-?[0-9]+$ ]]; then
   notification="[BINANA | ${BOT_ENVIRONMENT} | ${BOT_INSTANCE_ID}] $(cat "$DEST/RELEASE_VERSION" 2>/dev/null || echo release) deployment succeeded: ${RELEASE_HASH}"
@@ -523,13 +569,16 @@ fi
 
 # Keep only the newest N release directories and their immutable service images.
 ACTIVE=$(readlink -f "$CURRENT")
-find "$RELEASES" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' | sort -nr | \
+find "$RELEASES" -mindepth 1 -maxdepth 1 -type d -name '20??????T??????Z' -printf '%T@ %p\n' | sort -nr | \
   awk -v keep="$KEEP_RELEASES" 'NR>keep{$1="";sub(/^ /,"");print}' | while read -r old; do
-    if [[ -n "$old" && "$old" != "$ACTIVE" ]]; then
+    if [[ -n "$old" && "$old" != "$ACTIVE" && "$old" != "$OLD" ]]; then
       tag=''
       [[ -f "$old/.release-tag" ]] && tag=$(<"$old/.release-tag")
       rm -rf "$old"
-      [[ -n "$tag" ]] && docker image rm "$SERVICE_IMAGE:$tag" >/dev/null 2>&1 || true
+      # A retry can reuse the same immutable image. Never untag the active or
+      # retained rollback image while pruning a failed directory.
+      [[ -n "$tag" && "$tag" != "$NEW_TAG" && "$tag" != "$OLD_TAG" ]] && \
+        docker image rm "$SERVICE_IMAGE:$tag" >/dev/null 2>&1 || true
     fi
   done
 
