@@ -1,9 +1,11 @@
 name: Binance Spot contract drift
 
+# Intentionally inert: retain the reviewed contract check without allowing
+# scheduled runs or manual dispatches.
 on:
-  schedule:
-    - cron: "17 3 * * 2"
-  workflow_dispatch:
+  push:
+    branches-ignore:
+      - "**"
 
 permissions:
   contents: read
