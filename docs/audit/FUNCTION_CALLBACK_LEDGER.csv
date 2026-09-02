@@ -1914,10 +1914,11 @@ tests/test_package_mode.py,ShippedPackageConsistencyTests.test_live_evidence_str
 tests/test_package_mode.py,ShippedPackageConsistencyTests.test_env_example_default_is_permitted_and_safe,function,top-level-or-method,206,217,-,test
 tests/test_package_mode.py,ShippedPackageConsistencyTests.test_package_mode_file_resolves_to_repo_root,function,top-level-or-method,219,221,-,test
 tests/test_package_mode.py,ShippedPackageConsistencyTests.test_manual_sharia_service_has_no_execution_or_network_authority,function,top-level-or-method,223,230,-,test
-tests/test_package_mode.py,ShippedPackageConsistencyTests.test_release_metadata_is_consistent_and_disarmed,function,top-level-or-method,232,250,-,test
-tests/test_package_mode.py,ImportOutsideTheImageTests._import_clean,function,top-level-or-method,271,282,-,test
-tests/test_package_mode.py,ImportOutsideTheImageTests.test_sidecar_imports_without_the_app_volume,function,top-level-or-method,284,294,-,test
-tests/test_package_mode.py,ImportOutsideTheImageTests.test_explicit_shared_root_still_wins,function,top-level-or-method,296,304,-,test
+tests/test_package_mode.py,ShippedPackageConsistencyTests.test_default_environment_exposes_only_manual_sharia_contract,function,top-level-or-method,232,245,-,test
+tests/test_package_mode.py,ShippedPackageConsistencyTests.test_release_metadata_is_consistent_and_disarmed,function,top-level-or-method,247,265,-,test
+tests/test_package_mode.py,ImportOutsideTheImageTests._import_clean,function,top-level-or-method,286,297,-,test
+tests/test_package_mode.py,ImportOutsideTheImageTests.test_sidecar_imports_without_the_app_volume,function,top-level-or-method,299,309,-,test
+tests/test_package_mode.py,ImportOutsideTheImageTests.test_explicit_shared_root_still_wins,function,top-level-or-method,311,319,-,test
 tests/test_phase45_repairs.py,_copy_controller,function,top-level-or-method,29,30,-,test
 tests/test_phase45_repairs.py,ProjectionAndBridgeRepairTests.test_missing_controller_and_unsigned_green_fail_closed,function,top-level-or-method,34,42,-,test
 tests/test_phase45_repairs.py,ProjectionAndBridgeRepairTests.test_bridge_revalidates_and_drops_plaintext_rows,function,top-level-or-method,44,71,-,test

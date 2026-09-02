@@ -229,6 +229,21 @@ class ShippedPackageConsistencyTests(unittest.TestCase):
         self.assertNotIn('EXECUTION_MODE:', sharia_section)
         self.assertNotIn('BINANCE_API_KEY:', sharia_section)
 
+    def test_default_environment_exposes_only_manual_sharia_contract(self):
+        example = (ROOT / '.env.example').read_text(encoding='utf-8')
+        self.assertIn('LEGACY_HALAL_FILE=', example)
+        self.assertIn('SHARIA_SIGNAL_GATE_MODE=cached', example)
+        for inactive_key in (
+                'SHARIA_SOURCE_REGISTRY=',
+                'SHARIA_EVIDENCE_DIR=',
+                'SHARIA_AUTO_SOURCE_DISCOVERY_ENABLED=',
+                'SHARIA_IDLE_SCAN_ENABLED=',
+                'SHARIA_MAX_SCANS_PER_DAY=',
+                'SHARIA_MIN_SECONDS_BETWEEN_SCANS=',
+                'SHARIA_RESCAN_INTERVAL_DAYS=',
+        ):
+            self.assertNotIn(inactive_key, example)
+
     def test_release_metadata_is_consistent_and_disarmed(self):
         mode = (ROOT / 'RELEASE_MODE').read_text(encoding='utf-8').strip()
         version = (ROOT / 'RELEASE_VERSION').read_text(encoding='utf-8').strip()
