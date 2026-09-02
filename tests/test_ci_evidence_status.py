@@ -63,7 +63,9 @@ def test_strategy_probe_and_offline_compose_use_runtime_image_digest():
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
     offline_compose = (ROOT / "freqtrade/docker-compose.yml").read_text(encoding="utf-8")
     runtime_compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
+    runtime_wrapper = (ROOT / "Dockerfile.freqtrade").read_text(encoding="utf-8")
     assert digest in workflow
     assert digest in offline_compose
-    assert digest in runtime_compose
+    assert "dockerfile: Dockerfile.freqtrade" in runtime_compose
+    assert digest in runtime_wrapper
     assert "Generate detached machine-readable release evidence" in workflow

@@ -220,12 +220,14 @@ class ShippedPackageConsistencyTests(unittest.TestCase):
         self.assertEqual(package_mode.PACKAGE_MODE_FILE,
                          ROOT / 'RELEASE_MODE')
 
-    def test_sharia_service_receives_the_same_execution_mode(self):
+    def test_manual_sharia_service_has_no_execution_or_network_authority(self):
         compose = (ROOT / 'docker-compose.yml').read_text(encoding='utf-8')
         sharia_section = compose.split('  sharia-screener:', 1)[1].split(
             '\n  freqtrade:', 1)[0]
-        self.assertIn(
-            'EXECUTION_MODE: ${EXECUTION_MODE:-simulation}', sharia_section)
+        self.assertIn('SHARIA_REGISTRY_MODE: manual', sharia_section)
+        self.assertIn('network_mode: none', sharia_section)
+        self.assertNotIn('EXECUTION_MODE:', sharia_section)
+        self.assertNotIn('BINANCE_API_KEY:', sharia_section)
 
     def test_release_metadata_is_consistent_and_disarmed(self):
         mode = (ROOT / 'RELEASE_MODE').read_text(encoding='utf-8').strip()

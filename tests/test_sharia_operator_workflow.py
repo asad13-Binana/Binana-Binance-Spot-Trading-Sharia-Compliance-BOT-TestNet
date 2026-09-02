@@ -116,22 +116,82 @@ class TelegramOperatorTests(unittest.TestCase):
         callbacks = {
             button['callback_data'] for row in rows for button in row}
         self.assertLessEqual(len(rows), 6)
-        self.assertTrue({
-            'do|menu_dashboard', 'do|menu_sharia', 'do|menu_signals',
-            'do|menu_research', 'do|menu_trading', 'do|menu_protection',
-            'do|menu_alerts', 'do|menu_system', 'do|menu_emergency',
-            'do|menu_help',
-        }.issubset(callbacks))
+        self.assertEqual(callbacks, {
+            'do|menu_dashboard', 'do|status', 'do|balance', 'do|open_trades',
+            'do|trade_history', 'do|menu_market_scanner', 'do|menu_sharia',
+            'do|menu_health', 'do|menu_alerts', 'do|menu_controls',
+            'do|emergency_stop_confirm', 'do|menu_help',
+        })
         sharia_callbacks = {
             button['callback_data']
             for row in bot.sharia_menu() for button in row}
-        for limit in bot.BULK_SCAN_LIMITS:
-            self.assertIn(f'do|scan_bulk_{limit}_confirm', sharia_callbacks)
-        self.assertIn('do|scan_bulk_help', sharia_callbacks)
+        self.assertIn('do|manual_registry_help', sharia_callbacks)
+        self.assertNotIn('do|scan_bulk_help', sharia_callbacks)
+        self.assertFalse(any(
+            callback.startswith('do|scan_bulk_') for callback in sharia_callbacks))
+
+    def test_visible_menus_never_offer_core_risk_or_direct_trade_mutations(self):
+        menus = (
+            bot.menu(), bot.dashboard_menu(), bot.market_scanner_menu(),
+            bot.sharia_menu(), bot.health_menu(), bot.controls_menu(),
+            bot.alerts_menu(), bot.emergency_menu(),
+        )
+        labels = ' '.join(
+            button['text'] for rows in menus for row in rows for button in row
+        ).lower()
+        for forbidden in (
+                'buy now', 'sell now', 'change strategy', 'change risk',
+                'change leverage', 'api key', 'disable sharia', 'enable live',
+                'set size', 'set max', 'protection mode', 'emergency sell'):
+            self.assertNotIn(forbidden, labels)
+        callbacks = {
+            button['callback_data']
+            for rows in menus for row in rows for button in row
+        }
+        self.assertFalse(any(callback.startswith('confirm|') for callback in callbacks))
+        self.assertNotIn('do|entries_off', callbacks)
+        self.assertIn('do|emergency_stop_confirm', callbacks)
+
+    def test_limited_controls_are_reversible_and_have_no_remote_shell(self):
+        callbacks = {
+            button['callback_data']
+            for row in bot.controls_menu() for button in row
+        }
+        self.assertEqual(callbacks, {
+            'do|entries_on_confirm', 'do|entries_off_confirm',
+            'do|test_telegram', 'do|restart_services_info', 'do|deploy',
+            'do|home',
+        })
+
+    def test_emergency_menu_requires_confirmation_and_only_pauses_entries(self):
+        with mock.patch.object(bot, '_ask_confirm') as confirm:
+            bot.route('emergency_stop_confirm', '123', 77)
+        self.assertEqual(confirm.call_args.args[:3], (
+            '123', '✅ CONFIRM stop new entries', 'pause_entries'))
+        self.assertEqual(confirm.call_args.kwargs['message_id'], 77)
+        with mock.patch.object(bot, '_pause_entries', return_value={'ok': True}) as pause, \
+                mock.patch.object(bot, 'send') as send:
+            bot._confirm_action('pause_entries', {}, '123')
+        pause.assert_called_once_with()
+        self.assertIn('"ok": true', send.call_args.args[0].lower())
+
+    def test_open_trade_and_history_views_are_read_only(self):
+        with mock.patch.object(
+                bot, 'ft_call', return_value={'ok': True, 'data': []}) as ft, \
+                mock.patch.object(
+                    bot, 'sidecar_command', return_value={'ok': True}) as sidecar:
+            open_view = bot._open_trades()
+            history_view = bot._trade_history()
+        self.assertIn('read-only', open_view)
+        self.assertIn('"ok": true', history_view.lower())
+        ft.assert_any_call('GET', '/status')
+        ft.assert_any_call('GET', '/trades?limit=10&offset=0')
+        sidecar.assert_called_once_with('orders', wait=True)
 
     def test_research_menu_is_spot_only_and_never_offers_futures(self):
         labels = ' '.join(
-            button['text'] for row in bot.research_menu() for button in row
+            button['text']
+            for row in bot.market_scanner_menu() for button in row
         ).lower()
         self.assertIn('spot', labels)
         self.assertNotIn('future', labels)
@@ -208,15 +268,16 @@ class TelegramOperatorTests(unittest.TestCase):
             with self.subTest(limit=bad), self.assertRaises(ValueError):
                 bot.sharia_bounded_scan_requests(bad)
 
-    def test_scanbulk_command_accepts_any_integer_from_one_to_one_hundred(self):
+    def test_scanbulk_command_is_retained_as_a_safe_disabled_notice(self):
         message = {
             'chat': {'id': 123}, 'from': {'id': 1}, 'text': '/scanbulk 17'}
         with mock.patch.object(bot, 'is_owner', return_value=True), \
                 mock.patch.object(bot, 'audit'), \
-                mock.patch.object(bot, '_ask_confirm') as confirm:
+                mock.patch.object(bot, '_ask_confirm') as confirm, \
+                mock.patch.object(bot, 'send') as send:
             bot.handle_message(message)
-        self.assertEqual(confirm.call_args.args[2], 'scan_bulk')
-        self.assertEqual(confirm.call_args.args[3], {'limit': 17})
+        confirm.assert_not_called()
+        self.assertIn('Automatic Sharia scanning is disabled', send.call_args.args[0])
 
     def test_market_context_summary_exposes_spot_advisory_freshness_only(self):
         with tempfile.TemporaryDirectory() as raw:

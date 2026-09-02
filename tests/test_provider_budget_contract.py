@@ -77,7 +77,7 @@ class ProviderBudgetContractTests(unittest.TestCase):
             evaluate_provider_budget_contract(_env(
                 SHARIA_CMC_PER_MINUTE_LIMIT='0'))
 
-    def test_compose_wires_guard_and_exact_package_execution_contract(self):
+    def test_compose_wires_manual_projector_and_exact_package_execution_contract(self):
         root = Path(__file__).resolve().parents[1]
         compose = (root / 'docker-compose.yml').read_text(encoding='utf-8')
         release_mode = (root / 'RELEASE_MODE').read_text(
@@ -87,8 +87,10 @@ class ProviderBudgetContractTests(unittest.TestCase):
             'live': 'https://api.binance.com',
         }[release_mode]
         self.assertIn(
-            'command: python -m services.sharia_screener.guarded_main',
+            'command: python -m services.sharia_screener.manual_registry_service',
             compose)
+        self.assertIn('network_mode: none', compose)
+        self.assertNotIn('SHARIA_OPENAI_API_KEY:', compose)
         self.assertIn(
             'BINANCE_PUBLIC_BASE: '
             f'${{BINANCE_EXECUTION_PUBLIC_BASE:-{expected_base}}}',

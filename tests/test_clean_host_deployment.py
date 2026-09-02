@@ -57,29 +57,52 @@ class CleanHostDeploymentTests(unittest.TestCase):
         self.assertIn("trap 'rollback' ERR", source)
         self.assertIn('[[ ${#COMMAND_IDS[@]} -eq 2 ]]', source)
 
-    def test_ci_proxy_wait_covers_configured_health_window(self):
+    def test_ci_runs_the_manual_projector_without_a_network(self):
         import yaml
         compose = yaml.safe_load((ROOT / 'docker-compose.yml').read_text())
-        health = compose['services']['sharia-egress-proxy']['healthcheck']
-        def seconds(value):
-            return int(str(value).removesuffix('s'))
-        required = seconds(health['start_period']) + health['retries'] * (
-            seconds(health['interval']) + seconds(health['timeout']))
+        self.assertEqual(compose['services']['sharia-screener']['network_mode'], 'none')
         workflow = yaml.safe_load((ROOT / '.github/workflows/ci.yml').read_text())
         step = next(step for step in workflow['jobs']['integration-simulation']['steps']
-                    if step.get('name') == 'Prove Sharia network isolation and pinned HTTPS egress')
+                    if step.get('name') ==
+                    'Prove the manual Sharia registry projector is networkless')
         script = step['run']
-        attempts = int(re.search(r'for i in \$\(seq 1 (\d+)\)', script)[1])
-        interval = int(re.search(r'sleep (\d+)', script)[1])
-        self.assertGreaterEqual(attempts * interval, required)
-        self.assertIn('test "$state" = "healthy" ||', script)
-        self.assertIn("assert b'403 Forbidden' in reply", script)
+        self.assertIn('up -d sharia-screener', script)
+        self.assertIn('HostConfig.NetworkMode', script)
+        self.assertIn('len(status[\'records\']) == len(registry[\'symbols\']) == 244',
+                      script)
 
     def test_all_shared_bind_sources_are_precreated(self):
         source = (ROOT / "deploy/install_artifact.sh").read_text()
         self.assertIn('"$PERSIST/universe"', source)
         self.assertIn('"$PERSIST/signals/inbox"', source)
         self.assertIn('install -m 0640 -o "$BOT_UID" -g "$BOT_GID"', source)
+
+    def test_freqtrade_uid_wrapper_is_built_before_release_switch(self):
+        compose = (ROOT / 'docker-compose.yml').read_text(encoding='utf-8')
+        installer = (ROOT / 'deploy/install_artifact.sh').read_text(encoding='utf-8')
+        wrapper = (ROOT / 'Dockerfile.freqtrade').read_text(encoding='utf-8')
+        self.assertIn('dockerfile: Dockerfile.freqtrade', compose)
+        self.assertIn('BOT_UID: "${BOT_UID:-1000}"', compose)
+        self.assertIn('BOT_GID: "${BOT_GID:-1000}"', compose)
+        self.assertIn('user: "${BOT_UID:-1000}:${BOT_GID:-1000}"', compose)
+        self.assertIn(
+            'compose_for "$NEW" "$NEW_TAG" build universe freqtrade', installer)
+        self.assertRegex(
+            wrapper.splitlines()[0],
+            r'^FROM freqtradeorg/freqtrade:2026\.6@sha256:[0-9a-f]{64}$')
+        self.assertIn('ARG BOT_UID=1000', wrapper)
+        self.assertIn('ARG BOT_GID=1000', wrapper)
+        self.assertTrue(wrapper.rstrip().endswith('USER ftuser'))
+
+    def test_manual_registry_migration_is_transactional_and_preserves_owner_data(self):
+        source = (ROOT / 'deploy/install_artifact.sh').read_text(encoding='utf-8')
+        self.assertIn("legacy_empty=(isinstance(value,dict)", source)
+        self.assertIn('SHARIA_REGISTRY_INSTALL=preserve', source)
+        self.assertIn('backup_manual_sharia_state', source)
+        self.assertIn('restore_manual_sharia_state', source)
+        self.assertIn('bootstrap-status', source)
+        self.assertLess(source.index('compose_for "$OLD" "$OLD_TAG" down'),
+                        source.index('\napply_manual_sharia_state\n'))
 
     def test_readonly_core_matches_prior_release(self):
         expected = {

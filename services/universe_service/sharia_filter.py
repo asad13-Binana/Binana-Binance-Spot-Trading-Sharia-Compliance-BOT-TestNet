@@ -52,6 +52,20 @@ class ShariaFilter:
     missing, expired, malformed or legacy-format record — fails closed.
     """
 
+    def __new__(cls, path: str | Path):
+        # The owner explicitly selected manual-registry mode. Dispatch it to a
+        # separate verifier so the V19.1 research contract below stays intact
+        # and a manual approval is never represented as automated research.
+        if cls is ShariaFilter:
+            try:
+                raw = json.loads(Path(path).read_text(encoding='utf-8'))
+            except Exception:
+                raw = None
+            if isinstance(raw, dict) and raw.get('projection_mode') == 'manual-registry/v1':
+                from services.universe_service.sharia_gate import ManualRegistryFilter
+                return ManualRegistryFilter(path)
+        return super().__new__(cls)
+
     def __init__(self, path: str | Path):
         self.path = Path(path)
         self.records: dict[str, dict] = {}

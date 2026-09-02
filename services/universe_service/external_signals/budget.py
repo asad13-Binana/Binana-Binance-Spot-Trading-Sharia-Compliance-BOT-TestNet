@@ -50,7 +50,8 @@ class ApiBudget:
     """
 
     def __init__(self, name: str, state_path: str | Path, per_minute: int,
-                 per_month: int, per_day: int | None = None):
+                 per_month: int, per_day: int | None = None, *,
+                 disabled: bool = False):
         if per_minute < 1 or per_month < 1 or (per_day is not None and per_day < 1):
             raise ValueError(f'{name}: all budget caps must be >= 1')
         self.name = name
@@ -67,6 +68,12 @@ class ApiBudget:
         self._day_count = 0
         self._month_count = 0
         self.quarantined = False
+        self.disabled = bool(disabled)
+        if self.disabled:
+            self.quarantined = True
+            self._day_count = self.per_day
+            self._month_count = self.per_month
+            return
         self._load_state()
 
     # ── state loading (fail closed on corruption) ────────────────────────
@@ -153,8 +160,9 @@ class ApiBudget:
                 self._fail_closed('budget ledger missing but install marker present '
                                   '(unexplained state loss)')
                 return
+            self._persist()
             self._mark_installed()
-            return  # true fresh install: zero usage is correct
+            return  # true fresh install: durable zero usage is correct
         state = self._validated_state(read_json(self.state_path, None))
         if state is not None:
             self._adopt(state)
@@ -231,6 +239,8 @@ class ApiBudget:
         Codex L4-01 finding).
         """
         cost = max(1, int(cost))
+        if self.disabled:
+            return False
         with self._lock:
             self._roll()
             if self.quarantined:
@@ -256,6 +266,8 @@ class ApiBudget:
         cost = int(cost)
         if cost <= 0:
             return
+        if self.disabled:
+            return
         with self._lock:
             self._roll()
             self._day_count += cost
@@ -270,6 +282,8 @@ class ApiBudget:
         a valid provider figure is the sanctioned recovery and is adopted
         exactly; the day counter stays conservative until UTC midnight.
         """
+        if self.disabled:
+            return None
         if not isinstance(provider_used, int) or isinstance(provider_used, bool):
             return None
         if provider_used < 0 or provider_used > _MAX_COUNT:

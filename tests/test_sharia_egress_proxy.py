@@ -61,26 +61,31 @@ class ComposeIsolationTests(unittest.TestCase):
         cls.compose = yaml.safe_load(
             (ROOT / 'docker-compose.yml').read_text(encoding='utf-8'))
 
-    def test_screener_has_only_the_internal_egress_network(self):
+    def test_manual_registry_projector_is_networkless_and_secret_minimal(self):
         service = self.compose['services']['sharia-screener']
-        self.assertEqual(service['networks'], ['sharia-egress'])
-        self.assertTrue(self.compose['networks']['sharia-egress']['internal'])
-        self.assertEqual(
-            service['environment']['HTTPS_PROXY'],
-            'http://sharia-egress-proxy:8080')
+        self.assertEqual(service['network_mode'], 'none')
+        self.assertNotIn('networks', service)
+        self.assertNotIn('depends_on', service)
+        environment = service['environment']
+        self.assertEqual(environment['SHARIA_REGISTRY_MODE'], 'manual')
+        for name in ('HTTPS_PROXY', 'COINGECKO_API_KEY',
+                     'COINMARKETCAP_API_KEY', 'CMC_API_KEY',
+                     'SHARIA_HMAC_KEY', 'SHARIA_APPROVAL_HMAC_KEY'):
+            self.assertNotIn(name, environment)
 
     def test_only_secretless_proxy_bridges_internal_and_default_networks(self):
         proxy = self.compose['services']['sharia-egress-proxy']
+        self.assertEqual(proxy['profiles'], ['automatic-sharia-research'])
         self.assertEqual(set(proxy['networks']), {'runtime-egress', 'sharia-egress'})
         serialized = str(proxy['environment']).upper()
         for secret_name in ('BINANCE_API', 'TELEGRAM', 'HMAC', 'SIGNING',
                             'APPROVAL'):
             self.assertNotIn(secret_name, serialized)
 
-    def test_screener_waits_for_a_healthy_proxy(self):
-        dependency = self.compose['services']['sharia-screener'][
-            'depends_on']['sharia-egress-proxy']
-        self.assertEqual(dependency['condition'], 'service_healthy')
+    def test_dormant_proxy_is_not_a_required_default_service(self):
+        installer = (ROOT / 'deploy/install_artifact.sh').read_text(encoding='utf-8')
+        required = installer.split('REQUIRED_SERVICES=(', 1)[1].split(')', 1)[0]
+        self.assertNotIn('sharia-egress-proxy', required)
 
     def test_explicit_pinned_proxy_mode_disables_only_the_direct_peer_check(self):
         from services.sharia_retriever.retriever import Retriever

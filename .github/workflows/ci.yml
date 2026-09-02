@@ -208,7 +208,7 @@ jobs:
           python scripts/verify_manifest.py
           bash ./deploy/verify_release.sh
           docker compose --env-file .env.example config -q
-          docker compose --env-file .env.example build universe
+          docker compose --env-file .env.example build universe freqtrade
           cmp RELEASE_MANIFEST.json "$GITHUB_WORKSPACE/RELEASE_MANIFEST.json"
           cmp RELEASE_SHA256.txt "$GITHUB_WORKSPACE/RELEASE_SHA256.txt"
       - name: Generate detached machine-readable release evidence
@@ -234,9 +234,9 @@ jobs:
   # Builds the services image, starts the self-contained universe scanner in
   # simulation, and proves the container-level invariants offline tests cannot:
   # the package-mode file is baked read-only, the Sharia mount is read-only, the
-  # service reaches health, and state survives a container restart. Freqtrade
-  # and the Telegram broker need a pinned image pull and real tokens, so full
-  # six-service health remains a testnet/Oracle gate.
+  # manual Sharia projector reaches health without a network, and state
+  # survives a container restart. The Telegram broker needs a real token, so
+  # full five-service health remains a TestNet/Oracle host gate.
   integration-simulation:
     needs: verify
     runs-on: ubuntu-latest
@@ -297,42 +297,29 @@ jobs:
       - name: Validate compose and build the services image
         run: |
           docker compose --env-file .env.ci config -q
-          docker compose --env-file .env.ci build universe
-      - name: Prove Sharia network isolation and pinned HTTPS egress
+          docker compose --env-file .env.ci build universe freqtrade
+      - name: Prove the manual Sharia registry projector is networkless
         run: |
-          docker compose --env-file .env.ci up -d sharia-egress-proxy
-          # Keep the security/health gate strict, but allow the configured
-          # startup and retry window on CPU-limited GitHub runners (185s).
-          for i in $(seq 1 120); do
-            state=$(docker inspect --format '{{ .State.Health.Status }}' $(docker compose --env-file .env.ci ps -q sharia-egress-proxy) 2>/dev/null || echo starting)
+          docker compose --env-file .env.ci up -d sharia-screener
+          for i in $(seq 1 60); do
+            state=$(docker inspect --format '{{ .State.Health.Status }}' $(docker compose --env-file .env.ci ps -q sharia-screener) 2>/dev/null || echo starting)
             [ "$state" = "healthy" ] && break
             sleep 2
           done
-          test "$state" = "healthy" || { docker compose --env-file .env.ci logs sharia-egress-proxy; exit 1; }
-          docker compose --env-file .env.ci run --rm --no-deps -T sharia-screener python - <<'PY'
-          import socket
-          import requests
-
-          response = requests.get('https://example.com/', timeout=15)
-          assert response.status_code == 200, response.status_code
-
-          direct = socket.socket()
-          direct.settimeout(3)
-          try:
-              direct.connect(('1.1.1.1', 443))
-          except OSError:
-              pass
-          else:
-              raise SystemExit('FAIL: screener bypassed its internal-only network')
-          finally:
-              direct.close()
-
-          probe = socket.create_connection(('sharia-egress-proxy', 8080), 5)
-          probe.sendall(b'CONNECT 169.254.169.254:443 HTTP/1.1\r\nHost: 169.254.169.254\r\n\r\n')
-          reply = probe.recv(1024)
-          probe.close()
-          assert b'403 Forbidden' in reply, reply
-          print('PASS: HTTPS used the pinned proxy; direct and metadata egress were blocked')
+          test "$state" = "healthy" || { docker compose --env-file .env.ci logs sharia-screener; exit 1; }
+          cid=$(docker compose --env-file .env.ci ps -q sharia-screener)
+          mode=$(docker inspect --format '{{ .HostConfig.NetworkMode }}' "$cid")
+          test "$mode" = "none" || { echo "manual Sharia projector network mode=$mode"; exit 1; }
+          docker exec -i "$cid" python - <<'PY'
+          import json
+          from pathlib import Path
+          status=json.loads(Path('/app/shared/sharia/sharia_status.json').read_text())
+          registry=json.loads(Path('/app/shared/sharia/halal_coins.json').read_text())
+          assert status['projection_mode'] == 'manual-registry/v1'
+          assert status['registry_valid'] is True
+          assert len(status['records']) == len(registry['symbols']) == 244
+          assert {row['symbol'] + 'USDT' for row in status['records']} == set(registry['symbols'])
+          print('PASS: owner-maintained registry projected exactly; no research network exists')
           PY
       - name: Package-mode file is baked read-only into the image
         run: |

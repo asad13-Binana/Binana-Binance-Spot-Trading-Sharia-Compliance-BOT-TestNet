@@ -104,6 +104,14 @@ for account in (BOT, MONITOR):
     run(['useradd', '--system', '--user-group', '--shell', '/usr/sbin/nologin', account])
 uid = int(subprocess.check_output(['id', '-u', BOT]))
 gid = int(subprocess.check_output(['id', '-g', BOT]))
+
+# Reproduce the AWS failure where a bind-mount parent already exists as
+# root:root 0755. The installer must repair it before Freqtrade starts.
+stale_freqtrade = PERSIST / 'freqtrade'
+stale_freqtrade.mkdir(parents=True, exist_ok=True)
+stale_freqtrade.chmod(0o755)
+assert stale_freqtrade.stat().st_uid == 0
+assert stale_freqtrade.stat().st_gid == 0
 Path('/etc/default/' + SLUG + '-deploy').write_text('BINANA_DEPLOY_UID=0\n')
 STATE.write_text(json.dumps({'slug': SLUG, 'failure': '', 'units': []}))
 for command in ('docker', 'systemctl', 'awk', 'df', 'seq', 'sleep', 'nproc', 'curl'):
@@ -147,6 +155,15 @@ time.sleep(1.1)
 deploy(first, True)
 old = str((APP / 'current').resolve())
 assert json.loads((PERSIST / 'runtime/deployment_status.json').read_text())['ok'] is True
+
+freqtrade_state = PERSIST / 'freqtrade'
+freqtrade_mode = freqtrade_state.stat().st_mode & 0o777
+assert freqtrade_state.stat().st_uid == uid, freqtrade_state.stat()
+assert freqtrade_state.stat().st_gid == gid, freqtrade_state.stat()
+assert freqtrade_mode == 0o750, oct(freqtrade_mode)
+assert (freqtrade_state / 'logs').stat().st_uid == uid
+assert (freqtrade_state / 'logs').stat().st_gid == gid
+print('FREQTRADE_PERSIST_OWNERSHIP_REPAIR=PASS', flush=True)
 for name in ('sharia_status.json', 'source_registry.json', 'halal_coins.json'):
     assert (PERSIST / 'sharia' / name).stat().st_uid == uid
 assert (PERSIST / 'universe').stat().st_uid == uid
