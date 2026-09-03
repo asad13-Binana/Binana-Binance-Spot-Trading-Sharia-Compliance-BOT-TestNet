@@ -941,6 +941,7 @@ class PackagedArtifactCIParityTests(unittest.TestCase):
         self.assertIn('gzip -n -9', workflow)
         self.assertIn('Verify freshly extracted release artifact', workflow)
         self.assertIn('./deploy/verify_release.sh', workflow)
+        self.assertIn('export BOT_UID="$(id -u)" BOT_GID="$(id -g)"', workflow)
         self.assertIn('docker compose --env-file .env.example build universe', workflow)
         self.assertIn('cmp RELEASE_MANIFEST.json', workflow)
 

@@ -207,6 +207,9 @@ jobs:
           echo 'artifact permission check passed'
           python scripts/verify_manifest.py
           bash ./deploy/verify_release.sh
+          # .env.example intentionally carries non-numeric setup placeholders.
+          # Render the artifact with the numeric identity a real installer writes.
+          export BOT_UID="$(id -u)" BOT_GID="$(id -g)"
           docker compose --env-file .env.example config -q
           docker compose --env-file .env.example build universe freqtrade
           cmp RELEASE_MANIFEST.json "$GITHUB_WORKSPACE/RELEASE_MANIFEST.json"
