@@ -56,12 +56,25 @@ PROTECTED = {
     "services/sharia_screener/verdict_policy.py": "afde5fc2733d6e5a4aea50e436adf3cf55ff83e5d1e32428214f57f8dc6f55e2",
     "services/universe_service/ranker.py": "267b743782453979cbc6fbbf77fa37895dfdec9910b1d190ba6efa898b7c8e2a",
     "services/universe_service/scanner.py": "eddc92b28387d62b62dc9a0d73f08a8ac191095b712d4351f5fd7e0787804b15",
-    "services/universe_service/sharia_filter.py": "bc2623d5d0d0468eaf91fb638b97f359036077658e0d9afc4944ff83032a8207",
+    # Explicit owner-authorized transition to the manual operational registry:
+    # V19.1 methods stay byte-identical; only the mode dispatcher was added.
+    "services/universe_service/sharia_filter.py": "242e9ae28aa23d89435280cfef3f094020d14cb16f6bad4800c52d488eb28dd8",
     "services/universe_service/snapshot_store.py": "aa4bc05c079cb3d68d782e145dbbf3a5b3cc1255987bdd552b2e9214070d17c6",
     "services/universe_service/validate_sharia.py": "afa16ae9fb3a999559f611a2d6da6bab2b2da337d75493578d22b44ea63e51c0",
-    "shared/sharia/halal_coins.json": "9f9cf72944eaef6d4d1f779f978a68317f175eaa9978c33d6150527117653877",
+    "shared/sharia/halal_coins.json": "3aa8dc6b70e8de4ca1b7d15d8c72b8f9ac4ec95c86edf02fdd37b1f89d363bc0",
     "shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json": "07106bb8bfc1924d8d0c6f61ced4e0c51c2ac2054988423f42c1fd67f3b2ba78",
     "shared/sharia/sharia_status.json": "fa7491087544027172f3f9d38252a95724227c4d9f207d6d2d9cdf9b71b6959e",
+}
+
+AUTHORIZED_MANUAL_REGISTRY_TRANSITIONS = {
+    "services/universe_service/sharia_filter.py": (
+        "bc2623d5d0d0468eaf91fb638b97f359036077658e0d9afc4944ff83032a8207",
+        PROTECTED["services/universe_service/sharia_filter.py"],
+    ),
+    "shared/sharia/halal_coins.json": (
+        "9f9cf72944eaef6d4d1f779f978a68317f175eaa9978c33d6150527117653877",
+        PROTECTED["shared/sharia/halal_coins.json"],
+    ),
 }
 
 
@@ -70,6 +83,13 @@ class ProtectedCoreTests(unittest.TestCase):
         for relative, expected in PROTECTED.items():
             with self.subTest(relative=relative):
                 self.assertEqual(hashlib.sha256((ROOT / relative).read_bytes()).hexdigest(), expected)
+
+    def test_manual_registry_transition_keeps_explicit_before_and_after_hashes(self):
+        for relative, (before, after) in AUTHORIZED_MANUAL_REGISTRY_TRANSITIONS.items():
+            with self.subTest(relative=relative):
+                self.assertRegex(before, r"^[0-9a-f]{64}$")
+                self.assertRegex(after, r"^[0-9a-f]{64}$")
+                self.assertNotEqual(before, after)
 
     def test_runtime_pairlist_override_is_absolute_without_editing_base_config(self):
         """Keep the protected base config while fixing Freqtrade 2026.6 I/O."""

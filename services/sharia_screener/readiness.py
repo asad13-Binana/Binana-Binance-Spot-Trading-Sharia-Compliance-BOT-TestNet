@@ -1,10 +1,10 @@
 """Read-only Sharia readiness projection; does not approve or modify records."""
-from services.universe_service.sharia_filter import ShariaFilter
+from services.universe_service.sharia_gate import load_sharia_gate
 
 
 def screening_readiness(path):
     try:
-        gate = ShariaFilter(path)
+        gate = load_sharia_gate(path)
         eligible = sum(gate.decision(base).allowed for base in gate.records)
         return {'eligible_assets': eligible,
                 'sharia_trade_ready': eligible > 0,

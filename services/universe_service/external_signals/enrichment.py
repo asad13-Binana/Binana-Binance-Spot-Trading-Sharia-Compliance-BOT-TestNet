@@ -185,18 +185,23 @@ class ExternalSignals:
                     pass
                 self.coingecko_enabled = False
                 self.cmc_enabled = False
+        budget_disabled = not self.writer_lease_held
         self._cg_budget = ApiBudget(
             'CoinGecko', self.state_dir / 'coingecko_budget.json',
-            per_minute=cg_per_minute, per_month=cg_monthly)
+            per_minute=cg_per_minute, per_month=cg_monthly,
+            disabled=budget_disabled)
         self._cmc_budget = ApiBudget(
             'CMC', self.state_dir / 'cmc_budget.json',
-            per_minute=cmc_per_minute, per_month=cmc_monthly)
+            per_minute=cmc_per_minute, per_month=cmc_monthly,
+            disabled=budget_disabled)
         self._cg_breaker = CircuitBreaker(
             'CoinGecko', cooldown_seconds=self.breaker_cooldown_seconds,
-            state_path=self.state_dir / 'coingecko_breaker.json')
+            state_path=(self.state_dir / 'coingecko_breaker.json' if
+                        self.writer_lease_held else None))
         self._cmc_breaker = CircuitBreaker(
             'CMC', cooldown_seconds=self.breaker_cooldown_seconds,
-            state_path=self.state_dir / 'cmc_breaker.json')
+            state_path=(self.state_dir / 'cmc_breaker.json' if
+                        self.writer_lease_held else None))
         self._cache = read_json(self.state_dir / 'cache.json', {}) or {}
         if not isinstance(self._cache, dict):
             self._cache = {}

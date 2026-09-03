@@ -346,6 +346,19 @@ class BudgetCorruptionTests(unittest.TestCase):
             self.assertTrue(b.try_acquire())
             self.assertTrue((Path(tmp) / 'test_budget.json.install').exists())
 
+    def test_true_first_install_survives_five_restarts(self):
+        with tempfile.TemporaryDirectory() as tmp, self._audit_env(tmp):
+            path = Path(tmp) / 'test_budget.json'
+            budget = make_budget(tmp, per_minute=100, per_month=10, per_day=10)
+            self.assertTrue(path.exists())
+            self.assertTrue(Path(str(path) + '.install').exists())
+            self.assertFalse(budget.quarantined)
+            for _ in range(5):
+                budget = make_budget(
+                    tmp, per_minute=100, per_month=10, per_day=10)
+                self.assertFalse(budget.quarantined)
+                self.assertEqual(budget.stats()['month_used'], 0)
+
     def test_documented_manual_reset_clears_state(self):
         # The documented reset deletes BOTH the ledger and its install marker.
         with tempfile.TemporaryDirectory() as tmp, self._audit_env(tmp):
@@ -1213,6 +1226,11 @@ class WriterLeaseTests(unittest.TestCase):
             ext.refresh_if_stale()  # must be a no-op, never an HTTP call
             audit_text = (Path(tmp) / 'audit.jsonl').read_text(encoding='utf-8')
             self.assertIn('external_signals_writer_conflict', audit_text)
+            state_dir = Path(tmp) / 'external'
+            self.assertFalse((state_dir / 'coingecko_budget.json').exists())
+            self.assertFalse((state_dir / 'cmc_budget.json').exists())
+            self.assertFalse((state_dir / 'coingecko_breaker.json').exists())
+            self.assertFalse((state_dir / 'cmc_breaker.json').exists())
 
     @unittest.skipUnless(
         __import__('services.universe_service.external_signals.writer_lock',

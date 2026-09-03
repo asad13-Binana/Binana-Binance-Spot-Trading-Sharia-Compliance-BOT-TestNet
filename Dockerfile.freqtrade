@@ -1,0 +1,17 @@
+FROM freqtradeorg/freqtrade:2026.6@sha256:d451af021d5e08b70580c0eea5848534e9846b57391b34821c0a5814416397e6
+
+USER root
+ARG BOT_UID=1000
+ARG BOT_GID=1000
+RUN set -eux; \
+    uid_owner="$(getent passwd "$BOT_UID" | cut -d: -f1 || true)"; \
+    gid_owner="$(getent group "$BOT_GID" | cut -d: -f1 || true)"; \
+    [ -z "$uid_owner" ] || [ "$uid_owner" = ftuser ]; \
+    [ -z "$gid_owner" ] || [ "$gid_owner" = ftuser ]; \
+    current_uid="$(id -u ftuser)"; \
+    current_gid="$(id -g ftuser)"; \
+    if [ "$BOT_GID" != "$current_gid" ]; then groupmod -g "$BOT_GID" ftuser; fi; \
+    if [ "$BOT_UID" != "$current_uid" ]; then usermod -u "$BOT_UID" ftuser; fi; \
+    usermod -g "$BOT_GID" ftuser; \
+    chown -R "$BOT_UID:$BOT_GID" /home/ftuser /freqtrade/user_data
+USER ftuser

@@ -4,6 +4,7 @@ import json
 import os
 import tempfile
 import unittest
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest import mock
 
@@ -25,24 +26,40 @@ class BacktestPairGateTests(unittest.TestCase):
         path.write_text(json.dumps(payload), encoding='utf-8')
         return path
 
-    def test_only_generated_exact_symbols_become_pairs(self):
-        path = self._write({'symbols': ['SOLUSDT', 'ETHUSDT']})
+    @staticmethod
+    def _registry(symbols):
+        today = datetime.now(timezone.utc).date()
+        return {
+            'schema_version': 1,
+            'version': 'test-1',
+            'last_reviewed': today.isoformat() if symbols else None,
+            'next_review': (today + timedelta(days=30)).isoformat() if symbols else None,
+            'symbols': symbols,
+        }
+
+    def test_only_manual_exact_symbols_become_pairs(self):
+        path = self._write(self._registry(['ETHUSDT', 'SOLUSDT']))
         self.assertEqual(load_pairs(path), ['ETH/USDT', 'SOL/USDT'])
 
-    def test_missing_malformed_empty_duplicate_and_policy_violations_block(self):
+    def test_missing_malformed_empty_and_duplicate_registry_blocks(self):
         cases = [
-            ({}, 'symbols array'),
-            ({'symbols': []}, 'no current V19.1'),
-            ({'symbols': ['ethusdt']}, 'uppercase'),
-            ({'symbols': ['ETHUSDT', 'ETHUSDT']}, 'duplicate'),
-            ({'symbols': ['BTCUSDT']}, 'universe policy'),
-            ({'symbols': ['USDCUSDT']}, 'universe policy'),
-            ({'symbols': ['ETHUPUSDT']}, 'universe policy'),
+            ({}, 'schema_version'),
+            (self._registry([]), 'registry is empty'),
+            (self._registry(['ethusdt']), 'uppercase'),
+            (self._registry(['ETHUSDT', 'ETHUSDT']), 'duplicate'),
+            (self._registry(['SOLUSDT', 'ETHUSDT']), 'must be sorted'),
         ]
         for payload, message in cases:
             with self.subTest(payload=payload), self.assertRaisesRegex(
                     BacktestPairError, message):
                 load_pairs(self._write(payload))
+
+    def test_existing_universe_policy_remains_an_additional_gate(self):
+        payload = self._registry([
+            'BNBUSDT', 'BTCUSDT', 'ETHUPUSDT', 'ETHUSDT', 'USDCUSDT'])
+        self.assertEqual(load_pairs(self._write(payload)), ['ETH/USDT'])
+        with self.assertRaisesRegex(BacktestPairError, 'universe policy'):
+            load_pairs(self._write(self._registry(['BTCUSDT', 'USDCUSDT'])))
 
     def test_policy_constants_match_the_protected_universe_policy(self):
         self.assertEqual(EXCLUDED_BASES, frozenset(scanner.EXCLUDED))
@@ -51,7 +68,7 @@ class BacktestPairGateTests(unittest.TestCase):
             expected = frozenset(DEFAULT_STABLECOINS.split(','))
             self.assertEqual(expected, frozenset(scanner.STABLES))
 
-    def test_shell_scripts_use_arrays_and_not_deprecated_halal_list(self):
+    def test_shell_scripts_use_arrays_and_the_manual_registry(self):
         root = Path(__file__).resolve().parents[1]
         for relative in (
             'freqtrade/scripts/backtest.sh',

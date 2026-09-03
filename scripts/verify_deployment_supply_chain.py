@@ -49,7 +49,20 @@ def deployment_supply_chain_errors(root: Path = ROOT) -> list[str]:
     freqtrade = next((line.strip() for line in compose.splitlines()
                       if line.strip().startswith(
                           'image: freqtradeorg/freqtrade:')), '')
-    if not SHA256_REF.search(freqtrade):
+    wrapper = root / 'Dockerfile.freqtrade'
+    wrapper_base = ''
+    if wrapper.is_file():
+        wrapper_base = next(
+            (line.strip() for line in wrapper.read_text(encoding='utf-8').splitlines()
+             if line.strip().startswith('FROM freqtradeorg/freqtrade:')),
+            '',
+        )
+    direct_pinned = bool(SHA256_REF.search(freqtrade))
+    wrapper_pinned = (
+        'dockerfile: Dockerfile.freqtrade' in compose
+        and bool(SHA256_REF.search(wrapper_base))
+    )
+    if not (direct_pinned or wrapper_pinned):
         errors.append('Freqtrade runtime image is not pinned by sha256 digest')
 
     locks = (

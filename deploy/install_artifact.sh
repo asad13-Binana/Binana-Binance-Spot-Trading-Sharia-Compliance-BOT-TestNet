@@ -21,8 +21,7 @@ MIN_DEPLOY_FREE_DISK_GIB=${MIN_DEPLOY_FREE_DISK_GIB:-5}
 # second parallel stack against the same account.
 export COMPOSE_PROJECT_NAME
 REQUIRED_SERVICES=(
-  universe sharia-egress-proxy sharia-screener freqtrade
-  execution-sidecar telegram-broker
+  universe sharia-screener freqtrade execution-sidecar telegram-broker
 )
 
 fail(){ echo "ERROR: $*" >&2; exit 1; }
@@ -154,7 +153,7 @@ install -d -m 0750 -o "$BOT_UID" -g "$BOT_GID" \
   "$PERSIST/legacy_runtime" \
   "$PERSIST/universe" "$PERSIST/signals/inbox" "$PERSIST/signals/processed" \
   "$PERSIST/signals/rejected" "$PERSIST/audit" \
-  "$PERSIST/freqtrade/logs"
+  "$PERSIST/freqtrade" "$PERSIST/freqtrade/logs"
 [[ ! -L "$RELEASES" && ! -L "$PERSIST" ]] || fail 'release and persistent roots must not be symlinks'
 [[ $(stat -Lc '%u' "$RELEASES") == 0 ]] || fail "$RELEASES must be root-owned"
 release_mode=$(stat -Lc '%a' "$RELEASES")
@@ -247,26 +246,48 @@ NEW_TAG="v101-${RELEASE_HASH:0:16}"
 printf '%s\n' "$NEW_TAG" > "$NEW/.release-tag"
 ln -sfn "$ENV_FILE" "$NEW/.env"
 
-# Seed private/persistent Sharia data only once; releases never overwrite the
-# screener-written status. The immutable V19.1 controller, however, is always
-# refreshed from the release so the persistent copy stays byte-identical.
+# Validate the owner-maintained manual registry before touching the running
+# release. An exact legacy empty compatibility file is safely migrated to the
+# reviewed registry shipped in this release. A non-empty or already-manual
+# owner file is never overwritten; malformed owner data blocks deployment.
 for state_file in sharia_status.json halal_coins.json source_registry.json HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json; do
   [[ ! -L "$PERSIST/sharia/$state_file" ]] || fail 'Sharia state must not be a symlink'
 done
-if [[ ! -f "$PERSIST/sharia/sharia_status.json" ]]; then
-  install -m 0640 -o "$BOT_UID" -g "$BOT_GID" "$NEW/shared/sharia/sharia_status.json" "$PERSIST/sharia/sharia_status.json"
-fi
+SHARIA_REGISTRY_INSTALL=preserve
 if [[ ! -f "$PERSIST/sharia/halal_coins.json" ]]; then
-  install -m 0640 -o "$BOT_UID" -g "$BOT_GID" "$NEW/shared/sharia/halal_coins.json" "$PERSIST/sharia/halal_coins.json"
+  SHARIA_REGISTRY_INSTALL=release
+elif "$HOST_PYTHON" -I - "$PERSIST/sharia/halal_coins.json" <<'PY'
+import json,sys
+try:
+    value=json.load(open(sys.argv[1],encoding='utf-8'))
+except Exception:
+    raise SystemExit(1)
+legacy_empty=(isinstance(value,dict) and 'schema_version' not in value
+              and value.get('symbols') == [])
+raise SystemExit(0 if legacy_empty else 1)
+PY
+then
+  SHARIA_REGISTRY_INSTALL=release
 fi
+if [[ "$SHARIA_REGISTRY_INSTALL" == release ]]; then
+  MANUAL_REGISTRY_SOURCE="$NEW/shared/sharia/halal_coins.json"
+else
+  MANUAL_REGISTRY_SOURCE="$PERSIST/sharia/halal_coins.json"
+fi
+PYTHONPATH="$NEW" "$HOST_PYTHON" -m services.sharia_screener.manual_registry \
+  validate "$MANUAL_REGISTRY_SOURCE"
+PYTHONPATH="$NEW" "$HOST_PYTHON" -m services.universe_service.validate_sharia \
+  "$NEW/shared/sharia/sharia_status.json"
+
 if [[ ! -f "$PERSIST/sharia/source_registry.json" ]]; then
   install -m 0640 -o "$BOT_UID" -g "$BOT_GID" "$NEW/shared/sharia/source_registry.json" \
      "$PERSIST/sharia/source_registry.json"
 fi
 install -m 0640 -o "$BOT_UID" -g "$BOT_GID" "$NEW/shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json" \
    "$PERSIST/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json"
-# Repair permissions only, never replace existing screening/approval history.
-for state_file in sharia_status.json halal_coins.json source_registry.json; do
+# Repair permissions on non-transactional retained state. The registry and
+# status projection are switched together only after the old stack stops.
+for state_file in source_registry.json; do
   chown "$BOT_UID:$BOT_GID" "$PERSIST/sharia/$state_file"
   chmod 0640 "$PERSIST/sharia/$state_file"
 done
@@ -279,11 +300,9 @@ if actual != V19_CONTROLLER_SHA256:
     raise SystemExit(f'V19.1 controller hash mismatch after seeding: {actual}')
 print('V19.1 controller byte-integrity verified')
 PY
-PYTHONPATH="$NEW" "$HOST_PYTHON" -m services.universe_service.validate_sharia "$PERSIST/sharia/sharia_status.json"
-
 # Validate and build an immutable service-image tag before touching the running release.
 compose_for "$NEW" "$NEW_TAG" config -q
-compose_for "$NEW" "$NEW_TAG" build universe
+compose_for "$NEW" "$NEW_TAG" build universe freqtrade
 
 OLD=''
 OLD_TAG=''
@@ -393,6 +412,61 @@ trap - EXIT
 rm -rf "$TMP"
 ln -sfn "$ENV_FILE" "$DEST/.env"
 
+SHARIA_STATE_BACKUP="$PERSIST/runtime/.manual-sharia-deploy-$STAMP"
+SHARIA_STATE_BACKED_UP=false
+
+backup_manual_sharia_state(){
+  install -d -m 0700 -o root -g root "$SHARIA_STATE_BACKUP"
+  local state_file
+  for state_file in halal_coins.json sharia_status.json; do
+    if [[ -f "$PERSIST/sharia/$state_file" ]]; then
+      install -m 0600 -o root -g root "$PERSIST/sharia/$state_file" \
+        "$SHARIA_STATE_BACKUP/$state_file"
+    else
+      : >"$SHARIA_STATE_BACKUP/$state_file.missing"
+      chmod 0600 "$SHARIA_STATE_BACKUP/$state_file.missing"
+    fi
+  done
+  SHARIA_STATE_BACKED_UP=true
+}
+
+restore_manual_sharia_state(){
+  [[ "$SHARIA_STATE_BACKED_UP" == true ]] || return 0
+  local state_file
+  for state_file in halal_coins.json sharia_status.json; do
+    if [[ -f "$SHARIA_STATE_BACKUP/$state_file.missing" ]]; then
+      rm -f "$PERSIST/sharia/$state_file"
+    else
+      install -m 0640 -o "$BOT_UID" -g "$BOT_GID" \
+        "$SHARIA_STATE_BACKUP/$state_file" "$PERSIST/sharia/$state_file" || return 1
+    fi
+  done
+  return 0
+}
+
+apply_manual_sharia_state(){
+  if [[ "$SHARIA_REGISTRY_INSTALL" == release ]]; then
+    install -m 0640 -o "$BOT_UID" -g "$BOT_GID" \
+      "$DEST/shared/sharia/halal_coins.json" "$PERSIST/sharia/halal_coins.json"
+  fi
+  PYTHONPATH="$DEST" "$HOST_PYTHON" \
+    -m services.sharia_screener.manual_registry bootstrap-status \
+    "$PERSIST/sharia/halal_coins.json" "$PERSIST/sharia/sharia_status.json"
+  chown "$BOT_UID:$BOT_GID" \
+    "$PERSIST/sharia/halal_coins.json" "$PERSIST/sharia/sharia_status.json"
+  chmod 0640 "$PERSIST/sharia/halal_coins.json" "$PERSIST/sharia/sharia_status.json"
+}
+
+discard_manual_sharia_backup(){
+  [[ "$SHARIA_STATE_BACKED_UP" == true ]] || return 0
+  rm -f "$SHARIA_STATE_BACKUP/halal_coins.json" \
+    "$SHARIA_STATE_BACKUP/sharia_status.json" \
+    "$SHARIA_STATE_BACKUP/halal_coins.json.missing" \
+    "$SHARIA_STATE_BACKUP/sharia_status.json.missing"
+  rmdir "$SHARIA_STATE_BACKUP"
+  SHARIA_STATE_BACKED_UP=false
+}
+
 rollback(){
   trap - ERR EXIT INT TERM
   set +e
@@ -403,6 +477,9 @@ rollback(){
   if (( stop_result != 0 )); then
     echo 'CRITICAL: new stack could not be stopped; refusing to start another stack.' >&2
     rollback_status='ROLLBACK_STOP_FAILED_CRITICAL'
+  elif ! restore_manual_sharia_state; then
+    echo 'CRITICAL: prior Sharia state could not be restored; refusing to start another stack.' >&2
+    rollback_status='ROLLBACK_SHARIA_RESTORE_FAILED_CRITICAL'
   elif [[ -n "$OLD" && -d "$OLD" ]]; then
     ln -sfn "$OLD" "$CURRENT.new" && mv -Tf "$CURRENT.new" "$CURRENT"
     compose_for "$OLD" "$OLD_TAG" up -d --remove-orphans
@@ -418,7 +495,7 @@ rollback(){
         st=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$cid" 2>/dev/null || true)
         [[ "$st" == healthy ]] || { all_ok=false; break; }
       done
-      if [[ "$running" -eq "${#REQUIRED_SERVICES[@]}" && "$all_ok" == true ]]; then old_ok=true; break; fi
+      if [[ "$running" -ge "${#REQUIRED_SERVICES[@]}" && "$all_ok" == true ]]; then old_ok=true; break; fi
       sleep 5
     done
     [[ "$old_ok" == true ]] && rollback_status='ROLLED_BACK_OLD_HEALTHY' || rollback_status='ROLLED_BACK_OLD_UNHEALTHY_CRITICAL'
@@ -464,6 +541,8 @@ trap 'rollback' INT TERM
 if [[ -n "$OLD" && -d "$OLD" ]]; then
   compose_for "$OLD" "$OLD_TAG" down --remove-orphans
 fi
+backup_manual_sharia_state
+apply_manual_sharia_state
 ln -sfn "$DEST" "$CURRENT.new" && mv -Tf "$CURRENT.new" "$CURRENT"
 rm -f "$PERSIST/runtime/sidecar_health.json" \
       "$PERSIST/runtime/telegram_health.json" \
@@ -480,7 +559,7 @@ for _ in $(seq 1 48); do
     status=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$cid" 2>/dev/null || true)
     [[ "$status" == healthy ]] || { all_healthy=false; break; }
   done
-  if [[ "$running" -eq "${#REQUIRED_SERVICES[@]}" && "$all_healthy" == true ]]; then
+  if [[ "$running" -ge "${#REQUIRED_SERVICES[@]}" && "$all_healthy" == true ]]; then
     healthy=true
     break
   fi
@@ -550,6 +629,7 @@ except BaseException:
 PY
 
 # Optional Telegram deployment notification without printing secrets.
+discard_manual_sharia_backup
 trap - ERR INT TERM
 if [[ "$TELEGRAM_BOT_TOKEN" =~ ^[0-9]{6,12}:[A-Za-z0-9_-]{30,}$ \
    && "$TELEGRAM_OWNER_CHAT_ID" =~ ^-?[0-9]+$ ]]; then

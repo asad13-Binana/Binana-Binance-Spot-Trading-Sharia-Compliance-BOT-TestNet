@@ -64,6 +64,25 @@ class DeploymentSupplyChainGateTests(unittest.TestCase):
     def test_current_tree_passes_the_deployment_supply_chain_gate(self):
         self.assertEqual(deployment_supply_chain_errors(ROOT), [])
 
+    def test_freqtrade_wrapper_requires_a_digest_pinned_base(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            _write_tree(root, pinned=True)
+            (root / 'docker-compose.yml').write_text(
+                'services:\n  freqtrade:\n    build:\n'
+                '      dockerfile: Dockerfile.freqtrade\n'
+                '    image: binana-testnet-freqtrade:test\n', encoding='utf-8')
+            wrapper = root / 'Dockerfile.freqtrade'
+            wrapper.write_text(
+                f'FROM freqtradeorg/freqtrade:2026.6@sha256:{DIGEST}\n',
+                encoding='utf-8')
+            self.assertEqual(deployment_supply_chain_errors(root), [])
+            wrapper.write_text(
+                'FROM freqtradeorg/freqtrade:2026.6\n', encoding='utf-8')
+            self.assertTrue(any(
+                'Freqtrade' in error
+                for error in deployment_supply_chain_errors(root)))
+
     def test_oracle_installer_runs_gate_before_activation(self):
         installer = (ROOT / 'deploy/install_artifact.sh').read_text(encoding='utf-8')
         gate = 'python3 "$NEW/scripts/verify_deployment_supply_chain.py"'
