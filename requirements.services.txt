@@ -11,4 +11,4 @@ websocket-client==1.8.0
 python-binance==1.0.28
 # Direct dependency: Ed25519 result/status attestations (not merely transitive).
 pycryptodome==3.23.0
-pypdf==6.15.0
+pypdf==6.16.1
