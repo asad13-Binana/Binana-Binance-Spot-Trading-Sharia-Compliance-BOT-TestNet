@@ -160,6 +160,11 @@ class ManualRegistryProjectionTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'invalid; fail closed'):
                 ManualRegistryFilter(status_path)
 
+    def test_usdt_base_is_not_normalized_to_an_empty_symbol(self):
+        self.assertEqual(ManualRegistryFilter._normalize_symbol('USDT'), 'USDT')
+        self.assertEqual(ManualRegistryFilter._normalize_symbol('USDTUSDT'), 'USDT')
+        self.assertEqual(ManualRegistryFilter._normalize_symbol('USDT/USDT'), 'USDT')
+
 
 if __name__ == '__main__':
     unittest.main()

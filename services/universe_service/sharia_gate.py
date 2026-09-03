@@ -61,7 +61,10 @@ class ManualRegistryFilter:
     @staticmethod
     def _normalize_symbol(value: object) -> str:
         symbol = str(value or '').upper().replace('/', '')
-        return symbol[:-4] if symbol.endswith('USDT') else symbol
+        # ``USDT`` may itself appear as an owner-reviewed base asset.  Strip
+        # the quote suffix only when a non-empty base precedes it; exchange
+        # eligibility independently rejects the nonexistent USDT/USDT pair.
+        return symbol[:-4] if len(symbol) > 4 and symbol.endswith('USDT') else symbol
 
     def _binding_error(self, record: dict, *, expected_base: str,
                        registry) -> str:

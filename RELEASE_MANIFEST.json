@@ -365,7 +365,7 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "74be98cc76288b9ba072539fc71e4793ea7cadf6bfbe400d6ab85f093691d47c",
+      "sha256": "1ff37c6bd4182cafc6e01e4c12f3f4747e6ddc2e56197bf5d5ed51322473ad85",
       "size": 53954
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
@@ -373,8 +373,8 @@
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "3b32b6ea07f078107ee4dcb2d2eccecb84539e9c64f0c18f05fff2ec29498922",
-      "size": 323700
+      "sha256": "8db7bd274c2c4bcac909e879640d139cadf59c074591978cf6d3da1c4e59099f",
+      "size": 323863
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -1105,8 +1105,8 @@
       "size": 13006
     },
     "services/universe_service/sharia_gate.py": {
-      "sha256": "b94351e34a1d9205c5cb7cd086f04b96ab25028c8f1d7ca0d17ac16ada5eaa2e",
-      "size": 11924
+      "sha256": "c79eb3eff5a8274ab29d446d3f47f1366f9f0f8acdc1ae78cae9af2d6d80c475",
+      "size": 12173
     },
     "services/universe_service/snapshot_store.py": {
       "sha256": "aa4bc05c079cb3d68d782e145dbbf3a5b3cc1255987bdd552b2e9214070d17c6",
@@ -1253,8 +1253,8 @@
       "size": 48673
     },
     "tests/test_manual_sharia_registry.py": {
-      "sha256": "eba1588402e810efc6ce8ef46db3c3995297e488f10eba6c56e658631b5b5cfa",
-      "size": 7573
+      "sha256": "a2ef4ccdd00f93ba56da9188bb67c08def65602ac8c16346685534fcccfe97c3",
+      "size": 7893
     },
     "tests/test_oracle_capacity_contract.py": {
       "sha256": "12559e0dbced356c2ada65e3f36ca3ca6cd3d5ccf9cd5df10537655255d1ccb0",
