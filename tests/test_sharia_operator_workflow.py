@@ -152,6 +152,12 @@ class TelegramOperatorTests(unittest.TestCase):
         self.assertNotIn('do|entries_off', callbacks)
         self.assertIn('do|emergency_stop_confirm', callbacks)
 
+    def test_help_does_not_advertise_retired_automatic_scanning(self):
+        help_message = bot.help_text()
+        self.assertNotIn('/scan ', help_message)
+        self.assertIn('/shariareport BASE', help_message)
+        self.assertIn('Automatic Sharia scanning is disabled', help_message)
+
     def test_limited_controls_are_reversible_and_have_no_remote_shell(self):
         callbacks = {
             button['callback_data']

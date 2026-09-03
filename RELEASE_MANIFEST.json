@@ -341,8 +341,8 @@
       "size": 3175
     },
     "docs/TELEGRAM_BOT_SETUP.md": {
-      "sha256": "b2d8551a570ca767acac45b8a521380d7ef944b66e91241947a45fae6dfe4177",
-      "size": 6241
+      "sha256": "d77c213a155f520b0e01586da2c771cd898966af42a0e9b6bc244495854c1dd1",
+      "size": 6355
     },
     "docs/V7_SOURCE_AUDIT_PROBES.json": {
       "sha256": "0ac33892dfe46689ede51e45b91828b6efdb8a44273573ed5751758567abd1cf",
@@ -365,7 +365,7 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "1ff37c6bd4182cafc6e01e4c12f3f4747e6ddc2e56197bf5d5ed51322473ad85",
+      "sha256": "77f9a05c1975726e39a626967f8113f82c0795601ee9d2e01ceae221bb9b2c3e",
       "size": 53954
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
@@ -373,8 +373,8 @@
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "8db7bd274c2c4bcac909e879640d139cadf59c074591978cf6d3da1c4e59099f",
-      "size": 323863
+      "sha256": "76cd1b0ab62a98146d4053ea8cea98b1499ee6f539c33157f38916ac6edf6ab4",
+      "size": 324024
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -1049,8 +1049,8 @@
       "size": 297
     },
     "services/telegram_broker/bot.py": {
-      "sha256": "981fb7e45b6bb19ef4d9e32c0bbf930c0ac5ddf128cda0923ffd81adf0ce4a3b",
-      "size": 85402
+      "sha256": "b3e094d1ba6f65762b5646a670d61d3411293e3f86d1e3a6df50529c3e74c1c9",
+      "size": 85386
     },
     "services/telegram_broker/callbacks.py": {
       "sha256": "1f2932fa7fa64ee70a783fae5f5c5bf86af9b0dced8f8f9b43266d8d55391ec4",
@@ -1313,8 +1313,8 @@
       "size": 4061
     },
     "tests/test_sharia_operator_workflow.py": {
-      "sha256": "e41a3c1d6f783a5d5e033e66cf523d48e1dd644a761b53dd940badad11476bae",
-      "size": 16728
+      "sha256": "97dfb79f97b7b76dd4db1d990897358fb305b290d82772c9f01f5c674624ee3c",
+      "size": 17023
     },
     "tests/test_sharia_quota_hardening.py": {
       "sha256": "6834faf198aa8fd8f0e5e954171bf1510f1fb3a65c71d3557b0c748744905ec2",

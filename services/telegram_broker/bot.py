@@ -969,8 +969,8 @@ def help_text():
     return (
         'Safe commands: /menu /status /orders /history /daily /balance '
         '/profit /stop /pause '
-        '/universe /sharia /shariastatus /scan BASE/USDT '
-        '/shariareport BASE /deploy /lastsignal /signals /rejected '
+        '/universe /sharia /shariastatus /shariareport BASE '
+        '/deploy /lastsignal /signals /rejected '
         '/spotcontext /providers /readiness /alerts /selftest. '
         'Typing a pair like BTC/USDT (or BTCUSDT) checks the manual registry. '
         'The menu never changes strategy, risk, API keys, protection mode, '

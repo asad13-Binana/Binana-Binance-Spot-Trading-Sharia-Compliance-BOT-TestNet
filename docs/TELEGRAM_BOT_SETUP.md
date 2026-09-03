@@ -124,17 +124,19 @@ real Telegram bot tokens if one is accidentally added to the source tree.
 
 ## 5. Owner menu
 
-`/menu` opens a compact owner panel with five sections: Dashboard, Sharia,
-Trading, System and Emergency. Inline-button navigation edits the same message
-when Telegram permits it; if an edit is unavailable, the broker sends the same
-screen as a new message. That fallback is presentation-only and never retries
-a trading or Sharia command.
+`/menu` opens a bounded safe panel for Dashboard, Trading Status, Balance,
+Open Trades, Trade History, Market Scanner, Sharia Status, Safety & Health,
+Alerts, Bot Controls, Emergency Stop and Help. Inline-button navigation edits
+the same message when Telegram permits it; if an edit is unavailable, the
+broker sends the same screen as a new message. That fallback is
+presentation-only and never retries a trading or Sharia command.
 
-The Sharia section supports one-coin input without requiring command syntax,
-bounded batches of 10, 25, 50 or 100 current Spot/USDT assets, and an explicit
-separate confirmation for all pairs. Discovery, source-registry readiness,
-owner-review backlog and trade-eligible counts are displayed independently so
-an alive backend with an empty registry cannot look operationally ready.
+The Sharia section is registry-only in the default deployment. It supports
+read-only coin lookups, registry health, the current approved list and update
+instructions. Automatic scans, batch queues and evidence-card approval are
+disabled; only a validated update to
+`shared/sharia/halal_coins.json` changes the trading allowlist. A missing,
+malformed, expired or unprojected registry remains fail-closed.
 
 All existing owner-only checks, one-time confirmation tokens, durable Telegram
 update claims, signed command buses and fail-closed trading controls remain in
