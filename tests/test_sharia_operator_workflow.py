@@ -203,6 +203,34 @@ class TelegramOperatorTests(unittest.TestCase):
         self.assertNotIn('future', labels)
         self.assertNotIn('funding', labels)
         self.assertNotIn('open interest', labels)
+        callbacks = {
+            button['callback_data']
+            for row in bot.market_scanner_menu() for button in row
+        }
+        self.assertIn('do|provider_coingecko', callbacks)
+        self.assertIn('do|provider_coinmarketcap', callbacks)
+
+    def test_every_visible_button_has_a_non_network_route(self):
+        menus = (
+            bot.menu(), bot.dashboard_menu(), bot.market_scanner_menu(),
+            bot.sharia_menu(), bot.health_menu(), bot.controls_menu(),
+            bot.alerts_menu(), bot.emergency_menu(),
+        )
+        actions = sorted({
+            button['callback_data'].split('|', 1)[1]
+            for rows in menus for row in rows for button in row
+            if button['callback_data'].startswith('do|')
+        })
+        with mock.patch.object(bot, 'send'), \
+                mock.patch.object(bot, 'edit_or_send'), \
+                mock.patch.object(bot, '_ask_confirm'), \
+                mock.patch.object(bot, 'confirm_button', return_value={
+                    'text': 'confirm', 'callback_data': 'confirm|token'}), \
+                mock.patch.object(bot, 'sidecar_command', return_value={'ok': True}), \
+                mock.patch.object(bot, 'ft_call', return_value={'ok': True}):
+            for action in actions:
+                with self.subTest(action=action):
+                    bot.route(action, '123', 77)
 
     def test_edit_failure_falls_back_to_presentation_only_send(self):
         with mock.patch.object(bot, 'TOKEN', '123456:' + 'T' * 32), \
@@ -332,6 +360,139 @@ class TelegramOperatorTests(unittest.TestCase):
         self.assertIn('CoinMarketCap', rendered)
         self.assertNotIn('must-not-render', rendered)
         self.assertNotIn('api_key', rendered)
+
+    def test_provider_buttons_render_separate_advisory_only_status(self):
+        with tempfile.TemporaryDirectory() as raw:
+            status = Path(raw) / 'external_signals.json'
+            status.write_text(json.dumps({
+                'generated_at': 123,
+                'coingecko': {'enabled': True, 'keyless': True,
+                              'breaker': {'state': 'closed'}},
+                'cmc': {'enabled': False,
+                        'requested_but_missing_key': True,
+                        'api_key': 'must-not-render'},
+                'config': {'role': 'advisory-annotation-only'},
+            }), encoding='utf-8')
+            with mock.patch.object(bot, 'EXTERNAL_SIGNALS_STATUS', status):
+                gecko = json.loads(bot._external_provider_status('coingecko'))
+                cmc = json.loads(bot._external_provider_status('cmc'))
+        self.assertEqual(gecko['provider'], 'CoinGecko')
+        self.assertEqual(cmc['provider'], 'CoinMarketCap')
+        self.assertFalse(gecko['trade_authority'])
+        self.assertFalse(cmc['required_for_trading'])
+        self.assertNotIn('must-not-render', json.dumps(cmc))
+        self.assertNotIn('api_key', json.dumps(cmc))
+
+    def test_claimed_callback_failure_is_replied_without_escaping_poll_loop(self):
+        update = {
+            'update_id': 55,
+            'callback_query': {
+                'message': {'chat': {'id': 123}, 'message_id': 77},
+            },
+        }
+        with mock.patch.object(
+                bot, 'handle_callback', side_effect=RuntimeError('empty universe')), \
+                mock.patch.object(bot, 'send') as send, \
+                mock.patch.object(bot, 'audit') as audit:
+            bot._dispatch_claimed_update(update)
+        self.assertIn('failed safely', send.call_args.args[0])
+        self.assertIn('no trading action', send.call_args.args[0])
+        audit.assert_called_once()
+
+    def test_authenticated_terminal_signals_are_notified_once_without_secrets(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            processed = root / 'processed'
+            rejected = root / 'rejected'
+            processed.mkdir()
+            rejected.mkdir()
+            state = root / 'state.json'
+            key = 'test-signal-key-0123456789abcdef0123'
+            release = 'b' * 64
+
+            def archive(folder, signal_id, pair):
+                payload = {
+                    'signal_id': signal_id,
+                    'pair': pair,
+                    'symbol': pair.replace('/', ''),
+                    'candle_time': '2026-09-05T18:00:00+00:00',
+                    'strategy': 'IctSmcStrategy',
+                    'entry_tag': 'ema_vwap_pullback',
+                }
+                signed = bot.envelope.sign_envelope(
+                    producer='freqtrade-strategy',
+                    purpose=bot.envelope.BUS_SIGNAL,
+                    payload=payload, ttl_seconds=300, key=key)
+                path = folder / f'{signal_id}.json'
+                path.write_text(json.dumps(signed), encoding='utf-8')
+
+            with mock.patch.dict('os.environ', {
+                    'SIGNAL_HMAC_KEY': key,
+                    'ENVELOPE_RELEASE_HASH': release,
+                    }, clear=False), \
+                    mock.patch.object(bot, 'SIGNAL_PROCESSED', processed), \
+                    mock.patch.object(bot, 'SIGNAL_REJECTED', rejected), \
+                    mock.patch.object(bot, 'SIGNAL_NOTIFICATION_STATE', state), \
+                    mock.patch.object(bot, 'send') as send, \
+                    mock.patch.object(bot, 'audit'):
+                archive(processed, 'accepted-1', 'ETH/USDT')
+                archive(rejected, 'blocked-1', 'SOL/USDT')
+                self.assertEqual(bot.deliver_signal_notifications(), 2)
+                self.assertEqual(bot.deliver_signal_notifications(), 0)
+            self.assertEqual(send.call_count, 2)
+            rendered = '\n'.join(call.args[0] for call in send.call_args_list)
+            self.assertIn('ENTRY SUBMISSION ACCEPTED', rendered)
+            self.assertIn('BLOCKED / REJECTED', rendered)
+            self.assertIn('not a fill confirmation', rendered)
+            self.assertNotIn('signature', rendered.lower())
+            self.assertNotIn(key, rendered)
+
+    def test_signal_notification_state_corruption_pauses_without_replay(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            processed = root / 'processed'
+            rejected = root / 'rejected'
+            processed.mkdir()
+            rejected.mkdir()
+            state = root / 'state.json'
+            state.write_text('{broken', encoding='utf-8')
+            with mock.patch.object(bot, 'SIGNAL_PROCESSED', processed), \
+                    mock.patch.object(bot, 'SIGNAL_REJECTED', rejected), \
+                    mock.patch.object(bot, 'SIGNAL_NOTIFICATION_STATE', state), \
+                    mock.patch.object(bot, 'send') as send, \
+                    mock.patch.object(bot, 'audit') as audit:
+                self.assertEqual(bot.deliver_signal_notifications(), 0)
+            send.assert_not_called()
+            self.assertEqual(
+                audit.call_args.args[0],
+                'telegram_signal_notification_state_invalid')
+            self.assertEqual(audit.call_args.kwargs['severity'], 'CRITICAL')
+
+    def test_unsigned_archived_signal_never_generates_a_telegram_notice(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            processed = root / 'processed'
+            rejected = root / 'rejected'
+            processed.mkdir()
+            rejected.mkdir()
+            state = root / 'state.json'
+            (processed / 'forged.json').write_text(json.dumps({
+                'payload': {
+                    'signal_id': 'forged', 'pair': 'ETH/USDT',
+                    'strategy': 'IctSmcStrategy',
+                },
+            }), encoding='utf-8')
+            with mock.patch.object(bot, 'SIGNAL_PROCESSED', processed), \
+                    mock.patch.object(bot, 'SIGNAL_REJECTED', rejected), \
+                    mock.patch.object(bot, 'SIGNAL_NOTIFICATION_STATE', state), \
+                    mock.patch.object(bot, 'send') as send, \
+                    mock.patch.object(bot, 'audit') as audit:
+                self.assertEqual(bot.deliver_signal_notifications(), 0)
+            send.assert_not_called()
+            self.assertTrue(state.exists())
+            self.assertEqual(
+                audit.call_args_list[0].args[0],
+                'telegram_signal_notification_invalid')
 
     def test_empty_registry_status_cannot_look_ready(self):
         with tempfile.TemporaryDirectory() as raw:

@@ -171,6 +171,8 @@ def test_shell_wrapper_has_fixed_paths_atomic_status_and_no_order_methods():
     assert "printf '%s\\0'" in wrapper
     assert '"${VALUES[BINANCE_API_SECRET]:-}"' in wrapper
     assert '"${VALUES[TELEGRAM_BOT_TOKEN]:-}"' in wrapper
+    assert '"${VALUES[SHARIA_AUTO_SOURCE_DISCOVERY_ENABLED]:-true}"' not in wrapper
+    assert 'legacy host value must not resurrect' in wrapper
     assert "| python3 -c" in wrapper
     assert "sys.argv[1:]" not in wrapper
     assert "checker_failed_before_valid_status" in wrapper

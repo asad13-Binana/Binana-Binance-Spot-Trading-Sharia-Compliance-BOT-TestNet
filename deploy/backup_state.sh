@@ -26,7 +26,10 @@ while IFS= read -r -d '' database; do
   target="$stage/sqlite/$relative"
   install -d -m 0700 "$(dirname -- "$target")"
   python3 "$SCRIPT_DIR/../scripts/backup_integrity.py" snapshot "$database" "$target"
-done < <(find "$PERSIST" -xdev -type f \( -name '*.sqlite' -o -name '*.db' \) -print0)
+done < <(find "$PERSIST" -xdev \
+  \( -path "$PERSIST/runtime/db_backups" -o \
+     -path "$PERSIST/runtime/db_backups/*" \) -prune -o \
+  -type f \( -name '*.sqlite' -o -name '*.db' \) -print0)
 for metadata in RELEASE_VERSION RELEASE_MODE RELEASE_SHA256.txt RELEASE_MANIFEST.json .git-commit; do
   install -m 0600 "$APP_ROOT/current/$metadata" "$stage/release/$metadata"
 done

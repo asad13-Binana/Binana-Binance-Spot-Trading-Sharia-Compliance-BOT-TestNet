@@ -91,6 +91,7 @@ OFFSET_PATH = RUNTIME / 'telegram_offset.json'
 ALERT_DELIVERY_STATE = RUNTIME / 'telegram_alert_delivery.json'
 ALERT_QUARANTINE = RUNTIME / 'telegram_alert_quarantine'
 ALERT_OUTBOX_HEALTH = RUNTIME / 'telegram_alert_outbox_health.json'
+SIGNAL_NOTIFICATION_STATE = RUNTIME / 'telegram_signal_notification_state.json'
 PAIR_RE = re.compile(r'^([A-Z0-9]{2,20}?)(?:/USDT|USDT)?$')
 NOT_FATWA = 'Research screening only — not a fatwa and not financial advice.'
 BULK_SCAN_LIMITS = frozenset({10, 25, 50, 100})
@@ -286,6 +287,173 @@ def deliver_sidecar_notifications(limit: int = 20) -> int:
         processed += 1
     _alert_outbox_health(blocked_reason=blocked_reason)
     return processed
+
+
+def _load_signal_notification_state() -> dict:
+    """Load the durable signal-notification journal or fail closed.
+
+    Replaying an archive after a corrupt journal could flood Telegram with old
+    signal messages. Corruption therefore pauses this advisory notifier; it
+    never changes entries, orders, the universe, or any execution state.
+    """
+    if not SIGNAL_NOTIFICATION_STATE.exists():
+        return {'schema_version': 1, 'handled': {}}
+    try:
+        state = json.loads(SIGNAL_NOTIFICATION_STATE.read_text(encoding='utf-8'))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(
+            'Telegram signal-notification state is unreadable; notifications paused'
+        ) from exc
+    if (not isinstance(state, dict) or state.get('schema_version') != 1 or
+            not isinstance(state.get('handled'), dict)):
+        raise RuntimeError(
+            'Telegram signal-notification state has an invalid schema; '
+            'notifications paused')
+    return state
+
+
+def _persist_signal_notification_state(handled: dict) -> None:
+    max_ids = env_int('TELEGRAM_SIGNAL_NOTICE_DEDUPE_MAX', 5000, 100, 50000)
+    if len(handled) > max_ids:
+        handled = dict(sorted(
+            handled.items(), key=lambda item: float(item[1]))[-max_ids:])
+    atomic_write_json(SIGNAL_NOTIFICATION_STATE, {
+        'schema_version': 1,
+        'handled': handled,
+        'updated_at': time.time(),
+    })
+
+
+def deliver_signal_notifications(limit: int = 20) -> int:
+    """Notify the owner about recent authenticated terminal strategy signals.
+
+    This observes only files already archived by the protected execution
+    sidecar. It verifies the original Freqtrade HMAC envelope and renders a
+    strict metadata allow-list; it cannot submit, repeat, approve, or alter an
+    order. Processed means entry submission was accepted, not that a fill has
+    been confirmed. Rejected means the signal remained blocked.
+    """
+    try:
+        state = _load_signal_notification_state()
+    except RuntimeError as exc:
+        audit('telegram_signal_notification_state_invalid', severity='CRITICAL',
+              details={'error': _redact_secrets(exc)})
+        return 0
+
+    handled = state['handled']
+    now = time.time()
+    max_age = env_int('TELEGRAM_SIGNAL_NOTICE_MAX_AGE_SECONDS', 300, 60, 3600)
+    max_bytes = env_int('TELEGRAM_SIGNAL_NOTICE_MAX_BYTES', 65536, 1024, 1048576)
+    scan_max = env_int('TELEGRAM_SIGNAL_NOTICE_SCAN_MAX', 1000, 20, 10000)
+    candidates = []
+    for folder, outcome in (
+            (SIGNAL_PROCESSED, 'ENTRY SUBMISSION ACCEPTED'),
+            (SIGNAL_REJECTED, 'BLOCKED / REJECTED')):
+        for path in folder.glob('*.json'):
+            try:
+                modified = path.stat().st_mtime
+            except OSError:
+                continue
+            if 0 <= now - modified <= max_age:
+                candidates.append((modified, path, outcome))
+    candidates.sort(key=lambda row: (row[0], row[1].name))
+
+    notified = 0
+    for _, path, outcome in candidates[:scan_max]:
+        if notified >= max(0, int(limit)):
+            break
+        try:
+            stat = path.stat()
+            identity = hashlib.sha256(
+                (outcome + '\0' + path.name + '\0' + str(stat.st_mtime_ns) +
+                 '\0' + str(stat.st_size)).encode('utf-8')).hexdigest()
+        except OSError:
+            continue
+        if identity in handled:
+            continue
+        try:
+            if stat.st_size > max_bytes:
+                raise ValueError('archived signal exceeds the notification size limit')
+            raw_bytes = path.read_bytes()
+            identity = hashlib.sha256(
+                outcome.encode('utf-8') + b'\0' + raw_bytes).hexdigest()
+            if identity in handled:
+                continue
+            raw = json.loads(raw_bytes.decode('utf-8'))
+            payload = envelope.verify_envelope(
+                raw, purpose=envelope.BUS_SIGNAL,
+                expected_producers={'freqtrade-strategy'})
+            signal_id = str(payload.get('signal_id', ''))
+            pair = str(payload.get('pair', '')).upper()
+            strategy = str(payload.get('strategy', ''))
+            if not re.fullmatch(r'[A-Za-z0-9_-]{1,128}', signal_id):
+                raise ValueError('invalid signal identifier')
+            if not re.fullmatch(r'[A-Z0-9]{2,20}/USDT', pair):
+                raise ValueError('invalid Spot/USDT pair')
+            if strategy != 'IctSmcStrategy':
+                raise ValueError('unexpected strategy identity')
+            candle_time = _redact_secrets(payload.get('candle_time', ''), 80)
+            entry_tag = _redact_secrets(payload.get('entry_tag', ''), 80)
+        except Exception as exc:
+            audit('telegram_signal_notification_invalid', severity='ERROR', details={
+                'file': path.name[:255],
+                'archive': path.parent.name[:80],
+                'error_type': type(exc).__name__,
+                'error': _redact_secrets(exc),
+            })
+            # Record this exact invalid archive as handled so one bad file
+            # cannot generate an audit event on every poll cycle.
+            try:
+                handled[identity] = now
+                _persist_signal_notification_state(handled)
+            except Exception as persist_exc:
+                audit('telegram_signal_notification_state_write_failed',
+                      severity='CRITICAL', details={
+                          'error_type': type(persist_exc).__name__,
+                      })
+                return notified
+            continue
+
+        lines = [
+            'Automatic strategy signal result',
+            f'Pair: {pair}',
+            f'Signal ID: {signal_id}',
+            f'Result: {outcome}',
+        ]
+        if candle_time:
+            lines.append(f'Candle: {candle_time}')
+        if entry_tag:
+            lines.append(f'Entry tag: {entry_tag}')
+        if outcome == 'ENTRY SUBMISSION ACCEPTED':
+            lines.append('This is not a fill confirmation; use Open Trades for live state.')
+        else:
+            lines.append('No entry was authorised by this archived signal result.')
+        lines.append(
+            'Strategy, halal registry, universe, risk and execution gates remained authoritative.')
+        try:
+            send('\n'.join(lines), OWNER)
+        except Exception as exc:
+            audit('telegram_signal_notification_delivery_failed', severity='ERROR',
+                  details={'signal_id': signal_id,
+                           'error_type': type(exc).__name__})
+            break
+        handled[identity] = time.time()
+        try:
+            _persist_signal_notification_state(handled)
+        except Exception as exc:
+            # The terminal signal file remains untouched. At-least-once
+            # notification is preferable to silently losing a signal notice.
+            audit('telegram_signal_notification_state_write_failed',
+                  severity='CRITICAL', details={
+                      'signal_id': signal_id,
+                      'error_type': type(exc).__name__,
+                  })
+            break
+        audit('telegram_signal_notification_delivered', details={
+            'signal_id': signal_id, 'pair': pair, 'outcome': outcome,
+        })
+        notified += 1
+    return notified
 
 
 def sidecar_command(name, args=None, wait=False):
@@ -844,6 +1012,9 @@ def market_scanner_menu():
           'callback_data': 'do|market_context'},
          {'text': '🕌 Check Sharia',
           'callback_data': 'do|sharia_report_help'}],
+        [{'text': '🦎 CoinGecko', 'callback_data': 'do|provider_coingecko'},
+         {'text': '🪙 CoinMarketCap',
+          'callback_data': 'do|provider_coinmarketcap'}],
         [{'text': '✅ Data Freshness', 'callback_data': 'do|data_readiness'},
          {'text': '🏠 Home', 'callback_data': 'do|home'}],
     ]
@@ -894,6 +1065,9 @@ def research_menu():
          {'text': '📚 Spot liquidity', 'callback_data': 'do|market_context'}],
         [{'text': '🔥 Binance Spot movers', 'callback_data': 'do|universe_movers'},
          {'text': '🌐 Coin data providers', 'callback_data': 'do|provider_status'}],
+        [{'text': '🦎 CoinGecko', 'callback_data': 'do|provider_coingecko'},
+         {'text': '🪙 CoinMarketCap',
+          'callback_data': 'do|provider_coinmarketcap'}],
         [{'text': '🔗 Data sources', 'callback_data': 'do|data_sources'},
          {'text': '✅ Freshness', 'callback_data': 'do|data_readiness'}],
         [{'text': '🏠 Home', 'callback_data': 'do|home'}],
@@ -1052,11 +1226,24 @@ def _market_context_status() -> str:
     ])[:3900]
 
 
-def _external_provider_status() -> str:
+def _external_provider_status(selected: str | None = None) -> str:
     """Render a strict allow-list of non-secret provider health fields."""
+    provider_labels = {
+        'coingecko': 'CoinGecko',
+        'cmc': 'CoinMarketCap',
+    }
+    if selected is not None and selected not in provider_labels:
+        raise ValueError('unsupported external provider')
     status = read_json(EXTERNAL_SIGNALS_STATUS, None)
     if not isinstance(status, dict):
-        return 'Coin data providers: no valid status snapshot.'
+        label = provider_labels.get(selected, 'Coin data providers')
+        return json.dumps({
+            'provider': label,
+            'status': 'unavailable',
+            'reason': 'no valid advisory-provider status snapshot',
+            'required_for_trading': False,
+            'trade_authority': False,
+        }, indent=2)
 
     def provider(name: str) -> dict:
         row = status.get(name)
@@ -1077,13 +1264,27 @@ def _external_provider_status() -> str:
 
     role = status.get('config')
     role = role.get('role') if isinstance(role, dict) else None
-    return json.dumps({
+    payload = {
         'generated_at': status.get('generated_at'),
         'role': role,
         'CoinGecko': provider('coingecko'),
         'CoinMarketCap': provider('cmc'),
         'trade_authority': False,
-    }, indent=2)[:3800]
+    }
+    if selected is not None:
+        label = provider_labels[selected]
+        payload = {
+            'generated_at': status.get('generated_at'),
+            'provider': label,
+            'role': role,
+            'health': provider(selected),
+            'required_for_trading': False,
+            'trade_authority': False,
+            'note': (
+                'Advisory market metadata only. This provider cannot add a '
+                'halal coin, create a strategy signal, or authorize an order.'),
+        }
+    return json.dumps(payload, indent=2)[:3800]
 
 
 def _universe_movers() -> str:
@@ -1284,9 +1485,12 @@ def _data_readiness() -> str:
     providers = api.get('providers')
     if not isinstance(providers, dict):
         providers = {}
+    api_ok = api.get('ok')
+    api_status = ('PASS' if api_ok is True else
+                  'FAIL' if api_ok is False else 'UNKNOWN')
     return json.dumps({
         'api_preflight': {
-            'status': api.get('status'),
+            'status': api_status,
             'generated_at': api.get('generated_at'),
             'providers': {
                 str(name): (row.get('status') if isinstance(row, dict) else None)
@@ -1560,6 +1764,10 @@ def route(action, chat, message_id=None):
         send(_market_context_status(), chat)
     elif action == 'provider_status':
         send(_external_provider_status(), chat)
+    elif action == 'provider_coingecko':
+        send(_external_provider_status('coingecko'), chat)
+    elif action == 'provider_coinmarketcap':
+        send(_external_provider_status('cmc'), chat)
     elif action == 'universe_movers':
         send(_universe_movers(), chat)
     elif action == 'data_sources':
@@ -1828,12 +2036,51 @@ def _claim_update(update_id: object, offset: int) -> tuple[int, bool]:
     return next_offset, True
 
 
+def _dispatch_claimed_update(update: dict) -> None:
+    """Isolate one claimed Telegram update from the long-poll supervisor.
+
+    The durable offset is intentionally committed before this function runs.
+    A failed menu renderer must therefore return a useful, secret-free error to
+    the owner and allow later updates in the same batch to continue.
+    """
+    try:
+        if 'message' in update:
+            handle_message(update['message'])
+        if 'callback_query' in update:
+            handle_callback(update['callback_query'])
+    except Exception as exc:
+        safe = _redact_secrets(exc)[:300]
+        audit('telegram_update_handler_failed', severity='ERROR', details={
+            'update_id': update.get('update_id'),
+            'error_type': type(exc).__name__,
+            'error': safe,
+        })
+        callback = update.get('callback_query')
+        message = update.get('message')
+        if isinstance(callback, dict):
+            message = callback.get('message')
+        chat = ''
+        if isinstance(message, dict):
+            chat = str(message.get('chat', {}).get('id', ''))
+        if chat:
+            try:
+                send(
+                    'This request failed safely and no trading action was '
+                    f'performed. {type(exc).__name__}: {safe}', chat)
+            except Exception as send_exc:
+                audit('telegram_update_error_reply_failed', severity='ERROR', details={
+                    'update_id': update.get('update_id'),
+                    'error_type': type(send_exc).__name__,
+                })
+
+
 def main():
     logging.basicConfig(level=os.getenv('LOG_LEVEL', 'INFO'), format='%(asctime)s %(levelname)s %(name)s %(message)s')
     if not TOKEN or not OWNER:
         raise SystemExit('TELEGRAM_BOT_TOKEN and TELEGRAM_OWNER_CHAT_ID required')
     try:
         envelope.load_key(envelope.BUS_COMMAND)
+        envelope.load_key(envelope.BUS_SIGNAL)
         envelope.load_key(envelope.BUS_SHARIA_REQUEST)
         envelope.load_key(envelope.BUS_SHARIA_DECISION)
     except envelope.EnvelopeError as exc:
@@ -1842,6 +2089,7 @@ def main():
     while True:
         try:
             deliver_sidecar_notifications()
+            deliver_signal_notifications()
             response = requests.get(
                 BASE + '/getUpdates',
                 params={'offset': offset, 'timeout': 25, 'allowed_updates': json.dumps(['message', 'callback_query'])},
@@ -1859,9 +2107,9 @@ def main():
                 offset, claimed = _claim_update(update.get('update_id'), offset)
                 if not claimed:
                     continue
-                if 'message' in update: handle_message(update['message'])
-                if 'callback_query' in update: handle_callback(update['callback_query'])
+                _dispatch_claimed_update(update)
             deliver_sidecar_notifications()
+            deliver_signal_notifications()
         except Exception as exc:
             # H-004: requests embeds the full attempted URL in its exception
             # text, and BASE contains the bot token. Writing the raw exception
