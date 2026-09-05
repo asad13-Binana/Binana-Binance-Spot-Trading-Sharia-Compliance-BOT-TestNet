@@ -140,3 +140,10 @@ def test_backup_timestamp_discovery_and_logging_do_not_skip_safety():
     assert guard.index('sign_envelope(') < guard.index('disk_status.json')
     assert '0 <= time.time() - path.stat().st_mtime <= 30' in guard
     assert 'user.CRITICAL' not in guard
+
+
+def test_host_backup_excludes_rotating_sidecar_backup_snapshots():
+    script = (ROOT / 'deploy/backup_state.sh').read_text(encoding='utf-8')
+    assert '-path "$PERSIST/runtime/db_backups"' in script
+    assert '-path "$PERSIST/runtime/db_backups/*"' in script
+    assert '-prune -o' in script
