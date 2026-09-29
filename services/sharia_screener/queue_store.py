@@ -1,5 +1,5 @@
 from __future__ import annotations
-"""Durable, restart-safe screening request queue for the V19.1 service."""
+"""Durable, restart-safe screening request queue for the V19.3 service."""
 import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone

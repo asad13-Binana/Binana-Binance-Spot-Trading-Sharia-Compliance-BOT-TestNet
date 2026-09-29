@@ -251,6 +251,8 @@ class FetchResult:
     content_path: str = ''
     identity_match: bool = False
     error: str = ''
+    extraction_format: str = 'plain'
+    charset: str = 'utf-8'
 
     @property
     def ok(self) -> bool:
@@ -269,6 +271,8 @@ class FetchResult:
             'content_sha256': self.content_sha256,
             'content_path': self.content_path,
             'source_tier': self.tier,
+            'extraction_format': self.extraction_format,
+            'charset': self.charset,
         }
 
 
@@ -595,4 +599,6 @@ class Retriever:
         return FetchResult(
             url=final_url, http_status=200, content_sha256=digest,
             content_path=content_path, text=text, retrieved_utc=now, tier=tier,
-            identity_match=identity_match)
+            identity_match=identity_match,
+            extraction_format='pdf' if is_pdf else 'html' if 'html' in content_type else 'plain',
+            charset='utf-8' if is_pdf else charset)

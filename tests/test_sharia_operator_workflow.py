@@ -19,7 +19,7 @@ from services.telegram_broker import bot
 
 def _candidate(base: str = 'EXP') -> dict:
     payload = {
-        'schema_version': 1,
+        'schema_version': 2,
         'base': base,
         'pair': f'{base}/USDT',
         'status': 'VERIFIED_CANDIDATE',
@@ -127,7 +127,7 @@ class TelegramOperatorTests(unittest.TestCase):
             for row in bot.sharia_menu() for button in row}
         self.assertIn('do|manual_registry_help', sharia_callbacks)
         self.assertNotIn('do|scan_bulk_help', sharia_callbacks)
-        self.assertFalse(any(
+        self.assertTrue(any(
             callback.startswith('do|scan_bulk_') for callback in sharia_callbacks))
 
     def test_visible_menus_never_offer_core_risk_or_direct_trade_mutations(self):
@@ -152,11 +152,11 @@ class TelegramOperatorTests(unittest.TestCase):
         self.assertNotIn('do|entries_off', callbacks)
         self.assertIn('do|emergency_stop_confirm', callbacks)
 
-    def test_help_does_not_advertise_retired_automatic_scanning(self):
+    def test_help_distinguishes_research_from_manual_trading_authority(self):
         help_message = bot.help_text()
         self.assertNotIn('/scan ', help_message)
         self.assertIn('/shariareport BASE', help_message)
-        self.assertIn('Automatic Sharia scanning is disabled', help_message)
+        self.assertIn('Sharia research is separate and has no trading authority', help_message)
 
     def test_limited_controls_are_reversible_and_have_no_remote_shell(self):
         callbacks = {
@@ -166,6 +166,7 @@ class TelegramOperatorTests(unittest.TestCase):
         self.assertEqual(callbacks, {
             'do|entries_on_confirm', 'do|entries_off_confirm',
             'do|test_telegram', 'do|restart_services_info', 'do|deploy',
+            'do|menu_autotrade', 'do|menu_sizing',
             'do|home',
         })
 
@@ -234,7 +235,7 @@ class TelegramOperatorTests(unittest.TestCase):
                 captured.update(kwargs)
                 return {'signed': kwargs['payload']}
 
-            with mock.patch.object(bot, 'SHARIA_QUEUE_INBOX', root), \
+            with mock.patch.object(bot, 'SHARIA_RESEARCH_QUEUE_INBOX', root), \
                     mock.patch.object(bot.envelope, 'sign_envelope', sign), \
                     mock.patch.object(bot, 'audit'):
                 outcome = bot.sharia_scan_request('EXP', priority='bulk')
@@ -250,9 +251,8 @@ class TelegramOperatorTests(unittest.TestCase):
             bot.sharia_scan_request('EXP', priority='urgent')
 
     def test_bounded_scan_uses_validated_universe_and_exact_requests(self):
-        pairs = [{'pair': f'Z{index:02d}/USDT'} for index in range(1, 31)]
-        snapshot = {'pairs': pairs, 'snapshot_hash': 'a' * 64}
-        with mock.patch.object(bot, 'load_current', return_value=snapshot), \
+        bases = [f'Z{index:02d}' for index in range(1, 31)]
+        with mock.patch.object(bot, '_research_spot_bases', side_effect=lambda limit: bases[:limit]), \
                 mock.patch.object(
                     bot, 'sharia_scan_request',
                     side_effect=lambda base, priority: {
@@ -261,9 +261,10 @@ class TelegramOperatorTests(unittest.TestCase):
         self.assertEqual(outcome['queued_count'], 25)
         self.assertEqual(outcome['bases'][0], 'Z01')
         self.assertEqual(outcome['bases'][-1], 'Z25')
-        self.assertEqual(outcome['snapshot_hash'], 'a' * 64)
+        self.assertFalse(outcome['trade_authority'])
+        self.assertEqual(outcome['source'], 'Binance Spot pre-Sharia market set')
         self.assertEqual(request.call_count, 25)
-        with mock.patch.object(bot, 'load_current', return_value=snapshot), \
+        with mock.patch.object(bot, '_research_spot_bases', side_effect=lambda limit: bases[:limit]), \
                 mock.patch.object(
                     bot, 'sharia_scan_request',
                     side_effect=lambda base, priority: {
@@ -274,7 +275,7 @@ class TelegramOperatorTests(unittest.TestCase):
             with self.subTest(limit=bad), self.assertRaises(ValueError):
                 bot.sharia_bounded_scan_requests(bad)
 
-    def test_scanbulk_command_is_retained_as_a_safe_disabled_notice(self):
+    def test_scanbulk_command_requires_confirmation_and_has_no_trade_authority(self):
         message = {
             'chat': {'id': 123}, 'from': {'id': 1}, 'text': '/scanbulk 17'}
         with mock.patch.object(bot, 'is_owner', return_value=True), \
@@ -282,8 +283,9 @@ class TelegramOperatorTests(unittest.TestCase):
                 mock.patch.object(bot, '_ask_confirm') as confirm, \
                 mock.patch.object(bot, 'send') as send:
             bot.handle_message(message)
-        confirm.assert_not_called()
-        self.assertIn('Automatic Sharia scanning is disabled', send.call_args.args[0])
+        self.assertEqual(confirm.call_args.args[2:4], ('scan_bulk', {'limit': 17}))
+        self.assertIn('cannot edit the trading halal list', confirm.call_args.args[4])
+        send.assert_not_called()
 
     def test_market_context_summary_exposes_spot_advisory_freshness_only(self):
         with tempfile.TemporaryDirectory() as raw:
@@ -355,7 +357,7 @@ class TelegramOperatorTests(unittest.TestCase):
                     mock.patch.object(bot, 'SHARIA_FILE', runtime / 'missing'), \
                     mock.patch.object(bot, 'SHARIA_SOURCE_REGISTRY', registry), \
                     mock.patch.object(
-                        bot, 'SHARIA_DISCOVERY_CURRENT_DIR', discovery):
+                        bot, 'SHARIA_RESEARCH_DISCOVERY_DIR', discovery):
                 text = bot._sharia_service_status()
         self.assertIn('health: READY', text)
         self.assertIn('registry is empty', text)

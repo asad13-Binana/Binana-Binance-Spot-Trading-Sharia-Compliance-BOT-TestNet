@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-"""V19.1 Sharia screening controller binding and result validation.
+"""V19.3 Sharia screening controller binding and result validation.
 
-The file shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json is the
+The file shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json is the
 single authoritative Sharia screening definition. It is IMMUTABLE: this module
 verifies its exact SHA-256 before any use and the release suite fails if a
 single byte changes. No code in this repository interprets Sharia law itself;
@@ -27,10 +27,10 @@ from services.common.evidence_providers import (
     required_record_keys as provider_required_record_keys,
 )
 
-V19_CONTROLLER_FILENAME = 'HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json'
-V19_CONTROLLER_SHA256 = '07106bb8bfc1924d8d0c6f61ced4e0c51c2ac2054988423f42c1fd67f3b2ba78'
-V19_MAIN_FRAMEWORK = 'V19.1_PRODUCTION_ALL_20_FIXES_APPLIED_SPOT_ONLY'
-V19_RUNNER_CONTROLLER = '4.1.0_AI_AGENT_HARDENED_WEB_PARSER_ANTI_HALLUCINATION_LOCK'
+V19_CONTROLLER_FILENAME = 'HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json'
+V19_CONTROLLER_SHA256 = '418e7280f0b6a5f4cd9ba3887b8be3099f5fcc4b18bfca66808749720a4dd355'
+V19_MAIN_FRAMEWORK = 'V19.3_PRODUCTION_BINANCE_COINGECKO_CMC_OFFICIAL_SOURCE_DISCOVERY_SPOT_ONLY'
+V19_RUNNER_CONTROLLER = '4.3.0_AI_AGENT_ORDERED_SOURCE_DISCOVERY_IDENTITY_LINK_VERIFICATION_LOCK'
 
 FINAL_CODES = {
     'GREEN', 'GREEN_AVOID_OPTIONAL', 'NO_TRADE_INFO', 'NO_TRADE_YIELD',
@@ -49,12 +49,12 @@ DIRECT_RESULT_BY_CODE = {
     'HARAM': 'HARAM',
 }
 TOKEN_TYPES = {'PAYMENT', 'UTILITY', 'GOVERNANCE', 'TOKENIZED_ASSET',
-               'EQUITY_SECURITY', 'STABLECOIN', 'WRAPPED_BRIDGED', 'NFT', 'UNKNOWN'}
+               'EQUITY_SECURITY', 'STABLECOIN', 'WRAPPED_BRIDGED', 'NFT', 'HYBRID', 'UNKNOWN'}
 MAL_STATUSES = {'CONFIRMED', 'LIKELY', 'DOUBTFUL', 'FAIL'}
 SUB_FRAMEWORKS = {'STABLECOIN', 'WRAPPED_BRIDGED', 'GOVERNANCE', 'NONE'}
 CONFIDENCE_LEVELS = {'HIGH', 'MEDIUM', 'LOW_MEDIUM', 'LOW'}
 TECH_STOP_TRIGGERS = {'T1', 'T2', 'T3', 'NONE'}
-NARRATIVE_CODES = {f'N{i}' for i in range(1, 12)}
+NARRATIVE_CODES = {f'N{i}' for i in range(1, 11)}
 _PURIFICATION_RE = re.compile(r'^(NO|YES \(\d+(\.\d+)?%\))$')
 MIN_HARAM_QUOTE_WORDS = 15
 CONTENT_PATH_RE = re.compile(r'^sha256/[0-9a-f]{2}/([0-9a-f]{64})\.bin$')
@@ -73,7 +73,10 @@ GREEN_PROOF_CHECKS = {
     'no_unresolved_identity_conflict',
     'keyword_scan_completed',
     'no_unresolved_material_contradiction',
-    'shariah_screener_check_completed',
+    'material_source_discovery_completed',
+    'material_keyword_hits_context_classified',
+    'no_proven_prohibited_economic_link',
+    'applicable_special_frameworks_completed',
 }
 REQUIRED_WHITEPAPER_SECTIONS = {
     'S1_PROJECT_OVERVIEW', 'S2_TOKEN_UTILITY', 'S3_REVENUE_MODEL',
@@ -117,11 +120,11 @@ SOURCE_TIERS = {
 
 
 class ControllerIntegrityError(RuntimeError):
-    """The immutable V19.1 controller is missing, altered, or unreadable."""
+    """The immutable V19.3 controller is missing, altered, or unreadable."""
 
 
 class ResultValidationError(ValueError):
-    """A screening result failed strict V19.1 validation. Fail closed."""
+    """A screening result failed strict V19.3 validation. Fail closed."""
 
 
 def controller_sha256(path: str | Path) -> str:
@@ -134,17 +137,17 @@ def load_controller(path: str | Path) -> tuple[bytes, dict]:
     try:
         raw = path.read_bytes()
     except Exception as exc:
-        raise ControllerIntegrityError(f'V19.1 controller unreadable at {path}: {exc}') from exc
+        raise ControllerIntegrityError(f'V19.3 controller unreadable at {path}: {exc}') from exc
     digest = hashlib.sha256(raw).hexdigest()
     if digest != V19_CONTROLLER_SHA256:
         raise ControllerIntegrityError(
-            f'V19.1 controller hash mismatch: expected {V19_CONTROLLER_SHA256}, got {digest}. '
+            f'V19.3 controller hash mismatch: expected {V19_CONTROLLER_SHA256}, got {digest}. '
             'The controller is immutable; refusing to run.')
     parsed = json.loads(raw.decode('utf-8'))
     if parsed.get('VERSION') != V19_MAIN_FRAMEWORK:
-        raise ControllerIntegrityError('V19.1 controller VERSION field mismatch')
+        raise ControllerIntegrityError('V19.3 controller VERSION field mismatch')
     if parsed.get('RUNNER_CONTROLLER_VERSION') != V19_RUNNER_CONTROLLER:
-        raise ControllerIntegrityError('V19.1 runner controller version mismatch')
+        raise ControllerIntegrityError('V19.3 runner controller version mismatch')
     return raw, parsed
 
 
@@ -309,6 +312,76 @@ def validate_local_evidence_files(report: dict, evidence_root: str | Path) -> No
                 f'{exc}') from exc
         _require(hasher.hexdigest() == digest,
                  f'local evidence digest mismatch for retrieval record {index}')
+    if report.get('final_code') in TRADE_ELIGIBLE_CODES | {'HARAM', 'TECH_STOP'}:
+        _recheck_local_v193(report, root)
+
+
+def _recheck_local_v193(report: dict, root: Path) -> None:
+    """Replay the material proof gate from retained bytes at authorization."""
+    from services.sharia_retriever.retriever import html_to_text, pdf_to_text
+    from services.sharia_rules.engine import RetrievedDocument, EvidenceClaim, evaluate
+    review = report.get('local_review', {})
+    _require(isinstance(review, dict), 'v19.3 requires a local review record')
+    documents = []
+    sources = {s.get('url'): s for s in report['sources_opened'] if isinstance(s, dict)}
+    for call in report['tool_evidence']['completed_web_search_calls']:
+        source = sources.get(call.get('url'))
+        _require(isinstance(source, dict), 'retrieved document missing from report')
+        raw = (root / call['content_path']).read_bytes()
+        mode = call.get('extraction_format')
+        _require(mode in {'plain', 'html', 'pdf'}, 'unknown evidence extraction format')
+        if mode == 'pdf':
+            extracted = pdf_to_text(raw)
+        else:
+            try:
+                decoded = raw.decode(call.get('charset', 'utf-8'), errors='replace')
+            except (LookupError, TypeError) as exc:
+                raise ResultValidationError('unsupported evidence charset') from exc
+            extracted = html_to_text(decoded) if mode == 'html' else re.sub(r'\s+', ' ', decoded).strip()
+        _require(extracted == source.get('extracted_text'), 'extracted evidence text mismatch')
+        documents.append(RetrievedDocument(call['url'], call['source_tier'], extracted,
+            call['content_sha256'], call['retrieved_utc'], call['http_status'],
+            source.get('identity_match') is True))
+    facts = review.get('fact_evidence', {})
+    _require(isinstance(facts, dict), 'missing reviewed facts')
+    try:
+        claims = {k: EvidenceClaim(**v) for k, v in facts.items()}
+    except (TypeError, ValueError) as exc:
+        raise ResultValidationError('invalid reviewed facts') from exc
+    # This path uses the pinned controller beside the installed source tree.
+    from services.common.paths import SHARIA_CONTROLLER_FILE
+    _, controller = load_controller(SHARIA_CONTROLLER_FILE)
+    revenue = claims.get('revenue')
+    finding = evaluate(controller, documents=documents, screener_results={},
+        identity_confirmed=any(d.identity_match for d in documents),
+        token_type=report['token_type'],
+        utility_quote=claims['utility'].quote if 'utility' in claims else '',
+        revenue_clean=bool(revenue and revenue.value.casefold() in {
+            'clean', 'neutral', 'officially absent', 'non-material'}),
+        fact_evidence=claims, material_review=review.get('material_review'),
+        discovery_record=review.get('discovery_record'), asset_identifier=report['ticker'])
+    from services.sharia_rules.v193 import report_projection
+    expected_fields = report_projection(finding.v193_assessment, review.get('discovery_record'), controller)
+    for field, value in expected_fields.items():
+        _require(report.get(field) == value, f'{field} differs from verified evidence replay')
+    if report['final_code'] == 'TECH_STOP':
+        _require(finding.v193_assessment['tech_stop_trigger'] in {'T1', 'T2', 'T3'},
+                 'TECH_STOP lacks replayable authoritative evidence')
+        return
+    if report['final_code'] == 'HARAM':
+        proof = report['haram_proof_card']
+        _require(any(path.get('narrative') == report['haram_narrative_code']
+                     and any(item.get('url') == proof.get('url')
+                             and item.get('quote') == proof.get('quote')
+                             for item in path.get('proof', []))
+                     for path in finding.v193_assessment['proven_paths']),
+                 'HARAM lacks replayable five-condition economic proof')
+        _require(not finding.v193_assessment['issues'], 'HARAM has unresolved material review issues')
+        return
+    _require(finding.is_tradeable_proposal, 'v19.3 material proof replay failed')
+    expected_code = 'GREEN_AVOID_OPTIONAL' if finding.v193_assessment['avoid_optional'] else 'GREEN'
+    _require(report['final_code'] == expected_code, 'optional-feature verdict was changed')
+    _require(report['green_proof_card'] == finding.green_checks, 'proof card differs from evidence replay')
 
 
 def _validate_green_evidence(report: dict) -> None:
@@ -340,9 +413,7 @@ def _validate_green_evidence(report: dict) -> None:
         _require(name not in normalized_screener,
                  f'duplicate normalized Shariah screener result: {name}')
         normalized_screener[name] = value
-    _require(SCREENER_SITES <= set(normalized_screener),
-             'GREEN requires a completed result for every named Shariah screener site')
-    for name in SCREENER_SITES:
+    for name in normalized_screener:
         value = normalized_screener[name]
         _require(isinstance(value, str) and bool(value.strip()),
                  f'{name} Shariah screener result must be a non-empty string')
@@ -354,8 +425,11 @@ def _validate_green_evidence(report: dict) -> None:
         section = parsed_sections.get(name)
         _require(isinstance(section, dict), f'{name} must be an object')
         state = str(section.get('status', '')).upper()
-        _require(state in {'FOUND', 'NOT_FOUND', 'PARTIAL'},
-                 f'{name}.status must be FOUND, NOT_FOUND, or PARTIAL')
+        _require(state in {'FOUND', 'NOT_FOUND', 'PARTIAL', 'NOT_APPLICABLE'},
+                 f'{name}.status must be FOUND, NOT_FOUND, PARTIAL, or NOT_APPLICABLE')
+        if state == 'NOT_APPLICABLE':
+            _require(bool(str(section.get('reason', '')).strip()),
+                     f'{name} NOT_APPLICABLE requires a reason')
         if state in {'FOUND', 'PARTIAL'}:
             _require(len(str(section.get('quote', '')).split()) >= 3,
                      f'{name} requires an exact supporting quote')
@@ -400,7 +474,7 @@ def _validate_green_evidence(report: dict) -> None:
 
 
 def validate_result(report: dict, *, expected_base: str) -> dict:
-    """Strictly validate one V19.1 screening report against OUTPUT_SCHEMA.
+    """Strictly validate one V19.3 screening report against OUTPUT_SCHEMA.
 
     Returns the report when valid. Raises ResultValidationError otherwise —
     the caller must treat any failure as fail-closed NO_TRADE_INFO and must
@@ -419,10 +493,19 @@ def validate_result(report: dict, *, expected_base: str) -> dict:
         _require(isinstance(report.get(field), str) and report.get(field) != '',
                  f'missing or empty required field: {field}')
     for field in ['shariah_screener_check', 'whitepaper_parsing', 'keyword_scan_results',
-                  'haram_proof_card', 'green_proof_card', 'tool_evidence']:
+                  'haram_proof_card', 'green_proof_card', 'tool_evidence',
+                  'keyword_context_results', 'economic_link_graph', 'material_missing_info',
+                  'gharar_speculation_review', 'plugin_source_roles', 'official_source_discovery']:
         _require(isinstance(report.get(field), dict), f'{field} must be an object')
-    for field in ['contradictions_found', 'sources_opened', 'sources_failed', 'tool_access_limits']:
+    for field in ['contradictions_found', 'sources_opened', 'sources_failed', 'tool_access_limits',
+                  'technical_transparency_risk_notes', 'official_docs_urls',
+                  'official_tokenomics_economics_urls', 'source_discovery_path',
+                  'source_identity_conflicts']:
         _require(isinstance(report.get(field), list), f'{field} must be an array')
+    for field in ['official_website_url', 'official_whitepaper_url', 'official_github_url',
+                  'primary_explorer_url']:
+        _require(field in report and (report[field] is None or isinstance(report[field], str)),
+                 f'{field} must be a string or null')
     _require(isinstance(report.get('human_escalation_required'), bool),
              'human_escalation_required must be a boolean')
 
@@ -459,7 +542,7 @@ def validate_result(report: dict, *, expected_base: str) -> dict:
     proof = report['haram_proof_card']
     if final_code == 'HARAM':
         _require(report['haram_narrative_code'] in NARRATIVE_CODES,
-                 'HARAM requires a named narrative N1-N11')
+                 'HARAM requires a named narrative N1-N10')
         _require(report['haram_narrative_name'] not in ('', 'NOT_PROVEN'),
                  'HARAM requires a narrative name')
         for condition in ('C1', 'C2', 'C3', 'C4', 'C5'):
@@ -470,7 +553,26 @@ def validate_result(report: dict, *, expected_base: str) -> dict:
                  f'HARAM verbatim quote must be at least {MIN_HARAM_QUOTE_WORDS} words')
         proof_url = normalize_evidence_url(proof.get('url'))
         _require(bool(proof_url), 'HARAM proof card requires a valid HTTPS source URL')
-        _require(bool(str(proof.get('tier') or '').strip()), 'HARAM proof card requires a source tier')
+        _require(proof.get('tier') in {'TIER_1', 'TIER_1_OFFICIAL'},
+                 'local HARAM proof requires an official Tier 1 source')
+        _require((report.get('tool_evidence') or {}).get('provider') == 'local-oracle-v1',
+                 'new HARAM reports require replayable local evidence')
+        paths = report['economic_link_graph'].get('paths', [])
+        _require(isinstance(paths, list) and any(
+            isinstance(path, dict) and path.get('status') == 'PROVEN'
+            and path.get('narrative') == report['haram_narrative_code']
+            and path.get('active') is True and path.get('spot_relevance') is True
+            and path.get('confirmed_narrative') is True
+            and isinstance(path.get('nodes'), dict) and len(path['nodes']) >= 6
+            and isinstance(path.get('proof'), list)
+            and any(isinstance(item, dict) and item.get('url') == proof_url
+                    and item.get('quote') == quote for item in path.get('proof', []))
+            for path in paths), 'HARAM requires an evidence-backed economic path')
+        _require(any(isinstance(source, dict) and source.get('url') == proof_url
+                     and quote in source.get('extracted_text', '')
+                     and source.get('tier') in {'TIER_1', 'TIER_1_OFFICIAL'}
+                     for source in report['sources_opened']),
+                 'HARAM quote is absent from the opened official document')
         _provider_urls, evidentiary_urls = _provider_tool_evidence_urls(report)
         _require(proof_url in evidentiary_urls,
                  'HARAM proof URL lacks provider citation/open-page evidence')
@@ -482,8 +584,13 @@ def validate_result(report: dict, *, expected_base: str) -> dict:
             for source in report['sources_opened']
         ), 'HARAM proof URL must match an opened identity-bound source')
     else:
-        _require(report['haram_narrative_code'] in NARRATIVE_CODES | {'NOT_PROVEN'},
-                 'haram_narrative_code must be N1-N11 or NOT_PROVEN')
+        _require(report['haram_narrative_code'] == 'NOT_PROVEN',
+                 'non-HARAM haram_narrative_code must be NOT_PROVEN')
+        _require(report['haram_narrative_name'] == 'NOT_PROVEN',
+                 'non-HARAM haram_narrative_name must be NOT_PROVEN')
+        _require(all(proof.get(key) is False for key in ('C1', 'C2', 'C3', 'C4', 'C5'))
+                 and all(proof.get(key) is None for key in ('quote', 'url', 'tier')),
+                 'non-HARAM proof card must contain false conditions and null evidence')
 
     if final_code in TRADE_ELIGIBLE_CODES:
         _require(report['haram_narrative_code'] == 'NOT_PROVEN',
@@ -494,6 +601,8 @@ def validate_result(report: dict, *, expected_base: str) -> dict:
     if final_code == 'TECH_STOP':
         _require(report['tech_stop_trigger'] in {'T1', 'T2', 'T3'},
                  'TECH_STOP requires trigger T1, T2 or T3')
+        _require(report['tool_evidence'].get('provider') == 'local-oracle-v1',
+                 'TECH_STOP requires replayable local authoritative evidence')
 
     return report
 
@@ -502,7 +611,7 @@ def fail_closed_report(base: str, *, reason: str, sources_failed=None) -> dict:
     """An internal, schema-complete fail-closed NO_TRADE_INFO record.
 
     Produced locally when screening could not run or its output was invalid
-    (tool failure, quota, malformed response, timeout). It follows the V19.1
+    (tool failure, quota, malformed response, timeout). It follows the V19.3
     rule that tool failure is never HARAM and TOOL_ACCESS_LIMIT is never a
     verdict; it can never authorize a trade.
     """
@@ -528,7 +637,15 @@ def fail_closed_report(base: str, *, reason: str, sources_failed=None) -> dict:
         'human_escalation_reason': 'none — fail-closed local record, screening did not complete',
         'next_rescreen_date': (today + __import__('datetime').timedelta(days=1)).isoformat(),
         'shariah_result': f'NO TRADE under this screening — screening unavailable: {reason}',
-        'user_personal_action': 'Do not trade this asset until a valid V19.1 screening completes.',
+        'user_personal_action': 'Do not trade this asset until a valid V19.3 screening completes.',
         'confidence_level': 'LOW',
+        'keyword_context_results': {}, 'economic_link_graph': {},
+        'material_missing_info': {}, 'gharar_speculation_review': {},
+        'technical_transparency_risk_notes': [], 'plugin_source_roles': {},
+        'official_source_discovery': {}, 'official_website_url': None,
+        'official_docs_urls': [], 'official_whitepaper_url': None,
+        'official_tokenomics_economics_urls': [], 'official_github_url': None,
+        'primary_explorer_url': None, 'source_discovery_path': [],
+        'source_identity_conflicts': [],
         'fail_closed': True, 'fail_closed_reason': reason,
     }

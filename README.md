@@ -1,17 +1,8 @@
-# Binance Spot / Freqtrade V10.2 + Sharia V19.1
+# BINANA Spot bot — Sharia v19.3 recovery candidate
 
-Status: **offline release gate passed; testnet/Oracle runtime validation
-incomplete; live trading not certified.** `RELEASE_MODE` identifies the
-testnet or live-capable package — and is enforced at runtime: the testnet
-package is structurally incapable of live execution. The live package
-defaults to simulation and cannot place a live order without its signed
-evidence gate. Self-hosted local Sharia screening is research, not a fatwa.
+Status: **not accepted for deployment; live trading is not certified.**
 
-The release version lives in `RELEASE_VERSION`. The operational namespace uses
-the collision-free `binana-testnet` identity across server paths, images and
-Compose. Bootstrap refuses to coexist silently with an active legacy
-`binance-freqtrade-v101` or `binana-freqtrade-v101` deployment; migration is
-explicit.
+See [the recovery status and open gates](docs/recovery/RECOVERY_STATUS_20260930.md) before using deployment instructions. This branch preserves the earlier strategy and execution interlocks while recovering service changes and adapting the supplied controller. Historical documentation below does not certify this candidate.
 
 ## Disclaimer and risk warning
 

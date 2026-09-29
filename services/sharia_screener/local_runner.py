@@ -1,4 +1,4 @@
-"""Self-hosted V19.1 screening runner with no model or paid API dependency."""
+"""Self-hosted V19.3 screening runner with no model or paid API dependency."""
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
@@ -18,6 +18,7 @@ from services.sharia_rules.engine import (
     EvidenceClaim,
     RetrievedDocument,
     evaluate,
+    canonical_token_type,
 )
 from services.sharia_screener.runner import ScreeningUnavailable
 from services.sharia_screener.source_registry import (
@@ -130,12 +131,12 @@ class LocalScreeningRunner:
                 'extractor_version': str(raw.get('extractor_version', '')),
             })
         promotable = (
-            all_green and all_sources_opened
+            all_green
             and (finding.disposition == Disposition.PROPOSE_GREEN
                  or scope_review_only)
         )
         report.update({
-            'token_type': str((claims.get('token_type') or {}).get('value', 'UNKNOWN')),
+            'token_type': canonical_token_type((claims.get('token_type') or {}).get('value', 'UNKNOWN')),
             'shariah_screener_check': {
                 name: str((screeners.get(name) or {}).get('value', 'not checked'))
                 for name in SCREENER_SITES
@@ -152,6 +153,7 @@ class LocalScreeningRunner:
                 'quote': item.text[:1000],
                 'content_sha256': item.content_sha256,
                 'content_path': item.content_path,
+                'extracted_text': item.text,
             } for item in fetches if item.ok],
             'sources_failed': [{
                 'url': item.url, 'error': item.error,
@@ -196,7 +198,7 @@ class LocalScreeningRunner:
                 'status': 'FOUND', 'quote': str(revenue.get('quote', ''))}
         return report
 
-    def run(self, base: str, pair: str) -> tuple[dict, dict]:
+    def run(self, base: str, pair: str, *, discovery_record=None) -> tuple[dict, dict]:
         try:
             asset = self.registry.asset(base)
         except SourceRegistryError as exc:
@@ -255,14 +257,37 @@ class LocalScreeningRunner:
             identity_confirmed=any(
                 document.identity_match for document in documents_by_url.values()),
             token_type=token_type, utility_quote=utility_quote,
-            revenue_clean=revenue_value in {'clean', 'non-material'},
+            revenue_clean=revenue_value in {'clean', 'neutral', 'officially absent', 'non-material'},
             contradictions=[], expected_screeners=SCREENER_SITES,
             fact_evidence=fact_evidence,
             screener_evidence=screener_evidence,
             asset_identifier=base,
+            material_review=asset.get('material_review'), discovery_record=discovery_record,
         )
         report = self._review_report(
             base, finding, fetches, raw_claims, raw_screeners)
+        assessment = finding.v193_assessment
+        review = assessment['review']
+        from services.sharia_rules.v193 import report_projection
+        report.update(report_projection(assessment, discovery_record, self.controller))
+        report['local_review'].update({
+            'material_review': review, 'discovery_record': discovery_record,
+            'proposed_code': 'GREEN_AVOID_OPTIONAL' if assessment['avoid_optional'] else 'GREEN',
+            'fact_evidence': {k: v.__dict__ for k, v in fact_evidence.items() if v is not None},
+            'all_material_checks_complete': finding.disposition == Disposition.PROPOSE_GREEN,
+        })
+        # A confirmed legal/technical stop has priority over the narrative
+        # gate. It is not a HARAM ruling and carries no HARAM proof card.
+        if assessment['tech_stop_trigger'] != 'NONE':
+            report.update(final_code='TECH_STOP', direct_result='TECH STOP',
+                          shariah_result='NO TRADE - confirmed technical or legal stop',
+                          user_personal_action='Do not trade while the confirmed stop applies')
+        report['shariah_screener_check'] = {
+            name: (claim.value if claim is not None else 'unavailable')
+            for name, claim in screener_evidence.items()}
+        report['tool_access_limits'] = [item.error for item in fetches if not item.ok]
+        report['contradiction_resolution'] = ('material review incomplete' if assessment['issues']
+                                              else 'material contradictions resolved or absent')
         if report['tool_evidence'].get('provider') == self.provider:
             validate_local_evidence_files(report, self.evidence_root)
         return report, {

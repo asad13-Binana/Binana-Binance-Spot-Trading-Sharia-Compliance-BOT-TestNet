@@ -21,7 +21,7 @@ from services.common.sharia_v19 import (
     validate_result,
 )
 
-# The status file may only contain V19.1 final codes. The legacy
+# The status file may only contain V19.3 final codes. The legacy
 # HALAL/HARAM/DOUBTFUL/UNKNOWN vocabulary is intentionally rejected so the
 # previous Sharia definition can never be loaded again (master protocol 8.2).
 VALID = set(FINAL_CODES)
@@ -30,7 +30,7 @@ SCHEMA_VERSION = 2
 MAX_STATUS_VALIDITY_SECONDS = 366 * 86_400
 MAX_FUTURE_SKEW_SECONDS = 30
 MAX_APPROVED_AGE_SECONDS = 7 * 86_400
-STATUS_SOURCE = 'sharia-screener/v19.1'
+STATUS_SOURCE = 'sharia-screener/v19.3'
 REQUEST_ID_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$')
 
 
@@ -43,10 +43,10 @@ class Decision:
 
 
 class ShariaFilter:
-    """Fail-closed V19.1 execution gate over the screener-generated status file.
+    """Fail-closed V19.3 execution gate over the screener-generated status file.
 
     This code enforces records produced by the separate sharia-screener
-    service from the immutable V19.1 controller; it does not determine
+    service from the immutable V19.3 controller; it does not determine
     religious permissibility and is not a fatwa. Only a current GREEN or
     GREEN_AVOID_OPTIONAL record allows trading; everything else — including a
     missing, expired, malformed or legacy-format record — fails closed.
@@ -54,7 +54,7 @@ class ShariaFilter:
 
     def __new__(cls, path: str | Path):
         # The owner explicitly selected manual-registry mode. Dispatch it to a
-        # separate verifier so the V19.1 research contract below stays intact
+        # separate verifier so the V19.3 research contract below stays intact
         # and a manual approval is never represented as automated research.
         if cls is ShariaFilter:
             try:
@@ -90,14 +90,14 @@ class ShariaFilter:
         declared = str(raw.get('controller_sha256', ''))
         if declared != V19_CONTROLLER_SHA256:
             raise ValueError(
-                'sharia_status.json is not bound to the immutable V19.1 controller '
+                'sharia_status.json is not bound to the immutable V19.3 controller '
                 f'(controller_sha256={declared!r}); fail closed')
         controller_path = self.path.parent / V19_CONTROLLER_FILENAME
         try:
             load_controller(controller_path)
         except Exception as exc:
             raise ValueError(
-                f'installed V19.1 controller is missing or invalid at {controller_path}; '
+                f'installed V19.3 controller is missing or invalid at {controller_path}; '
                 'fail closed') from exc
 
     def _record_binding_error(self, record: dict) -> str:
@@ -157,7 +157,7 @@ class ShariaFilter:
         raw = json.loads(self.path.read_text(encoding='utf-8'))
         if not isinstance(raw, dict) or raw.get('schema_version') != SCHEMA_VERSION:
             raise ValueError(
-                'legacy or unknown Sharia dataset rejected: only the V19.1 projection '
+                'legacy or unknown Sharia dataset rejected: only the V19.3 projection '
                 f'(schema_version={SCHEMA_VERSION}) may load; fail closed')
         self._verify_controller_binding(raw)
         records = raw.get('records')
@@ -178,7 +178,7 @@ class ShariaFilter:
                 raise ValueError(where + '.symbol duplicate')
             if status not in VALID:
                 raise ValueError(
-                    where + f'.status {status!r} is not a V19.1 final code — '
+                    where + f'.status {status!r} is not a V19.3 final code — '
                     'legacy Sharia statuses are rejected')
             if not source:
                 raise ValueError(where + '.source required')
@@ -213,7 +213,7 @@ class ShariaFilter:
         base = self._normalize_symbol(base)
         record = self.records.get(base)
         if not record:
-            return Decision(False, 'NO_TRADE_INFO', 'no V19.1 screening record', {})
+            return Decision(False, 'NO_TRADE_INFO', 'no V19.3 screening record', {})
         status = record['status']
         if record.get('_attestation_valid') is not True:
             return Decision(False, 'NO_TRADE_INFO',
@@ -244,8 +244,8 @@ class ShariaFilter:
                 record)
         if status not in ALLOWED:
             return Decision(False, status,
-                            'only GREEN or GREEN_AVOID_OPTIONAL passes under V19.1', record)
-        return Decision(True, status, 'current V19.1 ' + status + ' record', record)
+                            'only GREEN or GREEN_AVOID_OPTIONAL passes under V19.3', record)
+        return Decision(True, status, 'current V19.3 ' + status + ' record', record)
 
     def is_record_verified(self, base: str) -> bool:
         record = self.records.get(self._normalize_symbol(base))
@@ -273,8 +273,8 @@ class ShariaFilter:
         from services.common.atomic import atomic_write_json
         symbols = [base + 'USDT' for base in self.current_halal_symbols()]
         atomic_write_json(path, {
-            '_comment': 'Generated from the V19.1 screener status file; do not edit. '
-                        'Empty until a valid current V19.1 GREEN result exists.',
+            '_comment': 'Generated from the V19.3 screener status file; do not edit. '
+                        'Empty until a valid current V19.3 GREEN result exists.',
             'symbols': symbols,
         })
         return symbols

@@ -1,6 +1,6 @@
 """Self-hosted source retrieval for Sharia screening.
 
-Fetches the sources the V19.1 controller requires — official site, docs,
+Fetches the sources the V19.3 controller requires — official site, docs,
 whitepaper, tokenomics, official GitHub, and the seven named public Sharia
 screener sites — and records exactly what was received: the canonical URL,
 the retrieval time, the HTTP status, the SHA-256 of the retrieved bytes, and

@@ -348,8 +348,9 @@ def scan_once():
             vol = _finite_decimal(ticker, 'quoteVolume')
             if change is None:
                 reasons.append('invalid_price_change')
-            elif change <= 0:
-                reasons.append('not_positive_gainer')
+            # 24h percent change is a ranking input, not an admission veto.
+            # NFI remains the strategy entry authority; negative/flat movers
+            # may stay in the eligible watchlist when all hard safety gates pass.
             if vol is None:
                 reasons.append('invalid_quote_volume')
             elif vol < MIN_VOL:

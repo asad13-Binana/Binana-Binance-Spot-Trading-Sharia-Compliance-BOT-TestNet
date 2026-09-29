@@ -75,15 +75,13 @@ def _green_from_proposal(report: dict, payload: dict, proposal_sha: str,
              'proposal was not produced by the local Oracle backend')
     _require(review.get('promotable') is True,
              'proposal is not mechanically eligible for owner approval')
-    _require(review.get('all_registered_sources_opened') is True,
-             'proposal has one or more unavailable registered sources')
+    _require(review.get('all_material_checks_complete') is True,
+             'proposal has incomplete material evidence')
     checks = review.get('green_checks')
     _require(isinstance(checks, dict) and GREEN_PROOF_CHECKS <= set(checks),
              'proposal is missing named GREEN proof checks')
     _require(all(checks.get(name) is True for name in GREEN_PROOF_CHECKS),
              'proposal has a failed GREEN proof check')
-    _require(not report.get('sources_failed'),
-             'proposal with a failed source cannot be approved')
     if review.get('scope_review_only') is True:
         _require(payload.get('scope_confirmation') == SCOPE_CONFIRMATION,
                  'scope-review proposal requires the explicit owner confirmation phrase')
@@ -94,9 +92,7 @@ def _green_from_proposal(report: dict, payload: dict, proposal_sha: str,
     approved = copy.deepcopy(report)
     approved.update({
         'mal_status': 'CONFIRMED',
-        'sub_framework_applied': 'NONE',
-        'tool_access_limits': [],
-        'final_code': 'GREEN',
+        'final_code': review.get('proposed_code', 'GREEN'),
         'direct_result': 'HALAL',
         'haram_narrative_code': 'NOT_PROVEN',
         'haram_narrative_name': 'NOT_PROVEN',

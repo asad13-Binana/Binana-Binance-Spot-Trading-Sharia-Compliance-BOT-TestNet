@@ -1082,7 +1082,7 @@ class ScannerIntegrationTests(unittest.TestCase):
                                   return_value=''):
             # Cryptographic Sharia projection/report binding is covered by its
             # own suite. These scanner tests isolate external-signal behavior
-            # while still loading the immutable controller and V19.1 schema.
+            # while still loading the immutable controller and V19.3 schema.
             return scanner.scan_once()
 
     def _seed_external_cache(self, tmp):

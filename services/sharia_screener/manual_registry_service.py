@@ -43,6 +43,7 @@ from services.sharia_screener.manual_registry import (
     build_manual_decision_report,
     load_manual_registry,
 )
+from services.sharia_screener.registry_commands import process_registry_commands
 from services.universe_service.sharia_filter import SCHEMA_VERSION
 from services.universe_service.sharia_gate import ManualRegistryFilter
 
@@ -75,6 +76,20 @@ class ManualRegistryProjector:
         self.alert_outbox = Path(alert_outbox)
         self.state_path = self.runtime_dir / 'manual_registry_state.json'
         self.health_path = self.runtime_dir / 'health.json'
+        shared_root = Path(os.getenv('SHARED_ROOT', '/app/shared'))
+        commands_root = Path(os.getenv(
+            'SHARIA_REGISTRY_COMMAND_ROOT',
+            shared_root / 'sharia_registry_commands'))
+        self.registry_command_inbox = Path(os.getenv(
+            'SHARIA_REGISTRY_COMMAND_INBOX', commands_root / 'inbox'))
+        self.registry_command_processed = commands_root / 'processed'
+        self.registry_command_rejected = commands_root / 'rejected'
+        research_root = Path(os.getenv(
+            'SHARIA_RESEARCH_ROOT', shared_root / 'sharia_research'))
+        self.research_results_dir = Path(os.getenv(
+            'SHARIA_RESEARCH_RESULTS_DIR', research_root / 'results'))
+        self.research_reports_dir = Path(os.getenv(
+            'SHARIA_RESEARCH_REPORTS_DIR', research_root / 'reports'))
         self.last_error_key = ''
 
     def _status_document(self, registry: ManualRegistry, records: list[dict],
@@ -212,6 +227,16 @@ class ManualRegistryProjector:
             'ts': time.time(),
         })
 
+    def process_owner_commands(self) -> int:
+        return process_registry_commands(
+            registry_path=self.registry_path,
+            inbox=self.registry_command_inbox,
+            processed=self.registry_command_processed,
+            rejected=self.registry_command_rejected,
+            research_results_dir=self.research_results_dir,
+            research_reports_dir=self.research_reports_dir,
+        )
+
     def sync(self, *, force: bool = False) -> bool:
         try:
             registry = load_manual_registry(self.registry_path)
@@ -268,6 +293,8 @@ def main() -> None:
             'RELEASE BINDING MISSING: set ENVELOPE_RELEASE_HASH or install '
             'RELEASE_SHA256.txt')
     try:
+        envelope.load_key(envelope.BUS_SHARIA_DECISION)
+        envelope.load_key(envelope.BUS_SHARIA_RESULT)
         load_private_key()
         load_public_key()
     except Exception as exc:
@@ -276,12 +303,14 @@ def main() -> None:
     projector = ManualRegistryProjector()
     signal.signal(signal.SIGTERM, lambda *_: STOP.set())
     signal.signal(signal.SIGINT, lambda *_: STOP.set())
+    projector.process_owner_commands()
     projector.sync(force=True)
     audit('manual_sharia_registry_service_started', details={
         'automatic_research_enabled': False,
         'poll_seconds': poll_seconds,
     })
     while not STOP.wait(poll_seconds):
+        projector.process_owner_commands()
         projector.sync()
     audit('manual_sharia_registry_service_stopped')
 

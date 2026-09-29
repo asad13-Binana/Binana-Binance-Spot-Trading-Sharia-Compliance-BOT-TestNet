@@ -6,7 +6,7 @@ from services.universe_service.sharia_filter import ShariaFilter, VALID, ALLOWED
 
 
 def validate(path: Path) -> list[str]:
-    """Schema validation for the V19.1 status projection.
+    """Schema validation for the V19.3 status projection.
 
     V101-NEW-008 fix: the validator now applies the SAME future-date rule as
     the runtime filter, so release verification can never call a dataset valid
@@ -32,7 +32,7 @@ def validate(path: Path) -> list[str]:
         if symbol in seen: errors.append(where + '.symbol duplicate')
         seen.add(symbol)
         status = str(row.get('status', '')).upper()
-        if status not in VALID: errors.append(where + f'.status {status!r} is not a V19.1 final code')
+        if status not in VALID: errors.append(where + f'.status {status!r} is not a V19.3 final code')
         if not str(row.get('source', '')).strip(): errors.append(where + '.source required')
         try:
             reviewed = datetime.fromisoformat(str(row.get('reviewed_at', ''))[:10]).date()

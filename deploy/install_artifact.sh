@@ -250,7 +250,7 @@ ln -sfn "$ENV_FILE" "$NEW/.env"
 # release. An exact legacy empty compatibility file is safely migrated to the
 # reviewed registry shipped in this release. A non-empty or already-manual
 # owner file is never overwritten; malformed owner data blocks deployment.
-for state_file in sharia_status.json halal_coins.json source_registry.json HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json; do
+for state_file in sharia_status.json halal_coins.json source_registry.json HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json; do
   [[ ! -L "$PERSIST/sharia/$state_file" ]] || fail 'Sharia state must not be a symlink'
 done
 SHARIA_REGISTRY_INSTALL=preserve
@@ -283,8 +283,8 @@ if [[ ! -f "$PERSIST/sharia/source_registry.json" ]]; then
   install -m 0640 -o "$BOT_UID" -g "$BOT_GID" "$NEW/shared/sharia/source_registry.json" \
      "$PERSIST/sharia/source_registry.json"
 fi
-install -m 0640 -o "$BOT_UID" -g "$BOT_GID" "$NEW/shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json" \
-   "$PERSIST/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json"
+install -m 0640 -o "$BOT_UID" -g "$BOT_GID" "$NEW/shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json" \
+   "$PERSIST/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json"
 # Repair permissions on non-transactional retained state. The registry and
 # status projection are switched together only after the old stack stops.
 for state_file in source_registry.json; do
@@ -292,13 +292,13 @@ for state_file in source_registry.json; do
   chmod 0640 "$PERSIST/sharia/$state_file"
 done
 # Verify the seeded controller is byte-identical before anything starts.
-PYTHONPATH="$NEW" "$HOST_PYTHON" - "$PERSIST/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json" <<'PY'
+PYTHONPATH="$NEW" "$HOST_PYTHON" - "$PERSIST/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json" <<'PY'
 import sys
 from services.common.sharia_v19 import controller_sha256, V19_CONTROLLER_SHA256
 actual = controller_sha256(sys.argv[1])
 if actual != V19_CONTROLLER_SHA256:
-    raise SystemExit(f'V19.1 controller hash mismatch after seeding: {actual}')
-print('V19.1 controller byte-integrity verified')
+    raise SystemExit(f'V19.3 controller hash mismatch after seeding: {actual}')
+print('V19.3 controller byte-integrity verified')
 PY
 # Validate and build an immutable service-image tag before touching the running release.
 compose_for "$NEW" "$NEW_TAG" config -q

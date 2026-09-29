@@ -70,8 +70,11 @@ class ComposeIsolationTests(unittest.TestCase):
         self.assertEqual(environment['SHARIA_REGISTRY_MODE'], 'manual')
         for name in ('HTTPS_PROXY', 'COINGECKO_API_KEY',
                      'COINMARKETCAP_API_KEY', 'CMC_API_KEY',
-                     'SHARIA_HMAC_KEY', 'SHARIA_APPROVAL_HMAC_KEY'):
+                     'SHARIA_HMAC_KEY', 'BINANCE_API_KEY', 'BINANCE_API_SECRET', 'TELEGRAM_BOT_TOKEN'):
             self.assertNotIn(name, environment)
+        # Recovered owner commands verify approval and research-result buses.
+        self.assertIn('SHARIA_APPROVAL_HMAC_KEY', environment)
+        self.assertIn('SHARIA_RESULT_HMAC_KEY', environment)
 
     def test_only_secretless_proxy_bridges_internal_and_default_networks(self):
         proxy = self.compose['services']['sharia-egress-proxy']

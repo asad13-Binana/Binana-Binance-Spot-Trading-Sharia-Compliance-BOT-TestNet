@@ -21,9 +21,9 @@ PROTECTED = {
     "legacy_core/binance_bot_V4.9.16_ALL_IN_ONE.py":
         "70b1d67cc0092b5b8db4a68b343cf893641bde1aae580e9ef51e2adec1062459",
     "services/common/sharia_v19.py":
-        "5eb9fd5338d80fcaf0d39bb3f4935a75b57dd91136c72a83a7551b659b04d865",
-    "shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json":
-        "07106bb8bfc1924d8d0c6f61ced4e0c51c2ac2054988423f42c1fd67f3b2ba78",
+        "768b3f5261d618e0beb50aa7f15de4ab84b4e02ad3a621d9dfebb944175580f5",
+    "shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json":
+        "418e7280f0b6a5f4cd9ba3887b8be3099f5fcc4b18bfca66808749720a4dd355",
 }
 
 

@@ -24,6 +24,15 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ManualRegistryContractTests(unittest.TestCase):
+    def test_shipped_projector_can_load_its_required_owner_command_bus_keys(self):
+        import yaml
+        from services.common import envelope
+        compose = yaml.safe_load((ROOT / 'docker-compose.yml').read_text(encoding='utf-8'))
+        wired = compose['services']['sharia-screener']['environment']
+        with mock.patch.dict('os.environ', {name: 't' * 48 for name in wired}, clear=True):
+            for purpose in (envelope.BUS_SHARIA_DECISION, envelope.BUS_SHARIA_RESULT):
+                self.assertEqual(len(envelope.load_key(purpose)), 48)
+
     def _payload(self, symbols: list[str]) -> dict:
         today = datetime.now(timezone.utc).date()
         return {
@@ -44,7 +53,7 @@ class ManualRegistryContractTests(unittest.TestCase):
         status_path = ROOT / 'shared/sharia/sharia_status.json'
         registry = load_manual_registry(registry_path)
         bootstrap = build_manual_bootstrap_status(registry)
-        self.assertEqual(len(registry.symbols), 244)
+        self.assertEqual(len(registry.symbols), 305)
         self.assertEqual(registry.symbols, tuple(sorted(set(registry.symbols))))
         self.assertEqual(bootstrap['projection_mode'], MANUAL_PROJECTION_MODE)
         self.assertEqual(bootstrap['registry_sha256'], registry.sha256)

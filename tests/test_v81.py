@@ -197,7 +197,7 @@ class ProtectionRequestTests(unittest.TestCase):
 
 class ShariaTests(unittest.TestCase):
     def test_only_current_halal_passes(self):
-        # V19.1: only GREEN / GREEN_AVOID_OPTIONAL are trade-eligible; the
+        # V19.3: only GREEN / GREEN_AVOID_OPTIONAL are trade-eligible; the
         # legacy HALAL vocabulary and old schema are rejected.
         with tempfile.TemporaryDirectory() as td:
             path = Path(td) / 's.json'
@@ -235,7 +235,7 @@ class ShariaTests(unittest.TestCase):
     def test_malformed_or_duplicate_records_fail_closed(self):
         with tempfile.TemporaryDirectory() as td:
             path = Path(td) / 'bad.json'
-            # Valid V19.1 wrapper so the inner duplicate/source checks are exercised.
+            # Valid V19.3 wrapper so the inner duplicate/source checks are exercised.
             _harness.write_attested_status(path, [('ETH', 'GREEN'), ('ETH', 'GREEN')])
             with self.assertRaises(ValueError):
                 ShariaFilter(path)
@@ -420,7 +420,7 @@ class SimulationIntegrationTests(unittest.TestCase):
             shared = Path(td) / 'shared'
             for rel in ['signals/inbox','signals/processed','signals/rejected','universe','runtime','audit','sharia','commands/inbox']:
                 (shared / rel).mkdir(parents=True, exist_ok=True)
-            # V19.1: use the same controller/report/Ed25519-bound projection
+            # V19.3: use the same controller/report/Ed25519-bound projection
             # required by the runtime gate. Only the screener writes this in
             # production; the harness creates it for this offline simulation.
             _harness.write_attested_status(
@@ -450,7 +450,7 @@ class SimulationIntegrationTests(unittest.TestCase):
                 'UNIVERSE_FILE': str(shared/'universe/current_pairlist.json'),
                 'SIGNAL_INBOX': str(shared/'signals/inbox'),
                 'AUDIT_LOG': str(shared/'audit/events.jsonl'),
-                # Signed buses + cached V19.1 gate (fresh-screening seam covered
+                # Signed buses + cached V19.3 gate (fresh-screening seam covered
                 # by dedicated tests) for a deterministic offline integration run.
                 'SHARIA_SIGNAL_GATE_MODE': 'cached',
                 **_harness.TEST_BUS_KEYS,
