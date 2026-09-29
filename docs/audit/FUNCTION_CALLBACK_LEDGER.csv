@@ -3003,7 +3003,7 @@ tests/test_oracle_hardening_v2.py,OperationalScriptTests.test_ssh_validation_pre
 tests/test_oracle_hardening_v2.py,OperationalScriptTests.test_critical_disk_pressure_queues_authenticated_entry_pause,function,top-level-or-method,305,312,-,test
 tests/test_oracle_hardening_v2.py,OperationalScriptTests.test_ci_overrides_oracle_shared_path_with_checked_out_fixture,function,top-level-or-method,314,316,-,test
 tests/test_oracle_host_loss_resilience.py,read,function,top-level-or-method,17,18,-,test
-tests/test_oracle_host_loss_resilience.py,test_protected_core_hashes_are_unchanged,function,top-level-or-method,21,23,-,test
+tests/test_oracle_host_loss_resilience.py,test_protected_files_match_the_reviewed_v193_baseline,function,top-level-or-method,21,23,-,test
 tests/test_oracle_host_loss_resilience.py,test_offhost_backup_is_encrypted_immutable_and_instance_principal_only,function,top-level-or-method,26,44,-,test
 tests/test_oracle_host_loss_resilience.py,test_oci_cli_container_is_digest_pinned_for_both_supported_architectures,function,top-level-or-method,47,51,-,test
 tests/test_oracle_host_loss_resilience.py,test_private_recovery_identity_is_not_configured_on_the_vm,function,top-level-or-method,54,59,-,test

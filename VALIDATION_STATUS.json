@@ -29,7 +29,17 @@
       "skipped": 1
     },
     "full_release_acceptance": false,
-    "note": "Exact local suite results; authenticated exchange, container rebuild and GitHub CI acceptance remain separate."
+    "note": "Exact local suite results; authenticated exchange, container rebuild and GitHub CI acceptance remain separate.",
+    "ci_quality_suite": {
+      "passed": 817,
+      "skipped": 6,
+      "deselected": 1,
+      "subtests_passed": 362,
+      "branch_coverage_percent": 68.32,
+      "coverage_floor_percent": 68,
+      "coverage_target_percent": 85
+    },
+    "monitoring_dependency_audit": "No known vulnerabilities after hash-pinned PyJWT 2.14.0 upgrade"
   },
   "repair_summary": {
     "universe": "full immutable snapshot reopen, semantic hash, filename/path, configuration, ranking, schema, freshness, and retention validation",
