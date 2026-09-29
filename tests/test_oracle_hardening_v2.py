@@ -30,12 +30,12 @@ PROTECTED = {
     "legacy_core/binance_bot_V4.9.16_ALL_IN_ONE.py": "70b1d67cc0092b5b8db4a68b343cf893641bde1aae580e9ef51e2adec1062459",
     "services/common/evidence_providers.py": "e8c76e1cd75a2847903420b764d4d4669283c1420ebbb0729021b5e565b282cf",
     "services/common/sharia_attestation.py": "55fc7d9b206cf0d4193124bab4d770ae80371dd939054c737c4cfa363c998757",
-    "services/common/sharia_v19.py": "5eb9fd5338d80fcaf0d39bb3f4935a75b57dd91136c72a83a7551b659b04d865",
+    "services/common/sharia_v19.py": "768b3f5261d618e0beb50aa7f15de4ab84b4e02ad3a621d9dfebb944175580f5",
     "services/execution_sidecar/core_adapter.py": "647ca0f0e80d2307c98df966f0062830a4616036eff1bf24bdb6927720267da3",
     "services/execution_sidecar/filters.py": "5897ca3ab71c2bda9e096b51aeaf3e9abae40c26048cc615b3ded5bbe6d417a8",
-    "services/execution_sidecar/live_evidence.py": "1a10ec57f479b68ba8c26b2a5bf1e9065f68cafa662c75f0ecf456a0d7c76732",
-    "services/execution_sidecar/main.py": "3f9a3beea2d975fc9d8fedcb96d89775b3f5e37e0ff13cfdd3c69dbbb4a0a919",
-    "services/execution_sidecar/order_manager.py": "f1bccb6c9d9003f1966ec672cc6dc845fa5d579e874ae46d1cee4dbc8d147631",
+    "services/execution_sidecar/live_evidence.py": "08b467b7e8547efb553f2f88a1d257450887a82a1454b15360d974b0e6fc14c3",
+    "services/execution_sidecar/main.py": "967b4cf72ae1fa33563318c2e5243cdb55b4052b5231ef04774035ce585a984f",
+    "services/execution_sidecar/order_manager.py": "2ee18c8a7b2ce19ad81c82aa33faa22b54505304fdbd2944bf60a39a76124cd3",
     "services/execution_sidecar/package_mode.py": "4a09dd03e4c23b770d2eaa31fd2ccc6ffe0e8f1c29d2c7b1bc159a1c5db61f22",
     "services/execution_sidecar/protection_modes.py": "fcaf83f7209ff458a8b4c0e14243fc7a4bc5e4166a53c3c44fa9c9dddcc4e541",
     "services/execution_sidecar/reconciler.py": "c3ef1c46abb44001901b9988d94586ff4e33ae928f159385ab004ca4309fa92f",
@@ -43,27 +43,27 @@ PROTECTED = {
     "services/execution_sidecar/simulation_adapter.py": "b438c33d8b7e9c1c46432d2a7996aa4070a57cfdc06fb0004f4f01276d311432",
     "services/execution_sidecar/state_store.py": "fd77b9688970978cfedaa53f526ce6fa4f7f00a12efc20f641f793e5cf9bb767",
     "services/execution_sidecar/user_data_stream.py": "85e64a72d8b60e2e91a9a56fa46e69d3a3970221903919f3820b1ef92ee89c83",
-    "services/sharia_rules/engine.py": "3a0b0bea1e2a3bfceda1a7e21e7de4298be3a60f40b6cc17fdc11592b953fce3",
-    "services/sharia_screener/approval.py": "f5451c9edb7c36fe73e99e685ce44f9c0569eb60611b2f4a98e4f1eb677abafe",
-    "services/sharia_screener/bridge.py": "e7623a1ddf73fe0a0e828b63562454d4402db20296cbe86aef32953d59d0d87d",
-    "services/sharia_screener/evidence_binding.py": "9ac79034ad08984d06e87b7896d78fb730965c6ad94812d3abd0e19c86d09adb",
-    "services/sharia_screener/local_runner.py": "e93fed8ec286dd2978df1bcf518110891523f138030b3c1c4a95731cce65e74f",
-    "services/sharia_screener/queue_store.py": "20880168d329a979a75e45a114d80a83fc624ed3387d0c0e3747ea0ff89999d9",
+    "services/sharia_rules/engine.py": "b17d33bc5a095810ba759554828f6c21e95cffa57a40a62f90464c5a46047e86",
+    "services/sharia_screener/approval.py": "f34453c2356cdc40ff23bd532a6dbb8e0a57c3eb0f4a5930442ab0e11cee656e",
+    "services/sharia_screener/bridge.py": "930d1a2aaa6d21996277d9dd12022902147f3e434ccb5db79e9c676cad6426c2",
+    "services/sharia_screener/evidence_binding.py": "e3782a392e133b1c156dbfef7e592f3f9f0846af86f1273b01643acb8202b645",
+    "services/sharia_screener/local_runner.py": "23ad93a18835d548db6d53ab26593b3e7792d590c6ed2b5e2bb89418fe98689e",
+    "services/sharia_screener/queue_store.py": "377c83943a6518965b58b5e6f6aa027c173eeaea1590fb8930cffefd6c8b6021",
     "services/sharia_screener/runner.py": "7298f5ebad396b7d45849d3344d7218f6be92e70de930dfe19f92973656d4f66",
-    "services/sharia_screener/service.py": "077f8570d1320ef8aa0af710ce7a4401e50f9e1f76141a2949e8cf191a0a499d",
-    "services/sharia_screener/source_discovery.py": "a77c0cab0af7905953761bd8479baa40881e9167b873ceb3e2b9aac9a96522da",
-    "services/sharia_screener/source_registry.py": "eab4294edb6d077a8a99e1cafde8d3190fee7881b257b5936d14b0cb0cddecce",
+    "services/sharia_screener/service.py": "b940f64b03c3bf7f5fc9be5062c2d23cfe19a4736292b9c42d8d3170b6aef914",
+    "services/sharia_screener/source_discovery.py": "cf54c90bba66e586da5e161c5b9d1fe5406a9b993018ed72e2b48a53384a8459",
+    "services/sharia_screener/source_registry.py": "72de23c10a37c8db27e31cc6bfb58bdfb41b27efb2f2fc57edb43c76f13baffe",
     "services/sharia_screener/verdict_policy.py": "afde5fc2733d6e5a4aea50e436adf3cf55ff83e5d1e32428214f57f8dc6f55e2",
     "services/universe_service/ranker.py": "267b743782453979cbc6fbbf77fa37895dfdec9910b1d190ba6efa898b7c8e2a",
-    "services/universe_service/scanner.py": "eddc92b28387d62b62dc9a0d73f08a8ac191095b712d4351f5fd7e0787804b15",
+    "services/universe_service/scanner.py": "5691b664168a9b9db0ba7537ba204cb36ca262196b0de22e9cff8429649a4d9d",
     # Explicit owner-authorized transition to the manual operational registry:
-    # V19.1 methods stay byte-identical; only the mode dispatcher was added.
-    "services/universe_service/sharia_filter.py": "242e9ae28aa23d89435280cfef3f094020d14cb16f6bad4800c52d488eb28dd8",
+    # Research version binding now follows the explicitly supplied v19.3 controller.
+    "services/universe_service/sharia_filter.py": "3fed49cca73b8e6646768d144b928a3c588b5cac7a6a750578747a10d33763d0",
     "services/universe_service/snapshot_store.py": "aa4bc05c079cb3d68d782e145dbbf3a5b3cc1255987bdd552b2e9214070d17c6",
-    "services/universe_service/validate_sharia.py": "afa16ae9fb3a999559f611a2d6da6bab2b2da337d75493578d22b44ea63e51c0",
-    "shared/sharia/halal_coins.json": "3aa8dc6b70e8de4ca1b7d15d8c72b8f9ac4ec95c86edf02fdd37b1f89d363bc0",
-    "shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json": "07106bb8bfc1924d8d0c6f61ced4e0c51c2ac2054988423f42c1fd67f3b2ba78",
-    "shared/sharia/sharia_status.json": "fa7491087544027172f3f9d38252a95724227c4d9f207d6d2d9cdf9b71b6959e",
+    "services/universe_service/validate_sharia.py": "3f512488ecc53f4f259883907843da5218881af3bd579e9dd543c1a486fd8219",
+    "shared/sharia/halal_coins.json": "1bd43dc72d821d18d82f02afd5617a35f728d3b67f2ecfe7e19fdd2c0addeb87",
+    "shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json": "418e7280f0b6a5f4cd9ba3887b8be3099f5fcc4b18bfca66808749720a4dd355",
+    "shared/sharia/sharia_status.json": "e0d7b34b8411a7829a38618971708da9bda470244fc421fbdebecdae9ff10939",
 }
 
 AUTHORIZED_MANUAL_REGISTRY_TRANSITIONS = {
@@ -79,7 +79,7 @@ AUTHORIZED_MANUAL_REGISTRY_TRANSITIONS = {
 
 
 class ProtectedCoreTests(unittest.TestCase):
-    def test_every_protected_file_is_byte_identical_to_baseline(self):
+    def test_every_protected_file_matches_reviewed_baseline(self):
         for relative, expected in PROTECTED.items():
             with self.subTest(relative=relative):
                 self.assertEqual(hashlib.sha256((ROOT / relative).read_bytes()).hexdigest(), expected)

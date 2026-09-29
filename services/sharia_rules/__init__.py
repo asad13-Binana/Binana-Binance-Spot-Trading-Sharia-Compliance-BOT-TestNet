@@ -1,4 +1,4 @@
-"""Deterministic execution of the immutable V19.1 screening controller.
+"""Deterministic execution of the immutable V19.3 screening controller.
 
 Nothing in this package interprets Sharia law. Every rule, keyword, narrative
 code, source tier and gate condition is read at runtime from the immutable

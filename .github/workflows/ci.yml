@@ -320,7 +320,7 @@ jobs:
           registry=json.loads(Path('/app/shared/sharia/halal_coins.json').read_text())
           assert status['projection_mode'] == 'manual-registry/v1'
           assert status['registry_valid'] is True
-          assert len(status['records']) == len(registry['symbols']) == 244
+          assert len(status['records']) == len(registry['symbols']) == 305
           assert {row['symbol'] + 'USDT' for row in status['records']} == set(registry['symbols'])
           print('PASS: owner-maintained registry projected exactly; no research network exists')
           PY

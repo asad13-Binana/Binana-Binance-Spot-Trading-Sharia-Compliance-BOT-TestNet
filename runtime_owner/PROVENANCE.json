@@ -1,0 +1,292 @@
+{
+  "kind": "AWS-derived owner repair candidate; not deployed",
+  "freqtrade_version": "2026.8",
+  "recovered_owner_base_commit": "4169c544d91f05d77f8fd94d70a81b3e71115ff4",
+  "running_image_id": "sha256:87c25dfc5b3058891491b6fd0647c86fe9a71f96d8ba41a2693b42797fcada83",
+  "validation": {
+    "tests": 160,
+    "seconds": 27.643,
+    "network": "none",
+    "credentials": false,
+    "runtime_state_mounted": false,
+    "authenticated_exchange_acceptance": false
+  },
+  "files": {
+    "owner/binana-strategies/BinanaNfiSpot.py": {
+      "sha256": "5ae124884ca3fca6c16d477eed4c85d6a3e650b5d13476b4b26b4cdaa7945583",
+      "bytes": 7961
+    },
+    "owner/binana-strategies/binana_vendor/NostalgiaForInfinityX8.py": {
+      "sha256": "fcf9f622a3ad797bd143561d1017f3930220f22c793905af929ff1d33bbde686",
+      "bytes": 2505700
+    },
+    "owner/freqtrade/binana/allocation.py": {
+      "sha256": "51400315c30a61d6f0cc887dae3735e45730fb0e3cf322bbf4dbba6f4d4a4789",
+      "bytes": 2228
+    },
+    "owner/freqtrade/binana/binance_order_lists.py": {
+      "sha256": "1b619798e9d0e420d702bfb91f11e5063c99bdb0470c0a5c44fdbfa9215a527a",
+      "bytes": 14965
+    },
+    "owner/freqtrade/binana/cache.py": {
+      "sha256": "8a6b889e1fc1eaf3ae30f299aef46da80cee1c07cf17f48771ed07cb15fd94f6",
+      "bytes": 15370
+    },
+    "owner/freqtrade/binana/cache_runtime.py": {
+      "sha256": "6e08f4580a4a43140300e33b01aab89009b629703f633d4e1d6ac7cc5cdbba43",
+      "bytes": 2304
+    },
+    "owner/freqtrade/binana/canonical_fees.py": {
+      "sha256": "61bc4651e94b776fbbe92d5306e77007e2683ff3d1972a74645fd0fc2def0f84",
+      "bytes": 9109
+    },
+    "owner/freqtrade/binana/canonical_receipts.py": {
+      "sha256": "2021f65f1c17581df556044b88a3e9fdaccd88e173dc18a1a631bfb9d1a609ea",
+      "bytes": 3480
+    },
+    "owner/freqtrade/binana/closed_recovery.py": {
+      "sha256": "95b422cf6b23cdaa2de4906ce24426aae614a43e648886beb998d114c1b8e5f9",
+      "bytes": 9016
+    },
+    "owner/freqtrade/binana/confluence.py": {
+      "sha256": "2a782a3cf988efbfc1e6f3010760d132eb9ef1594458586917823a828b3a2d1c",
+      "bytes": 4077
+    },
+    "owner/freqtrade/binana/durable_journal.py": {
+      "sha256": "f6d53f2601582b6fcfcb73d3da6a9b3070a593eebbed8f1c685d4ab48c62a4e2",
+      "bytes": 5583
+    },
+    "owner/freqtrade/binana/entry_recovery.py": {
+      "sha256": "8348f2a8544b4a7a18b4d54cc5b1fcfbe0fd79f33c9fb16c17ee3e2397762ed8",
+      "bytes": 9559
+    },
+    "owner/freqtrade/binana/environment.py": {
+      "sha256": "0383f2442b256e75be06e4f8031ad48efde5949177f9fb7b64e46c0e3dc3d1b5",
+      "bytes": 4292
+    },
+    "owner/freqtrade/binana/execution_manager.py": {
+      "sha256": "eef7260cd8c1734e18b929e5e69695d03cd8c5a970c5016fb467b8d7a59a011e",
+      "bytes": 47981
+    },
+    "owner/freqtrade/binana/market_data.py": {
+      "sha256": "69f70fb102d298d9f104daae74b848ec809b9bda02f070c09d2fc19949be2769",
+      "bytes": 7903
+    },
+    "owner/freqtrade/binana/operator_exit.py": {
+      "sha256": "89c910e6afba59d71bb6b1ea140d5999d74783437e60ded2816a5679785e8a21",
+      "bytes": 10387
+    },
+    "owner/freqtrade/binana/protection_plan.py": {
+      "sha256": "6c942931d6e7c6aae162372d1f520657079519d51c794d4be2d850a5d26ded30",
+      "bytes": 5178
+    },
+    "owner/freqtrade/binana/quality_gate.py": {
+      "sha256": "a045a9d528fd85f1dfa6dcddf0ff17312f52b265134b764bae39d905a549450d",
+      "bytes": 476
+    },
+    "owner/freqtrade/binana/recovery_contract.py": {
+      "sha256": "f5a1dac359a6d2a26977cfca1add07a51472f1e28a168ca291c7de7049e58709",
+      "bytes": 5318
+    },
+    "owner/freqtrade/binana/registry.py": {
+      "sha256": "cec2da1736913b1370cc1e7a15679248719e1d81ff973c857ecf55ff7b12933f",
+      "bytes": 4087
+    },
+    "owner/freqtrade/binana/release_gate.py": {
+      "sha256": "9f5a6101db86f8c167f752476bcb1b120977dd9e842e82edc677975739a6b1ea",
+      "bytes": 2729
+    },
+    "owner/freqtrade/binana/retained_inventory.py": {
+      "sha256": "abbc7edc5690d0e4156d642094fb7b6ae029a94b14fe01a0e5c77a99a39e1342",
+      "bytes": 7708
+    },
+    "owner/freqtrade/binana/state_store.py": {
+      "sha256": "80997951a42642d421d78f68118c73f57626053c5ee81e638dc4ed5a48b08106",
+      "bytes": 29074
+    },
+    "owner/freqtrade/binana/submission_absence.py": {
+      "sha256": "6126bcc74a4651585d25704c10923629ca2047e17a3348e60ef9d36d13ae8ea1",
+      "bytes": 3150
+    },
+    "owner/freqtrade/binana/user_stream.py": {
+      "sha256": "1179e5ee91c43fb68b5c83e9eedbf1714663010d157f3851afd06bac2ca06298",
+      "bytes": 6769
+    },
+    "owner/freqtrade/binana/verified_recovery.py": {
+      "sha256": "1dc594a5c7fd700cad485a5b0cd2c403e37bc6d4798d628aa89eebfed967f0f4",
+      "bytes": 26172
+    },
+    "owner/freqtrade/binana/__init__.py": {
+      "sha256": "b27d08f7c6b48cbff2ef9bb99a89adef207d2c1c426d0eb59fd7d92790c52295",
+      "bytes": 79
+    },
+    "owner/freqtrade/exchange/binance.py": {
+      "sha256": "1bec7efb0dbe87adec22ddf7599dce17dd81277986931baffd98625849570b85",
+      "bytes": 26243
+    },
+    "owner/freqtrade/freqtradebot.py": {
+      "sha256": "8b0205408c588f8b9ac6a57f7e72556648114119c5a3d100c66742554ea55b42",
+      "bytes": 128966
+    },
+    "owner/freqtrade/persistence/trade_model.py": {
+      "sha256": "ba64440fba0726bf5578a7ddb1e532994a57fea9a3dbcc85d093ae4ebef9c5e3",
+      "bytes": 93583
+    },
+    "owner/freqtrade/resolvers/exchange_resolver.py": {
+      "sha256": "baa1046bdb4fc82273c6426f5cc1def35444d4679c6eff2e0b1421eebe37ee2a",
+      "bytes": 4363
+    },
+    "owner/freqtrade/rpc/api_server/deps.py": {
+      "sha256": "d34ebdd125575f3a0ecc47978503b5af31a9024a4b9e72b69b777dc5a0471905",
+      "bytes": 3159
+    },
+    "owner/freqtrade/rpc/rpc.py": {
+      "sha256": "acb49195ba6e9d76432afd0d05c28dd5e0729cb60a75bbb2741d826ff6874df9",
+      "bytes": 76499
+    },
+    "tests/fixtures/runtime_stable_panel.py": {
+      "sha256": "e71f5d070deb57b5427d177614e66d8d987c12558c2ebac8c162f51ce8a9308a",
+      "bytes": 101727
+    },
+    "tests/registry_fixture.py": {
+      "sha256": "d9cf8ad5679e75413eeb8b30a2671f40bc800e8fed3ec01f3e882e96b102a60d",
+      "bytes": 307
+    },
+    "tests/test_cache.py": {
+      "sha256": "93598f6d64fca12e11bbc8c523441f3056b76ebb8aaee4669308179f9b4e05e7",
+      "bytes": 6728
+    },
+    "tests/test_closed_ack_recovery.py": {
+      "sha256": "113cfb9ebd2545f0f90d1c69d676a947a92d8656697a319b86b1682541aec1ef",
+      "bytes": 11185
+    },
+    "tests/test_commission_reserve.py": {
+      "sha256": "354a5784b2299d6f1c6555f9b700c75a25be501217922019b61aac07543e4c30",
+      "bytes": 1730
+    },
+    "tests/test_confluence_policy.py": {
+      "sha256": "184c55d28ce565a6cec3342faae0987ebf55a3cf3cf764930c384153125f6f83",
+      "bytes": 1150
+    },
+    "tests/test_engine_core.py": {
+      "sha256": "107d1522a451670692ea353558f36f882b3858f564c605312226cf5700eb9ef1",
+      "bytes": 6485
+    },
+    "tests/test_entry_reconstruction.py": {
+      "sha256": "ef1dda915c69e2809d540ffa55422e16adf90aba40031b10188ea0713ecd26e5",
+      "bytes": 13965
+    },
+    "tests/test_exact_commissions.py": {
+      "sha256": "8692ea67f690795844a36bb3a337451accc0b53f07d65d1854814f85e76df1ae",
+      "bytes": 12256
+    },
+    "tests/test_execution_venue.py": {
+      "sha256": "bcf91329968bf8a817eb1ee90280090a0c830e014963fedc01183780632720bd",
+      "bytes": 1463
+    },
+    "tests/test_fill_identity.py": {
+      "sha256": "55ba5eb467013628d65fe49282a232485bd3f75bbf519a3b29b0f456be6cba25",
+      "bytes": 3137
+    },
+    "tests/test_final_contracts.py": {
+      "sha256": "c00ce6fc948eb470afbfa332c81964ba76afb5cf7357b90ff3bfacfe53a0a5a1",
+      "bytes": 10110
+    },
+    "tests/test_identity_integrity.py": {
+      "sha256": "3901d4b5a7cd39ddb011b175b5aac0cf627ab42cbefca9079a168cd3e2c82be2",
+      "bytes": 4233
+    },
+    "tests/test_operator_exit.py": {
+      "sha256": "76cbbcb483d8975b8a14e63d9e58e21475fbf8447e9a74b7f8fea8376e233750",
+      "bytes": 15792
+    },
+    "tests/test_owner_monitoring.py": {
+      "sha256": "7d5d393b4e857005e0d1d76ce4b4beb0570f3901445b11ab652c4188f21d0e41",
+      "bytes": 3815
+    },
+    "tests/test_owner_resume_gate.py": {
+      "sha256": "895cc537bf6d19c5f284591804e430d1cddf88f97cada0428fc5d1da1ca77645",
+      "bytes": 1419
+    },
+    "tests/test_pair_exclusions.py": {
+      "sha256": "af72d9efd29dc01c73d04ac74f127906c7abaf3870500e1ae651062a1232bbac",
+      "bytes": 547
+    },
+    "tests/test_partial_exit_reconciliation.py": {
+      "sha256": "3c10dc01fecf5160f45edb821ff08b219193bf2e5a4df1950507978ba2516923",
+      "bytes": 2502
+    },
+    "tests/test_partial_promotion_recovery.py": {
+      "sha256": "6c764e7e431bb96ada1573c5f62485a31687aa16d5a67e2456c85c34a34b022b",
+      "bytes": 8927
+    },
+    "tests/test_private_event_ordering.py": {
+      "sha256": "19a0b5464be6b2aca866645e21220b5053e3417a8099356770986786426a1959",
+      "bytes": 1952
+    },
+    "tests/test_r18_regressions.py": {
+      "sha256": "ac28317bbfc8f383ab44f472014c9982d55e8f3b5e3d34fbba1fc1e1956a7a22",
+      "bytes": 5406
+    },
+    "tests/test_registry_schema.py": {
+      "sha256": "8f8c6cb46093369ddee592c1f152508623b8de45f009571a4ddc1a18e6487c9f",
+      "bytes": 1532
+    },
+    "tests/test_release_evidence.py": {
+      "sha256": "3d5036b81905b41be2bdc7cb27008acd85d945474de4aab583c6ead5403c06e5",
+      "bytes": 1296
+    },
+    "tests/test_restart_partial_recovery.py": {
+      "sha256": "ae009bc0260c149e33781b59046d6b89545f87bccc7e49d7b0b80c1691ec5071",
+      "bytes": 13790
+    },
+    "tests/test_retained_accounting.py": {
+      "sha256": "98810f2ecb97a1f2c2010da19eeaae6d89d514f5f7d27c559edf0d100521463e",
+      "bytes": 1900
+    },
+    "tests/test_retained_inventory_monitor.py": {
+      "sha256": "865c206f1eadde7986c03b42552b40ae4b2a53ba162c611aafcf2281efeac1c6",
+      "bytes": 4927
+    },
+    "tests/test_retained_slot_evidence.py": {
+      "sha256": "9a72a50c9fabb40438f063a839c63329b66ab9894036cc92b9451f3f253a1a02",
+      "bytes": 2878
+    },
+    "tests/test_rpc_session_cleanup.py": {
+      "sha256": "f631d858f492a819cad65036dacce11e6339205d909a9ff53f2d957244ae3a1e",
+      "bytes": 2220
+    },
+    "tests/test_stake_policy.py": {
+      "sha256": "edb2e1d0a74b6fbe828d7ec448792268dd7dd5e5b6b32b7c87125ed97282c710",
+      "bytes": 2171
+    },
+    "tests/test_strategy_contract.py": {
+      "sha256": "d2fd2883991a2c455f631ce6ef0ff4a172b81779779d7da21db5bd8ce982dd02",
+      "bytes": 5227
+    },
+    "tests/test_telegram_release.py": {
+      "sha256": "f18b3744b5056f41cb2592ebe46785b03374792f4952e57ed8410937a0d62c45",
+      "bytes": 1145
+    },
+    "tests/test_telegram_settlements.py": {
+      "sha256": "25dd5d907a010bbf3731eb659e2e7e5fa6d8aafdd6f26c09b684dcf5c7270c8f",
+      "bytes": 2679
+    },
+    "tests/test_user_stream_health.py": {
+      "sha256": "aea0e6c6a35589fe34a2a6ec4949e6ece0778678a57d553306c3733cb3286ccf",
+      "bytes": 761
+    },
+    "tests/test_user_stream_shutdown.py": {
+      "sha256": "c0655d5ae9d09858edae0cfe59bc2f15959928a289f6a2ed81f38fdba0c1deb8",
+      "bytes": 1069
+    },
+    "tests/test_zero_fill_entry_cleanup.py": {
+      "sha256": "5092b40d3ea12510e5aefdebfa57150f7782554c9a84579a0a02165e831f8916",
+      "bytes": 899
+    },
+    "runtime-fixes/telegram/runtime_stable_panel.py": {
+      "sha256": "a1216db01178948a4dc5996b1d8de88f489dcb08aafc8c2fa6f8752d274db0f1",
+      "bytes": 105573
+    }
+  }
+}

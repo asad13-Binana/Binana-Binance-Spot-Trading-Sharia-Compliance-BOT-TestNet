@@ -22,7 +22,7 @@ LEVERAGED_SUFFIXES = ('UP', 'DOWN', 'BULL', 'BEAR')
 
 
 class BacktestPairError(ValueError):
-    """The generated V19.1 compatibility view is not safe to consume."""
+    """The generated V19.3 compatibility view is not safe to consume."""
 
 
 def _stablecoins() -> frozenset[str]:

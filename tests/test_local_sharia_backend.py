@@ -71,10 +71,25 @@ from services.sharia_screener.source_registry import (
     SourceRegistry,
     SourceRegistryError,
 )
+from tests.test_v193_policy import reviewed_case, digest
+
+DISCOVERY = reviewed_case()[1]
+
+
+def _material_review(doc):
+    review = reviewed_case()[2]
+    evidence = [{'url': doc.url, 'quote': doc.text,
+                 'content_sha256': doc.content_sha256}]
+    review['evidence'] = evidence
+    review['official_source_discovery']['targets']['OFFICIAL_DOCS'].update(
+        urls=[doc.url], evidence=evidence)
+    return review
 
 CONTROLLER_PATH = (ROOT / 'shared/sharia'
-                   / 'HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json')
+                   / 'HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json')
 _RAW, CONTROLLER = load_controller(CONTROLLER_PATH)
+import services.common.paths as _paths
+_paths.SHARIA_CONTROLLER_FILE = CONTROLLER_PATH
 ALL_HALAL = {name: 'halal' for name in SCREENER_SITES}
 
 
@@ -121,6 +136,8 @@ def _evaluate(text, **over):
             'revenue': _claim(official, 'clean', revenue_quote),
         },
         'screener_evidence': screener_evidence,
+        'material_review': _material_review(official),
+        'discovery_record': DISCOVERY,
     }
     args.update(over)
     return evaluate(CONTROLLER, **args)
@@ -261,6 +278,38 @@ class EvidenceStoreTests(unittest.TestCase):
 
 
 class LocalRunnerIntegrationTests(unittest.TestCase):
+    def test_confirmed_technical_stop_is_schema_valid_and_replays_retained_bytes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            payload, bodies = self._registry_payload()
+            review = payload['assets']['XYZ']['material_review']
+            review['tech_stop_review']['triggers']['T2'].update(
+                confirmed=True, reason='Owner-reviewed confirmed technical stop fixture',
+                evidence=review['evidence'])
+            registry = root / 'source_registry.json'
+            registry.write_text(json.dumps(payload), encoding='utf-8')
+            store = EvidenceStore(root / 'evidence')
+
+            class LocalRetriever:
+                def fetch(self, url, *, official_hosts=None, identity_match=False):
+                    digest, relative = store.put(bodies[url].encode())
+                    return FetchResult(url=url, http_status=200, content_sha256=digest,
+                        content_path=relative, text=bodies[url], retrieved_utc='2026-09-26T00:00:00Z',
+                        tier='TIER_1_OFFICIAL' if identity_match else 'TIER_3_SECONDARY',
+                        identity_match=identity_match)
+
+            runner = LocalScreeningRunner(CONTROLLER, registry_path=registry,
+                evidence_root=root / 'evidence', retriever=LocalRetriever())
+            report, _ = runner.run('XYZ', 'XYZ/USDT', discovery_record=DISCOVERY)
+            self.assertEqual(report['final_code'], 'TECH_STOP')
+            self.assertEqual(report['direct_result'], 'TECH STOP')
+            self.assertFalse(report['local_review']['promotable'])
+            validate_result(report, expected_base='XYZ')
+            validate_local_evidence_files(report, root / 'evidence')
+            report['local_review']['material_review']['tech_stop_review']['triggers']['T2']['confirmed'] = False
+            with self.assertRaises(ResultValidationError):
+                validate_local_evidence_files(report, root / 'evidence')
+
     @staticmethod
     def _bind_registry(payload, bodies):
         entry = payload['assets']['XYZ']
@@ -279,6 +328,9 @@ class LocalRunnerIntegrationTests(unittest.TestCase):
             # way; no sentence relocation is involved.
             claim['quote'] = text.strip()
             claim.update(bind_reviewed_block(text, claim['quote']))
+        source = next(s for s in entry['sources'] if s['identity_match'])
+        entry['material_review'] = _material_review(_doc(bodies[source['url']],
+            url=source['url'], digest=source['content_sha256']))
         return payload
 
     @staticmethod
@@ -332,7 +384,7 @@ class LocalRunnerIntegrationTests(unittest.TestCase):
             runner = LocalScreeningRunner(
                 CONTROLLER, registry_path=registry,
                 evidence_root=root / 'evidence', retriever=_Retriever())
-            report, meta = runner.run('XYZ', 'XYZ/USDT')
+            report, meta = runner.run('XYZ', 'XYZ/USDT', discovery_record=DISCOVERY)
             self.assertEqual(meta['backend'], 'local-oracle-v1')
             self.assertEqual(report['tool_evidence']['provider'], 'local-oracle-v1')
             self.assertEqual(
@@ -342,7 +394,7 @@ class LocalRunnerIntegrationTests(unittest.TestCase):
             self.assertTrue(report['local_review']['promotable'])
             validate_local_evidence_files(report, root / 'evidence')
 
-    def test_seven_haram_screener_results_can_never_propose_green(self):
+    def test_advisory_negative_verdicts_do_not_override_official_economics(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             registry_payload, bodies = self._registry_payload()
@@ -371,12 +423,11 @@ class LocalRunnerIntegrationTests(unittest.TestCase):
             report, _meta = LocalScreeningRunner(
                 CONTROLLER, registry_path=registry,
                 evidence_root=root / 'evidence', retriever=_Retriever()).run(
-                    'XYZ', 'XYZ/USDT')
-            self.assertNotEqual(
+                    'XYZ', 'XYZ/USDT', discovery_record=DISCOVERY)
+            self.assertEqual(
                 report['local_review']['disposition'], Disposition.PROPOSE_GREEN)
-            self.assertFalse(report['local_review']['promotable'])
-            self.assertFalse(report['local_review']['green_checks'][
-                'shariah_screener_check_completed'])
+            self.assertTrue(report['local_review']['promotable'])
+            self.assertEqual(report['final_code'], 'NO_TRADE_INFO')
 
     def test_halal_value_bound_to_negative_quote_can_never_propose_green(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -407,17 +458,24 @@ class LocalRunnerIntegrationTests(unittest.TestCase):
             report, _meta = LocalScreeningRunner(
                 CONTROLLER, registry_path=registry,
                 evidence_root=root / 'evidence', retriever=_Retriever()).run(
-                    'XYZ', 'XYZ/USDT')
+                    'XYZ', 'XYZ/USDT', discovery_record=DISCOVERY)
             self.assertNotEqual(
                 report['local_review']['disposition'], Disposition.PROPOSE_GREEN)
             self.assertFalse(report['local_review']['promotable'])
-            self.assertFalse(report['local_review']['green_checks'][
-                'shariah_screener_check_completed'])
+            self.assertTrue(any('invalid advisory evidence binding' in reason
+                                for reason in report['local_review']['reasons']))
 
     def test_owner_approval_is_bound_to_exact_report_and_evidence_bytes(self):
+        self._assert_owner_approval()
+
+    def test_payment_currency_alias_survives_report_validation_and_approval_replay(self):
+        self._assert_owner_approval(token_type="PAYMENT_CURRENCY")
+
+    def _assert_owner_approval(self, token_type="PAYMENT"):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             registry_payload, bodies = self._registry_payload()
+            registry_payload["assets"]["XYZ"]["claims"]["token_type"]["value"] = token_type
             registry = root / 'source_registry.json'
             registry.write_text(json.dumps(registry_payload), encoding='utf-8')
             store = EvidenceStore(root / 'evidence')
@@ -437,7 +495,7 @@ class LocalRunnerIntegrationTests(unittest.TestCase):
             report, _meta = LocalScreeningRunner(
                 CONTROLLER, registry_path=registry,
                 evidence_root=root / 'evidence', retriever=_Retriever()).run(
-                    'XYZ', 'XYZ/USDT')
+                    'XYZ', 'XYZ/USDT', discovery_record=DISCOVERY)
             reports = root / 'reports'
             reports.mkdir()
             report_name = 'XYZ_manual-XYZ-test.json'
@@ -464,6 +522,13 @@ class LocalRunnerIntegrationTests(unittest.TestCase):
             self.assertEqual(
                 approved['owner_approval']['proposal_report_sha256'], report_sha)
             validate_result(approved, expected_base='XYZ')
+            for field, changed in (('economic_link_graph', {'paths': ['invented']}),
+                                   ('official_docs_urls', ['https://unverified.example/']),
+                                   ('sub_framework_applied', 'STABLECOIN')):
+                altered = json.loads(json.dumps(approved))
+                altered[field] = changed
+                with self.subTest(field=field), self.assertRaises(ResultValidationError):
+                    validate_local_evidence_files(altered, root / 'evidence')
 
             payload['proposal_request_id'] = 'different-request'
             with self.assertRaisesRegex(
@@ -478,7 +543,7 @@ class LocalRunnerIntegrationTests(unittest.TestCase):
                     payload, reports_root=reports,
                     evidence_root=root / 'evidence')
 
-    def test_scope_disclaimer_needs_explicit_hash_bound_confirmation(self):
+    def test_legacy_scope_confirmation_cannot_bypass_v193_context_evidence(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             registry_payload, bodies = self._registry_payload()
@@ -505,11 +570,11 @@ class LocalRunnerIntegrationTests(unittest.TestCase):
             report, _meta = LocalScreeningRunner(
                 CONTROLLER, registry_path=registry,
                 evidence_root=root / 'evidence', retriever=_Retriever()).run(
-                    'XYZ', 'XYZ/USDT')
+                    'XYZ', 'XYZ/USDT', discovery_record=DISCOVERY)
             self.assertEqual(
-                report['local_review']['disposition'], Disposition.ESCALATE)
-            self.assertTrue(report['local_review']['scope_review_only'])
-            self.assertTrue(report['local_review']['promotable'])
+                report['local_review']['disposition'], Disposition.AUTO_NO_TRADE_INFO)
+            self.assertFalse(report['local_review']['scope_review_only'])
+            self.assertFalse(report['local_review']['promotable'])
             reports = root / 'reports'
             reports.mkdir()
             report_path = reports / 'XYZ_scope-test.json'
@@ -527,10 +592,9 @@ class LocalRunnerIntegrationTests(unittest.TestCase):
                     payload, reports_root=reports,
                     evidence_root=root / 'evidence')
             payload['scope_confirmation'] = SCOPE_CONFIRMATION
-            approved, _request_id = apply_owner_decision(
-                payload, reports_root=reports,
-                evidence_root=root / 'evidence')
-            self.assertEqual(approved['final_code'], 'GREEN')
+            with self.assertRaises(OwnerDecisionError):
+                apply_owner_decision(payload, reports_root=reports,
+                                     evidence_root=root / 'evidence')
 
     def test_missing_asset_fails_closed_without_external_api(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -541,7 +605,7 @@ class LocalRunnerIntegrationTests(unittest.TestCase):
             runner = LocalScreeningRunner(
                 CONTROLLER, registry_path=registry,
                 evidence_root=root / 'evidence')
-            report, meta = runner.run('XYZ', 'XYZ/USDT')
+            report, meta = runner.run('XYZ', 'XYZ/USDT', discovery_record=DISCOVERY)
             self.assertEqual(report['final_code'], 'NO_TRADE_INFO')
             self.assertEqual(meta['backend'], 'local-oracle-v1')
             self.assertNotIn('openai', json.dumps(report).lower())
@@ -655,7 +719,7 @@ class NegationTests(unittest.TestCase):
     def test_even_plain_disclaimer_requires_owner_scope_review(self):
         finding = _evaluate(
             'No fixed or guaranteed return is offered to any participant.')
-        self.assertEqual(finding.disposition, Disposition.ESCALATE)
+        self.assertEqual(finding.disposition, Disposition.AUTO_NO_TRADE_INFO)
 
 
 class QuoteBindingTests(unittest.TestCase):
@@ -672,11 +736,17 @@ class QuoteBindingTests(unittest.TestCase):
 
     def test_short_adverse_lead_escalates_instead_of_being_dropped(self):
         finding = _evaluate('We offer lending.')
-        self.assertEqual(finding.disposition, Disposition.ESCALATE)
+        self.assertEqual(finding.disposition, Disposition.AUTO_NO_TRADE_INFO)
 
 
 class EvidenceDerivedFactTests(unittest.TestCase):
     """C1 — a caller boolean is not Sharia evidence."""
+
+    def test_independent_material_contradiction_cannot_be_overwritten(self):
+        finding = _evaluate('This project publishes a website.',
+            contradictions=['unresolved material treasury revenue conflict'])
+        self.assertNotEqual(finding.disposition, Disposition.PROPOSE_GREEN)
+        self.assertFalse(finding.green_checks['no_unresolved_material_contradiction'])
 
     def test_invalid_token_type_is_not_a_classification(self):
         finding = _evaluate('This project publishes a website.',
@@ -684,12 +754,11 @@ class EvidenceDerivedFactTests(unittest.TestCase):
         self.assertNotEqual(finding.disposition, Disposition.PROPOSE_GREEN)
         self.assertFalse(finding.green_checks['token_type_classified'])
 
-    def test_blank_screener_values_do_not_complete_the_check(self):
+    def test_unavailable_advisory_screeners_do_not_block_material_proof(self):
         finding = _evaluate('This project publishes a website.',
                             screener_results={n: '' for n in SCREENER_SITES})
-        self.assertNotEqual(finding.disposition, Disposition.PROPOSE_GREEN)
-        self.assertFalse(
-            finding.green_checks['shariah_screener_check_completed'])
+        self.assertEqual(finding.disposition, Disposition.PROPOSE_GREEN)
+        self.assertNotIn('shariah_screener_check_completed', finding.green_checks)
 
     def test_utility_quote_must_appear_in_a_retrieved_tier1_document(self):
         finding = _evaluate(
@@ -706,8 +775,7 @@ class EvidenceDerivedFactTests(unittest.TestCase):
         self.assertNotEqual(finding.disposition, Disposition.PROPOSE_GREEN)
         self.assertFalse(finding.green_checks['token_type_classified'])
         self.assertFalse(finding.green_checks['revenue_clean_or_non_material'])
-        self.assertFalse(
-            finding.green_checks['shariah_screener_check_completed'])
+        self.assertNotIn('shariah_screener_check_completed', finding.green_checks)
 
     def test_revenue_boolean_must_be_bound_to_retrieved_evidence(self):
         finding = _evaluate(
@@ -726,7 +794,7 @@ class EvidenceDerivedFactTests(unittest.TestCase):
     def test_screener_name_must_match_its_real_host(self):
         finding = _evaluate('This project publishes a website.')
         forged = dict(finding.green_checks)
-        self.assertTrue(forged['shariah_screener_check_completed'])
+        self.assertNotIn('shariah_screener_check_completed', forged)
 
         # Rebuild the normal inputs, then bind Musaffa's verdict to a different
         # screener host. The text and digest are valid, but the identity is not.
@@ -757,8 +825,8 @@ class EvidenceDerivedFactTests(unittest.TestCase):
                 'utility': _claim(official, 'real utility', utility_quote),
                 'revenue': _claim(official, 'clean', revenue_quote),
             }, screener_evidence=claims)
-        self.assertFalse(
-            result.green_checks['shariah_screener_check_completed'])
+        self.assertTrue(any('invalid advisory evidence binding' in reason
+                            for reason in result.reasons))
 
 
 class RetrieverSecurityTests(unittest.TestCase):

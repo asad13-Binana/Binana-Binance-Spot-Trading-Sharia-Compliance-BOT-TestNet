@@ -178,9 +178,12 @@ class ShariaProvenanceAndTelegramTests(unittest.TestCase):
                 'tier': 'TIER_1_OFFICIAL',
             },
         })
-        self.assertEqual(validate_result(report, expected_base='ETH'), report)
+        # Hosted-provider citations alone cannot establish a v19.3 HARAM
+        # path. Exact local bytes and the complete economic graph are needed.
+        with self.assertRaisesRegex(ResultValidationError, 'replayable local evidence'):
+            validate_result(report, expected_base='ETH')
         report['tool_evidence']['url_citations'] = []
-        with self.assertRaisesRegex(ResultValidationError, 'HARAM proof URL lacks'):
+        with self.assertRaisesRegex(ResultValidationError, 'replayable local evidence'):
             validate_result(report, expected_base='ETH')
 
     def test_telegram_never_labels_a_forged_record_eligible(self):

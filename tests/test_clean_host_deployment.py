@@ -13,6 +13,12 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class CleanHostDeploymentTests(unittest.TestCase):
+    def test_installer_seeds_and_verifies_the_current_pinned_controller(self):
+        from services.common.sharia_v19 import V19_CONTROLLER_FILENAME
+        installer = (ROOT / 'deploy/install_artifact.sh').read_text(encoding='utf-8')
+        self.assertGreaterEqual(installer.count(V19_CONTROLLER_FILENAME), 4)
+        self.assertNotIn('HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json', installer)
+
     def test_compose_helper_accepts_readonly_identity(self):
         bash = _harness.posix_bash()
         if not bash:
@@ -68,7 +74,7 @@ class CleanHostDeploymentTests(unittest.TestCase):
         script = step['run']
         self.assertIn('up -d sharia-screener', script)
         self.assertIn('HostConfig.NetworkMode', script)
-        self.assertIn('len(status[\'records\']) == len(registry[\'symbols\']) == 244',
+        self.assertIn('len(status[\'records\']) == len(registry[\'symbols\']) == 305',
                       script)
 
     def test_all_shared_bind_sources_are_precreated(self):
@@ -104,12 +110,12 @@ class CleanHostDeploymentTests(unittest.TestCase):
         self.assertLess(source.index('compose_for "$OLD" "$OLD_TAG" down'),
                         source.index('\napply_manual_sharia_state\n'))
 
-    def test_readonly_core_matches_prior_release(self):
+    def test_readonly_core_and_authorized_controller_binding(self):
         expected = {
             "freqtrade/user_data/strategies/IctSmcStrategy.py": "9f6bafc78c8cd0d9b9cbde615ddce89e304ab09738584b88d05bfdf92ff4e830",
             "legacy_core/binance_bot_V4.9.16_ALL_IN_ONE.py": "70b1d67cc0092b5b8db4a68b343cf893641bde1aae580e9ef51e2adec1062459",
-            "services/common/sharia_v19.py": "5eb9fd5338d80fcaf0d39bb3f4935a75b57dd91136c72a83a7551b659b04d865",
-            "shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json": "07106bb8bfc1924d8d0c6f61ced4e0c51c2ac2054988423f42c1fd67f3b2ba78",
+            "services/common/sharia_v19.py": "768b3f5261d618e0beb50aa7f15de4ab84b4e02ad3a621d9dfebb944175580f5",
+            "shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json": "418e7280f0b6a5f4cd9ba3887b8be3099f5fcc4b18bfca66808749720a4dd355",
         }
         for path, digest in expected.items():
             self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)

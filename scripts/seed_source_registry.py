@@ -42,8 +42,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from services.common.sharia_v19 import (  # noqa: E402
-    SCREENER_HOSTS, SCREENER_SITES, normalize_evidence_url,
+    SCREENER_HOSTS, SCREENER_SITES, V19_CONTROLLER_SHA256, normalize_evidence_url,
 )
+from services.sharia_rules.v193 import digest  # noqa: E402
 from services.common.atomic import atomic_write_json  # noqa: E402
 from services.sharia_retriever.retriever import Retriever  # noqa: E402
 from services.sharia_retriever.store import EvidenceStore  # noqa: E402
@@ -244,6 +245,11 @@ def do_prepare_from_discovery(args) -> int:
             base = str(record['base'])
             if base in prepared:
                 raise ValueError(f'{base}: duplicate discovery candidate')
+            # One destination may serve several discovery targets. Fetch and
+            # hash it once; target roles remain in the full discovery record.
+            unique_sources = {}
+            for source in record['source_candidates']:
+                unique_sources.setdefault(source['url'], source)
             prepared[base] = {
                 'official_hosts': list(record['official_hosts_candidates']),
                 'sources': [
@@ -252,7 +258,7 @@ def do_prepare_from_discovery(args) -> int:
                         'url': source['url'],
                         'identity_match': False,
                     }
-                    for source in record['source_candidates']
+                    for source in unique_sources.values()
                 ],
                 'discovery_provenance': {
                     'record_sha256': record['record_sha256'],
@@ -262,6 +268,7 @@ def do_prepare_from_discovery(args) -> int:
                     'owner_identity_confirmation_required': True,
                     'trade_permission': False,
                 },
+                'discovery_record': record,
             }
     except (OSError, ValueError) as exc:
         print(f'OWNER REQUEST NOT WRITTEN - {exc}', file=sys.stderr)
@@ -412,9 +419,8 @@ def do_propose(args) -> int:
                 review.append(f'    (also found) "{extra}"')
         missing = sorted(SCREENER_SITES - set(screeners))
         if missing:
-            review.append(f'\n  MISSING SCREENERS: {missing}\n'
-                          '    add a source URL on each screener\'s own domain')
-            failed += 1
+            review.append(f'\n  ADVISORY SCREENERS UNAVAILABLE/NOT CHECKED: {missing}\n'
+                          '    neutral under v19.3; official economic evidence governs')
 
         drafts[base] = {
             'official_hosts': official_hosts,
@@ -422,6 +428,17 @@ def do_propose(args) -> int:
             'sources': sources,
             'claims': claims,
             'screeners': screeners,
+            'material_review': spec.get('material_review', {
+                'controller_sha256': V19_CONTROLLER_SHA256,
+                'context_confirmed': False, 'evidence': [],
+                'discovery_sha256': digest({k: v for k, v in spec.get('discovery_record', {}).items()
+                                                if k not in ('cache_hit', 'record_sha256')}),
+                'keyword_context_results': {}, 'economic_link_graph': {'paths': []},
+                'material_missing_info': {'items': []}, 'special_frameworks': {},
+                'gharar_speculation_review': {'reviewed': False},
+                'tech_stop_review': {'reviewed': False, 'triggers': {}},
+                'official_source_discovery': {'targets': {}},
+            }),
         }
 
     Path(args.draft).write_text(

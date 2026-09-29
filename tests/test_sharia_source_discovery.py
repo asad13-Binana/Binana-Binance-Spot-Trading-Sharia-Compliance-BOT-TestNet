@@ -268,7 +268,8 @@ class SourceDiscoveryPersistenceTests(unittest.TestCase):
             self.assertFalse(first['cache_hit'])
             self.assertTrue(second['cache_hit'])
             self.assertEqual(cg.calls, 1)
-            self.assertEqual(cmc.calls, 0)
+            # v19.3 continues for docs/economics even when a website exists.
+            self.assertEqual(cmc.calls, 1)
             self.assertEqual(len(list((root / 'archive').rglob('*.json'))), 1)
             persisted = json.loads((root / 'current/ETH.json').read_text())
             self.assertEqual(persisted['provider_identity']['provider'], 'coingecko')

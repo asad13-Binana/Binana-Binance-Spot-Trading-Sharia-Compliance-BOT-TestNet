@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""V19.1 Sharia screening service — the fifth, independent Oracle container.
+"""V19.3 Sharia screening service — the fifth, independent Oracle container.
 
 Responsibilities (master protocol sections 8.3–8.8):
   * verify the immutable controller's exact SHA-256 at startup and refuse to
@@ -307,6 +307,7 @@ class ShariaScreenerService:
             self._mark_failed(row, why)
             return
         discovery_meta: dict = {'enabled': False}
+        discovered = None
         if self.source_discovery is not None:
             try:
                 discovered = self.source_discovery.ensure(
@@ -342,7 +343,7 @@ class ShariaScreenerService:
                     'error': discovery_meta['error'],
                 })
         try:
-            report, meta = self.runner.run(base, pair)
+            report, meta = self.runner.run(base, pair, discovery_record=discovered)
             meta = {**meta, 'source_discovery': discovery_meta}
         except ScreeningUnavailable as exc:
             report = fail_closed_report(base, reason=str(exc))
@@ -376,7 +377,7 @@ class ShariaScreenerService:
             audit('sharia_result_validation_failed', severity='ERROR', details={
                 'request_id': request_id, 'base': base, 'error': str(exc)})
             outcome_report = fail_closed_report(
-                base, reason=f'result failed V19.1 validation: {exc}')
+                base, reason=f'result failed V19.3 validation: {exc}')
             outcome_report['rejected_model_output_final_code'] = str(report.get('final_code', ''))
             write_screening_outcome(request_id, base, pair, outcome_report,
                                     validated=False, error=str(exc), meta=meta)
@@ -623,7 +624,7 @@ def main():
     try:
         service = ShariaScreenerService()
     except ControllerIntegrityError as exc:
-        raise SystemExit(f'V19.1 CONTROLLER INTEGRITY FAILURE: {exc}') from exc
+        raise SystemExit(f'V19.3 CONTROLLER INTEGRITY FAILURE: {exc}') from exc
     except ScreeningUnavailable as exc:
         raise SystemExit(f'SHARIA SCREENER STARTUP BLOCKED: {exc}') from exc
     os_signal.signal(os_signal.SIGTERM, lambda *_: STOP.set())

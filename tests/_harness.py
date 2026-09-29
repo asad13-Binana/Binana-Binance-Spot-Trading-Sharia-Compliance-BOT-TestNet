@@ -1,8 +1,8 @@
-"""Shared test harness for V10.1 + V19.1.
+"""Shared test harness for V10.1 + V19.3.
 
 Sets deterministic bus keys and a release-hash binding at import so that
 HMAC-envelope signing/verification works inside the offline test suite, and
-provides helpers to construct signed signal/command envelopes, V19.1 status
+provides helpers to construct signed signal/command envelopes, V19.3 status
 projections, and a real POSIX bash resolver (the bare `bash` name on a Windows
 dev host without WSL resolves to the non-functional WSL stub).
 
@@ -37,7 +37,7 @@ from services.common import envelope  # noqa: E402
 from services.common.sharia_v19 import (  # noqa: E402
     GREEN_PROOF_CHECKS, KEYWORD_CATEGORIES, REQUIRED_WHITEPAPER_SECTIONS,
     V19_CONTROLLER_FILENAME, V19_CONTROLLER_SHA256, V19_MAIN_FRAMEWORK,
-    V19_RUNNER_CONTROLLER,
+    V19_RUNNER_CONTROLLER, fail_closed_report,
 )
 from services.common.sharia_attestation import RESULT_PURPOSE, STATUS_PURPOSE, attach  # noqa: E402
 
@@ -80,7 +80,7 @@ def _now_ts() -> float:
 
 
 def v19_status(records, *, controller_sha256: str = V19_CONTROLLER_SHA256) -> dict:
-    """Build a schema_version-2 V19.1 status projection.
+    """Build a schema_version-2 V19.3 status projection.
 
     records: iterable of (base, status) or (base, status, expires_at_iso).
     """
@@ -113,6 +113,8 @@ def green_report(base: str = 'ETH', code: str = 'GREEN') -> dict:
     sections['S3_REVENUE_MODEL'] = {
         'status': 'FOUND', 'quote': 'Revenue comes from ordinary network service fees.'}
     return {
+        **fail_closed_report(base, reason='schema fixture'),
+        'fail_closed': False, 'fail_closed_reason': '',
         'coin_name': base, 'ticker': base, 'main_framework': V19_MAIN_FRAMEWORK,
         'runner_controller': V19_RUNNER_CONTROLLER, 'token_type': 'PAYMENT',
         'mal_status': 'CONFIRMED', 'sub_framework_applied': 'NONE',
@@ -181,7 +183,7 @@ def write_attested_status(path: Path, records) -> Path:
             'symbol': base, 'pair': f'{base}/USDT', 'status': code, 'final_code': code,
             'validated': True, 'reviewed_at': completed.date().isoformat(),
             'completed_at': completed.isoformat(), 'expires_at': expiry.isoformat(),
-            'source': 'sharia-screener/v19.1', 'controller_sha256': V19_CONTROLLER_SHA256,
+            'source': 'sharia-screener/v19.3', 'controller_sha256': V19_CONTROLLER_SHA256,
             'confidence': 'HIGH', 'human_escalation_required': False,
             'request_id': request_id, 'report_file': report_name,
             'report_sha256': hashlib.sha256(report_path.read_bytes()).hexdigest(),

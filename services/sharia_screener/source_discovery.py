@@ -9,7 +9,7 @@ then discovers source links through CoinGecko, with CoinMarketCap as a fallback.
 
 Discovery never edits the owner-maintained source registry and never grants a
 tradeable Sharia verdict.  It creates a durable, reviewable reading-list
-candidate.  The existing V19.1 evidence, claim, screener and signed owner-
+candidate.  The existing V19.3 evidence, claim, screener and signed owner-
 approval gates remain the only path to GREEN/GREEN_AVOID_OPTIONAL.
 """
 
@@ -38,7 +38,33 @@ log = logging.getLogger('sharia-screener.discovery')
 COINGECKO_BASE = 'https://api.coingecko.com/api/v3'
 CMC_BASE = 'https://pro-api.coinmarketcap.com'
 USER_AGENT = 'V10.3-sharia-source-discovery/1.0'
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
+TARGET_ROLES = {
+    'OFFICIAL_WEBSITE': 'official_website',
+    'OFFICIAL_DOCS': 'official_docs',
+    'OFFICIAL_WHITEPAPER': 'whitepaper',
+    'OFFICIAL_TOKENOMICS_OR_ECONOMICS': 'tokenomics_economics',
+    'OFFICIAL_GITHUB': 'official_github',
+    'PRIMARY_EXPLORER': 'primary_explorer',
+}
+
+
+def _candidate_links(candidate: dict, role: str) -> list[str]:
+    values = candidate.get(role, [])
+    if isinstance(values, str):
+        values = [values]
+    if not isinstance(values, list):
+        return []
+    result = []
+    for value in values:
+        url = _safe_https_url(value)
+        host = _host(url) if url else ''
+        if not url or any(host == h or host.endswith('.' + h) for h in (
+                'binance.com', 'coingecko.com', 'coinmarketcap.com')):
+            continue
+        if url not in result:
+            result.append(url)
+    return result
 MAX_SYMBOL_CANDIDATES = 64
 MAX_EXCHANGE_TICKER_PAGES = 10
 COINGECKO_ID_RE = re.compile(r'^[a-z0-9][a-z0-9_-]{0,127}$')
@@ -263,8 +289,6 @@ class CoinGeckoSourceClient(_ProviderClient):
         links = details.get('links') or {}
         website = _first_url(links.get('homepage'))
         whitepaper = _first_url(links.get('whitepaper'))
-        if not website:
-            return None, 'CoinGecko-bound asset has no valid HTTPS official website'
         return {
             'provider': 'coingecko',
             'provider_asset_id': coin_id,
@@ -275,6 +299,11 @@ class CoinGeckoSourceClient(_ProviderClient):
                 'ticker data with exact BASE/USDT binding'),
             'official_website': website,
             'whitepaper': whitepaper,
+            'official_docs': links.get('documentation', []),
+            'tokenomics_economics': links.get('tokenomics', []),
+            'official_github': (links.get('repos_url') or {}).get('github', []),
+            'primary_explorer': links.get('blockchain_site', []),
+            'platforms': details.get('platforms', {}),
         }, ''
 
 
@@ -329,8 +358,6 @@ class CoinMarketCapSourceClient(_ProviderClient):
         urls = raw.get('urls') or {}
         website = _first_url(urls.get('website'))
         whitepaper = _first_url(urls.get('technical_doc'))
-        if not website:
-            return None, 'CoinMarketCap-bound asset has no valid HTTPS official website'
         return {
             'provider': 'coinmarketcap',
             'provider_asset_id': cmc_id,
@@ -339,6 +366,12 @@ class CoinMarketCapSourceClient(_ProviderClient):
             'identity_basis': 'single active CoinMarketCap id for exact symbol',
             'official_website': website,
             'whitepaper': whitepaper,
+            'official_docs': urls.get('technical_doc', []),
+            'tokenomics_economics': urls.get('tokenomics', []),
+            'official_github': [u for u in urls.get('source_code', [])
+                                if _host(_safe_https_url(u)) == 'github.com'],
+            'primary_explorer': urls.get('explorer', []),
+            'platform': raw.get('platform'),
         }, ''
 
 
@@ -522,31 +555,77 @@ class SourceDiscovery:
             return {**cached, 'cache_hit': True}
 
         errors: list[str] = []
-        candidate, reason = self.coingecko.discover(base)
-        if reason:
-            errors.append(reason)
-        if candidate is None:
-            candidate, reason = self.coinmarketcap.discover(base)
+        sources, audit, identities = [], [], []
+        targets = {target: {'status': 'NOT_FOUND', 'urls': []}
+                   for target in TARGET_ROLES}
+
+        def collect(provider_name: str, candidate: dict | None, reason: str) -> None:
             if reason:
                 errors.append(reason)
+            if candidate:
+                identities.append({key: value for key, value in candidate.items()
+                                   if key not in TARGET_ROLES.values()})
+            for target, role in TARGET_ROLES.items():
+                urls = _candidate_links(candidate or {}, role)
+                for url in urls:
+                    if url not in targets[target]['urls']:
+                        targets[target]['urls'].append(url)
+                        sources.append({'role': role, 'target_type': target, 'url': url,
+                                        'provider': provider_name,
+                                        'status': 'CANDIDATE_UNVERIFIED', 'opened': False})
+                if urls:
+                    targets[target]['status'] = 'CANDIDATE_UNVERIFIED'
+                for url in urls or [None]:
+                    audit.append({
+                        'provider': provider_name, 'tool_or_method': 'public_metadata',
+                        'query': base, 'candidate_url': url, 'target_type': target,
+                        'status': 'CANDIDATE_UNVERIFIED' if url else (
+                            'BLOCKED' if reason else 'NOT_EXPOSED_BY_PROVIDER'),
+                        'identity_checks': (candidate or {}).get('identity_basis', ''),
+                        'opened': False,
+                        'final_accept_or_reject_reason': reason or (
+                            'destination identity verification pending' if url else
+                            'BINANCE_OFFICIAL_LINK_METADATA_NOT_EXPOSED'
+                            if provider_name == 'binance' else 'field not exposed'),
+                    })
 
-        status = 'VERIFIED_CANDIDATE' if candidate else (
+        # ExchangeInfo normally exposes none of these fields. Never infer a
+        # project URL from tradeUrl, Earn, a market page or an AI description.
+        explicit = {role: binance_entry.get(role, []) for role in TARGET_ROLES.values()}
+        collect('binance', explicit, '')
+        cg, reason = self.coingecko.discover(base)
+        collect('coingecko', cg, reason)
+        if any(not item['urls'] for item in targets.values()):
+            cmc, reason = self.coinmarketcap.discover(base)
+            collect('coinmarketcap', cmc, reason)
+        # Opening destinations and following official navigation happens in
+        # the evidence runner after owner identity review, not in metadata.
+        for target, item in targets.items():
+            audit.append({
+                'provider': 'official_project_sources',
+                'tool_or_method': 'verified_site_or_direct_domain_review',
+                'query': base, 'candidate_url': None, 'target_type': target,
+                'status': item['status'], 'identity_checks': [], 'opened': False,
+                'final_accept_or_reject_reason': 'owner identity and materiality review pending',
+            })
+        websites = targets['OFFICIAL_WEBSITE']['urls']
+        conflicts = []
+        if len({_host(url) for url in websites}) > 1:
+            conflicts.append({'target_type': 'OFFICIAL_WEBSITE', 'urls': websites,
+                              'resolved': False, 'resolution_evidence': []})
+            targets['OFFICIAL_WEBSITE']['status'] = 'CONFLICT'
+        # This legacy status describes provider identity only, never verified
+        # destinations. Explicit field statuses make that boundary auditable.
+        status = 'VERIFIED_CANDIDATE' if sources and identities else (
             'AMBIGUOUS' if any('ambiguous' in item or 'not unique' in item
                                for item in errors) else 'UNAVAILABLE')
-        refresh_delta = (timedelta(days=self.refresh_days) if candidate else
+        refresh_delta = (timedelta(days=self.refresh_days) if sources else
                          timedelta(hours=self.failure_refresh_hours))
-        sources = []
-        official_hosts = []
-        provider = {}
-        if candidate:
-            website = str(candidate.get('official_website', ''))
-            whitepaper = str(candidate.get('whitepaper', ''))
-            sources.append({'role': 'official_website', 'url': website})
-            if whitepaper and whitepaper != website:
-                sources.append({'role': 'whitepaper', 'url': whitepaper})
-            official_hosts = [_host(website)]
-            provider = {key: value for key, value in candidate.items()
-                        if key not in {'official_website', 'whitepaper'}}
+        official_hosts = list(dict.fromkeys(_host(url) for url in websites))
+        if not official_hosts:
+            official_hosts = list(dict.fromkeys(_host(source['url']) for source in sources
+                if source['role'] in {'official_docs', 'whitepaper', 'tokenomics_economics'}))
+        provider = next((item for item in identities if item.get('provider')), {})
 
         payload = {
             'schema_version': SCHEMA_VERSION,
@@ -566,8 +645,12 @@ class SourceDiscovery:
                 'identity_basis': 'documented Binance Spot exchangeInfo',
             },
             'provider_identity': provider,
+            'provider_identities': [item for item in identities if item.get('provider')],
             'official_hosts_candidates': official_hosts,
             'source_candidates': sources,
+            'targets': targets,
+            'audit_log': audit,
+            'source_identity_conflicts': conflicts,
             'errors': errors,
             'owner_verified': False,
             'trade_permission': False,

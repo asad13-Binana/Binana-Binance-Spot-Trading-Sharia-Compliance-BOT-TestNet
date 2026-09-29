@@ -1,4 +1,4 @@
-"""Deterministic evaluation of the V19.1 controller against retrieved sources.
+"""Deterministic evaluation of the V19.3 controller against retrieved sources.
 
 Design rules, in order of importance:
 
@@ -19,7 +19,7 @@ Design rules, in order of importance:
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from urllib.parse import urlparse
 
 from services.common.sharia_v19 import SCREENER_HOSTS
@@ -34,13 +34,20 @@ MIN_QUOTE_WORDS = 15
 # Conditions that cannot be established by pattern matching alone. The
 # controller requires them for HARAM; the engine refuses to assert them and
 # routes to the owner instead of inventing a judgement.
-JUDGEMENT_CONDITIONS = ('C3_ACTIVE_AND_MATERIAL', 'C4_ECONOMIC_LINK')
+JUDGEMENT_CONDITIONS = ('C1_CONFIRMED_NARRATIVE', 'C3_ACTIVE_AND_MATERIAL',
+                        'C4_ECONOMIC_LINK', 'C5_SPOT_RELEVANCE')
 # TOKEN_TYPE_CLASSIFICATION_GATE.types, plus the schema's UNKNOWN. A type
 # outside this set is not a classification, so it cannot satisfy the gate.
 VALID_TOKEN_TYPES = frozenset({
     'PAYMENT', 'PAYMENT_CURRENCY', 'UTILITY', 'GOVERNANCE', 'TOKENIZED_ASSET',
-    'EQUITY_SECURITY', 'STABLECOIN', 'WRAPPED_BRIDGED', 'NFT',
+    'EQUITY_SECURITY', 'STABLECOIN', 'WRAPPED_BRIDGED', 'NFT', 'HYBRID',
 })
+
+
+def canonical_token_type(value: str) -> str:
+    """Reconcile the controller classification label with its output schema."""
+    normalized = str(value).strip().upper()
+    return 'PAYMENT' if normalized == 'PAYMENT_CURRENCY' else normalized
 
 
 class Disposition:
@@ -128,6 +135,7 @@ class RulesFinding:
     escalations: list[str] = field(default_factory=list)
     narrative: str = ''
     keyword_scan_completed: bool = False
+    v193_assessment: dict = field(default_factory=dict)
 
     @property
     def is_tradeable_proposal(self) -> bool:
@@ -308,11 +316,8 @@ def evaluate_haram_gate(controller: dict, leads: list[KeywordHit]
                         ) -> tuple[dict[str, bool], str, list[str]]:
     """Evaluate HARAM_GATE_FIVE_CONDITIONS. Returns (conditions, narrative, notes).
 
-    C1 and C2 are mechanically decidable. C5 follows from the controller's
-    spot-only lock. C3 and C4 require judgement about whether a feature is
-    active, material and economically linked to holders — the engine never
-    asserts those, so a HARAM verdict is only auto-issued when the remaining
-    conditions hold AND the owner has confirmed the judgement ones.
+    Only C2 is mechanically decidable. A keyword never proves a narrative,
+    materiality, an economic link, or relevance to an ordinary spot holder.
     """
     gate = (controller.get('HARAM_GATE_FIVE_CONDITIONS', {})
             .get('must_prove_all_five', {}))
@@ -323,10 +328,7 @@ def evaluate_haram_gate(controller: dict, leads: list[KeywordHit]
               h.tier.upper() in {'TIER_1', 'TIER_1_OFFICIAL'}]
     narrative = ''
     if quoted:
-        narrative = quoted[0].narrative
-        conditions['C1_CONFIRMED_NARRATIVE'] = True
         conditions['C2_VERBATIM_EVIDENCE'] = True
-        conditions['C5_SPOT_RELEVANCE'] = True
     elif leads:
         short = [h for h in leads if not h.quote_is_sufficient]
         if short:
@@ -423,7 +425,7 @@ def evaluate_green_gate(documents: list[RetrievedDocument],
     revenue_value = (revenue_claim.value.strip().casefold()
                      if isinstance(revenue_claim, EvidenceClaim) else '')
     revenue_is_bound = (
-        bool(revenue_clean) and revenue_value in {'clean', 'non-material'} and
+        bool(revenue_clean) and revenue_value in {'clean', 'neutral', 'officially absent', 'non-material'} and
         claim_is_bound(revenue_claim, min_words=5, tier1_only=True)
     )
     known = {k.lower().replace('_', '').replace('-', ''): str(v or '').strip()
@@ -529,118 +531,76 @@ def detect_escalations(controller: dict, screener_results: dict[str, str],
 def evaluate(controller: dict, *, documents: list[RetrievedDocument],
              screener_results: dict[str, str], identity_confirmed: bool,
              token_type: str, utility_quote: str, revenue_clean: bool,
-             contradictions: list[str] | None = None,
-             expected_screeners: set[str] | None = None,
-             fact_evidence: dict[str, EvidenceClaim] | None = None,
-             screener_evidence: dict[str, EvidenceClaim] | None = None,
-             asset_identifier: str = '',
-             ) -> RulesFinding:
-    """Run the full deterministic pass and return a disposition.
+             contradictions=None, expected_screeners=None, fact_evidence=None,
+             screener_evidence=None, asset_identifier: str = '',
+             material_review=None, discovery_record=None) -> RulesFinding:
+    """Evaluate v19.3 evidence; GREEN is only an unsigned owner proposal."""
+    from services.common.sharia_v19 import V19_CONTROLLER_SHA256
+    from services.sharia_rules.v193 import assess
 
-    The result is never a tradeable verdict. ``PROPOSE_GREEN`` means every
-    mechanical check passed and the decision now belongs to the owner.
-    """
-    contradictions = list(contradictions or [])
-    expected_screeners = set(expected_screeners or set())
+    token_type = canonical_token_type(token_type)
     fact_evidence = dict(fact_evidence or {})
-    screener_evidence = dict(screener_evidence or {})
-
-    opened = [d for d in documents if d.opened]
+    token_claim = fact_evidence.get('token_type')
+    if isinstance(token_claim, EvidenceClaim):
+        fact_evidence['token_type'] = replace(
+            token_claim, value=canonical_token_type(token_claim.value))
     leads, clean = scan_keywords(controller, documents)
-    scan_completed = bool(opened)
-
-    finding = RulesFinding(
-        disposition=Disposition.AUTO_NO_TRADE_INFO,
-        hits=leads, clean_hits=clean, keyword_scan_completed=scan_completed)
-
-    if not opened:
-        finding.reasons.append(
-            'no source was successfully retrieved; controller requires '
-            'fail-closed NO_TRADE_INFO')
-        return finding
-
-    # A lexical heuristic cannot reliably determine the scope of ``not``,
-    # ``unless``, ``except`` or a negation in a neighbouring clause.  A prior
-    # implementation treated every hit it labelled as negated as clean. That
-    # allowed statements such as "does not charge users and provides a
-    # guaranteed return" to reach PROPOSE_GREEN. Keep the hit and fail closed
-    # to owner review; never let grammar heuristics prove absence of a haram
-    # feature.
-    negated_adverse = [
-        hit for hit in clean
-        if hit.negated and hit.narrative not in {'CLEAN_PASS', 'NEUTRAL'}
-    ]
-    scope_review_required = bool(negated_adverse)
-
-    conditions, narrative, haram_notes = evaluate_haram_gate(controller, leads)
+    finding = RulesFinding(disposition=Disposition.AUTO_NO_TRADE_INFO,
+        hits=leads, clean_hits=clean,
+        keyword_scan_completed=any(d.opened for d in documents))
+    conditions, _, _ = evaluate_haram_gate(controller, leads)
     finding.haram_conditions = conditions
-    finding.narrative = narrative
-
-    adverse = [h for h in leads if not h.negated]
-    mechanical = [n for n in conditions if n not in JUDGEMENT_CONDITIONS]
-    if adverse and not (mechanical and all(conditions[n] for n in mechanical)):
-        # An adverse phrase was found but the HARAM gate is not satisfied —
-        # typically the sentence is shorter than the controller's verbatim
-        # minimum, or the source is below Tier 1. The narrative is unproven,
-        # not absent. Quote inflation used to paper over exactly this case, so
-        # the lead goes to the owner instead of being silently dropped.
-        finding.disposition = Disposition.ESCALATE
-        finding.reasons.append(
-            f'{len(adverse)} unresolved adverse keyword lead(s) '
-            f'({sorted({h.narrative for h in adverse})}) could not be proven '
-            'or dismissed mechanically; owner review required')
-        finding.escalations = detect_escalations(
-            controller, screener_results, token_type, contradictions, haram_notes)
-        return finding
-
-    if mechanical and all(conditions[n] for n in mechanical):
-        # A quoted Tier-1 narrative exists. The controller still forbids HARAM
-        # until C3/C4 are established, and those need judgement — escalate with
-        # the proof card rather than guessing in either direction.
-        finding.disposition = Disposition.ESCALATE
-        finding.reasons.append(
-            f'confirmed narrative {narrative} with a verbatim Tier 1 quote; '
-            'owner must confirm it is active, material and economically linked')
-        finding.escalations = detect_escalations(
-            controller, screener_results, token_type, contradictions, haram_notes)
-        return finding
-
     finding.green_checks = evaluate_green_gate(
-        documents=documents, leads=leads, screener_results=screener_results,
-        identity_confirmed=identity_confirmed, token_type=token_type,
-        utility_quote=utility_quote, revenue_clean=revenue_clean,
-        contradictions=contradictions, keyword_scan_completed=scan_completed,
-        expected_screeners=expected_screeners, fact_evidence=fact_evidence,
-        screener_evidence=screener_evidence,
-        asset_identifier=asset_identifier)
-
-    escalations = detect_escalations(
-        controller, screener_results, token_type, contradictions, haram_notes)
-    if scope_review_required:
-        escalations.append('negation or conditional scope requires owner review')
-    finding.escalations = escalations
-
-    failed = sorted(k for k, v in finding.green_checks.items() if not v)
-    if failed:
-        finding.disposition = Disposition.AUTO_NO_TRADE_INFO
-        finding.reasons.append(
-            f'GREEN proof gate incomplete; failed checks: {failed}')
-        return finding
-    if escalations:
+        documents, leads, screener_results, identity_confirmed, token_type,
+        utility_quote, revenue_clean, list(contradictions or []),
+        finding.keyword_scan_completed, set(expected_screeners or set()),
+        dict(fact_evidence or {}), dict(screener_evidence or {}), asset_identifier)
+    # External screeners are advisory under v19.3, including unavailable or
+    # negative results. They never substitute for project economic evidence.
+    finding.green_checks.pop('shariah_screener_check_completed', None)
+    result = assess(material_review, documents=documents, hits=leads + clean,
+                    token_type=token_type, discovery=discovery_record,
+                    controller_sha256=V19_CONTROLLER_SHA256)
+    # Advisory absence/negativity is neutral, but a supplied forged advisory
+    # citation is still malformed evidence and must not appear on a proof card.
+    for name, claim in (screener_evidence or {}).items():
+        if claim is None:
+            continue
+        normalized = name.lower().replace('_', '').replace('-', '')
+        document = next((d for d in documents if d.opened and d.url == claim.url
+                         and d.content_sha256 == claim.content_sha256), None)
+        host = (urlparse(claim.url).hostname or '').lower().rstrip('.')
+        hosts = SCREENER_HOSTS.get(normalized, ())
+        verdict = canonical_screener_verdict(claim.value)
+        if (not any(host == h or host.endswith('.' + h) for h in hosts)
+                or document is None or not verdict
+                or not containing_sentence(claim.quote, document.text)
+                or quote_conflict_in_source(verdict, claim.quote, document.text,
+                    permitted_provider_identifiers={normalized},
+                    permitted_asset_identifiers={asset_identifier})):
+            result['issues'].append('invalid advisory evidence binding: ' + normalized)
+    finding.v193_assessment = result
+    if asset_identifier and (not isinstance(discovery_record, dict)
+                             or discovery_record.get('base') != asset_identifier.upper()):
+        result['checks']['no_unresolved_identity_conflict'] = False
+        result['issues'].append('discovery record does not match the requested asset')
+    finding.green_checks.update(result['checks'])
+    if contradictions:
+        unresolved = [c for c in contradictions if not isinstance(c, dict) or not (
+            c.get('material') is False or c.get('resolved') is True)]
+        if unresolved:
+            finding.green_checks['no_unresolved_material_contradiction'] = False
+            result['issues'].append('independently detected material contradiction remains unresolved')
+    if result['proven_paths']:
         finding.disposition = Disposition.ESCALATE
-        if scope_review_required and len(escalations) == 1:
-            finding.reasons.append(
-                f'all 12 GREEN proof-gate checks passed, but '
-                f'{len(negated_adverse)} adverse keyword occurrence(s) appeared '
-                'in potentially negated or conditional language; deterministic '
-                'scope analysis cannot clear them, so owner review is required')
-        else:
-            finding.reasons.append(
-                'all mechanical checks passed but a controller escalation trigger fired')
+        finding.reasons.append('evidence-bound N1-N10 economic path requires owner decision')
         return finding
-
+    failed = sorted(k for k, v in finding.green_checks.items() if not v)
+    if failed or result['issues']:
+        finding.reasons = list(result['issues'])
+        if failed:
+            finding.reasons.append('Incomplete material proof checks: ' + ', '.join(failed))
+        return finding
     finding.disposition = Disposition.PROPOSE_GREEN
-    finding.reasons.append(
-        'all 12 GREEN proof-gate checks passed mechanically; '
-        'owner approval and signature are still required')
+    finding.reasons.append('All 15 v19.3 proof checks passed; exact-evidence owner approval remains required')
     return finding

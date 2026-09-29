@@ -190,7 +190,7 @@ class SeedHelperTests(unittest.TestCase):
 
     def _discovery_record(self):
         payload = {
-            'schema_version': 1,
+            'schema_version': 2,
             'base': 'EXP',
             'pair': 'EXP/USDT',
             'status': 'VERIFIED_CANDIDATE',

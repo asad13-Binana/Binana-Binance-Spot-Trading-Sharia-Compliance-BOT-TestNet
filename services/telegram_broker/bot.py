@@ -91,6 +91,9 @@ OFFSET_PATH = RUNTIME / 'telegram_offset.json'
 ALERT_DELIVERY_STATE = RUNTIME / 'telegram_alert_delivery.json'
 ALERT_QUARANTINE = RUNTIME / 'telegram_alert_quarantine'
 ALERT_OUTBOX_HEALTH = RUNTIME / 'telegram_alert_outbox_health.json'
+SIGNAL_NOTIFICATION_STATE = RUNTIME / 'telegram_signal_notification_state.json'
+TESTNET_AUTO_RESUME_INTENT = RUNTIME / 'testnet_autoresume_intent.json'
+_AUTO_RESUME_LAST_ATTEMPT = 0.0
 PAIR_RE = re.compile(r'^([A-Z0-9]{2,20}?)(?:/USDT|USDT)?$')
 NOT_FATWA = 'Research screening only — not a fatwa and not financial advice.'
 BULK_SCAN_LIMITS = frozenset({10, 25, 50, 100})
@@ -104,6 +107,26 @@ EXTERNAL_SIGNALS_STATUS = Path(os.getenv(
     'EXTERNAL_SIGNALS_STATUS',
     RUNTIME.parent / 'universe/external' / ('external_' + 'signals.json')))
 API_READINESS_STATUS = RUNTIME / 'api_readiness_status.json'
+BINANCE_PUBLIC_BASE = os.getenv('BINANCE_PUBLIC_BASE', 'https://api.binance.com').rstrip('/')
+SHARIA_RESEARCH_ROOT = Path(os.getenv(
+    'SHARIA_RESEARCH_ROOT', RUNTIME.parent / 'sharia_research'))
+SHARIA_RESEARCH_QUEUE_INBOX = Path(os.getenv(
+    'SHARIA_RESEARCH_QUEUE_INBOX', SHARIA_RESEARCH_ROOT / 'queue/inbox'))
+SHARIA_RESEARCH_DECISION_INBOX = Path(os.getenv(
+    'SHARIA_RESEARCH_DECISION_INBOX', SHARIA_RESEARCH_ROOT / 'decisions/inbox'))
+SHARIA_RESEARCH_RESULTS_DIR = Path(os.getenv(
+    'SHARIA_RESEARCH_RESULTS_DIR', SHARIA_RESEARCH_ROOT / 'results'))
+SHARIA_RESEARCH_REPORTS_DIR = Path(os.getenv(
+    'SHARIA_RESEARCH_REPORTS_DIR', SHARIA_RESEARCH_ROOT / 'reports'))
+SHARIA_RESEARCH_DISCOVERY_DIR = Path(os.getenv(
+    'SHARIA_RESEARCH_DISCOVERY_DIR', SHARIA_RESEARCH_ROOT / 'discovery/current'))
+SHARIA_RESEARCH_SOURCE_REGISTRY = Path(os.getenv(
+    'SHARIA_RESEARCH_SOURCE_REGISTRY', SHARIA_RESEARCH_ROOT / 'source_registry.json'))
+SHARIA_RESEARCH_RUNTIME_DIR = Path(os.getenv(
+    'SHARIA_RESEARCH_RUNTIME_DIR', RUNTIME / 'sharia_research'))
+SHARIA_REGISTRY_COMMAND_INBOX = Path(os.getenv(
+    'SHARIA_REGISTRY_COMMAND_INBOX',
+    RUNTIME.parent / 'sharia_registry_commands/inbox'))
 
 
 def _telegram_message_data(text, chat_id=None, buttons=None) -> dict:
@@ -113,7 +136,19 @@ def _telegram_message_data(text, chat_id=None, buttons=None) -> dict:
         rendered = identity + '\n' + rendered
     data = {'chat_id': chat_id or OWNER, 'text': rendered[:4000]}
     if buttons:
-        data['reply_markup'] = json.dumps({'inline_keyboard': buttons})
+        # Telegram InlineKeyboardButton accepts only Bot API fields.  Internal
+        # presentation hints such as ``style`` must never reach Telegram.
+        allowed = {
+            'text', 'url', 'callback_data', 'web_app', 'login_url',
+            'switch_inline_query', 'switch_inline_query_current_chat',
+            'switch_inline_query_chosen_chat', 'copy_text', 'callback_game', 'pay',
+        }
+        keyboard = [
+            [{key: value for key, value in button.items() if key in allowed}
+             for button in row]
+            for row in buttons
+        ]
+        data['reply_markup'] = json.dumps({'inline_keyboard': keyboard})
     return data
 
 
@@ -288,6 +323,227 @@ def deliver_sidecar_notifications(limit: int = 20) -> int:
     return processed
 
 
+def _load_signal_notification_state() -> dict:
+    """Load the durable signal-notification journal or fail closed.
+
+    Replaying an archive after a corrupt journal could flood Telegram with old
+    signal messages. Corruption therefore pauses this advisory notifier; it
+    never changes entries, orders, the universe, or any execution state.
+    """
+    if not SIGNAL_NOTIFICATION_STATE.exists():
+        return {'schema_version': 1, 'handled': {}}
+    try:
+        state = json.loads(SIGNAL_NOTIFICATION_STATE.read_text(encoding='utf-8'))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(
+            'Telegram signal-notification state is unreadable; notifications paused'
+        ) from exc
+    if (not isinstance(state, dict) or state.get('schema_version') != 1 or
+            not isinstance(state.get('handled'), dict)):
+        raise RuntimeError(
+            'Telegram signal-notification state has an invalid schema; '
+            'notifications paused')
+    return state
+
+
+def _persist_signal_notification_state(handled: dict) -> None:
+    max_ids = env_int('TELEGRAM_SIGNAL_NOTICE_DEDUPE_MAX', 5000, 100, 50000)
+    if len(handled) > max_ids:
+        handled = dict(sorted(
+            handled.items(), key=lambda item: float(item[1]))[-max_ids:])
+    atomic_write_json(SIGNAL_NOTIFICATION_STATE, {
+        'schema_version': 1,
+        'handled': handled,
+        'updated_at': time.time(),
+    })
+
+
+def _signal_price_and_protection_lines(pair: str, signal_payload: dict,
+                                       outcome: str) -> list[str]:
+    nested = signal_payload.get('payload')
+    nested = nested if isinstance(nested, dict) else {}
+    try:
+        reference = float(nested.get('close'))
+    except (TypeError, ValueError):
+        reference = 0.0
+    lines = []
+    if math.isfinite(reference) and reference > 0:
+        lines.append(f'Signal/reference buy price: {reference:.8g}')
+    else:
+        lines.append('Signal/reference buy price: unavailable')
+    if outcome != 'ENTRY SUBMISSION ACCEPTED':
+        lines.extend(['Take-profit/sell price: not applicable',
+                      'Stop-loss: not applicable'])
+        return lines
+    try:
+        command = _sidecar_read('orders')
+        raw_result = command.get('result') if isinstance(command, dict) else None
+        snapshot = (json.loads(raw_result) if isinstance(raw_result, str)
+                    else raw_result if isinstance(raw_result, dict) else {})
+    except Exception:
+        snapshot = {}
+    symbol = pair.replace('/', '')
+    orders = [row for row in snapshot.get('open_orders', [])
+              if isinstance(row, dict) and row.get('symbol') == symbol]
+    take_profit = []
+    stop_loss = []
+    trailing = []
+    for row in orders:
+        order_type = str(row.get('type', '')).upper()
+        price = str(row.get('price') or '')
+        stop = str(row.get('stopPrice') or '')
+        if order_type.startswith('TAKE_PROFIT'):
+            take_profit.append(price if price not in {'', '0', '0.00000000'} else stop)
+        if order_type.startswith('STOP_LOSS'):
+            stop_loss.append(stop if stop not in {'', '0', '0.00000000'} else price)
+        if row.get('trailingDelta') not in (None, '', 0, '0'):
+            trailing.append(str(row.get('trailingDelta')))
+    take_profit = [x for x in take_profit if x]
+    stop_loss = [x for x in stop_loss if x]
+    lines.append('Take-profit/sell price: ' +
+                 (', '.join(take_profit) if take_profit else 'pending exchange protection'))
+    lines.append('Stop-loss: ' +
+                 (', '.join(stop_loss) if stop_loss else 'pending exchange protection'))
+    if trailing:
+        lines.append('Trailing delta (BIPS): ' + ', '.join(trailing))
+    lines.append('Protection values above are exchange-authoritative open-order data.')
+    return lines
+
+
+def deliver_signal_notifications(limit: int = 20) -> int:
+    """Notify the owner about recent authenticated terminal strategy signals.
+
+    This observes only files already archived by the protected execution
+    sidecar. It verifies the original Freqtrade HMAC envelope and renders a
+    strict metadata allow-list; it cannot submit, repeat, approve, or alter an
+    order. Processed means entry submission was accepted, not that a fill has
+    been confirmed. Rejected means the signal remained blocked.
+    """
+    try:
+        state = _load_signal_notification_state()
+    except RuntimeError as exc:
+        audit('telegram_signal_notification_state_invalid', severity='CRITICAL',
+              details={'error': _redact_secrets(exc)})
+        return 0
+
+    handled = state['handled']
+    now = time.time()
+    max_age = env_int('TELEGRAM_SIGNAL_NOTICE_MAX_AGE_SECONDS', 300, 60, 3600)
+    max_bytes = env_int('TELEGRAM_SIGNAL_NOTICE_MAX_BYTES', 65536, 1024, 1048576)
+    scan_max = env_int('TELEGRAM_SIGNAL_NOTICE_SCAN_MAX', 1000, 20, 10000)
+    candidates = []
+    for folder, outcome in (
+            (SIGNAL_PROCESSED, 'ENTRY SUBMISSION ACCEPTED'),
+            (SIGNAL_REJECTED, 'BLOCKED / REJECTED')):
+        for path in folder.glob('*.json'):
+            try:
+                modified = path.stat().st_mtime
+            except OSError:
+                continue
+            if 0 <= now - modified <= max_age:
+                candidates.append((modified, path, outcome))
+    candidates.sort(key=lambda row: (row[0], row[1].name))
+
+    notified = 0
+    for _, path, outcome in candidates[:scan_max]:
+        if notified >= max(0, int(limit)):
+            break
+        try:
+            stat = path.stat()
+            identity = hashlib.sha256(
+                (outcome + '\0' + path.name + '\0' + str(stat.st_mtime_ns) +
+                 '\0' + str(stat.st_size)).encode('utf-8')).hexdigest()
+        except OSError:
+            continue
+        if identity in handled:
+            continue
+        try:
+            if stat.st_size > max_bytes:
+                raise ValueError('archived signal exceeds the notification size limit')
+            raw_bytes = path.read_bytes()
+            identity = hashlib.sha256(
+                outcome.encode('utf-8') + b'\0' + raw_bytes).hexdigest()
+            if identity in handled:
+                continue
+            raw = json.loads(raw_bytes.decode('utf-8'))
+            payload = envelope.verify_envelope(
+                raw, purpose=envelope.BUS_SIGNAL,
+                expected_producers={'freqtrade-strategy'})
+            signal_id = str(payload.get('signal_id', ''))
+            pair = str(payload.get('pair', '')).upper()
+            strategy = str(payload.get('strategy', ''))
+            if not re.fullmatch(r'[A-Za-z0-9_-]{1,128}', signal_id):
+                raise ValueError('invalid signal identifier')
+            if not re.fullmatch(r'[A-Z0-9]{2,20}/USDT', pair):
+                raise ValueError('invalid Spot/USDT pair')
+            if strategy != 'IctSmcStrategy':
+                raise ValueError('unexpected strategy identity')
+            candle_time = _redact_secrets(payload.get('candle_time', ''), 80)
+            entry_tag = _redact_secrets(payload.get('entry_tag', ''), 80)
+            price_lines = _signal_price_and_protection_lines(pair, payload, outcome)
+        except Exception as exc:
+            audit('telegram_signal_notification_invalid', severity='ERROR', details={
+                'file': path.name[:255],
+                'archive': path.parent.name[:80],
+                'error_type': type(exc).__name__,
+                'error': _redact_secrets(exc),
+            })
+            # Record this exact invalid archive as handled so one bad file
+            # cannot generate an audit event on every poll cycle.
+            try:
+                handled[identity] = now
+                _persist_signal_notification_state(handled)
+            except Exception as persist_exc:
+                audit('telegram_signal_notification_state_write_failed',
+                      severity='CRITICAL', details={
+                          'error_type': type(persist_exc).__name__,
+                      })
+                return notified
+            continue
+
+        lines = [
+            'Automatic strategy signal result',
+            f'Pair: {pair}',
+            f'Signal ID: {signal_id}',
+            f'Result: {outcome}',
+        ]
+        if candle_time:
+            lines.append(f'Candle: {candle_time}')
+        if entry_tag:
+            lines.append(f'Entry tag: {entry_tag}')
+        lines.extend(price_lines)
+        if outcome == 'ENTRY SUBMISSION ACCEPTED':
+            lines.append('This is not a fill confirmation; use Open Trades for live state.')
+        else:
+            lines.append('No entry was authorised by this archived signal result.')
+        lines.append(
+            'Strategy, halal registry, universe, risk and execution gates remained authoritative.')
+        try:
+            send('\n'.join(lines), OWNER)
+        except Exception as exc:
+            audit('telegram_signal_notification_delivery_failed', severity='ERROR',
+                  details={'signal_id': signal_id,
+                           'error_type': type(exc).__name__})
+            break
+        handled[identity] = time.time()
+        try:
+            _persist_signal_notification_state(handled)
+        except Exception as exc:
+            # The terminal signal file remains untouched. At-least-once
+            # notification is preferable to silently losing a signal notice.
+            audit('telegram_signal_notification_state_write_failed',
+                  severity='CRITICAL', details={
+                      'signal_id': signal_id,
+                      'error_type': type(exc).__name__,
+                  })
+            break
+        audit('telegram_signal_notification_delivered', details={
+            'signal_id': signal_id, 'pair': pair, 'outcome': outcome,
+        })
+        notified += 1
+    return notified
+
+
 def sidecar_command(name, args=None, wait=False):
     """Enqueue one HMAC-signed owner command for the execution sidecar.
 
@@ -314,6 +570,36 @@ def sidecar_command(name, args=None, wait=False):
     return {'ok': False, 'result': 'sidecar command outcome is uncertain; check status/reconciliation and do not repeat blindly', 'command_id': cid}
 
 
+def _sidecar_read(name: str) -> dict:
+    """Return a bounded status result when a read-only sidecar query fails.
+
+    Telegram monitoring must remain useful while the execution sidecar is
+    starting, its command bus is temporarily unavailable, or the deployment is
+    still fail-closed.  Only the explicitly read-only commands below may use
+    this fallback; entry, protection and reconciliation mutations continue to
+    surface their real outcome and are never converted into apparent success.
+    """
+    if name not in {'status', 'orders', 'balance', 'profit'}:
+        raise ValueError('unsupported read-only sidecar command')
+    try:
+        return sidecar_command(name, wait=True)
+    except Exception as exc:
+        safe = _redact_secrets(exc, 240)
+        audit('telegram_sidecar_read_unavailable', severity='WARNING', details={
+            'command': name,
+            'error_type': type(exc).__name__,
+            'error': safe,
+        })
+        return {
+            'ok': False,
+            'status': 'temporarily_unavailable',
+            'command': name,
+            'error_type': type(exc).__name__,
+            'error': safe,
+            'no_trading_action_performed': True,
+        }
+
+
 def ft_call(method, endpoint):
     if not FT_PASS:
         return {'ok': False, 'error': 'Freqtrade API password not configured'}
@@ -338,7 +624,7 @@ def confirm_button(label, action, args=None, *, style='danger'):
     return button
 
 
-# ---- V19.1 Sharia screening controls (master protocol 8.7) ----
+# ---- V19.3 Sharia screening controls (master protocol 8.7) ----
 def normalize_pair_input(text: str) -> tuple[str | None, str]:
     """Normalize 'BTC/USDT' or 'BTCUSDT' to the base asset; reject the rest."""
     candidate = str(text or '').strip().upper()
@@ -377,52 +663,74 @@ def sharia_scan_request(base: str, priority: str = 'manual') -> dict:
     signed = envelope.sign_envelope(
         producer='telegram-broker', purpose=envelope.BUS_SHARIA_REQUEST,
         payload=payload, ttl_seconds=600)
-    SHARIA_QUEUE_INBOX.mkdir(parents=True, exist_ok=True)
-    atomic_write_json(SHARIA_QUEUE_INBOX / f'request_{request_id}.json', signed)
+    SHARIA_RESEARCH_QUEUE_INBOX.mkdir(parents=True, exist_ok=True)
+    atomic_write_json(
+        SHARIA_RESEARCH_QUEUE_INBOX / f'request_{request_id}.json', signed)
     audit('telegram_sharia_scan_requested', actor='telegram-owner',
           details={'request_id': request_id, 'base': base, 'priority': priority})
     return {'request_id': request_id}
 
 
-def sharia_bounded_scan_requests(limit: int) -> dict:
-    """Queue a bounded batch without changing the protected screener service.
+def _research_spot_bases(limit: int) -> list[str]:
+    """Return high-volume current Binance Spot/USDT bases before Sharia gating."""
+    info_response = requests.get(
+        BINANCE_PUBLIC_BASE + '/api/v3/exchangeInfo', timeout=15)
+    info_response.raise_for_status()
+    info = info_response.json()
+    tradable: set[str] = set()
+    for row in info.get('symbols', []) if isinstance(info, dict) else []:
+        if not isinstance(row, dict):
+            continue
+        if (row.get('status') != 'TRADING' or
+                row.get('isSpotTradingAllowed') is not True or
+                str(row.get('quoteAsset', '')).upper() != 'USDT'):
+            continue
+        base = str(row.get('baseAsset', '')).upper().strip()
+        normalized, _ = normalize_pair_input(base + 'USDT')
+        if normalized:
+            tradable.add(normalized)
+    ticker_response = requests.get(
+        BINANCE_PUBLIC_BASE + '/api/v3/ticker/24hr', timeout=20)
+    ticker_response.raise_for_status()
+    rows = ticker_response.json()
+    volume: dict[str, float] = {}
+    if isinstance(rows, list):
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            symbol = str(row.get('symbol', '')).upper()
+            if not symbol.endswith('USDT'):
+                continue
+            base = symbol[:-4]
+            if base not in tradable:
+                continue
+            try:
+                quote_volume = float(row.get('quoteVolume') or 0)
+            except (TypeError, ValueError):
+                quote_volume = 0.0
+            if math.isfinite(quote_volume):
+                volume[base] = quote_volume
+    return sorted(tradable, key=lambda b: (-volume.get(b, 0.0), b))[:limit]
 
-    Each exact base is sent through the existing signed request bus as ordinary
-    low-priority bulk work.  The current, hash-validated universe snapshot is
-    the only source; malformed or stale snapshots fail before any request is
-    written.
-    """
+
+def sharia_bounded_scan_requests(limit: int) -> dict:
+    """Queue a bounded research batch from the independent Binance Spot set."""
     if (isinstance(limit, bool) or not isinstance(limit, int) or
             not BULK_SCAN_MIN <= limit <= BULK_SCAN_MAX):
         raise ValueError(
             f'bounded scan size must be {BULK_SCAN_MIN}-{BULK_SCAN_MAX}')
-    snapshot = load_current(
-        UNIVERSE_CURRENT,
-        max_age_seconds=env_int(
-            'MAX_UNIVERSE_AGE_SECONDS', 1800, 1, 86_400),
-    )
-    bases: list[str] = []
-    seen: set[str] = set()
-    for row in snapshot.get('pairs', []):
-        pair = row.get('pair') if isinstance(row, dict) else row
-        base, _ = normalize_pair_input(str(pair or ''))
-        if base and base not in seen:
-            seen.add(base)
-            bases.append(base)
-        if len(bases) >= limit:
-            break
+    bases = _research_spot_bases(limit)
     if not bases:
-        raise ValueError('validated universe has no eligible Spot/USDT pairs')
-    outcomes = [
-        sharia_scan_request(base, priority='bulk') for base in bases]
+        raise ValueError('Binance Spot has no current USDT research candidates')
+    outcomes = [sharia_scan_request(base, priority='bulk') for base in bases]
     return {
         'requested_limit': limit,
         'queued_count': len(outcomes),
         'bases': bases,
         'request_ids': [item['request_id'] for item in outcomes],
-        'snapshot_hash': snapshot['snapshot_hash'],
+        'source': 'Binance Spot pre-Sharia market set',
+        'trade_authority': False,
     }
-
 
 def sharia_owner_decision(action: str, args: dict) -> dict:
     """Send one owner decision bound to the exact report bytes shown."""
@@ -445,14 +753,54 @@ def sharia_owner_decision(action: str, args: dict) -> dict:
     signed = envelope.sign_envelope(
         producer='telegram-broker', purpose=envelope.BUS_SHARIA_DECISION,
         payload=payload, ttl_seconds=600)
-    SHARIA_DECISION_INBOX.mkdir(parents=True, exist_ok=True)
+    SHARIA_RESEARCH_DECISION_INBOX.mkdir(parents=True, exist_ok=True)
     atomic_write_json(
-        SHARIA_DECISION_INBOX / f'decision_{decision_id}.json', signed)
+        SHARIA_RESEARCH_DECISION_INBOX / f'decision_{decision_id}.json', signed)
     audit('telegram_sharia_owner_decision', actor='telegram-owner', details={
         'decision_id': decision_id, 'base': payload['base'],
         'action': normalized, 'report_sha256': payload['report_sha256']})
     return {'decision_id': decision_id, 'action': normalized,
             'base': payload['base']}
+
+
+def registry_owner_command(action: str, args: dict) -> dict:
+    """Queue one authenticated owner mutation of the trading halal registry."""
+    normalized = str(action).upper().strip()
+    if normalized not in {'REGISTRY_ADD', 'REGISTRY_REMOVE'}:
+        raise ValueError('invalid manual-registry owner action')
+    base, reason = normalize_pair_input(str(args.get('base', '')))
+    if not base:
+        raise ValueError('invalid registry pair: ' + reason)
+    gate = load_sharia_gate(SHARIA_FILE)
+    registry_sha = str(getattr(gate, 'registry_sha256', '')).lower()
+    if not re.fullmatch(r'[0-9a-f]{64}', registry_sha):
+        raise ValueError('current manual registry hash is unavailable')
+    command_id = uuid.uuid4().hex
+    payload = {
+        'command_id': command_id,
+        'action': normalized,
+        'base': base,
+        'pair': f'{base}/USDT',
+        'expected_registry_sha256': registry_sha,
+        'decided_at': datetime.now(timezone.utc).isoformat(),
+    }
+    if normalized == 'REGISTRY_ADD':
+        request_id = str(args.get('research_request_id', ''))
+        report_sha = str(args.get('report_sha256', '')).lower()
+        if not request_id or not re.fullmatch(r'[0-9a-f]{64}', report_sha):
+            raise ValueError('verified research result binding is required to add')
+        payload['research_request_id'] = request_id
+        payload['report_sha256'] = report_sha
+    signed = envelope.sign_envelope(
+        producer='telegram-broker', purpose=envelope.BUS_SHARIA_DECISION,
+        payload=payload, ttl_seconds=600)
+    SHARIA_REGISTRY_COMMAND_INBOX.mkdir(parents=True, exist_ok=True)
+    atomic_write_json(
+        SHARIA_REGISTRY_COMMAND_INBOX / f'registry_{command_id}.json', signed)
+    audit('telegram_manual_registry_command', actor='telegram-owner', details={
+        'command_id': command_id, 'action': normalized, 'base': base,
+        'expected_registry_sha256': registry_sha})
+    return {'command_id': command_id, 'action': normalized, 'base': base}
 
 
 def _sharia_registry_summary() -> dict:
@@ -462,7 +810,7 @@ def _sharia_registry_summary() -> dict:
     valid_bases: set[str] = set()
     registered_count = 0
     try:
-        registry = SourceRegistry(SHARIA_SOURCE_REGISTRY)
+        registry = SourceRegistry(SHARIA_RESEARCH_SOURCE_REGISTRY)
         assets = registry.load().get('assets', {})
         registered_count = len(assets)
         for base in sorted(assets):
@@ -480,7 +828,7 @@ def _sharia_registry_summary() -> dict:
     discovery_valid = True
     discovery_error = ''
     try:
-        candidates = candidate_bases(SHARIA_DISCOVERY_CURRENT_DIR)
+        candidates = candidate_bases(SHARIA_RESEARCH_DISCOVERY_DIR)
     except Exception as exc:
         candidates = set()
         discovery_valid = False
@@ -516,8 +864,27 @@ def _sharia_service_status() -> str:
             f'approved assets: {health.get("eligible_assets", 0)}',
             f'trade ready: {health.get("sharia_trade_ready") is True}',
             f'blocker: {health.get("eligibility_blocker") or "none"}',
-            'automatic Sharia research: DISABLED',
+            'trading authority: manual halal registry only',
         ]
+        research = read_json(SHARIA_RESEARCH_RUNTIME_DIR / 'health.json', {}) or {}
+        if isinstance(research, dict) and research:
+            try:
+                research_age = time.time() - float(research.get('ts'))
+            except (TypeError, ValueError, OverflowError):
+                research_age = float('inf')
+            research_ready = bool(
+                -30 <= research_age < 180
+                and research.get('process_alive') is True
+                and research.get('ready_for_screening') is True)
+            lines.append(
+                'separate research scanner: ' +
+                ('READY' if research_ready else 'DEGRADED/NOT READY'))
+            lines.append(
+                'research queue: ' + json.dumps(
+                    research.get('queue', {}), sort_keys=True))
+        else:
+            lines.append('separate research scanner: no heartbeat')
+        lines.append('research scanner trading authority: NONE')
         try:
             gate = load_sharia_gate(SHARIA_FILE)
             eligible = gate.current_halal_symbols()
@@ -525,12 +892,12 @@ def _sharia_service_status() -> str:
         except Exception as exc:
             lines.append('registry projection: REJECTED (fail-closed): ' + str(exc)[:240])
         lines.extend([
-            'To change the list, edit shared/sharia/halal_coins.json with '
-            'current review dates, sorted symbols and a new version.',
+            'Halal-list additions/removals are accepted only through the '
+            'authenticated Telegram owner workflow. Research never edits the list.',
             NOT_FATWA,
         ])
         return '\n'.join(lines)
-    lines = ['V19.1 Sharia screening service']
+    lines = ['V19.3 Sharia screening service']
     health_ready = False
     operational_ready = False
     operational_known = False
@@ -640,7 +1007,7 @@ def _universe_status() -> str:
 
 
 def _latest_sharia_report(base: str) -> str:
-    files = sorted(SHARIA_RESULTS_DIR.glob('result_*.json'),
+    files = sorted(SHARIA_RESEARCH_RESULTS_DIR.glob('result_*.json'),
                    key=lambda p: p.stat().st_mtime, reverse=True)[:300]
     for path in files:
         try:
@@ -653,7 +1020,7 @@ def _latest_sharia_report(base: str) -> str:
         if str(payload.get('base', '')).upper() != base:
             continue
         return '\n'.join([
-            f'V19.1 screening — {base}/USDT',
+            f'V19.3 screening — {base}/USDT',
             f'request: {payload.get("request_id")}',
             f'final_code: {payload.get("final_code")}',
             f'direct result: {payload.get("direct_result")}',
@@ -666,12 +1033,12 @@ def _latest_sharia_report(base: str) -> str:
             (f'error: {payload.get("error")}' if payload.get('error') else ''),
             NOT_FATWA,
         ])
-    return f'No verified V19.1 screening result found for {base}/USDT yet.'
+    return f'No verified V19.3 screening result found for {base}/USDT yet.'
 
 
 def _latest_local_review_card(base: str) -> tuple[str, list[list[dict]] | None]:
     """Render the newest attested local proposal and hash-bound decisions."""
-    files = sorted(SHARIA_RESULTS_DIR.glob('result_*.json'),
+    files = sorted(SHARIA_RESEARCH_RESULTS_DIR.glob('result_*.json'),
                    key=lambda p: p.stat().st_mtime, reverse=True)[:300]
     for path in files:
         try:
@@ -682,8 +1049,8 @@ def _latest_local_review_card(base: str) -> tuple[str, list[list[dict]] | None]:
             if str(payload.get('base', '')).upper() != base:
                 continue
             report_name = str(payload.get('report_file', ''))
-            report_path = (SHARIA_REPORTS_DIR / report_name).resolve()
-            reports_root = SHARIA_REPORTS_DIR.resolve()
+            report_path = (SHARIA_RESEARCH_REPORTS_DIR / report_name).resolve()
+            reports_root = SHARIA_RESEARCH_REPORTS_DIR.resolve()
             if reports_root not in report_path.parents or not report_path.is_file():
                 continue
             raw = report_path.read_bytes()
@@ -694,8 +1061,22 @@ def _latest_local_review_card(base: str) -> tuple[str, list[list[dict]] | None]:
             review = report.get('local_review')
             if not isinstance(review, dict):
                 return _latest_sharia_report(base), None
-            if (report.get('final_code') != 'NO_TRADE_INFO' or
-                    review.get('owner_decision_required') is not True):
+            final_code = str(report.get('final_code', ''))
+            if final_code in {'GREEN', 'GREEN_AVOID_OPTIONAL'} and payload.get('validated') is True:
+                args = {
+                    'base': base,
+                    'research_request_id': str(payload.get('request_id', '')),
+                    'report_sha256': report_sha,
+                }
+                try:
+                    already_allowed = load_sharia_gate(SHARIA_FILE).decision(base).allowed
+                except Exception:
+                    already_allowed = False
+                buttons = None if already_allowed else [[confirm_button(
+                    '➕ ADD to Halal List', 'registry_add', args, style='success')]]
+                text = _latest_sharia_report(base) + '\n\n' + _manual_registry_coin_status(base)
+                return text, buttons
+            if final_code != 'NO_TRADE_INFO' or review.get('owner_decision_required') is not True:
                 return _latest_sharia_report(base), None
             failed = sorted(
                 name for name, passed in (review.get('green_checks') or {}).items()
@@ -706,7 +1087,7 @@ def _latest_local_review_card(base: str) -> tuple[str, list[list[dict]] | None]:
                 if isinstance(item, dict)
             ]
             lines = [
-                f'V19.1 local evidence review - {base}/USDT',
+                f'V19.3 local evidence review - {base}/USDT',
                 f'disposition: {review.get("disposition")}',
                 f'promotable: {review.get("promotable") is True}',
                 f'scope review only: {review.get("scope_review_only") is True}',
@@ -825,12 +1206,16 @@ def sharia_menu():
     return [
         [{'text': '📄 View Halal List', 'callback_data': 'do|sharia',
           'style': 'primary'},
-         {'text': '🩺 Registry Health', 'callback_data': 'do|sharia_service'}],
-        [{'text': '🔍 Check Coin', 'callback_data': 'do|sharia_report_help'},
-         {'text': '✏️ Update Instructions',
-          'callback_data': 'do|manual_registry_help'}],
-        [{'text': '⚠️ Latest Failure', 'callback_data': 'do|sharia_failures'},
-         {'text': '🏠 Home', 'callback_data': 'do|home'}],
+         {'text': '🩺 Registry & Scanner Health', 'callback_data': 'do|sharia_service'}],
+        [{'text': '🔍 Scan Coin', 'callback_data': 'do|scan_help'},
+         {'text': '🔟 Scan Top 10', 'callback_data': 'do|scan_bulk_10_confirm'}],
+        [{'text': '25️⃣ Scan Top 25', 'callback_data': 'do|scan_bulk_25_confirm'},
+         {'text': '🌐 Scan All Spot/USDT', 'callback_data': 'do|scanall_confirm'}],
+        [{'text': '📋 Review Scan', 'callback_data': 'do|sharia_report_help'},
+         {'text': '🗂 Research Queue', 'callback_data': 'do|sharia_review_queue'}],
+        [{'text': '✏️ Halal List Controls', 'callback_data': 'do|manual_registry_help'},
+         {'text': '⚠️ Latest Scan Failure', 'callback_data': 'do|sharia_failures'}],
+        [{'text': '🏠 Home', 'callback_data': 'do|home'}],
     ]
 
 
@@ -844,6 +1229,9 @@ def market_scanner_menu():
           'callback_data': 'do|market_context'},
          {'text': '🕌 Check Sharia',
           'callback_data': 'do|sharia_report_help'}],
+        [{'text': '🦎 CoinGecko', 'callback_data': 'do|provider_coingecko'},
+         {'text': '🪙 CoinMarketCap',
+          'callback_data': 'do|provider_coinmarketcap'}],
         [{'text': '✅ Data Freshness', 'callback_data': 'do|data_readiness'},
          {'text': '🏠 Home', 'callback_data': 'do|home'}],
     ]
@@ -856,22 +1244,59 @@ def health_menu():
         [{'text': '🧪 Release Validation', 'callback_data': 'do|selftest'},
          {'text': '🚀 Deployment Info', 'callback_data': 'do|deploy'}],
         [{'text': '📉 Recent Audit', 'callback_data': 'do|activity'},
-         {'text': '🏠 Home', 'callback_data': 'do|home'}],
+         {'text': '🛡 OCO & Trailing',
+          'callback_data': 'do|protection_status'}],
+        [{'text': '🏠 Home', 'callback_data': 'do|home'}],
     ]
 
 
 def controls_menu():
-    """Only reversible entry controls are exposed on the normal menu."""
+    """Reversible TestNet execution controls; strategy logic stays immutable."""
     return [
         [{'text': '▶️ Resume Entries',
           'callback_data': 'do|entries_on_confirm', 'style': 'success'},
          {'text': '⏸ Pause Entries',
           'callback_data': 'do|entries_off_confirm', 'style': 'danger'}],
+        [{'text': '🤖 Auto Trading', 'callback_data': 'do|menu_autotrade'},
+         {'text': '💵 USDT Size & Open Trades', 'callback_data': 'do|menu_sizing'}],
         [{'text': '📡 Test Telegram', 'callback_data': 'do|test_telegram'},
          {'text': '🔄 Restart Guidance',
           'callback_data': 'do|restart_services_info'}],
         [{'text': '🚀 Deployment Info', 'callback_data': 'do|deploy'},
          {'text': '🏠 Home', 'callback_data': 'do|home'}],
+    ]
+
+
+def auto_trading_menu():
+    """Manual owner control for automatic entries; no extra bullishness logic."""
+    return [
+        [{'text': '▶️ Enable Auto Entries',
+          'callback_data': 'do|entries_on_confirm', 'style': 'success'},
+         {'text': '⏸ Pause Auto Entries',
+          'callback_data': 'do|entries_off_confirm', 'style': 'danger'}],
+        [{'text': '🌊 Check Market Context', 'callback_data': 'do|market_context'},
+         {'text': '📈 Last Strategy Signal', 'callback_data': 'do|last_signal'}],
+        [{'text': '📊 Current Trading Status', 'callback_data': 'do|status'},
+         {'text': '⬅️ Controls', 'callback_data': 'do|menu_controls'}],
+        [{'text': '🏠 Home', 'callback_data': 'do|home'}],
+    ]
+
+
+def sizing_menu():
+    """Bounded controls already supported and persisted by the protected core."""
+    return [
+        [{'text': '25 USDT', 'callback_data': 'do|size_25_confirm'},
+         {'text': '50 USDT', 'callback_data': 'do|size_50_confirm'},
+         {'text': '100 USDT', 'callback_data': 'do|size_100_confirm'}],
+        [{'text': '250 USDT', 'callback_data': 'do|size_250_confirm'},
+         {'text': '500 USDT MAX', 'callback_data': 'do|size_500_confirm'}],
+        [{'text': '1 Open Trade', 'callback_data': 'do|max_1_confirm'},
+         {'text': '2 Open Trades', 'callback_data': 'do|max_2_confirm'},
+         {'text': '3 Open Trades', 'callback_data': 'do|max_3_confirm'}],
+        [{'text': '4 Open Trades', 'callback_data': 'do|max_4_confirm'},
+         {'text': '5 Open Trades MAX', 'callback_data': 'do|max_5_confirm'}],
+        [{'text': '📊 Current Size & Slots', 'callback_data': 'do|sizing_status'},
+         {'text': '⬅️ Controls', 'callback_data': 'do|menu_controls'}],
     ]
 
 
@@ -894,6 +1319,9 @@ def research_menu():
          {'text': '📚 Spot liquidity', 'callback_data': 'do|market_context'}],
         [{'text': '🔥 Binance Spot movers', 'callback_data': 'do|universe_movers'},
          {'text': '🌐 Coin data providers', 'callback_data': 'do|provider_status'}],
+        [{'text': '🦎 CoinGecko', 'callback_data': 'do|provider_coingecko'},
+         {'text': '🪙 CoinMarketCap',
+          'callback_data': 'do|provider_coinmarketcap'}],
         [{'text': '🔗 Data sources', 'callback_data': 'do|data_sources'},
          {'text': '✅ Freshness', 'callback_data': 'do|data_readiness'}],
         [{'text': '🏠 Home', 'callback_data': 'do|home'}],
@@ -968,13 +1396,14 @@ def emergency_menu():
 def help_text():
     return (
         'Safe commands: /menu /status /orders /history /daily /balance '
-        '/profit /stop /pause '
+        '/profit /protection /stop /pause /setsize USDT /setmax COUNT '
         '/universe /sharia /shariastatus /shariareport BASE '
         '/deploy /lastsignal /signals /rejected '
         '/spotcontext /providers /readiness /alerts /selftest. '
         'Typing a pair like BTC/USDT (or BTCUSDT) checks the manual registry. '
         'The menu never changes strategy, risk, API keys, protection mode, '
-        'pair rules or LIVE state. Automatic Sharia scanning is disabled.'
+        'pair rules or LIVE state. Sharia research is separate and has no '
+        'trading authority; only the owner-maintained halal list gates trades.'
     )
 
 
@@ -1052,11 +1481,24 @@ def _market_context_status() -> str:
     ])[:3900]
 
 
-def _external_provider_status() -> str:
+def _external_provider_status(selected: str | None = None) -> str:
     """Render a strict allow-list of non-secret provider health fields."""
+    provider_labels = {
+        'coingecko': 'CoinGecko',
+        'cmc': 'CoinMarketCap',
+    }
+    if selected is not None and selected not in provider_labels:
+        raise ValueError('unsupported external provider')
     status = read_json(EXTERNAL_SIGNALS_STATUS, None)
     if not isinstance(status, dict):
-        return 'Coin data providers: no valid status snapshot.'
+        label = provider_labels.get(selected, 'Coin data providers')
+        return json.dumps({
+            'provider': label,
+            'status': 'unavailable',
+            'reason': 'no valid advisory-provider status snapshot',
+            'required_for_trading': False,
+            'trade_authority': False,
+        }, indent=2)
 
     def provider(name: str) -> dict:
         row = status.get(name)
@@ -1077,13 +1519,27 @@ def _external_provider_status() -> str:
 
     role = status.get('config')
     role = role.get('role') if isinstance(role, dict) else None
-    return json.dumps({
+    payload = {
         'generated_at': status.get('generated_at'),
         'role': role,
         'CoinGecko': provider('coingecko'),
         'CoinMarketCap': provider('cmc'),
         'trade_authority': False,
-    }, indent=2)[:3800]
+    }
+    if selected is not None:
+        label = provider_labels[selected]
+        payload = {
+            'generated_at': status.get('generated_at'),
+            'provider': label,
+            'role': role,
+            'health': provider(selected),
+            'required_for_trading': False,
+            'trade_authority': False,
+            'note': (
+                'Advisory market metadata only. This provider cannot add a '
+                'halal coin, create a strategy signal, or authorize an order.'),
+        }
+    return json.dumps(payload, indent=2)[:3800]
 
 
 def _universe_movers() -> str:
@@ -1198,8 +1654,41 @@ def _open_trades() -> str:
     """Combine active Freqtrade positions with protective-order evidence."""
     return json.dumps({
         'freqtrade_open_trades': ft_call('GET', '/status'),
-        'sidecar_protective_orders': sidecar_command('orders', wait=True),
+        'sidecar_protective_orders': _sidecar_read('orders'),
         'scope': 'read-only; no order or position mutation was requested',
+    }, indent=2)[:3900]
+
+
+def _protection_status() -> str:
+    """Explain exchange-native protection and show the sidecar's evidence.
+
+    This deliberately does not calculate a replacement stop, query market
+    momentum or mutate an order.  It makes the existing server-side trailing
+    semantics visible without duplicating the protected execution rules in
+    the Telegram process.
+    """
+    return json.dumps({
+        'active_protection_evidence': _sidecar_read('orders'),
+        'trailing_trigger': (
+            'For a SELL trailing order, Binance tracks the highest trade '
+            'after trailing starts and triggers after the configured '
+            'trailingDelta fall.'),
+        'displayed_price': (
+            'A STOP_LOSS_LIMIT limit price can remain fixed. It is the price '
+            'placed on the book after triggering, not a live display of the '
+            'server-side trailing high-water mark.'),
+        'otoco_activation': (
+            'The pending OCO legs become active only after the working BUY '
+            'fills. If no stopPrice was submitted, trailing begins from the '
+            'next trade after that leg becomes active.'),
+        'momentum_conversion': (
+            'Conversion from an OTOCO bracket to pure trailing is separate '
+            'and occurs only when every protected profit, order-book, VWAP '
+            'and volume gate passes. No conversion does not mean the existing '
+            'trailing leg is inactive.'),
+        'scope': (
+            'read-only status; no strategy, risk, Sharia, order or protection '
+            'setting was changed'),
     }, indent=2)[:3900]
 
 
@@ -1265,8 +1754,83 @@ def _alert_policy() -> str:
     }, indent=2)[:3900]
 
 
+def _store_testnet_autoresume_intent(enabled: bool) -> None:
+    # This state has meaning only for the real TestNet execution mode. Source
+    # checkouts/simulation and LIVE must never create deployment-runtime files.
+    if (BOT_ENVIRONMENT != 'TESTNET' or
+            os.getenv('EXECUTION_MODE', 'simulation').lower() != 'testnet'):
+        return
+    atomic_write_json(TESTNET_AUTO_RESUME_INTENT, {
+        'schema_version': 1,
+        'enabled': bool(enabled),
+        'updated_at': time.time(),
+        'source': 'telegram-owner',
+    })
+
+
+def _load_testnet_autoresume_intent() -> bool:
+    if not TESTNET_AUTO_RESUME_INTENT.exists():
+        return False
+    payload = read_json(TESTNET_AUTO_RESUME_INTENT, None)
+    if (not isinstance(payload, dict) or payload.get('schema_version') != 1 or
+            not isinstance(payload.get('enabled'), bool)):
+        audit('testnet_autoresume_intent_invalid', severity='ERROR')
+        return False
+    return payload['enabled']
+
+
+def _maybe_restore_testnet_entries() -> bool:
+    """Restore an explicit owner TestNet intent after a safe sidecar reboot.
+
+    The protected sidecar still boots disarmed and performs its normal
+    reconciliation.  This broker only re-issues the existing signed ``entries``
+    command after the sidecar reports a healthy user stream, fresh non-empty
+    universe, no safety halt/fault, and no blocker other than ENTRIES_DISARMED.
+    """
+    global _AUTO_RESUME_LAST_ATTEMPT
+    if (BOT_ENVIRONMENT != 'TESTNET' or
+            os.getenv('EXECUTION_MODE', 'simulation').lower() != 'testnet' or
+            os.getenv('TESTNET_AUTO_RESUME_ON_RESTART', 'true').lower() != 'true' or
+            not _load_testnet_autoresume_intent()):
+        return False
+    health = read_json(RUNTIME / 'sidecar_health.json', {}) or {}
+    if not isinstance(health, dict) or health.get('entries_enabled') is True:
+        return False
+    blockers = set(health.get('readiness_blockers') or [])
+    safe = bool(
+        health.get('ok') is True and
+        health.get('execution_mode') == 'testnet' and
+        health.get('user_stream_ok') is True and
+        health.get('universe_fresh') is True and
+        int(health.get('universe_count') or 0) > 0 and
+        not (health.get('safety_halts') or {}) and
+        not (health.get('runtime_safety_faults') or {}) and
+        blockers.issubset({'ENTRIES_DISARMED'})
+    )
+    if not safe:
+        return False
+    now = time.time()
+    retry_seconds = env_int('TESTNET_AUTO_RESUME_RETRY_SECONDS', 60, 15, 900)
+    if now - _AUTO_RESUME_LAST_ATTEMPT < retry_seconds:
+        return False
+    _AUTO_RESUME_LAST_ATTEMPT = now
+    ft = ft_call('POST', '/start')
+    result = sidecar_command('entries', {'enabled': True}, wait=True)
+    ok = bool(result.get('ok') is True and str(result.get('result')).upper() == 'ON')
+    audit('testnet_autoresume_attempt', severity='INFO' if ok else 'WARNING', details={
+        'ok': ok, 'freqtrade_ok': ft.get('ok') is True,
+        'sidecar_result': str(result.get('result', ''))[:120],
+    })
+    if ok:
+        send('TestNet entries auto-restored after verified restart reconciliation.', OWNER)
+    return ok
+
+
 def _pause_entries() -> dict:
     """Disarm the order owner before pausing Freqtrade."""
+    # Fail closed across reboots: an explicit owner pause clears the durable
+    # auto-resume intent before any network/control request is attempted.
+    _store_testnet_autoresume_intent(False)
     sidecar = sidecar_command('entries', {'enabled': False}, wait=True)
     freqtrade = ft_call('POST', '/pause')
     return {'sidecar': sidecar, 'freqtrade': freqtrade}
@@ -1284,9 +1848,12 @@ def _data_readiness() -> str:
     providers = api.get('providers')
     if not isinstance(providers, dict):
         providers = {}
+    api_ok = api.get('ok')
+    api_status = ('PASS' if api_ok is True else
+                  'FAIL' if api_ok is False else 'UNKNOWN')
     return json.dumps({
         'api_preflight': {
-            'status': api.get('status'),
+            'status': api_status,
             'generated_at': api.get('generated_at'),
             'providers': {
                 str(name): (row.get('status') if isinstance(row, dict) else None)
@@ -1312,16 +1879,24 @@ def _data_readiness() -> str:
 
 
 def _sharia_review_queue() -> str:
+    health = read_json(SHARIA_RESEARCH_RUNTIME_DIR / 'health.json', {}) or {}
+    health = health if isinstance(health, dict) else {}
+    registry = _sharia_registry_summary()
     return json.dumps({
-        'mode': 'manual-registry/v1',
-        'automatic_research': False,
-        'automatic_approval': False,
-        'owner_action': 'edit shared/sharia/halal_coins.json after manual review',
+        'mode': 'separate-research-plus-manual-trading-registry',
+        'research_queue': health.get('queue', {}),
+        'last_completed': health.get('last_done'),
+        'last_failed': health.get('last_failed'),
+        'discovery_candidates': registry.get('discovery_candidate_count'),
+        'source_registry_assets': registry.get('registered_asset_count'),
+        'automatic_trading_approval': False,
+        'trade_authority': False,
+        'owner_action': 'review exact result, approve evidence, then explicitly add',
     }, indent=2)[:3800]
 
 
 def _sharia_failure_status() -> str:
-    health = read_json(SHARIA_RUNTIME_DIR / 'health.json', {}) or {}
+    health = read_json(SHARIA_RESEARCH_RUNTIME_DIR / 'health.json', {}) or {}
     last_failed = health.get('last_failed') if isinstance(health, dict) else {}
     if not isinstance(last_failed, dict) or not last_failed:
         return 'No Sharia failure is recorded in the current health snapshot.'
@@ -1409,9 +1984,10 @@ def route(action, chat, message_id=None):
                      message_id, dashboard_menu())
     elif action == 'menu_sharia':
         edit_or_send(
-            'Manual Sharia registry — the trading bot only permits coins in '
-            'your current owner-maintained halal_coins.json file. Automatic '
-            'research and automatic coin approval are disabled.\n' + NOT_FATWA,
+            'Trading gate: only coins in your owner-maintained halal list may '
+            'trade. The Sharia scanner is a separate research service and can '
+            'never add a coin automatically. A verified GREEN result still '
+            'requires your Telegram confirmation before the list changes.\n' + NOT_FATWA,
             chat, message_id, sharia_menu())
     elif action == 'menu_signals':
         edit_or_send(
@@ -1424,9 +2000,55 @@ def route(action, chat, message_id=None):
             chat, message_id, market_scanner_menu())
     elif action in {'menu_controls', 'menu_trading'}:
         edit_or_send(
-            'Limited controls — resume or pause new entries only. Strategy, '
-            'risk, pair rules, credentials and LIVE state are unavailable.',
+            'TestNet controls — pause/resume automatic entries, set the existing '
+            'USDT-per-trade amount, and set the existing maximum concurrent '
+            'positions. These controls do not change IctSmcStrategy.',
             chat, message_id, controls_menu())
+    elif action == 'menu_autotrade':
+        edit_or_send(
+            'Manual Auto Trading control. Check Market Context or the latest '
+            'IctSmcStrategy signal, then pause Auto Entries whenever you do not '
+            'want new trades. This does not create a second bullishness strategy.',
+            chat, message_id, auto_trading_menu())
+    elif action == 'menu_sizing':
+        edit_or_send(
+            'Position limits already enforced by the protected execution core: '
+            '1–500 USDT per new trade and 1–5 concurrent open positions. Each '
+            'strategy signal can authorize at most its own single entry; the slot '
+            'limit controls how many halal-signal positions may coexist.',
+            chat, message_id, sizing_menu())
+    elif action == 'sizing_status':
+        send(json.dumps(_sidecar_read('status'), indent=2)[:3900], chat)
+    elif action.startswith('size_') and action.endswith('_confirm'):
+        try:
+            value = int(action[len('size_'):-len('_confirm')])
+        except ValueError:
+            send('Invalid USDT-size preset.', chat)
+        else:
+            if value not in {25, 50, 100, 250, 500}:
+                send('Unsupported USDT-size preset.', chat)
+            else:
+                _ask_confirm(
+                    chat, f'✅ CONFIRM {value} USDT per trade', 'set_size',
+                    {'usdt': value},
+                    f'Set the preserved execution-core trade size to {value} USDT. '
+                    'Strategy signals and Sharia/risk gates remain unchanged.',
+                    message_id=message_id, cancel_action='menu_sizing')
+    elif action.startswith('max_') and action.endswith('_confirm'):
+        try:
+            value = int(action[len('max_'):-len('_confirm')])
+        except ValueError:
+            send('Invalid open-trade preset.', chat)
+        else:
+            if value not in {1, 2, 3, 4, 5}:
+                send('Unsupported open-trade preset.', chat)
+            else:
+                _ask_confirm(
+                    chat, f'✅ CONFIRM max {value} open trade(s)', 'set_max',
+                    {'count': value},
+                    f'Set the protected execution-core concurrent position limit '
+                    f'to {value}. New signals above this limit remain blocked.',
+                    message_id=message_id, cancel_action='menu_sizing')
     elif action == 'menu_protection':
         edit_or_send(
             'Protection controls — every position mutation retains its '
@@ -1470,20 +2092,20 @@ def route(action, chat, message_id=None):
         _ask_confirm(chat, '✅ CONFIRM default protection mode', 'set_mode',
                      {'mode': mode}, f'Confirm new-entry protection mode: {mode}.')
     elif action == 'status':
-        sidecar = sidecar_command('status', wait=True)
+        sidecar = _sidecar_read('status')
         freqtrade = ft_call('GET', '/status')
         send(json.dumps({'release_hash': envelope.installed_release_hash(),
                          'sidecar': sidecar, 'freqtrade': freqtrade}, indent=2)[:3900], chat)
     elif action == 'orders':
-        send(json.dumps(sidecar_command('orders', wait=True), indent=2)[:3900], chat)
+        send(json.dumps(_sidecar_read('orders'), indent=2)[:3900], chat)
     elif action == 'open_trades':
         send(_open_trades(), chat)
     elif action == 'trade_history':
         send(_trade_history(), chat)
     elif action == 'balance':
-        send(json.dumps(sidecar_command('balance', wait=True), indent=2), chat)
+        send(json.dumps(_sidecar_read('balance'), indent=2), chat)
     elif action == 'profit':
-        send(json.dumps(sidecar_command('profit', wait=True), indent=2), chat)
+        send(json.dumps(_sidecar_read('profit'), indent=2), chat)
     elif action == 'daily_report':
         send(_daily_report(), chat)
     elif action == 'logs':
@@ -1507,44 +2129,52 @@ def route(action, chat, message_id=None):
                      sharia_menu())
     elif action == 'scan_help':
         edit_or_send(
-            'Automatic coin scanning is disabled in manual-registry mode. '
-            'Review the coin outside the trading bot, then update '
-            'shared/sharia/halal_coins.json if you approve it.\n' + NOT_FATWA,
+            'Send /scan followed by the ticker, for example /scan ETH. The '
+            'research scanner cannot authorize a trade or edit the halal list. '
+            'After completion use /shariareport ETH to review the exact result.\n' + NOT_FATWA,
             chat, message_id,
             [[{'text': '⬅️ Sharia menu', 'callback_data': 'do|menu_sharia'},
               {'text': '🏠 Home', 'callback_data': 'do|home'}]])
     elif action == 'scan_bulk_help':
         edit_or_send(
-            'Bulk Sharia scanning is disabled in manual-registry mode. '
-            'Only the owner-maintained halal_coins.json file can approve a '
-            'coin.\n' + NOT_FATWA,
-            chat, message_id,
-            [[{'text': '⬅️ Sharia menu', 'callback_data': 'do|menu_sharia'},
-              {'text': '🏠 Home', 'callback_data': 'do|home'}]])
-    elif (action.startswith('scan_bulk_') and
-          action.endswith('_confirm')):
-        edit_or_send(
-            'Automatic Sharia scanning is disabled. Update the manual registry '
-            'instead.', chat, message_id, sharia_menu())
+            'Use /scanbulk N where N is 1-100. Candidates come from the '
+            'current Binance Spot/USDT market before Sharia filtering. '
+            'Research remains advisory and never changes trading permission.',
+            chat, message_id, sharia_menu())
+    elif action.startswith('scan_bulk_') and action.endswith('_confirm'):
+        try:
+            limit = int(action[len('scan_bulk_'):-len('_confirm')])
+        except ValueError:
+            send('Invalid bulk-scan size.', chat)
+        else:
+            _ask_confirm(
+                chat, f'✅ CONFIRM scan top {limit}', 'scan_bulk',
+                {'limit': limit},
+                f'Queue research for the top {limit} current Binance Spot/USDT '
+                'candidates. This cannot add a coin or place an order.',
+                message_id=message_id, cancel_action='menu_sharia')
     elif action == 'scanall_confirm':
-        edit_or_send(
-            'Automatic Sharia scanning is disabled. Update the manual registry '
-            'instead.', chat, message_id, sharia_menu())
+        _ask_confirm(
+            chat, '✅ CONFIRM scan all Spot/USDT', 'scan_all', {},
+            'Queue the current Binance Spot/USDT set for bounded, quota-limited '
+            'research. This does not edit the trading halal list.',
+            message_id=message_id, cancel_action='menu_sharia')
     elif action == 'manual_registry_help':
         edit_or_send(
-            'Edit shared/sharia/halal_coins.json. Use exact sorted uppercase '
-            'Spot/USDT symbols, increase version, and set last_reviewed and '
-            'next_review. Missing, malformed or expired data blocks every new '
-            'entry. The bot sends a Telegram alert after a valid update.\n' +
-            NOT_FATWA,
+            'The trading halal list is owner-maintained. Additions require a '
+            'verified GREEN research result and a separate Telegram confirmation. '
+            'Use /shariareport BASE after a successful scan. To remove a coin, '
+            'use /removehalal BASE and confirm. No scanner process can edit the '
+            'list automatically.\n' + NOT_FATWA,
             chat, message_id,
             [[{'text': '⬅️ Sharia menu', 'callback_data': 'do|menu_sharia'},
               {'text': '🏠 Home', 'callback_data': 'do|home'}]])
     elif action == 'sharia_report_help':
         edit_or_send(
-            'Send /shariareport followed by the ticker, for example '
-            '/shariareport ETH. The response shows whether that coin is in the '
-            'current signed manual registry and why it is allowed or blocked.',
+            'Use /shariareport BASE, for example /shariareport ETH. The newest '
+            'verified research result is shown with evidence-review controls. '
+            'A promotable proposal can be approved/rejected; an approved GREEN '
+            'result can then expose Add to Halal List.',
             chat, message_id,
             [[{'text': '⬅️ Sharia menu', 'callback_data': 'do|menu_sharia'},
               {'text': '🏠 Home', 'callback_data': 'do|home'}]])
@@ -1560,6 +2190,10 @@ def route(action, chat, message_id=None):
         send(_market_context_status(), chat)
     elif action == 'provider_status':
         send(_external_provider_status(), chat)
+    elif action == 'provider_coingecko':
+        send(_external_provider_status('coingecko'), chat)
+    elif action == 'provider_coinmarketcap':
+        send(_external_provider_status('cmc'), chat)
     elif action == 'universe_movers':
         send(_universe_movers(), chat)
     elif action == 'data_sources':
@@ -1568,8 +2202,8 @@ def route(action, chat, message_id=None):
             '• Binance Spot: listings, ranking, trades and best bid/ask.\n'
             '• CoinGecko and CoinMarketCap: rate-limited advisory identity/'
             'market annotations only.\n'
-            '• Sharia: owner-maintained halal_coins.json operational allowlist; '
-            'automatic Sharia research is disabled.\n'
+            '• Sharia trading gate: owner-maintained halal_coins.json only.\n'
+            '• Sharia research: separate on-demand local scanner; no trade authority.\n'
             'No Futures market context and no external AI inference API.', chat)
     elif action == 'data_readiness':
         send(_data_readiness(), chat)
@@ -1585,6 +2219,8 @@ def route(action, chat, message_id=None):
         send(_tail_audit(25), chat)
     elif action == 'system_health':
         send(_system_health(), chat)
+    elif action == 'protection_status':
+        send(_protection_status(), chat)
     elif action == 'test_telegram':
         send(
             'Telegram delivery test received by the owner channel. No trading '
@@ -1619,6 +2255,9 @@ def _confirm_action(action, args, chat):
     if action == 'resume_entries':
         ft = ft_call('POST', '/start')
         sidecar = sidecar_command('entries', {'enabled': True}, wait=True)
+        if (sidecar.get('ok') is True and
+                str(sidecar.get('result', '')).upper() == 'ON'):
+            _store_testnet_autoresume_intent(True)
         send(json.dumps({'sidecar': sidecar, 'freqtrade': ft}, indent=2), chat)
     elif action == 'pause_entries':
         send(json.dumps(_pause_entries(), indent=2), chat)
@@ -1631,14 +2270,30 @@ def _confirm_action(action, args, chat):
     elif action == 'set_mode':
         send(json.dumps(sidecar_command('mode', args, wait=True), indent=2), chat)
     elif action == 'scan_all':
-        send('Automatic Sharia scanning is disabled. Update '
-             'shared/sharia/halal_coins.json instead.\n' + NOT_FATWA, chat)
+        result = sharia_scan_request('*', priority='bulk')
+        send(json.dumps({
+            **result, 'queued': True, 'scope': 'all current Spot/USDT',
+            'trade_authority': False,
+        }, indent=2), chat)
     elif action == 'scan_bulk':
-        send('Automatic Sharia scanning is disabled. Update '
-             'shared/sharia/halal_coins.json instead.\n' + NOT_FATWA, chat)
+        result = sharia_bounded_scan_requests(int(args.get('limit', 0)))
+        send(json.dumps(result, indent=2)[:3900], chat)
     elif action in {'sharia_approve', 'sharia_reject'}:
-        send('Evidence-card approvals are disabled in manual-registry mode. '
-             'Update shared/sharia/halal_coins.json instead.\n' + NOT_FATWA, chat)
+        result = sharia_owner_decision(
+            'APPROVE' if action == 'sharia_approve' else 'REJECT', args)
+        send(json.dumps({**result, 'trading_list_changed': False}, indent=2), chat)
+    elif action == 'registry_add':
+        result = registry_owner_command('REGISTRY_ADD', args)
+        send(json.dumps({
+            **result, 'queued': True,
+            'note': 'manual registry projector will verify and apply this command',
+        }, indent=2), chat)
+    elif action == 'registry_remove':
+        result = registry_owner_command('REGISTRY_REMOVE', args)
+        send(json.dumps({
+            **result, 'queued': True,
+            'note': 'removal fails closed until the signed projection refreshes',
+        }, indent=2), chat)
     elif action in {'convert', 'break_even', 'lock_profit', 'emergency_exit', 'set_size', 'set_max'}:
         send(json.dumps(sidecar_command(action, args, wait=True), indent=2), chat)
     else:
@@ -1673,6 +2328,7 @@ def handle_message(message):
     elif cmd in ('/history', '/tradehistory'): route('trade_history', chat)
     elif cmd == '/balance': route('balance', chat)
     elif cmd == '/profit': route('profit', chat)
+    elif cmd == '/protection': route('protection_status', chat)
     elif cmd in ('/daily', '/dailyreport'): route('daily_report', chat)
     elif cmd == '/logs': route('logs', chat)
     elif cmd == '/reload': route('reload_confirm', chat)
@@ -1684,22 +2340,48 @@ def handle_message(message):
     elif cmd in ('/sharia', '/halal'): route('sharia', chat)
     elif cmd in ('/shariastatus', '/shariaservice'): route('sharia_service', chat)
     elif cmd == '/scanall':
-        send('Automatic Sharia scanning is disabled. Update '
-             'shared/sharia/halal_coins.json instead.\n' + NOT_FATWA, chat)
+        route('scanall_confirm', chat)
     elif cmd == '/scanbulk' and len(parts) == 2:
-        send('Automatic Sharia scanning is disabled. Update '
-             'shared/sharia/halal_coins.json instead.\n' + NOT_FATWA, chat)
+        try:
+            limit = int(parts[1])
+        except ValueError:
+            send('Scan count must be an integer from 1 to 100.', chat); return
+        if not BULK_SCAN_MIN <= limit <= BULK_SCAN_MAX:
+            send('Scan count must be from 1 to 100.', chat); return
+        _ask_confirm(
+            chat, f'✅ CONFIRM scan top {limit}', 'scan_bulk', {'limit': limit},
+            f'Queue research for the top {limit} Binance Spot/USDT candidates. '
+            'This cannot edit the trading halal list.')
     elif cmd == '/scan' and len(parts) == 2:
         base, why = normalize_pair_input(parts[1])
         if not base:
             send('Scan rejected: ' + why, chat); return
-        send(_manual_registry_coin_status(base) + '\n\nAutomatic scanning is disabled; '
-             'update shared/sharia/halal_coins.json after your manual review.', chat)
+        result = sharia_scan_request(base, priority='manual')
+        send(json.dumps({
+            **result, 'base': base, 'queued': True, 'trade_authority': False,
+            'next': f'Use /shariareport {base} to review the verified result.',
+        }, indent=2), chat)
     elif cmd == '/shariareport' and len(parts) == 2:
         base, why = normalize_pair_input(parts[1])
         if not base:
             send('Rejected: ' + why, chat); return
-        send(_manual_registry_coin_status(base), chat)
+        text, buttons = _latest_local_review_card(base)
+        send(text, chat, buttons)
+    elif cmd == '/removehalal' and len(parts) == 2:
+        base, why = normalize_pair_input(parts[1])
+        if not base:
+            send('Rejected: ' + why, chat); return
+        try:
+            allowed = load_sharia_gate(SHARIA_FILE).decision(base).allowed
+        except Exception as exc:
+            send('Registry unavailable: ' + str(exc)[:250], chat); return
+        if not allowed:
+            send(f'{base}/USDT is not currently approved in the manual list.', chat); return
+        _ask_confirm(
+            chat, '✅ CONFIRM remove from Halal List', 'registry_remove',
+            {'base': base},
+            f'Remove {base}USDT from the owner-maintained trading allowlist. '
+            'New entries for this coin will fail closed after projection refresh.')
     elif cmd == '/deploy': route('deploy', chat)
     elif cmd == '/lastsignal': route('last_signal', chat)
     elif cmd == '/signals': route('signal_history', chat)
@@ -1828,12 +2510,51 @@ def _claim_update(update_id: object, offset: int) -> tuple[int, bool]:
     return next_offset, True
 
 
+def _dispatch_claimed_update(update: dict) -> None:
+    """Isolate one claimed Telegram update from the long-poll supervisor.
+
+    The durable offset is intentionally committed before this function runs.
+    A failed menu renderer must therefore return a useful, secret-free error to
+    the owner and allow later updates in the same batch to continue.
+    """
+    try:
+        if 'message' in update:
+            handle_message(update['message'])
+        if 'callback_query' in update:
+            handle_callback(update['callback_query'])
+    except Exception as exc:
+        safe = _redact_secrets(exc)[:300]
+        audit('telegram_update_handler_failed', severity='ERROR', details={
+            'update_id': update.get('update_id'),
+            'error_type': type(exc).__name__,
+            'error': safe,
+        })
+        callback = update.get('callback_query')
+        message = update.get('message')
+        if isinstance(callback, dict):
+            message = callback.get('message')
+        chat = ''
+        if isinstance(message, dict):
+            chat = str(message.get('chat', {}).get('id', ''))
+        if chat:
+            try:
+                send(
+                    'This request failed safely and no trading action was '
+                    f'performed. {type(exc).__name__}: {safe}', chat)
+            except Exception as send_exc:
+                audit('telegram_update_error_reply_failed', severity='ERROR', details={
+                    'update_id': update.get('update_id'),
+                    'error_type': type(send_exc).__name__,
+                })
+
+
 def main():
     logging.basicConfig(level=os.getenv('LOG_LEVEL', 'INFO'), format='%(asctime)s %(levelname)s %(name)s %(message)s')
     if not TOKEN or not OWNER:
         raise SystemExit('TELEGRAM_BOT_TOKEN and TELEGRAM_OWNER_CHAT_ID required')
     try:
         envelope.load_key(envelope.BUS_COMMAND)
+        envelope.load_key(envelope.BUS_SIGNAL)
         envelope.load_key(envelope.BUS_SHARIA_REQUEST)
         envelope.load_key(envelope.BUS_SHARIA_DECISION)
     except envelope.EnvelopeError as exc:
@@ -1841,7 +2562,9 @@ def main():
     offset = _load_offset()
     while True:
         try:
+            _maybe_restore_testnet_entries()
             deliver_sidecar_notifications()
+            deliver_signal_notifications()
             response = requests.get(
                 BASE + '/getUpdates',
                 params={'offset': offset, 'timeout': 25, 'allowed_updates': json.dumps(['message', 'callback_query'])},
@@ -1859,9 +2582,9 @@ def main():
                 offset, claimed = _claim_update(update.get('update_id'), offset)
                 if not claimed:
                     continue
-                if 'message' in update: handle_message(update['message'])
-                if 'callback_query' in update: handle_callback(update['callback_query'])
+                _dispatch_claimed_update(update)
             deliver_sidecar_notifications()
+            deliver_signal_notifications()
         except Exception as exc:
             # H-004: requests embeds the full attempted URL in its exception
             # text, and BASE contains the bot token. Writing the raw exception

@@ -232,6 +232,9 @@ class SourceRegistry:
                     f'{base} screener {name!r} is bound to the wrong host')
             canonical_screeners[normalized_name] = claim
         return {
+            # This is an owner judgment record, not executable instructions.
+            # The runner verifies each cited source against fresh retrieval.
+            'material_review': raw.get('material_review', {}),
             'official_hosts': normalized_hosts,
             'context_confirmed': True,
             'sources': normalized_sources,

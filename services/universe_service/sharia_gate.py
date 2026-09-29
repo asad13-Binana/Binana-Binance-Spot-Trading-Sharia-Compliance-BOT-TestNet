@@ -1,9 +1,9 @@
 """Mode-aware, fail-closed Sharia execution-gate loader.
 
-The immutable V19.1 research verifier remains in :mod:`sharia_filter`.  This
+The immutable V19.3 research verifier remains in :mod:`sharia_filter`.  This
 module adds a separate verifier for the owner-maintained manual operational
 allowlist.  Keeping the contracts separate prevents a manual approval from
-being misrepresented as an automated V19.1 research result.
+being misrepresented as an automated V19.3 research result.
 """
 from __future__ import annotations
 

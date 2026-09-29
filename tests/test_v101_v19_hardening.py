@@ -1,8 +1,8 @@
 from __future__ import annotations
-"""V10.1 + V19.1 hardening coverage.
+"""V10.1 + V19.3 hardening coverage.
 
 Each test exercises a specific audit-finding fix from this consolidation:
-envelope authentication (V101-NEW-001), the immutable V19.1 controller and
+envelope authentication (V101-NEW-001), the immutable V19.3 controller and
 strict result validation (master protocol 8.1/8.5/8.6), complete pre-cancel
 filter validation (V101-NEW-002), the structured emergency exit (C-002),
 the deterministic simulation lifecycle with fault injection (C-004),
@@ -56,6 +56,8 @@ def _green_report(base='ETH'):
         'halalscreener', 'gethalalcrypto', 'musaffa')}
     keywords = {name: {'hits': 0, 'quotes': []} for name in KEYWORD_CATEGORIES}
     return {
+        **fail_closed_report(base, reason='schema fixture'),
+        'fail_closed': False, 'fail_closed_reason': '',
         'coin_name': base, 'ticker': base, 'main_framework': V19_MAIN_FRAMEWORK,
         'runner_controller': V19_RUNNER_CONTROLLER, 'token_type': 'PAYMENT',
         'mal_status': 'CONFIRMED', 'sub_framework_applied': 'NONE',
@@ -183,7 +185,7 @@ class ForgedBusFileTests(unittest.TestCase):
             self.assertFalse((root / 'runtime' / 'command_result_x.json').exists())
 
 
-# ── master protocol 8.1: immutable V19.1 controller ───────────────────────
+# ── master protocol 8.1: immutable V19.3 controller ───────────────────────
 class ControllerIntegrityTests(unittest.TestCase):
     CONTROLLER = ROOT / 'shared/sharia' / V19_CONTROLLER_FILENAME
 

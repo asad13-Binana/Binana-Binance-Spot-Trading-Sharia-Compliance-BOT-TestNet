@@ -267,11 +267,11 @@ def process_command(adapter, state: StateStore, guard: FreshSignalGuard, path: P
         elif cmd == 'reload_sharia':
             # Read-only reload: the canonical Sharia directory is written only
             # by the sharia-screener service. This command revalidates the
-            # V19.1 projection and asks the preserved core to re-read the
+            # V19.3 projection and asks the preserved core to re-read the
             # generated compatibility whitelist.
             gate = ShariaFilter(SHARIA_FILE)
             eligible = gate.current_halal_symbols()
-            result = (f'V19.1 status reloaded: {len(gate.records)} records, '
+            result = (f'V19.3 status reloaded: {len(gate.records)} records, '
                       f'{len(eligible)} trade-eligible')
             if adapter.trader.is_running():
                 adapter.reload_sharia()
@@ -410,7 +410,7 @@ def live_interlock(state: StateStore):
     # C-003 / H-007 fix: presence markers and the legacy backtest gate can no
     # longer unlock live mode on their own. Live additionally requires the
     # HMAC-signed evidence envelope binding this exact release, the protected
-    # strategy fingerprints, the immutable V19.1 controller, an exact-strategy
+    # strategy fingerprints, the immutable V19.3 controller, an exact-strategy
     # Freqtrade backtest artifact, and Testnet/Oracle/clean-pass assertions.
     try:
         from services.common.strategy_fingerprint import fingerprints
@@ -439,7 +439,7 @@ def main():
         raise SystemExit('RELEASE BINDING MISSING: set ENVELOPE_RELEASE_HASH or install RELEASE_SHA256.txt')
     state = StateStore(RUNTIME / 'sidecar_state.json', RUNTIME / 'execution_state.sqlite')
     mode = live_interlock(state)
-    # Fail-closed V19.1 gate load. The canonical Sharia directory is written
+    # Fail-closed V19.3 gate load. The canonical Sharia directory is written
     # only by the sharia-screener service; the sidecar validates read-only.
     sharia_gate = ShariaFilter(SHARIA_FILE)
     audit('sharia_gate_loaded', details={

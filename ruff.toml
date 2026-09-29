@@ -1,0 +1,7 @@
+# The recovered NFI vendor snapshot is byte-pinned by BinanaNfiSpot.py.
+# Its 15 pre-existing F821 diagnostics are 13 string annotations named Orders
+# and derisk_4_threshold/derisk_4_stake in a position-adjustment path disabled
+# by the Testnet wrapper. Preserve upstream bytes; do not suppress other files
+# or other correctness checks. See runtime_owner/README.md.
+[lint.per-file-ignores]
+"runtime_owner/owner/binana-strategies/binana_vendor/NostalgiaForInfinityX8.py" = ["F821"]

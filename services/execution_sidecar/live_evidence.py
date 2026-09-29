@@ -10,7 +10,7 @@ HMAC-signed, expiring evidence envelope that binds:
 
   * the installed release hash;
   * the canonical fingerprints of the four protected strategy methods;
-  * the immutable V19.1 controller hash;
+  * the immutable V19.3 controller hash;
   * an exact-strategy Freqtrade backtest artifact (name, hash, trade count);
   * explicit Testnet / Oracle / clean-pass assertions.
 
@@ -59,7 +59,7 @@ def verify_live_evidence(*, release_hash: str, strategy_fingerprints: dict,
     if str(payload.get('release_hash', '')) != release_hash:
         raise LiveEvidenceError('live evidence is bound to a different release hash')
     if str(payload.get('controller_sha256', '')) != controller_sha256:
-        raise LiveEvidenceError('live evidence is bound to a different V19.1 controller')
+        raise LiveEvidenceError('live evidence is bound to a different V19.3 controller')
     if payload.get('strategy_fingerprints') != strategy_fingerprints:
         raise LiveEvidenceError('live evidence strategy fingerprints do not match the installed strategy')
 

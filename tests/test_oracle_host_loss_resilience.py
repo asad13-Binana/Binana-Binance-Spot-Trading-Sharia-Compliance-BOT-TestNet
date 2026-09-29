@@ -10,7 +10,7 @@ PROTECTED = {
     "legacy_core/binance_bot_V4.9.16_ALL_IN_ONE.py":
         "70b1d67cc0092b5b8db4a68b343cf893641bde1aae580e9ef51e2adec1062459",
     "services/common/sharia_v19.py":
-        "5eb9fd5338d80fcaf0d39bb3f4935a75b57dd91136c72a83a7551b659b04d865",
+        "768b3f5261d618e0beb50aa7f15de4ab84b4e02ad3a621d9dfebb944175580f5",
 }
 
 
@@ -18,7 +18,7 @@ def read(relative: str) -> str:
     return (ROOT / relative).read_text(encoding="utf-8")
 
 
-def test_protected_core_hashes_are_unchanged():
+def test_protected_files_match_the_reviewed_v193_baseline():
     for relative, expected in PROTECTED.items():
         assert hashlib.sha256((ROOT / relative).read_bytes()).hexdigest() == expected
 

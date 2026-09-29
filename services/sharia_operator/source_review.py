@@ -17,6 +17,7 @@ from services.sharia_screener.source_discovery import (
     _record_digest,
     _safe_https_url,
     _valid_record,
+    TARGET_ROLES,
 )
 
 
@@ -61,38 +62,41 @@ def validated_candidate_record(payload: object) -> dict:
 
     hosts = payload.get('official_hosts_candidates')
     sources = payload.get('source_candidates')
-    if (not isinstance(hosts, list) or len(hosts) != 1 or
-            not isinstance(hosts[0], str) or not hosts[0].strip() or
+    if (not isinstance(hosts, list) or not hosts or
+            not all(isinstance(h, str) and h.strip() for h in hosts) or
             not isinstance(sources, list) or not sources):
         raise ValueError('discovery record source candidates are invalid')
-    official_host = str(hosts[0]).lower().strip().rstrip('.')
+    official_hosts = [str(h).lower().strip().rstrip('.') for h in hosts]
     prepared_sources = []
     website_seen = False
+    alternative_official_source_seen = False
     seen_urls: set[str] = set()
     for source in sources:
-        if not isinstance(source, dict) or source.get('role') not in {
-                'official_website', 'whitepaper'}:
+        if not isinstance(source, dict) or source.get('role') not in TARGET_ROLES.values():
             raise ValueError(
                 'discovery record contains an unsupported source role')
         url = _safe_https_url(source.get('url'))
-        if not url or url != source.get('url') or url in seen_urls:
+        identity = (source.get('role'), url)
+        if not url or url != source.get('url') or identity in seen_urls:
             raise ValueError(
                 'discovery record contains an unsafe or duplicate source URL')
-        seen_urls.add(url)
+        seen_urls.add(identity)
         if source.get('role') == 'official_website':
-            if website_seen or _host(url) != official_host:
+            if _host(url) not in official_hosts:
                 raise ValueError(
                     'discovery record official website host binding is invalid')
             website_seen = True
-        prepared_sources.append({'role': source['role'], 'url': url})
-    if not website_seen:
+        elif source.get('role') in {'official_docs', 'whitepaper', 'tokenomics_economics'}:
+            alternative_official_source_seen |= _host(url) in official_hosts
+        prepared_sources.append({**source, 'role': source['role'], 'url': url})
+    if not website_seen and not alternative_official_source_seen:
         raise ValueError(
-            'discovery record has no official website candidate')
+            'discovery record has no official website or documentation candidate')
     return {
         **payload,
         'base': base,
         'pair': pair,
-        'official_hosts_candidates': [official_host],
+        'official_hosts_candidates': official_hosts,
         'source_candidates': prepared_sources,
     }
 

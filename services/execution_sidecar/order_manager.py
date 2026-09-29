@@ -28,10 +28,10 @@ class OrderManager:
          strategy producer is trusted;
       2. structural pair/symbol/base validation, BNB/BTC exclusion;
       3. duplicate/uncertain prior-submission checks (durable claims);
-      4. cached V19.1 status gate (current GREEN/GREEN_AVOID_OPTIONAL record);
+      4. cached V19.3 status gate (current GREEN/GREEN_AVOID_OPTIONAL record);
       5. freshness/universe/risk guard;
       6. entries armed check;
-      7. The package requires cached, signed V19.1 evidence. The legacy fresh
+      7. The package requires cached, signed V19.3 evidence. The legacy fresh
          screening seam below is retained for compatibility, not activated;
          no signal-time network scan replaces the existing evidence gate.
       8. durable claim, then submission through the adapter lifecycle (the
@@ -72,7 +72,7 @@ class OrderManager:
         if errors:
             audit('signal_fail_closed_disarm_failed', severity='CRITICAL', details={'errors': errors})
 
-    # ---- V19.1 screening result compatibility seam ----
+    # ---- V19.3 screening result compatibility seam ----
     def _request_fresh_screening(self, sig: dict, base: str) -> str:
         request_id = 'signal-' + sig['signal_id']
         request_path = SHARIA_QUEUE_INBOX / f'request_{request_id}.json'
@@ -129,11 +129,11 @@ class OrderManager:
         except Exception as exc:
             return 'rejected', f'screening report binding failed: {exc}'
         if payload.get('validated') is not True:
-            return 'rejected', 'screening result failed V19.1 validation: ' + str(
+            return 'rejected', 'screening result failed V19.3 validation: ' + str(
                 payload.get('final_code'))
         code = str(payload.get('final_code', ''))
         if code not in TRADE_ELIGIBLE_CODES:
-            return 'rejected', f'V19.1 verdict {code or "MISSING"} is not trade-eligible'
+            return 'rejected', f'V19.3 verdict {code or "MISSING"} is not trade-eligible'
         return 'eligible', code
 
     def process_signal(self, path, current_universe, current_universe_hash):
@@ -171,7 +171,7 @@ class OrderManager:
             return self.reject(path, sig, 'duplicate signal token', '', record=False)
         if str(sig.get('strategy', '')) != 'IctSmcStrategy':
             return self.reject(path, sig, 'unexpected_strategy', str(sig.get('strategy', '')))
-        # Gate 4 — cached V19.1 record must currently be trade-eligible.
+        # Gate 4 — cached V19.3 record must currently be trade-eligible.
         try:
             decision = ShariaFilter(self.sharia_path).decision(base)
         except Exception as exc:
@@ -188,7 +188,7 @@ class OrderManager:
         if not self.state.entries():
             return self.reject(path, sig, 'entries_paused', self.state.data.get('pause_reason', ''))
 
-        # Gate 7 — FRESH V19.1 screening of the exact pair before any order.
+        # Gate 7 — FRESH V19.3 screening of the exact pair before any order.
         if self.gate_mode != 'cached':
             request_id = self._request_fresh_screening(sig, base)
             requested_at = self._pending_screenings.setdefault(signal_id, time.time())

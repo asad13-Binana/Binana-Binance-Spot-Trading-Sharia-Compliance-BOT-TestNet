@@ -3,7 +3,7 @@
 This module is transport integrity, not a Sharia rules engine.  It binds the
 owner's reviewed block to one exact occurrence in one exact extraction of one
 exact HTTP response.  Runtime callers verify the complete tuple before an
-``EvidenceClaim`` can reach the immutable V19.1 rules executor.
+``EvidenceClaim`` can reach the immutable V19.3 rules executor.
 
 The important invariant is that no substring search or sentence-boundary
 guess is performed during authorisation.  The offsets selected during

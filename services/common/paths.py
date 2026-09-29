@@ -16,11 +16,11 @@ AUDIT_DIR = Path(os.getenv('AUDIT_DIR', ROOT / 'audit'))
 TELEGRAM_ALERT_OUTBOX = Path(os.getenv(
     'TELEGRAM_ALERT_OUTBOX', ROOT / 'telegram_alerts/outbox'))
 
-# V19.1 Sharia screening buses. The canonical Sharia directory is writable by
+# V19.3 Sharia screening buses. The canonical Sharia directory is writable by
 # the sharia-screener service ONLY; every other container mounts it read-only.
 SHARIA_DIR = SHARIA_FILE.parent
 SHARIA_CONTROLLER_FILE = Path(os.getenv(
-    'SHARIA_CONTROLLER_FILE', SHARIA_DIR / 'HALAL_CRYPTO_SPOT_SCREENING_V19_1_PRODUCTION.json'))
+    'SHARIA_CONTROLLER_FILE', SHARIA_DIR / 'HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json'))
 SHARIA_QUEUE_INBOX = Path(os.getenv('SHARIA_QUEUE_INBOX', ROOT / 'sharia_queue/inbox'))
 SHARIA_QUEUE_PROCESSED = Path(os.getenv('SHARIA_QUEUE_PROCESSED', ROOT / 'sharia_queue/processed'))
 SHARIA_DECISION_INBOX = Path(os.getenv(

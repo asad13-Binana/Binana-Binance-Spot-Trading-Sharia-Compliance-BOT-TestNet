@@ -70,14 +70,14 @@ python -m pytest -q monitoring/tests
 python tests/secret_scan.py
 python -m services.universe_service.validate_sharia shared/sharia/sharia_status.json
 
-# The immutable V19.1 controller must be byte-identical.
+# The immutable V19.3 controller must be byte-identical.
 python - <<'PY'
 from services.common.sharia_v19 import controller_sha256, V19_CONTROLLER_SHA256, V19_CONTROLLER_FILENAME
 import pathlib
 path = pathlib.Path('shared/sharia') / V19_CONTROLLER_FILENAME
 actual = controller_sha256(path)
-assert actual == V19_CONTROLLER_SHA256, f'V19.1 controller hash mismatch: {actual}'
-print(f'V19.1 controller byte-integrity verified: {actual}')
+assert actual == V19_CONTROLLER_SHA256, f'V19.3 controller hash mismatch: {actual}'
+print(f'V19.3 controller byte-integrity verified: {actual}')
 PY
 
 SELFTEST_TMP=$(mktemp -d)
