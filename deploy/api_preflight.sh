@@ -21,6 +21,8 @@ package_mode=$(tr -d '\r\n' <"$APP_ROOT/current/RELEASE_MODE")
 checker=$APP_ROOT/current/scripts/api_readiness.py
 [[ -f "$checker" && ! -L "$checker" ]] || fail 'API readiness checker is unavailable'
 
+# The shipped manual projector does not require research-provider keys.
+# An explicitly enabled research deployment still requires them.
 declare -A VALUES=()
 secure_env_read "$ENV_FILE" VALUES
 config=$(printf '%s\0' \
@@ -32,7 +34,7 @@ config=$(printf '%s\0' \
   "${VALUES[COINMARKETCAP_API_KEY]:-${VALUES[CMC_API_KEY]:-}}" \
   "${VALUES[ENABLE_COINGECKO_SIGNALS]:-false}" \
   "${VALUES[ENABLE_CMC_TRENDING]:-false}" \
-  "${VALUES[SHARIA_AUTO_SOURCE_DISCOVERY_ENABLED]:-true}" | python3 -c '
+  "${VALUES[SHARIA_AUTO_SOURCE_DISCOVERY_ENABLED]:-false}" | python3 -c '
 import json, sys
 names = (
     "BINANCE_API_KEY", "BINANCE_API_SECRET", "TELEGRAM_BOT_TOKEN",
