@@ -1,8 +1,10 @@
-# BINANA Spot bot — Sharia v19.3 recovery candidate
+# BINANA Binance Spot Testnet
 
-Status: **not accepted for deployment; live trading is not certified.**
+Latest update: **375 owner-listed symbols**, preserving the previous 305 and adding only 70 missing from the latest 177-symbol list. AWS signed projection verified. Testnet PR #29 is merged. Trading remains paused pending the accounting-recovery incident and execution checks.
 
-See [the recovery status and open gates](docs/recovery/RECOVERY_STATUS_20260930.md) before using deployment instructions. This branch preserves the earlier strategy and execution interlocks while recovering service changes and adapting the supplied controller. Historical documentation below does not certify this candidate.
+The active AWS deployment uses Freqtrade 2026.8/NFI as its sole order owner, with a monitor-only sidecar. The root package below still represents the older deployment layout; it must not be used to overwrite AWS until runtime integration is complete. Recovered owner source is in `runtime_owner/`.
+
+See [current status and recent changes](docs/recovery/RECOVERY_STATUS_20260930.md) and [the additive registry record](docs/recovery/REGISTRY_ADDITIONS_20260930.json). Historical deployment and validation notes below do not certify the current candidate.
 
 ## Disclaimer and risk warning
 
@@ -23,10 +25,10 @@ independent validation, and only with money you can afford to lose entirely.
 
 See `LICENSE` for the full disclaimer.
 
-## Architecture
+## Packaged architecture (legacy deployment)
 
 Six Docker services provide the top-50 USDT universe, governed Sharia egress,
-immutable V19.1 Sharia screening, signal-only Freqtrade, the single
+manual registry projection and v19.3 research screening, signal-only Freqtrade, the single
 order-owning execution sidecar, and owner-only Telegram control. A separate
 `botmon` systemd service observes
 authoritative execution state without trading credentials or Docker-socket
@@ -64,7 +66,7 @@ extracted deterministic artifact.
   signed live-evidence envelope.
 - Freqtrade is signal-only; the execution sidecar is the only Binance order
   owner.
-- Only V19.1 `GREEN` / `GREEN_AVOID_OPTIONAL` results are trade-eligible.
+- Research decisions require the supplied v19.3 controller and signed owner approval; the operational manual registry is a separate gate.
 - Inter-service messages are HMAC-authenticated and release-bound.
 - BNB and BTC are excluded as bases; no BNB fee dependency.
 - Trading secrets exist only in Oracle's mode-600 private env, never in Git.

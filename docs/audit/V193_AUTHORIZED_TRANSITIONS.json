@@ -101,8 +101,8 @@
     {
       "path": "shared/sharia/halal_coins.json",
       "before_sha256": "3aa8dc6b70e8de4ca1b7d15d8c72b8f9ac4ec95c86edf02fdd37b1f89d363bc0",
-      "after_sha256": "1bd43dc72d821d18d82f02afd5617a35f728d3b67f2ecfe7e19fdd2c0addeb87",
-      "reason": "Recover AWS registry and add missing user-requested symbols: 305 unique entries."
+      "after_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+      "reason": "Preserve existing 305 symbols and add only 70 missing from the owner's latest 177-symbol list: 375 unique entries. Final instruction on 2026-09-30 is additive; review dates are unchanged."
     },
     {
       "path": "shared/sharia/sharia_status.json",

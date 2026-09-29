@@ -21,7 +21,7 @@
       "size": 1499
     },
     ".github/workflows/ci.yml": {
-      "sha256": "ff9f608bf500046418bc0d0a5b9c7b58cdf92ad7bdb9d1440b335ea164e9a8e9",
+      "sha256": "7fe1cb8c36a59c9c974540615a5f9d2cb3940cbda9f6adac736717520d303eff",
       "size": 25334
     },
     ".gitignore": {
@@ -109,8 +109,8 @@
       "size": 877
     },
     "README.md": {
-      "sha256": "9d5bafe81c66df280148db0bff943e10c8e0cd5dfebf0dfb9cb84b656565f2fa",
-      "size": 3903
+      "sha256": "e4a1c7b8819aa45429b486b2a31810e71a973e5c5db7b5e032d4ed0e4423b12d",
+      "size": 4428
     },
     "RELEASE_MODE": {
       "sha256": "e4b87a69f913da48060c909bafab37d64bcf4dc7d835a19d388da46ebd838c3d",
@@ -129,12 +129,12 @@
       "size": 6459
     },
     "deploy/api_preflight.sh": {
-      "sha256": "b0c63df16e2ee7fa2502498d7a72fbc871e51f13603654cb5bdc81bf084de220",
-      "size": 4345
+      "sha256": "0e2ce6d20045de6f05a4a39a0066e04665dd8c2dbbc748fff68dc39c69e72ded",
+      "size": 4483
     },
     "deploy/backup_state.sh": {
-      "sha256": "398d2fcb94b46770ce928cea3515e1a1193bfe96ada7721a9de6a1543dac2230",
-      "size": 2570
+      "sha256": "cfa59ef7f420802f944967a0e82c4871538790f7ab258afe6d7f4725a1facd0c",
+      "size": 2678
     },
     "deploy/binana-approve-release.sh": {
       "sha256": "f435d9545175289d8dba514b4b7c3ed31864c234f49e56b3cc40b70eeec89b0b",
@@ -225,8 +225,8 @@
       "size": 10986
     },
     "docker-compose.yml": {
-      "sha256": "d954f571a9e636447f9aff2ba15c1d5baf7ed9be856ddc235778baefb5c1128a",
-      "size": 19096
+      "sha256": "83162e26316bcb5e3b5c4095441004beb8e9cfecb4fc0c26727efc61e8824eec",
+      "size": 19159
     },
     "docs/API_READINESS_RUNBOOK.md": {
       "sha256": "ba9253f2e12570cdcac137d33a210b855b9506fec52883875291b142359efcbf",
@@ -365,16 +365,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "727aea7cbeb0b5cb6dca4a4bef63d52034f923c243a6e375ca3a31424177abbe",
-      "size": 66987
+      "sha256": "9a6fbd31b30f2db64c47a130a8d571e26ef38ece46d09300ce263aff0126e82b",
+      "size": 79049
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "f573a1c7ce886e7128e83a7446f6a3a7c271dd3e7987b92cc47203e4b13cf5da",
-      "size": 480203
+      "sha256": "71997ccaa99ad96ea0bcf67485650048e8719efa3ffaa618228a415c1a8e8f21",
+      "size": 622611
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -413,12 +413,16 @@
       "size": 11578
     },
     "docs/audit/V193_AUTHORIZED_TRANSITIONS.json": {
-      "sha256": "3ee858adb8f864ab42b45752894208e89ec7ed2bb5796b43db7f78d7624dc30e",
-      "size": 6918
+      "sha256": "032d71d7091d781dae4e60a0c4bee4830d72eb08da4094ef8bda282bec552bc2",
+      "size": 7025
     },
     "docs/recovery/RECOVERY_STATUS_20260930.md": {
-      "sha256": "fc3b6112bc1beb26ac4aa04dd49de76e95706a465eebb1d4d44f8b6d9bc830a6",
-      "size": 4377
+      "sha256": "95cf77d1a4bafc550c54fc66d80274e6a6e37743c52f89db6e9cb40e53a74186",
+      "size": 7995
+    },
+    "docs/recovery/REGISTRY_ADDITIONS_20260930.json": {
+      "sha256": "32a8a6fb9f7dba0a15f566052f9cd6e49ba360be47f71e8f7cbb5e187c813432",
+      "size": 3438
     },
     "docs/testnet_validation_evidence.template.json": {
       "sha256": "bebb975c45d90f3478ff6b63802aa6baa28e7902d0f645fb81179df8d7b266e8",
@@ -740,6 +744,238 @@
       "sha256": "d8257ac3a3c1675193d776fc33dfbc9330cebacce78da4eadec1a27d981acffa",
       "size": 2055
     },
+    "runtime_owner/deployed_r17/README.md": {
+      "sha256": "b2a731b3ac0949da02e8a15d2015ded64bf2ce592b43c1a260880dd4b4b0e076",
+      "size": 1000
+    },
+    "runtime_owner/deployed_r17/SOURCE_INDEX.json": {
+      "sha256": "80719b24b313115d34e5bd5052fd8e47f9c6c498c32cb9fd5255bf3110113acc",
+      "size": 6191
+    },
+    "runtime_owner/deployed_r17/overrides/binana-strategies/BinanaNfiSpot.py": {
+      "sha256": "cdb226d2bd2bf1a737b630eb0a686da9e09ba263f4b709e0dd3f1510b20d3166",
+      "size": 7403
+    },
+    "runtime_owner/deployed_r17/overrides/freqtrade/binana/binance_order_lists.py": {
+      "sha256": "494e1da8157d2ad0ac1aab5bdd1e27b0ff9cbc68e5cf391cc099e8c614c22875",
+      "size": 14078
+    },
+    "runtime_owner/deployed_r17/overrides/freqtrade/binana/confluence.py": {
+      "sha256": "10a9dd68fa4a47616ce6512951ce5f334678e9e354a90cc5d8ff1101de003f39",
+      "size": 3480
+    },
+    "runtime_owner/deployed_r17/overrides/freqtrade/binana/durable_journal.py": {
+      "sha256": "2fcc90eb8f09503c6dca87217ec771df3ed78ac60cece1a6f6338de4850949e2",
+      "size": 5412
+    },
+    "runtime_owner/deployed_r17/overrides/freqtrade/binana/environment.py": {
+      "sha256": "b889ac5a13994905cf6f40cb4c6863cf0c8f501c080051f2696ae560bfc4cc3a",
+      "size": 2490
+    },
+    "runtime_owner/deployed_r17/overrides/freqtrade/binana/execution_manager.py": {
+      "sha256": "57bc0c04fe57510492b105981201a6cfefd6be531a836f070211d6917e4740d4",
+      "size": 36816
+    },
+    "runtime_owner/deployed_r17/overrides/freqtrade/binana/market_data.py": {
+      "sha256": "125ee1259f7eb135bcc52cd93b9734b18984573ac592c847a1881cfda84677d1",
+      "size": 7570
+    },
+    "runtime_owner/deployed_r17/overrides/freqtrade/binana/registry.py": {
+      "sha256": "41cde0f2cf23a3ea279895820dda1ece6e0fd72343bceeefe3921e4d6ece48e1",
+      "size": 3328
+    },
+    "runtime_owner/deployed_r17/overrides/freqtrade/binana/state_store.py": {
+      "sha256": "6c30ba71a19525c936f85dc9d26e9f07ee36f6aef0ebc353f4f0fc4314e4d6ec",
+      "size": 18674
+    },
+    "runtime_owner/deployed_r17/overrides/freqtrade/binana/verified_recovery.py": {
+      "sha256": "0e8ec0f475e91e3a29586bbb6341587e7645249eae220ff1642be66842280626",
+      "size": 25826
+    },
+    "runtime_owner/deployed_r17/overrides/freqtrade/exchange/binance.py": {
+      "sha256": "e4c4cb52d35b445e269322db7e19d1b39354c7ee793eff2eff7d08eb40e1ef2a",
+      "size": 25738
+    },
+    "runtime_owner/deployed_r17/overrides/freqtrade/freqtradebot.py": {
+      "sha256": "aa02b3afb1fea8256700a4ced9c4e17e9c5214b8a266764fa801ca882b15895a",
+      "size": 118958
+    },
+    "runtime_owner/deployed_r17/overrides/freqtrade/persistence/trade_model.py": {
+      "sha256": "defd4b3be44b0260879707857173587ee9b390e2a1e5463d686bec6ac3554f30",
+      "size": 87431
+    },
+    "runtime_owner/deployed_r17/overrides/freqtrade/rpc/rpc.py": {
+      "sha256": "3ecbefd64813cc66803a914198524def9ac1f75ddb1ed254c13c607bc228db41",
+      "size": 74814
+    },
+    "runtime_owner/deployed_services/README.md": {
+      "sha256": "1573f8583c7629b0314f85251c8b80945fb5fb46d6aadc46395b620ddbff2afd",
+      "size": 921
+    },
+    "runtime_owner/deployed_services/SOURCE_INDEX.json": {
+      "sha256": "d9a2541a6c1e3cd7c5e5319e128c196b3a7a0e9bc2619e79bc2c25d224dbbdd6",
+      "size": 127785
+    },
+    "runtime_owner/deployed_services/overrides/execution-sidecar/monitor_only.py": {
+      "sha256": "7eb8cf2f993e128380bbae4b00eca4983b7d6fd8287c4f102cdcee62538c5cee",
+      "size": 2708
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/runtime_stable_panel.py": {
+      "sha256": "51a900ef9a2ffa4b546090bdd6fd614c56080460d0c1a01fa267e42e023d1292",
+      "size": 100724
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/common/backtest_pairs.py": {
+      "sha256": "3484fd22df9649404dc61e46edaae5bf3cb5e3df951a9877acf61259de8b8770",
+      "size": 3198
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/common/paths.py": {
+      "sha256": "f6f4065f74c60eccf5c51f12e5431595c516ccf5582677c0c5a44eec9ebd7305",
+      "size": 3230
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/common/sharia_v19.py": {
+      "sha256": "5eb9fd5338d80fcaf0d39bb3f4935a75b57dd91136c72a83a7551b659b04d865",
+      "size": 27819
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/live_evidence.py": {
+      "sha256": "1a10ec57f479b68ba8c26b2a5bf1e9065f68cafa662c75f0ecf456a0d7c76732",
+      "size": 3971
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/main.py": {
+      "sha256": "3f9a3beea2d975fc9d8fedcb96d89775b3f5e37e0ff13cfdd3c69dbbb4a0a919",
+      "size": 31484
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/order_manager.py": {
+      "sha256": "f1bccb6c9d9003f1966ec672cc6dc845fa5d579e874ae46d1cee4dbc8d147631",
+      "size": 14802
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_operator/source_review.py": {
+      "sha256": "96b3fcdeeda48e9283079b5318c034e71646217e7bdbbdbbbfefd739af842059",
+      "size": 5455
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_retriever/__init__.py": {
+      "sha256": "d2b8c8f66a130a6440ffbe61b40c5f329eb2cdc7b89ea1e77823d646861ba57b",
+      "size": 1068
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_retriever/retriever.py": {
+      "sha256": "347acbf384f01f6a805013b1bc9ad835fb2e08e2c5c142aa294a401faef76c27",
+      "size": 25781
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_rules/__init__.py": {
+      "sha256": "eebf2797b2b26dfcc73be23227e14519c45339971367be7116e93c5e149867ca",
+      "size": 870
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_rules/engine.py": {
+      "sha256": "3a0b0bea1e2a3bfceda1a7e21e7de4298be3a60f40b6cc17fdc11592b953fce3",
+      "size": 28825
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/approval.py": {
+      "sha256": "f5451c9edb7c36fe73e99e685ce44f9c0569eb60611b2f4a98e4f1eb677abafe",
+      "size": 8206
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/bridge.py": {
+      "sha256": "e7623a1ddf73fe0a0e828b63562454d4402db20296cbe86aef32953d59d0d87d",
+      "size": 9266
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/evidence_binding.py": {
+      "sha256": "9ac79034ad08984d06e87b7896d78fb730965c6ad94812d3abd0e19c86d09adb",
+      "size": 7430
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/local_runner.py": {
+      "sha256": "e93fed8ec286dd2978df1bcf518110891523f138030b3c1c4a95731cce65e74f",
+      "size": 11736
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/queue_store.py": {
+      "sha256": "20880168d329a979a75e45a114d80a83fc624ed3387d0c0e3747ea0ff89999d9",
+      "size": 17691
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/readiness.py": {
+      "sha256": "fc5a4debf3a6a353e5b31f33a1aaaf6115bbe4bead0de40eb1d6b9c1ab35cea4",
+      "size": 672
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/registry_commands.py": {
+      "sha256": "3bbe9d5c53a41498e547516569a063838efafe3c4d873171cc5d3621445b1ca2",
+      "size": 9510
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/service.py": {
+      "sha256": "077f8570d1320ef8aa0af710ce7a4401e50f9e1f76141a2949e8cf191a0a499d",
+      "size": 31599
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/source_discovery.py": {
+      "sha256": "a77c0cab0af7905953761bd8479baa40881e9167b873ceb3e2b9aac9a96522da",
+      "size": 26644
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/source_registry.py": {
+      "sha256": "eab4294edb6d077a8a99e1cafde8d3190fee7881b257b5936d14b0cb0cddecce",
+      "size": 10986
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/telegram_broker/bot.py": {
+      "sha256": "67daf2644b15909195004f0d718fdabbaeb7405b847f76acdf7eb9a915125ba4",
+      "size": 76683
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/external_signals/budget.py": {
+      "sha256": "a455762426bd8465b4bfb10a72a8a74884003ce716f1f7f4a1117f59e237f91e",
+      "size": 14078
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/scanner.py": {
+      "sha256": "eddc92b28387d62b62dc9a0d73f08a8ac191095b712d4351f5fd7e0787804b15",
+      "size": 19024
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/sharia_filter.py": {
+      "sha256": "bc2623d5d0d0468eaf91fb638b97f359036077658e0d9afc4944ff83032a8207",
+      "size": 12287
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/snapshot_store.py": {
+      "sha256": "ae3528e160ab8b65e2b22b0a742a74a70f82cdeaa7821bfd79f3898fb2aa30c1",
+      "size": 12079
+    },
+    "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/validate_sharia.py": {
+      "sha256": "afa16ae9fb3a999559f611a2d6da6bab2b2da337d75493578d22b44ea63e51c0",
+      "size": 2987
+    },
+    "runtime_owner/deployed_services/overrides/universe/services/common/backtest_pairs.py": {
+      "sha256": "8203ceb04fc61aca0084956b37757bc7f5f29600a6e3ee0a3e80a9d17eecbbe6",
+      "size": 2372
+    },
+    "runtime_owner/deployed_services/overrides/universe/services/market_context/analytics.py": {
+      "sha256": "1d0a891ed70d360bf1305f6a781d32afad145922fb1cf997e2d7ffb7c7f8767b",
+      "size": 18943
+    },
+    "runtime_owner/deployed_services/overrides/universe/services/market_context/l2_book.py": {
+      "sha256": "882a9ae6848227728fcf3a08f94280f26ba0c2d68a08e5af7ab56aefb8134d35",
+      "size": 5513
+    },
+    "runtime_owner/deployed_services/overrides/universe/services/market_context/l2_collector.py": {
+      "sha256": "103a4da5186cc36454d79982289f075176b2ec8b1b3d59baafe9c9c7af60f36d",
+      "size": 3162
+    },
+    "runtime_owner/deployed_services/overrides/universe/services/market_context/service.py": {
+      "sha256": "0ba25107c84caec129aeac1a67773485e84a6f694c8910bdd3752ca241a84008",
+      "size": 8224
+    },
+    "runtime_owner/deployed_services/overrides/universe/services/market_context/spot_stream.py": {
+      "sha256": "43e00ea7e8a12a28cceb56136f527eb321b61a73fe13053c60fabfc9b472be05",
+      "size": 16437
+    },
+    "runtime_owner/deployed_services/overrides/universe/services/telegram_broker/bot.py": {
+      "sha256": "f49abd3f71a3a8dfc74493141b4ea871f2e8cd3cd8c75689eea07ae9e401ac94",
+      "size": 119986
+    },
+    "runtime_owner/deployed_services/overrides/universe/services/universe_service/ranker.py": {
+      "sha256": "95fed741d90b4c8d03d67d9edfe8a3dbd5f2a592cc1e345688b76294c9403ed8",
+      "size": 1916
+    },
+    "runtime_owner/deployed_services/overrides/universe/services/universe_service/scanner.py": {
+      "sha256": "6989ca84ccec7d72732831d5b3d74cbd06d82bf7bbeeb3bd6916bfe8475128a5",
+      "size": 19453
+    },
+    "runtime_owner/deployed_services/overrides/universe/services/universe_service/sharia_filter.py": {
+      "sha256": "242e9ae28aa23d89435280cfef3f094020d14cb16f6bad4800c52d488eb28dd8",
+      "size": 13006
+    },
+    "runtime_owner/deployed_services/overrides/universe/services/universe_service/sharia_gate.py": {
+      "sha256": "c79eb3eff5a8274ab29d446d3f47f1366f9f0f8acdc1ae78cae9af2d6d80c475",
+      "size": 12173
+    },
     "runtime_owner/owner/binana-strategies/BinanaNfiSpot.py": {
       "sha256": "5ae124884ca3fca6c16d477eed4c85d6a3e650b5d13476b4b26b4cdaa7945583",
       "size": 7961
@@ -1043,6 +1279,14 @@
     "scripts/healthcheck.sh": {
       "sha256": "df018036423f62242b13b9dbbe3cab14c29d562b8b6b2315a14c7512a7605ced",
       "size": 1356
+    },
+    "scripts/recovery/repair_mina_identity_20260930.py": {
+      "sha256": "d8db7bd987f268d51ba10f7fee475e61f06d743ffc8cdc1d1062f688292132a1",
+      "size": 6712
+    },
+    "scripts/recovery/repair_retained_metadata_20260930.py": {
+      "sha256": "546efb49335e2e01f2aaaeab6edba83070fb66c60493718d848bd402dae3b661",
+      "size": 8980
     },
     "scripts/resolve_image_digests.sh": {
       "sha256": "ba9fa2a8cd11934d0f23951f81d70793bad1411c813866285103e1b70f573f39",
@@ -1453,8 +1697,8 @@
       "size": 1
     },
     "shared/sharia/halal_coins.json": {
-      "sha256": "1bd43dc72d821d18d82f02afd5617a35f728d3b67f2ecfe7e19fdd2c0addeb87",
-      "size": 5398
+      "sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+      "size": 6304
     },
     "shared/sharia/sharia_status.json": {
       "sha256": "e0d7b34b8411a7829a38618971708da9bda470244fc421fbdebecdae9ff10939",
@@ -1509,8 +1753,8 @@
       "size": 9540
     },
     "tests/test_api_readiness.py": {
-      "sha256": "34f2dc584bbd5af82c419bbb1d5c09ffb98bffe76c81bdb394923bbc452433bd",
-      "size": 8546
+      "sha256": "ca4d31af18e6ccb41e0ee0beb78d05a5cfa93029c1dbe5de4c48051c657fe7c1",
+      "size": 8627
     },
     "tests/test_audit_ledgers.py": {
       "sha256": "cb7f45200a98bfcb307e683eec37e4e47d8c455d9034ab4ede2dffa4cc1c47f0",
@@ -1521,8 +1765,8 @@
       "size": 3263
     },
     "tests/test_backup_recovery_20260830.py": {
-      "sha256": "024065da4c9cf768b5dc9f8cdb74de51e53670423bb4b013b9989c796dc985ce",
-      "size": 5566
+      "sha256": "ac464bcdef0af68a78463031efba5f8e725cb9f5f0710cc656ebd9ae1d549d09",
+      "size": 5863
     },
     "tests/test_binance_filter_contract_20260822.py": {
       "sha256": "ad2bf62191b0ebdbea86acd2eb72b4dbd5ba5529bc55c980709aacf2844cdf0d",
@@ -1533,7 +1777,7 @@
       "size": 2780
     },
     "tests/test_clean_host_deployment.py": {
-      "sha256": "ad59be988ae87dac4a50af22f22889e8db42b8edbb4da24d377960106ade95ea",
+      "sha256": "722459fd32fe15a3a9a04f2e0250308280188d5d4aa394d17edc1ea410eed186",
       "size": 6685
     },
     "tests/test_codex_revision_j_hardening.py": {
@@ -1565,7 +1809,7 @@
       "size": 52962
     },
     "tests/test_manual_sharia_registry.py": {
-      "sha256": "5bf98725d2b2862fca8d21a40c5397aececc4b40df41fcf9e4db0731d0d1e9bd",
+      "sha256": "4d11a62e892134ce33545a91d2f3b23448ad9b7f8cbecfafa2936d2a85384c41",
       "size": 8453
     },
     "tests/test_oracle_capacity_contract.py": {
@@ -1573,7 +1817,7 @@
       "size": 1806
     },
     "tests/test_oracle_hardening_v2.py": {
-      "sha256": "9ce55d2f7bba7ae028781500aeffa90db3253ba9210bc4fb66765afbd55deaa2",
+      "sha256": "bae85767c9c062224a5a15fbd3c0bb8b8b2de37a430f344fc74c6bfc25fe55bc",
       "size": 18132
     },
     "tests/test_oracle_host_loss_resilience.py": {
@@ -1625,8 +1869,8 @@
       "size": 4298
     },
     "tests/test_sharia_operator_workflow.py": {
-      "sha256": "28e42158136860c0b9a1d042aa76bb9141ba0e35e47e5a2f529aedf20b0293f4",
-      "size": 17249
+      "sha256": "ddd0cf9737885d2aaf05bd388539d6cbe6b7d6982f90d22f8712085e46f16e79",
+      "size": 25243
     },
     "tests/test_sharia_quota_hardening.py": {
       "sha256": "6834faf198aa8fd8f0e5e954171bf1510f1fb3a65c71d3557b0c748744905ec2",

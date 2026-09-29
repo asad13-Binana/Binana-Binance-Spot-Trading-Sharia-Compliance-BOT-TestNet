@@ -61,7 +61,7 @@ PROTECTED = {
     "services/universe_service/sharia_filter.py": "3fed49cca73b8e6646768d144b928a3c588b5cac7a6a750578747a10d33763d0",
     "services/universe_service/snapshot_store.py": "aa4bc05c079cb3d68d782e145dbbf3a5b3cc1255987bdd552b2e9214070d17c6",
     "services/universe_service/validate_sharia.py": "3f512488ecc53f4f259883907843da5218881af3bd579e9dd543c1a486fd8219",
-    "shared/sharia/halal_coins.json": "1bd43dc72d821d18d82f02afd5617a35f728d3b67f2ecfe7e19fdd2c0addeb87",
+    "shared/sharia/halal_coins.json": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
     "shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json": "418e7280f0b6a5f4cd9ba3887b8be3099f5fcc4b18bfca66808749720a4dd355",
     "shared/sharia/sharia_status.json": "e0d7b34b8411a7829a38618971708da9bda470244fc421fbdebecdae9ff10939",
 }

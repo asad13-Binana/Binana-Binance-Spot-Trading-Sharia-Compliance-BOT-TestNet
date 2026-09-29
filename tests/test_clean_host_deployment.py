@@ -74,7 +74,7 @@ class CleanHostDeploymentTests(unittest.TestCase):
         script = step['run']
         self.assertIn('up -d sharia-screener', script)
         self.assertIn('HostConfig.NetworkMode', script)
-        self.assertIn('len(status[\'records\']) == len(registry[\'symbols\']) == 305',
+        self.assertIn('len(status[\'records\']) == len(registry[\'symbols\']) == 375',
                       script)
 
     def test_all_shared_bind_sources_are_precreated(self):

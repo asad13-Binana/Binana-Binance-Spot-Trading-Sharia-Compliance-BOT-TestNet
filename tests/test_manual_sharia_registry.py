@@ -53,7 +53,7 @@ class ManualRegistryContractTests(unittest.TestCase):
         status_path = ROOT / 'shared/sharia/sharia_status.json'
         registry = load_manual_registry(registry_path)
         bootstrap = build_manual_bootstrap_status(registry)
-        self.assertEqual(len(registry.symbols), 305)
+        self.assertEqual(len(registry.symbols), 375)
         self.assertEqual(registry.symbols, tuple(sorted(set(registry.symbols))))
         self.assertEqual(bootstrap['projection_mode'], MANUAL_PROJECTION_MODE)
         self.assertEqual(bootstrap['registry_sha256'], registry.sha256)

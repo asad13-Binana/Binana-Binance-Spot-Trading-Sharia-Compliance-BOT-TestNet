@@ -1,0 +1,2488 @@
+{
+  "kind": "Exact Python source inventory for six running AWS BINANA service containers; archival, not activated",
+  "verified_at_utc": "2026-09-29T23:12:00Z",
+  "containers": {
+    "telegram-broker": {
+      "services/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/sharia_retriever/__init__.py": {
+        "sha256": "d2b8c8f66a130a6440ffbe61b40c5f329eb2cdc7b89ea1e77823d646861ba57b",
+        "bytes": 1068,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_retriever/__init__.py"
+      },
+      "services/sharia_retriever/retriever.py": {
+        "sha256": "347acbf384f01f6a805013b1bc9ad835fb2e08e2c5c142aa294a401faef76c27",
+        "bytes": 25781,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_retriever/retriever.py"
+      },
+      "services/sharia_retriever/store.py": {
+        "sha256": "58a4403640c8b6d4c166e50470593b0912d7fa957e75d8930466b56d2dee5224",
+        "bytes": 3699,
+        "repository_source": "services/sharia_retriever/store.py"
+      },
+      "services/common/provider_budget_contract.py": {
+        "sha256": "a26dcdbbdb00e76f28535f561b859b0f995ccd4b550f1c882aadbcdeb45a5082",
+        "bytes": 5548,
+        "repository_source": "services/common/provider_budget_contract.py"
+      },
+      "services/common/retention.py": {
+        "sha256": "6b3e52e05e65429a1d053253995b882500fb9913fd15a18fd877be3747a49d62",
+        "bytes": 1414,
+        "repository_source": "services/common/retention.py"
+      },
+      "services/common/sharia_v19.py": {
+        "sha256": "5eb9fd5338d80fcaf0d39bb3f4935a75b57dd91136c72a83a7551b659b04d865",
+        "bytes": 27819,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/common/sharia_v19.py"
+      },
+      "services/common/paths.py": {
+        "sha256": "f6f4065f74c60eccf5c51f12e5431595c516ccf5582677c0c5a44eec9ebd7305",
+        "bytes": 3230,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/common/paths.py"
+      },
+      "services/common/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/common/evidence_providers.py": {
+        "sha256": "e8c76e1cd75a2847903420b764d4d4669283c1420ebbb0729021b5e565b282cf",
+        "bytes": 3173,
+        "repository_source": "services/common/evidence_providers.py"
+      },
+      "services/common/strategy_fingerprint.py": {
+        "sha256": "09fe2da098d405eab7cac48fc9b7ecde7b2cbf6f3f69450ca989d461f272a959",
+        "bytes": 3892,
+        "repository_source": "services/common/strategy_fingerprint.py"
+      },
+      "services/common/backtest_pairs.py": {
+        "sha256": "3484fd22df9649404dc61e46edaae5bf3cb5e3df951a9877acf61259de8b8770",
+        "bytes": 3198,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/common/backtest_pairs.py"
+      },
+      "services/common/audit.py": {
+        "sha256": "e633eb809709ae243fe39a65022afda6f2a4764a989859f80147fba86681a360",
+        "bytes": 3291,
+        "repository_source": "services/common/audit.py"
+      },
+      "services/common/envelope.py": {
+        "sha256": "b9953189df754a4944ac3f359f82f3aab53e18072535eeaa73a89b49c5c7d23f",
+        "bytes": 7797,
+        "repository_source": "services/common/envelope.py"
+      },
+      "services/common/config_bounds.py": {
+        "sha256": "814a1e4d55a686e0fef88ad5192bf2fb5e03a2630eec53d8801fdcc2a6868e23",
+        "bytes": 1876,
+        "repository_source": "services/common/config_bounds.py"
+      },
+      "services/common/models.py": {
+        "sha256": "be050babe8a315539cc2f2dd603373596e168968b867c8b7233558bd02913d6a",
+        "bytes": 1200,
+        "repository_source": "services/common/models.py"
+      },
+      "services/common/sharia_attestation.py": {
+        "sha256": "55fc7d9b206cf0d4193124bab4d770ae80371dd939054c737c4cfa363c998757",
+        "bytes": 5604,
+        "repository_source": "services/common/sharia_attestation.py"
+      },
+      "services/common/binance_public.py": {
+        "sha256": "468b906da3abf76579535ce166c8d28643cff19ea17367f6de0b25c459614818",
+        "bytes": 9110,
+        "repository_source": "services/common/binance_public.py"
+      },
+      "services/common/atomic.py": {
+        "sha256": "ec74fb0651ff7a05c5ab6c6637e2a38b91e58b27535144ffe9cc4bb98f9c301d",
+        "bytes": 1342,
+        "repository_source": "services/common/atomic.py"
+      },
+      "services/sharia_screener/queue_store.py": {
+        "sha256": "20880168d329a979a75e45a114d80a83fc624ed3387d0c0e3747ea0ff89999d9",
+        "bytes": 17691,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/queue_store.py"
+      },
+      "services/sharia_screener/bridge.py": {
+        "sha256": "e7623a1ddf73fe0a0e828b63562454d4402db20296cbe86aef32953d59d0d87d",
+        "bytes": 9266,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/bridge.py"
+      },
+      "services/sharia_screener/local_runner.py": {
+        "sha256": "e93fed8ec286dd2978df1bcf518110891523f138030b3c1c4a95731cce65e74f",
+        "bytes": 11736,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/local_runner.py"
+      },
+      "services/sharia_screener/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/sharia_screener/approval.py": {
+        "sha256": "f5451c9edb7c36fe73e99e685ce44f9c0569eb60611b2f4a98e4f1eb677abafe",
+        "bytes": 8206,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/approval.py"
+      },
+      "services/sharia_screener/guarded_main.py": {
+        "sha256": "d774d996a6ef9b73698fae77c5603cb9b3e873265813bd63001df04c8f819fde",
+        "bytes": 636,
+        "repository_source": "services/sharia_screener/guarded_main.py"
+      },
+      "services/sharia_screener/source_discovery.py": {
+        "sha256": "a77c0cab0af7905953761bd8479baa40881e9167b873ceb3e2b9aac9a96522da",
+        "bytes": 26644,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/source_discovery.py"
+      },
+      "services/sharia_screener/runner.py": {
+        "sha256": "7298f5ebad396b7d45849d3344d7218f6be92e70de930dfe19f92973656d4f66",
+        "bytes": 543,
+        "repository_source": "services/sharia_screener/runner.py"
+      },
+      "services/sharia_screener/evidence_binding.py": {
+        "sha256": "9ac79034ad08984d06e87b7896d78fb730965c6ad94812d3abd0e19c86d09adb",
+        "bytes": 7430,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/evidence_binding.py"
+      },
+      "services/sharia_screener/readiness.py": {
+        "sha256": "fc5a4debf3a6a353e5b31f33a1aaaf6115bbe4bead0de40eb1d6b9c1ab35cea4",
+        "bytes": 672,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/readiness.py"
+      },
+      "services/sharia_screener/service.py": {
+        "sha256": "077f8570d1320ef8aa0af710ce7a4401e50f9e1f76141a2949e8cf191a0a499d",
+        "bytes": 31599,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/service.py"
+      },
+      "services/sharia_screener/source_registry.py": {
+        "sha256": "eab4294edb6d077a8a99e1cafde8d3190fee7881b257b5936d14b0cb0cddecce",
+        "bytes": 10986,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/source_registry.py"
+      },
+      "services/sharia_screener/verdict_policy.py": {
+        "sha256": "afde5fc2733d6e5a4aea50e436adf3cf55ff83e5d1e32428214f57f8dc6f55e2",
+        "bytes": 14736,
+        "repository_source": "services/sharia_screener/verdict_policy.py"
+      },
+      "services/sharia_screener/manual_registry.py": {
+        "sha256": "1cb61f6cd0550712857c777927934cf9f77fff9ec0ef9c54c11f8ae09e2f2e68",
+        "bytes": 10410,
+        "repository_source": "services/sharia_screener/manual_registry.py"
+      },
+      "services/sharia_screener/registry_commands.py": {
+        "sha256": "3bbe9d5c53a41498e547516569a063838efafe3c4d873171cc5d3621445b1ca2",
+        "bytes": 9510,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/registry_commands.py"
+      },
+      "services/universe_service/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/universe_service/sharia_filter.py": {
+        "sha256": "bc2623d5d0d0468eaf91fb638b97f359036077658e0d9afc4944ff83032a8207",
+        "bytes": 12287,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/sharia_filter.py"
+      },
+      "services/universe_service/scanner.py": {
+        "sha256": "eddc92b28387d62b62dc9a0d73f08a8ac191095b712d4351f5fd7e0787804b15",
+        "bytes": 19024,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/scanner.py"
+      },
+      "services/universe_service/validate_sharia.py": {
+        "sha256": "afa16ae9fb3a999559f611a2d6da6bab2b2da337d75493578d22b44ea63e51c0",
+        "bytes": 2987,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/validate_sharia.py"
+      },
+      "services/universe_service/ranker.py": {
+        "sha256": "267b743782453979cbc6fbbf77fa37895dfdec9910b1d190ba6efa898b7c8e2a",
+        "bytes": 1840,
+        "repository_source": "services/universe_service/ranker.py"
+      },
+      "services/universe_service/snapshot_store.py": {
+        "sha256": "ae3528e160ab8b65e2b22b0a742a74a70f82cdeaa7821bfd79f3898fb2aa30c1",
+        "bytes": 12079,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/snapshot_store.py"
+      },
+      "services/sharia_rules/__init__.py": {
+        "sha256": "eebf2797b2b26dfcc73be23227e14519c45339971367be7116e93c5e149867ca",
+        "bytes": 870,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_rules/__init__.py"
+      },
+      "services/sharia_rules/engine.py": {
+        "sha256": "3a0b0bea1e2a3bfceda1a7e21e7de4298be3a60f40b6cc17fdc11592b953fce3",
+        "bytes": 28825,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_rules/engine.py"
+      },
+      "services/market_context/analytics.py": {
+        "sha256": "a25bb94407c65b71cef1f103a9ba13c407dcdc88c87a64ecaa9d7f42e36ddad9",
+        "bytes": 17359,
+        "repository_source": "services/market_context/analytics.py"
+      },
+      "services/market_context/__init__.py": {
+        "sha256": "4a8440d31fd9ba93f47c6aba14700fea404d65842225e3a3a7c5031d1ed3717f",
+        "bytes": 340,
+        "repository_source": "services/market_context/__init__.py"
+      },
+      "services/market_context/spot_stream.py": {
+        "sha256": "a4e8e4457a8858b49185f3b918af1bc53286cfe67a10fc9b4e3aa750788639e0",
+        "bytes": 14752,
+        "repository_source": "services/market_context/spot_stream.py"
+      },
+      "services/market_context/universe_main.py": {
+        "sha256": "aa04a25a027b15707cab3204c931051f0931b328350c8dbb4e36e8499fd64d3f",
+        "bytes": 646,
+        "repository_source": "services/market_context/universe_main.py"
+      },
+      "services/market_context/evidence.py": {
+        "sha256": "69162ecff7212165b7e74f10cd8276b96522ad2fb65c07cf67a6c873130dd083",
+        "bytes": 4331,
+        "repository_source": "services/market_context/evidence.py"
+      },
+      "services/market_context/service.py": {
+        "sha256": "b388b235a1179af158f9410baf6e9fd3355c0c52126f92323e8fc5579ab370bd",
+        "bytes": 7999,
+        "repository_source": "services/market_context/service.py"
+      },
+      "services/market_context/execution_observer.py": {
+        "sha256": "1b740b7564cfd328923d21cdc6b8333e16ae76ae2ff83b65deee33c48f55fc02",
+        "bytes": 4868,
+        "repository_source": "services/market_context/execution_observer.py"
+      },
+      "services/telegram_broker/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/telegram_broker/callbacks.py": {
+        "sha256": "1f2932fa7fa64ee70a783fae5f5c5bf86af9b0dced8f8f9b43266d8d55391ec4",
+        "bytes": 1163,
+        "repository_source": "services/telegram_broker/callbacks.py"
+      },
+      "services/telegram_broker/authorization.py": {
+        "sha256": "8ecdc84648545ece0fcb7b9edb5be54f6063ef271e0969073224494c8e4835c5",
+        "bytes": 297,
+        "repository_source": "services/telegram_broker/authorization.py"
+      },
+      "services/telegram_broker/bot.py": {
+        "sha256": "67daf2644b15909195004f0d718fdabbaeb7405b847f76acdf7eb9a915125ba4",
+        "bytes": 76683,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/telegram_broker/bot.py"
+      },
+      "services/sharia_egress_proxy/__init__.py": {
+        "sha256": "35f0b2655643dcd2feb5f5d5e677126b0e8af52ad6350a467865c41780a69bb3",
+        "bytes": 69,
+        "repository_source": "services/sharia_egress_proxy/__init__.py"
+      },
+      "services/sharia_egress_proxy/server.py": {
+        "sha256": "fbfb07fd7825048c0246a4eb20ca985207272677c5143e3ddbde21136aeb41d8",
+        "bytes": 7604,
+        "repository_source": "services/sharia_egress_proxy/server.py"
+      },
+      "services/sharia_operator/__init__.py": {
+        "sha256": "0e03a8577be9613b81579f37313b9690b2492308a7772b38cf03634a420720bc",
+        "bytes": 75,
+        "repository_source": "services/sharia_operator/__init__.py"
+      },
+      "services/sharia_operator/source_review.py": {
+        "sha256": "96b3fcdeeda48e9283079b5318c034e71646217e7bdbbdbbbfefd739af842059",
+        "bytes": 5455,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_operator/source_review.py"
+      },
+      "services/execution_sidecar/package_mode.py": {
+        "sha256": "4a09dd03e4c23b770d2eaa31fd2ccc6ffe0e8f1c29d2c7b1bc159a1c5db61f22",
+        "bytes": 4661,
+        "repository_source": "services/execution_sidecar/package_mode.py"
+      },
+      "services/execution_sidecar/live_evidence.py": {
+        "sha256": "1a10ec57f479b68ba8c26b2a5bf1e9065f68cafa662c75f0ecf456a0d7c76732",
+        "bytes": 3971,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/live_evidence.py"
+      },
+      "services/execution_sidecar/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/execution_sidecar/reconciler.py": {
+        "sha256": "c3ef1c46abb44001901b9988d94586ff4e33ae928f159385ab004ca4309fa92f",
+        "bytes": 674,
+        "repository_source": "services/execution_sidecar/reconciler.py"
+      },
+      "services/execution_sidecar/guarded_main.py": {
+        "sha256": "8958250e549a4290c0b5fd47f8e228b366f9abf32aefe1f387327b0ccffd7e38",
+        "bytes": 559,
+        "repository_source": "services/execution_sidecar/guarded_main.py"
+      },
+      "services/execution_sidecar/user_data_stream.py": {
+        "sha256": "85e64a72d8b60e2e91a9a56fa46e69d3a3970221903919f3820b1ef92ee89c83",
+        "bytes": 11548,
+        "repository_source": "services/execution_sidecar/user_data_stream.py"
+      },
+      "services/execution_sidecar/risk_checks.py": {
+        "sha256": "1664091dfbbcf8fbdcf27363dcb41d85aa4a10eab9849df829bb6d761680d93a",
+        "bytes": 10051,
+        "repository_source": "services/execution_sidecar/risk_checks.py"
+      },
+      "services/execution_sidecar/core_adapter.py": {
+        "sha256": "647ca0f0e80d2307c98df966f0062830a4616036eff1bf24bdb6927720267da3",
+        "bytes": 107580,
+        "repository_source": "services/execution_sidecar/core_adapter.py"
+      },
+      "services/execution_sidecar/state_store.py": {
+        "sha256": "fd77b9688970978cfedaa53f526ce6fa4f7f00a12efc20f641f793e5cf9bb767",
+        "bytes": 46775,
+        "repository_source": "services/execution_sidecar/state_store.py"
+      },
+      "services/execution_sidecar/binance_contract_guard.py": {
+        "sha256": "6e83c2eb58678b3f0bfdb8e859f76ed184d8d5a0240e9f9f348a9f8b1599742a",
+        "bytes": 25338,
+        "repository_source": "services/execution_sidecar/binance_contract_guard.py"
+      },
+      "services/execution_sidecar/order_manager.py": {
+        "sha256": "f1bccb6c9d9003f1966ec672cc6dc845fa5d579e874ae46d1cee4dbc8d147631",
+        "bytes": 14802,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/order_manager.py"
+      },
+      "services/execution_sidecar/filters.py": {
+        "sha256": "5897ca3ab71c2bda9e096b51aeaf3e9abae40c26048cc615b3ded5bbe6d417a8",
+        "bytes": 33819,
+        "repository_source": "services/execution_sidecar/filters.py"
+      },
+      "services/execution_sidecar/main.py": {
+        "sha256": "3f9a3beea2d975fc9d8fedcb96d89775b3f5e37e0ff13cfdd3c69dbbb4a0a919",
+        "bytes": 31484,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/main.py"
+      },
+      "services/execution_sidecar/protection_modes.py": {
+        "sha256": "fcaf83f7209ff458a8b4c0e14243fc7a4bc5e4166a53c3c44fa9c9dddcc4e541",
+        "bytes": 4152,
+        "repository_source": "services/execution_sidecar/protection_modes.py"
+      },
+      "services/execution_sidecar/simulation_adapter.py": {
+        "sha256": "b438c33d8b7e9c1c46432d2a7996aa4070a57cfdc06fb0004f4f01276d311432",
+        "bytes": 11885,
+        "repository_source": "services/execution_sidecar/simulation_adapter.py"
+      },
+      "services/universe_service/external_signals/writer_lock.py": {
+        "sha256": "072e364ff9bc470eb0abade98d7f8d16afda50b29ee61fa7fed2a011b232c6b8",
+        "bytes": 5046,
+        "repository_source": "services/universe_service/external_signals/writer_lock.py"
+      },
+      "services/universe_service/external_signals/budget.py": {
+        "sha256": "a455762426bd8465b4bfb10a72a8a74884003ce716f1f7f4a1117f59e237f91e",
+        "bytes": 14078,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/external_signals/budget.py"
+      },
+      "services/universe_service/external_signals/__init__.py": {
+        "sha256": "618c40b150795084d1543143f0dc488d6510544f9fb3c47521de79d2c58d30d5",
+        "bytes": 652,
+        "repository_source": "services/universe_service/external_signals/__init__.py"
+      },
+      "services/universe_service/external_signals/enrichment.py": {
+        "sha256": "7af24e4986a3bf97027142253280a984ec559cc76aad1391966785c482cf260c",
+        "bytes": 35164,
+        "repository_source": "services/universe_service/external_signals/enrichment.py"
+      },
+      "services/universe_service/external_signals/httpguard.py": {
+        "sha256": "6773913d19e519c35a41841a468201a436ff274013ef2bca1440de32e6b672b1",
+        "bytes": 3186,
+        "repository_source": "services/universe_service/external_signals/httpguard.py"
+      },
+      "services/universe_service/external_signals/breaker.py": {
+        "sha256": "415e437caa5e873b9ef21881042b7040301abe59688052da38cdb08737127ac0",
+        "bytes": 4453,
+        "repository_source": "services/universe_service/external_signals/breaker.py"
+      },
+      "services/universe_service/external_signals/cmc_client.py": {
+        "sha256": "65340925bfd18ee70602bd69738e328dd5603e0a8c275a25627e1678c241edfb",
+        "bytes": 8043,
+        "repository_source": "services/universe_service/external_signals/cmc_client.py"
+      },
+      "services/universe_service/external_signals/coingecko_client.py": {
+        "sha256": "b0c73ed29a6844de71ddde3f508cfc47af14cee7f0df2f6ab518c59618b67303",
+        "bytes": 5155,
+        "repository_source": "services/universe_service/external_signals/coingecko_client.py"
+      },
+      "runtime_stable_panel.py": {
+        "sha256": "51a900ef9a2ffa4b546090bdd6fd614c56080460d0c1a01fa267e42e023d1292",
+        "bytes": 100724,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/runtime_stable_panel.py"
+      }
+    },
+    "universe": {
+      "services/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/sharia_retriever/__init__.py": {
+        "sha256": "d2b8c8f66a130a6440ffbe61b40c5f329eb2cdc7b89ea1e77823d646861ba57b",
+        "bytes": 1068,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_retriever/__init__.py"
+      },
+      "services/sharia_retriever/retriever.py": {
+        "sha256": "347acbf384f01f6a805013b1bc9ad835fb2e08e2c5c142aa294a401faef76c27",
+        "bytes": 25781,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_retriever/retriever.py"
+      },
+      "services/sharia_retriever/store.py": {
+        "sha256": "58a4403640c8b6d4c166e50470593b0912d7fa957e75d8930466b56d2dee5224",
+        "bytes": 3699,
+        "repository_source": "services/sharia_retriever/store.py"
+      },
+      "services/common/provider_budget_contract.py": {
+        "sha256": "a26dcdbbdb00e76f28535f561b859b0f995ccd4b550f1c882aadbcdeb45a5082",
+        "bytes": 5548,
+        "repository_source": "services/common/provider_budget_contract.py"
+      },
+      "services/common/retention.py": {
+        "sha256": "6b3e52e05e65429a1d053253995b882500fb9913fd15a18fd877be3747a49d62",
+        "bytes": 1414,
+        "repository_source": "services/common/retention.py"
+      },
+      "services/common/sharia_v19.py": {
+        "sha256": "5eb9fd5338d80fcaf0d39bb3f4935a75b57dd91136c72a83a7551b659b04d865",
+        "bytes": 27819,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/common/sharia_v19.py"
+      },
+      "services/common/paths.py": {
+        "sha256": "f6f4065f74c60eccf5c51f12e5431595c516ccf5582677c0c5a44eec9ebd7305",
+        "bytes": 3230,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/common/paths.py"
+      },
+      "services/common/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/common/evidence_providers.py": {
+        "sha256": "e8c76e1cd75a2847903420b764d4d4669283c1420ebbb0729021b5e565b282cf",
+        "bytes": 3173,
+        "repository_source": "services/common/evidence_providers.py"
+      },
+      "services/common/strategy_fingerprint.py": {
+        "sha256": "09fe2da098d405eab7cac48fc9b7ecde7b2cbf6f3f69450ca989d461f272a959",
+        "bytes": 3892,
+        "repository_source": "services/common/strategy_fingerprint.py"
+      },
+      "services/common/backtest_pairs.py": {
+        "sha256": "8203ceb04fc61aca0084956b37757bc7f5f29600a6e3ee0a3e80a9d17eecbbe6",
+        "bytes": 2372,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/common/backtest_pairs.py"
+      },
+      "services/common/audit.py": {
+        "sha256": "e633eb809709ae243fe39a65022afda6f2a4764a989859f80147fba86681a360",
+        "bytes": 3291,
+        "repository_source": "services/common/audit.py"
+      },
+      "services/common/envelope.py": {
+        "sha256": "b9953189df754a4944ac3f359f82f3aab53e18072535eeaa73a89b49c5c7d23f",
+        "bytes": 7797,
+        "repository_source": "services/common/envelope.py"
+      },
+      "services/common/config_bounds.py": {
+        "sha256": "814a1e4d55a686e0fef88ad5192bf2fb5e03a2630eec53d8801fdcc2a6868e23",
+        "bytes": 1876,
+        "repository_source": "services/common/config_bounds.py"
+      },
+      "services/common/models.py": {
+        "sha256": "be050babe8a315539cc2f2dd603373596e168968b867c8b7233558bd02913d6a",
+        "bytes": 1200,
+        "repository_source": "services/common/models.py"
+      },
+      "services/common/sharia_attestation.py": {
+        "sha256": "55fc7d9b206cf0d4193124bab4d770ae80371dd939054c737c4cfa363c998757",
+        "bytes": 5604,
+        "repository_source": "services/common/sharia_attestation.py"
+      },
+      "services/common/binance_public.py": {
+        "sha256": "468b906da3abf76579535ce166c8d28643cff19ea17367f6de0b25c459614818",
+        "bytes": 9110,
+        "repository_source": "services/common/binance_public.py"
+      },
+      "services/common/atomic.py": {
+        "sha256": "ec74fb0651ff7a05c5ab6c6637e2a38b91e58b27535144ffe9cc4bb98f9c301d",
+        "bytes": 1342,
+        "repository_source": "services/common/atomic.py"
+      },
+      "services/sharia_screener/queue_store.py": {
+        "sha256": "20880168d329a979a75e45a114d80a83fc624ed3387d0c0e3747ea0ff89999d9",
+        "bytes": 17691,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/queue_store.py"
+      },
+      "services/sharia_screener/bridge.py": {
+        "sha256": "e7623a1ddf73fe0a0e828b63562454d4402db20296cbe86aef32953d59d0d87d",
+        "bytes": 9266,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/bridge.py"
+      },
+      "services/sharia_screener/manual_registry_service.py": {
+        "sha256": "39af9f36d60e2eb95b159388783a59df5fe6a950aa4e1f846987f37c327da4e9",
+        "bytes": 13496,
+        "repository_source": "services/sharia_screener/manual_registry_service.py"
+      },
+      "services/sharia_screener/local_runner.py": {
+        "sha256": "e93fed8ec286dd2978df1bcf518110891523f138030b3c1c4a95731cce65e74f",
+        "bytes": 11736,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/local_runner.py"
+      },
+      "services/sharia_screener/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/sharia_screener/approval.py": {
+        "sha256": "f5451c9edb7c36fe73e99e685ce44f9c0569eb60611b2f4a98e4f1eb677abafe",
+        "bytes": 8206,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/approval.py"
+      },
+      "services/sharia_screener/guarded_main.py": {
+        "sha256": "d774d996a6ef9b73698fae77c5603cb9b3e873265813bd63001df04c8f819fde",
+        "bytes": 636,
+        "repository_source": "services/sharia_screener/guarded_main.py"
+      },
+      "services/sharia_screener/source_discovery.py": {
+        "sha256": "a77c0cab0af7905953761bd8479baa40881e9167b873ceb3e2b9aac9a96522da",
+        "bytes": 26644,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/source_discovery.py"
+      },
+      "services/sharia_screener/runner.py": {
+        "sha256": "7298f5ebad396b7d45849d3344d7218f6be92e70de930dfe19f92973656d4f66",
+        "bytes": 543,
+        "repository_source": "services/sharia_screener/runner.py"
+      },
+      "services/sharia_screener/manual_registry.py": {
+        "sha256": "1cb61f6cd0550712857c777927934cf9f77fff9ec0ef9c54c11f8ae09e2f2e68",
+        "bytes": 10410,
+        "repository_source": "services/sharia_screener/manual_registry.py"
+      },
+      "services/sharia_screener/evidence_binding.py": {
+        "sha256": "9ac79034ad08984d06e87b7896d78fb730965c6ad94812d3abd0e19c86d09adb",
+        "bytes": 7430,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/evidence_binding.py"
+      },
+      "services/sharia_screener/readiness.py": {
+        "sha256": "1e650ef2825478735e315c89c0c15b2c1e4df957b70fc25f3e7193f63ec12270",
+        "bytes": 678,
+        "repository_source": "services/sharia_screener/readiness.py"
+      },
+      "services/sharia_screener/registry_commands.py": {
+        "sha256": "3604d6313a6009b8b71ea478697c079b409ce797fc39b4b783106a75d7e51a50",
+        "bytes": 7412,
+        "repository_source": "services/sharia_screener/registry_commands.py"
+      },
+      "services/sharia_screener/service.py": {
+        "sha256": "077f8570d1320ef8aa0af710ce7a4401e50f9e1f76141a2949e8cf191a0a499d",
+        "bytes": 31599,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/service.py"
+      },
+      "services/sharia_screener/source_registry.py": {
+        "sha256": "eab4294edb6d077a8a99e1cafde8d3190fee7881b257b5936d14b0cb0cddecce",
+        "bytes": 10986,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/source_registry.py"
+      },
+      "services/sharia_screener/verdict_policy.py": {
+        "sha256": "afde5fc2733d6e5a4aea50e436adf3cf55ff83e5d1e32428214f57f8dc6f55e2",
+        "bytes": 14736,
+        "repository_source": "services/sharia_screener/verdict_policy.py"
+      },
+      "services/universe_service/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/universe_service/sharia_filter.py": {
+        "sha256": "242e9ae28aa23d89435280cfef3f094020d14cb16f6bad4800c52d488eb28dd8",
+        "bytes": 13006,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/universe_service/sharia_filter.py"
+      },
+      "services/universe_service/scanner.py": {
+        "sha256": "6989ca84ccec7d72732831d5b3d74cbd06d82bf7bbeeb3bd6916bfe8475128a5",
+        "bytes": 19453,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/universe_service/scanner.py"
+      },
+      "services/universe_service/validate_sharia.py": {
+        "sha256": "afa16ae9fb3a999559f611a2d6da6bab2b2da337d75493578d22b44ea63e51c0",
+        "bytes": 2987,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/validate_sharia.py"
+      },
+      "services/universe_service/ranker.py": {
+        "sha256": "95fed741d90b4c8d03d67d9edfe8a3dbd5f2a592cc1e345688b76294c9403ed8",
+        "bytes": 1916,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/universe_service/ranker.py"
+      },
+      "services/universe_service/snapshot_store.py": {
+        "sha256": "ae3528e160ab8b65e2b22b0a742a74a70f82cdeaa7821bfd79f3898fb2aa30c1",
+        "bytes": 12079,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/snapshot_store.py"
+      },
+      "services/universe_service/sharia_gate.py": {
+        "sha256": "c79eb3eff5a8274ab29d446d3f47f1366f9f0f8acdc1ae78cae9af2d6d80c475",
+        "bytes": 12173,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/universe_service/sharia_gate.py"
+      },
+      "services/sharia_rules/__init__.py": {
+        "sha256": "eebf2797b2b26dfcc73be23227e14519c45339971367be7116e93c5e149867ca",
+        "bytes": 870,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_rules/__init__.py"
+      },
+      "services/sharia_rules/engine.py": {
+        "sha256": "3a0b0bea1e2a3bfceda1a7e21e7de4298be3a60f40b6cc17fdc11592b953fce3",
+        "bytes": 28825,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_rules/engine.py"
+      },
+      "services/market_context/analytics.py": {
+        "sha256": "1d0a891ed70d360bf1305f6a781d32afad145922fb1cf997e2d7ffb7c7f8767b",
+        "bytes": 18943,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/market_context/analytics.py"
+      },
+      "services/market_context/__init__.py": {
+        "sha256": "4a8440d31fd9ba93f47c6aba14700fea404d65842225e3a3a7c5031d1ed3717f",
+        "bytes": 340,
+        "repository_source": "services/market_context/__init__.py"
+      },
+      "services/market_context/spot_stream.py": {
+        "sha256": "43e00ea7e8a12a28cceb56136f527eb321b61a73fe13053c60fabfc9b472be05",
+        "bytes": 16437,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/market_context/spot_stream.py"
+      },
+      "services/market_context/universe_main.py": {
+        "sha256": "aa04a25a027b15707cab3204c931051f0931b328350c8dbb4e36e8499fd64d3f",
+        "bytes": 646,
+        "repository_source": "services/market_context/universe_main.py"
+      },
+      "services/market_context/evidence.py": {
+        "sha256": "69162ecff7212165b7e74f10cd8276b96522ad2fb65c07cf67a6c873130dd083",
+        "bytes": 4331,
+        "repository_source": "services/market_context/evidence.py"
+      },
+      "services/market_context/service.py": {
+        "sha256": "0ba25107c84caec129aeac1a67773485e84a6f694c8910bdd3752ca241a84008",
+        "bytes": 8224,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/market_context/service.py"
+      },
+      "services/market_context/execution_observer.py": {
+        "sha256": "1b740b7564cfd328923d21cdc6b8333e16ae76ae2ff83b65deee33c48f55fc02",
+        "bytes": 4868,
+        "repository_source": "services/market_context/execution_observer.py"
+      },
+      "services/market_context/l2_collector.py": {
+        "sha256": "103a4da5186cc36454d79982289f075176b2ec8b1b3d59baafe9c9c7af60f36d",
+        "bytes": 3162,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/market_context/l2_collector.py"
+      },
+      "services/market_context/l2_book.py": {
+        "sha256": "882a9ae6848227728fcf3a08f94280f26ba0c2d68a08e5af7ab56aefb8134d35",
+        "bytes": 5513,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/market_context/l2_book.py"
+      },
+      "services/telegram_broker/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/telegram_broker/callbacks.py": {
+        "sha256": "1f2932fa7fa64ee70a783fae5f5c5bf86af9b0dced8f8f9b43266d8d55391ec4",
+        "bytes": 1163,
+        "repository_source": "services/telegram_broker/callbacks.py"
+      },
+      "services/telegram_broker/authorization.py": {
+        "sha256": "8ecdc84648545ece0fcb7b9edb5be54f6063ef271e0969073224494c8e4835c5",
+        "bytes": 297,
+        "repository_source": "services/telegram_broker/authorization.py"
+      },
+      "services/telegram_broker/bot.py": {
+        "sha256": "f49abd3f71a3a8dfc74493141b4ea871f2e8cd3cd8c75689eea07ae9e401ac94",
+        "bytes": 119986,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/telegram_broker/bot.py"
+      },
+      "services/sharia_egress_proxy/__init__.py": {
+        "sha256": "35f0b2655643dcd2feb5f5d5e677126b0e8af52ad6350a467865c41780a69bb3",
+        "bytes": 69,
+        "repository_source": "services/sharia_egress_proxy/__init__.py"
+      },
+      "services/sharia_egress_proxy/server.py": {
+        "sha256": "fbfb07fd7825048c0246a4eb20ca985207272677c5143e3ddbde21136aeb41d8",
+        "bytes": 7604,
+        "repository_source": "services/sharia_egress_proxy/server.py"
+      },
+      "services/sharia_operator/__init__.py": {
+        "sha256": "0e03a8577be9613b81579f37313b9690b2492308a7772b38cf03634a420720bc",
+        "bytes": 75,
+        "repository_source": "services/sharia_operator/__init__.py"
+      },
+      "services/sharia_operator/source_review.py": {
+        "sha256": "96b3fcdeeda48e9283079b5318c034e71646217e7bdbbdbbbfefd739af842059",
+        "bytes": 5455,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_operator/source_review.py"
+      },
+      "services/execution_sidecar/package_mode.py": {
+        "sha256": "4a09dd03e4c23b770d2eaa31fd2ccc6ffe0e8f1c29d2c7b1bc159a1c5db61f22",
+        "bytes": 4661,
+        "repository_source": "services/execution_sidecar/package_mode.py"
+      },
+      "services/execution_sidecar/live_evidence.py": {
+        "sha256": "1a10ec57f479b68ba8c26b2a5bf1e9065f68cafa662c75f0ecf456a0d7c76732",
+        "bytes": 3971,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/live_evidence.py"
+      },
+      "services/execution_sidecar/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/execution_sidecar/reconciler.py": {
+        "sha256": "c3ef1c46abb44001901b9988d94586ff4e33ae928f159385ab004ca4309fa92f",
+        "bytes": 674,
+        "repository_source": "services/execution_sidecar/reconciler.py"
+      },
+      "services/execution_sidecar/guarded_main.py": {
+        "sha256": "8958250e549a4290c0b5fd47f8e228b366f9abf32aefe1f387327b0ccffd7e38",
+        "bytes": 559,
+        "repository_source": "services/execution_sidecar/guarded_main.py"
+      },
+      "services/execution_sidecar/user_data_stream.py": {
+        "sha256": "85e64a72d8b60e2e91a9a56fa46e69d3a3970221903919f3820b1ef92ee89c83",
+        "bytes": 11548,
+        "repository_source": "services/execution_sidecar/user_data_stream.py"
+      },
+      "services/execution_sidecar/risk_checks.py": {
+        "sha256": "1664091dfbbcf8fbdcf27363dcb41d85aa4a10eab9849df829bb6d761680d93a",
+        "bytes": 10051,
+        "repository_source": "services/execution_sidecar/risk_checks.py"
+      },
+      "services/execution_sidecar/core_adapter.py": {
+        "sha256": "647ca0f0e80d2307c98df966f0062830a4616036eff1bf24bdb6927720267da3",
+        "bytes": 107580,
+        "repository_source": "services/execution_sidecar/core_adapter.py"
+      },
+      "services/execution_sidecar/state_store.py": {
+        "sha256": "fd77b9688970978cfedaa53f526ce6fa4f7f00a12efc20f641f793e5cf9bb767",
+        "bytes": 46775,
+        "repository_source": "services/execution_sidecar/state_store.py"
+      },
+      "services/execution_sidecar/binance_contract_guard.py": {
+        "sha256": "6e83c2eb58678b3f0bfdb8e859f76ed184d8d5a0240e9f9f348a9f8b1599742a",
+        "bytes": 25338,
+        "repository_source": "services/execution_sidecar/binance_contract_guard.py"
+      },
+      "services/execution_sidecar/order_manager.py": {
+        "sha256": "f1bccb6c9d9003f1966ec672cc6dc845fa5d579e874ae46d1cee4dbc8d147631",
+        "bytes": 14802,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/order_manager.py"
+      },
+      "services/execution_sidecar/filters.py": {
+        "sha256": "5897ca3ab71c2bda9e096b51aeaf3e9abae40c26048cc615b3ded5bbe6d417a8",
+        "bytes": 33819,
+        "repository_source": "services/execution_sidecar/filters.py"
+      },
+      "services/execution_sidecar/main.py": {
+        "sha256": "3f9a3beea2d975fc9d8fedcb96d89775b3f5e37e0ff13cfdd3c69dbbb4a0a919",
+        "bytes": 31484,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/main.py"
+      },
+      "services/execution_sidecar/protection_modes.py": {
+        "sha256": "fcaf83f7209ff458a8b4c0e14243fc7a4bc5e4166a53c3c44fa9c9dddcc4e541",
+        "bytes": 4152,
+        "repository_source": "services/execution_sidecar/protection_modes.py"
+      },
+      "services/execution_sidecar/simulation_adapter.py": {
+        "sha256": "b438c33d8b7e9c1c46432d2a7996aa4070a57cfdc06fb0004f4f01276d311432",
+        "bytes": 11885,
+        "repository_source": "services/execution_sidecar/simulation_adapter.py"
+      },
+      "services/universe_service/external_signals/writer_lock.py": {
+        "sha256": "072e364ff9bc470eb0abade98d7f8d16afda50b29ee61fa7fed2a011b232c6b8",
+        "bytes": 5046,
+        "repository_source": "services/universe_service/external_signals/writer_lock.py"
+      },
+      "services/universe_service/external_signals/budget.py": {
+        "sha256": "93829c38df1508f6f92ee2155f0f1998c35bbeab578da6be5756816a58b3d042",
+        "bytes": 14095,
+        "repository_source": "services/universe_service/external_signals/budget.py"
+      },
+      "services/universe_service/external_signals/__init__.py": {
+        "sha256": "618c40b150795084d1543143f0dc488d6510544f9fb3c47521de79d2c58d30d5",
+        "bytes": 652,
+        "repository_source": "services/universe_service/external_signals/__init__.py"
+      },
+      "services/universe_service/external_signals/enrichment.py": {
+        "sha256": "7af24e4986a3bf97027142253280a984ec559cc76aad1391966785c482cf260c",
+        "bytes": 35164,
+        "repository_source": "services/universe_service/external_signals/enrichment.py"
+      },
+      "services/universe_service/external_signals/httpguard.py": {
+        "sha256": "6773913d19e519c35a41841a468201a436ff274013ef2bca1440de32e6b672b1",
+        "bytes": 3186,
+        "repository_source": "services/universe_service/external_signals/httpguard.py"
+      },
+      "services/universe_service/external_signals/breaker.py": {
+        "sha256": "415e437caa5e873b9ef21881042b7040301abe59688052da38cdb08737127ac0",
+        "bytes": 4453,
+        "repository_source": "services/universe_service/external_signals/breaker.py"
+      },
+      "services/universe_service/external_signals/cmc_client.py": {
+        "sha256": "65340925bfd18ee70602bd69738e328dd5603e0a8c275a25627e1678c241edfb",
+        "bytes": 8043,
+        "repository_source": "services/universe_service/external_signals/cmc_client.py"
+      },
+      "services/universe_service/external_signals/coingecko_client.py": {
+        "sha256": "b0c73ed29a6844de71ddde3f508cfc47af14cee7f0df2f6ab518c59618b67303",
+        "bytes": 5155,
+        "repository_source": "services/universe_service/external_signals/coingecko_client.py"
+      }
+    },
+    "execution-sidecar": {
+      "services/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/sharia_retriever/__init__.py": {
+        "sha256": "d2b8c8f66a130a6440ffbe61b40c5f329eb2cdc7b89ea1e77823d646861ba57b",
+        "bytes": 1068,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_retriever/__init__.py"
+      },
+      "services/sharia_retriever/retriever.py": {
+        "sha256": "347acbf384f01f6a805013b1bc9ad835fb2e08e2c5c142aa294a401faef76c27",
+        "bytes": 25781,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_retriever/retriever.py"
+      },
+      "services/sharia_retriever/store.py": {
+        "sha256": "58a4403640c8b6d4c166e50470593b0912d7fa957e75d8930466b56d2dee5224",
+        "bytes": 3699,
+        "repository_source": "services/sharia_retriever/store.py"
+      },
+      "services/common/provider_budget_contract.py": {
+        "sha256": "a26dcdbbdb00e76f28535f561b859b0f995ccd4b550f1c882aadbcdeb45a5082",
+        "bytes": 5548,
+        "repository_source": "services/common/provider_budget_contract.py"
+      },
+      "services/common/retention.py": {
+        "sha256": "6b3e52e05e65429a1d053253995b882500fb9913fd15a18fd877be3747a49d62",
+        "bytes": 1414,
+        "repository_source": "services/common/retention.py"
+      },
+      "services/common/sharia_v19.py": {
+        "sha256": "5eb9fd5338d80fcaf0d39bb3f4935a75b57dd91136c72a83a7551b659b04d865",
+        "bytes": 27819,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/common/sharia_v19.py"
+      },
+      "services/common/paths.py": {
+        "sha256": "f6f4065f74c60eccf5c51f12e5431595c516ccf5582677c0c5a44eec9ebd7305",
+        "bytes": 3230,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/common/paths.py"
+      },
+      "services/common/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/common/evidence_providers.py": {
+        "sha256": "e8c76e1cd75a2847903420b764d4d4669283c1420ebbb0729021b5e565b282cf",
+        "bytes": 3173,
+        "repository_source": "services/common/evidence_providers.py"
+      },
+      "services/common/strategy_fingerprint.py": {
+        "sha256": "09fe2da098d405eab7cac48fc9b7ecde7b2cbf6f3f69450ca989d461f272a959",
+        "bytes": 3892,
+        "repository_source": "services/common/strategy_fingerprint.py"
+      },
+      "services/common/backtest_pairs.py": {
+        "sha256": "8203ceb04fc61aca0084956b37757bc7f5f29600a6e3ee0a3e80a9d17eecbbe6",
+        "bytes": 2372,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/common/backtest_pairs.py"
+      },
+      "services/common/audit.py": {
+        "sha256": "e633eb809709ae243fe39a65022afda6f2a4764a989859f80147fba86681a360",
+        "bytes": 3291,
+        "repository_source": "services/common/audit.py"
+      },
+      "services/common/envelope.py": {
+        "sha256": "b9953189df754a4944ac3f359f82f3aab53e18072535eeaa73a89b49c5c7d23f",
+        "bytes": 7797,
+        "repository_source": "services/common/envelope.py"
+      },
+      "services/common/config_bounds.py": {
+        "sha256": "814a1e4d55a686e0fef88ad5192bf2fb5e03a2630eec53d8801fdcc2a6868e23",
+        "bytes": 1876,
+        "repository_source": "services/common/config_bounds.py"
+      },
+      "services/common/models.py": {
+        "sha256": "be050babe8a315539cc2f2dd603373596e168968b867c8b7233558bd02913d6a",
+        "bytes": 1200,
+        "repository_source": "services/common/models.py"
+      },
+      "services/common/sharia_attestation.py": {
+        "sha256": "55fc7d9b206cf0d4193124bab4d770ae80371dd939054c737c4cfa363c998757",
+        "bytes": 5604,
+        "repository_source": "services/common/sharia_attestation.py"
+      },
+      "services/common/binance_public.py": {
+        "sha256": "468b906da3abf76579535ce166c8d28643cff19ea17367f6de0b25c459614818",
+        "bytes": 9110,
+        "repository_source": "services/common/binance_public.py"
+      },
+      "services/common/atomic.py": {
+        "sha256": "ec74fb0651ff7a05c5ab6c6637e2a38b91e58b27535144ffe9cc4bb98f9c301d",
+        "bytes": 1342,
+        "repository_source": "services/common/atomic.py"
+      },
+      "services/sharia_screener/queue_store.py": {
+        "sha256": "20880168d329a979a75e45a114d80a83fc624ed3387d0c0e3747ea0ff89999d9",
+        "bytes": 17691,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/queue_store.py"
+      },
+      "services/sharia_screener/bridge.py": {
+        "sha256": "e7623a1ddf73fe0a0e828b63562454d4402db20296cbe86aef32953d59d0d87d",
+        "bytes": 9266,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/bridge.py"
+      },
+      "services/sharia_screener/manual_registry_service.py": {
+        "sha256": "39af9f36d60e2eb95b159388783a59df5fe6a950aa4e1f846987f37c327da4e9",
+        "bytes": 13496,
+        "repository_source": "services/sharia_screener/manual_registry_service.py"
+      },
+      "services/sharia_screener/local_runner.py": {
+        "sha256": "e93fed8ec286dd2978df1bcf518110891523f138030b3c1c4a95731cce65e74f",
+        "bytes": 11736,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/local_runner.py"
+      },
+      "services/sharia_screener/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/sharia_screener/approval.py": {
+        "sha256": "f5451c9edb7c36fe73e99e685ce44f9c0569eb60611b2f4a98e4f1eb677abafe",
+        "bytes": 8206,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/approval.py"
+      },
+      "services/sharia_screener/guarded_main.py": {
+        "sha256": "d774d996a6ef9b73698fae77c5603cb9b3e873265813bd63001df04c8f819fde",
+        "bytes": 636,
+        "repository_source": "services/sharia_screener/guarded_main.py"
+      },
+      "services/sharia_screener/source_discovery.py": {
+        "sha256": "a77c0cab0af7905953761bd8479baa40881e9167b873ceb3e2b9aac9a96522da",
+        "bytes": 26644,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/source_discovery.py"
+      },
+      "services/sharia_screener/runner.py": {
+        "sha256": "7298f5ebad396b7d45849d3344d7218f6be92e70de930dfe19f92973656d4f66",
+        "bytes": 543,
+        "repository_source": "services/sharia_screener/runner.py"
+      },
+      "services/sharia_screener/manual_registry.py": {
+        "sha256": "1cb61f6cd0550712857c777927934cf9f77fff9ec0ef9c54c11f8ae09e2f2e68",
+        "bytes": 10410,
+        "repository_source": "services/sharia_screener/manual_registry.py"
+      },
+      "services/sharia_screener/evidence_binding.py": {
+        "sha256": "9ac79034ad08984d06e87b7896d78fb730965c6ad94812d3abd0e19c86d09adb",
+        "bytes": 7430,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/evidence_binding.py"
+      },
+      "services/sharia_screener/readiness.py": {
+        "sha256": "1e650ef2825478735e315c89c0c15b2c1e4df957b70fc25f3e7193f63ec12270",
+        "bytes": 678,
+        "repository_source": "services/sharia_screener/readiness.py"
+      },
+      "services/sharia_screener/registry_commands.py": {
+        "sha256": "3604d6313a6009b8b71ea478697c079b409ce797fc39b4b783106a75d7e51a50",
+        "bytes": 7412,
+        "repository_source": "services/sharia_screener/registry_commands.py"
+      },
+      "services/sharia_screener/service.py": {
+        "sha256": "077f8570d1320ef8aa0af710ce7a4401e50f9e1f76141a2949e8cf191a0a499d",
+        "bytes": 31599,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/service.py"
+      },
+      "services/sharia_screener/source_registry.py": {
+        "sha256": "eab4294edb6d077a8a99e1cafde8d3190fee7881b257b5936d14b0cb0cddecce",
+        "bytes": 10986,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/source_registry.py"
+      },
+      "services/sharia_screener/verdict_policy.py": {
+        "sha256": "afde5fc2733d6e5a4aea50e436adf3cf55ff83e5d1e32428214f57f8dc6f55e2",
+        "bytes": 14736,
+        "repository_source": "services/sharia_screener/verdict_policy.py"
+      },
+      "services/universe_service/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/universe_service/sharia_filter.py": {
+        "sha256": "242e9ae28aa23d89435280cfef3f094020d14cb16f6bad4800c52d488eb28dd8",
+        "bytes": 13006,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/universe_service/sharia_filter.py"
+      },
+      "services/universe_service/scanner.py": {
+        "sha256": "eddc92b28387d62b62dc9a0d73f08a8ac191095b712d4351f5fd7e0787804b15",
+        "bytes": 19024,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/scanner.py"
+      },
+      "services/universe_service/validate_sharia.py": {
+        "sha256": "afa16ae9fb3a999559f611a2d6da6bab2b2da337d75493578d22b44ea63e51c0",
+        "bytes": 2987,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/validate_sharia.py"
+      },
+      "services/universe_service/ranker.py": {
+        "sha256": "267b743782453979cbc6fbbf77fa37895dfdec9910b1d190ba6efa898b7c8e2a",
+        "bytes": 1840,
+        "repository_source": "services/universe_service/ranker.py"
+      },
+      "services/universe_service/snapshot_store.py": {
+        "sha256": "aa4bc05c079cb3d68d782e145dbbf3a5b3cc1255987bdd552b2e9214070d17c6",
+        "bytes": 12084,
+        "repository_source": "services/universe_service/snapshot_store.py"
+      },
+      "services/universe_service/sharia_gate.py": {
+        "sha256": "c79eb3eff5a8274ab29d446d3f47f1366f9f0f8acdc1ae78cae9af2d6d80c475",
+        "bytes": 12173,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/universe_service/sharia_gate.py"
+      },
+      "services/sharia_rules/__init__.py": {
+        "sha256": "eebf2797b2b26dfcc73be23227e14519c45339971367be7116e93c5e149867ca",
+        "bytes": 870,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_rules/__init__.py"
+      },
+      "services/sharia_rules/engine.py": {
+        "sha256": "3a0b0bea1e2a3bfceda1a7e21e7de4298be3a60f40b6cc17fdc11592b953fce3",
+        "bytes": 28825,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_rules/engine.py"
+      },
+      "services/market_context/analytics.py": {
+        "sha256": "a25bb94407c65b71cef1f103a9ba13c407dcdc88c87a64ecaa9d7f42e36ddad9",
+        "bytes": 17359,
+        "repository_source": "services/market_context/analytics.py"
+      },
+      "services/market_context/__init__.py": {
+        "sha256": "4a8440d31fd9ba93f47c6aba14700fea404d65842225e3a3a7c5031d1ed3717f",
+        "bytes": 340,
+        "repository_source": "services/market_context/__init__.py"
+      },
+      "services/market_context/spot_stream.py": {
+        "sha256": "a4e8e4457a8858b49185f3b918af1bc53286cfe67a10fc9b4e3aa750788639e0",
+        "bytes": 14752,
+        "repository_source": "services/market_context/spot_stream.py"
+      },
+      "services/market_context/universe_main.py": {
+        "sha256": "aa04a25a027b15707cab3204c931051f0931b328350c8dbb4e36e8499fd64d3f",
+        "bytes": 646,
+        "repository_source": "services/market_context/universe_main.py"
+      },
+      "services/market_context/evidence.py": {
+        "sha256": "69162ecff7212165b7e74f10cd8276b96522ad2fb65c07cf67a6c873130dd083",
+        "bytes": 4331,
+        "repository_source": "services/market_context/evidence.py"
+      },
+      "services/market_context/service.py": {
+        "sha256": "b388b235a1179af158f9410baf6e9fd3355c0c52126f92323e8fc5579ab370bd",
+        "bytes": 7999,
+        "repository_source": "services/market_context/service.py"
+      },
+      "services/market_context/execution_observer.py": {
+        "sha256": "1b740b7564cfd328923d21cdc6b8333e16ae76ae2ff83b65deee33c48f55fc02",
+        "bytes": 4868,
+        "repository_source": "services/market_context/execution_observer.py"
+      },
+      "services/telegram_broker/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/telegram_broker/callbacks.py": {
+        "sha256": "1f2932fa7fa64ee70a783fae5f5c5bf86af9b0dced8f8f9b43266d8d55391ec4",
+        "bytes": 1163,
+        "repository_source": "services/telegram_broker/callbacks.py"
+      },
+      "services/telegram_broker/authorization.py": {
+        "sha256": "8ecdc84648545ece0fcb7b9edb5be54f6063ef271e0969073224494c8e4835c5",
+        "bytes": 297,
+        "repository_source": "services/telegram_broker/authorization.py"
+      },
+      "services/telegram_broker/bot.py": {
+        "sha256": "f49abd3f71a3a8dfc74493141b4ea871f2e8cd3cd8c75689eea07ae9e401ac94",
+        "bytes": 119986,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/telegram_broker/bot.py"
+      },
+      "services/sharia_egress_proxy/__init__.py": {
+        "sha256": "35f0b2655643dcd2feb5f5d5e677126b0e8af52ad6350a467865c41780a69bb3",
+        "bytes": 69,
+        "repository_source": "services/sharia_egress_proxy/__init__.py"
+      },
+      "services/sharia_egress_proxy/server.py": {
+        "sha256": "fbfb07fd7825048c0246a4eb20ca985207272677c5143e3ddbde21136aeb41d8",
+        "bytes": 7604,
+        "repository_source": "services/sharia_egress_proxy/server.py"
+      },
+      "services/sharia_operator/__init__.py": {
+        "sha256": "0e03a8577be9613b81579f37313b9690b2492308a7772b38cf03634a420720bc",
+        "bytes": 75,
+        "repository_source": "services/sharia_operator/__init__.py"
+      },
+      "services/sharia_operator/source_review.py": {
+        "sha256": "96b3fcdeeda48e9283079b5318c034e71646217e7bdbbdbbbfefd739af842059",
+        "bytes": 5455,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_operator/source_review.py"
+      },
+      "services/execution_sidecar/package_mode.py": {
+        "sha256": "4a09dd03e4c23b770d2eaa31fd2ccc6ffe0e8f1c29d2c7b1bc159a1c5db61f22",
+        "bytes": 4661,
+        "repository_source": "services/execution_sidecar/package_mode.py"
+      },
+      "services/execution_sidecar/live_evidence.py": {
+        "sha256": "1a10ec57f479b68ba8c26b2a5bf1e9065f68cafa662c75f0ecf456a0d7c76732",
+        "bytes": 3971,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/live_evidence.py"
+      },
+      "services/execution_sidecar/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/execution_sidecar/reconciler.py": {
+        "sha256": "c3ef1c46abb44001901b9988d94586ff4e33ae928f159385ab004ca4309fa92f",
+        "bytes": 674,
+        "repository_source": "services/execution_sidecar/reconciler.py"
+      },
+      "services/execution_sidecar/guarded_main.py": {
+        "sha256": "8958250e549a4290c0b5fd47f8e228b366f9abf32aefe1f387327b0ccffd7e38",
+        "bytes": 559,
+        "repository_source": "services/execution_sidecar/guarded_main.py"
+      },
+      "services/execution_sidecar/user_data_stream.py": {
+        "sha256": "85e64a72d8b60e2e91a9a56fa46e69d3a3970221903919f3820b1ef92ee89c83",
+        "bytes": 11548,
+        "repository_source": "services/execution_sidecar/user_data_stream.py"
+      },
+      "services/execution_sidecar/risk_checks.py": {
+        "sha256": "1664091dfbbcf8fbdcf27363dcb41d85aa4a10eab9849df829bb6d761680d93a",
+        "bytes": 10051,
+        "repository_source": "services/execution_sidecar/risk_checks.py"
+      },
+      "services/execution_sidecar/core_adapter.py": {
+        "sha256": "647ca0f0e80d2307c98df966f0062830a4616036eff1bf24bdb6927720267da3",
+        "bytes": 107580,
+        "repository_source": "services/execution_sidecar/core_adapter.py"
+      },
+      "services/execution_sidecar/state_store.py": {
+        "sha256": "fd77b9688970978cfedaa53f526ce6fa4f7f00a12efc20f641f793e5cf9bb767",
+        "bytes": 46775,
+        "repository_source": "services/execution_sidecar/state_store.py"
+      },
+      "services/execution_sidecar/binance_contract_guard.py": {
+        "sha256": "6e83c2eb58678b3f0bfdb8e859f76ed184d8d5a0240e9f9f348a9f8b1599742a",
+        "bytes": 25338,
+        "repository_source": "services/execution_sidecar/binance_contract_guard.py"
+      },
+      "services/execution_sidecar/order_manager.py": {
+        "sha256": "f1bccb6c9d9003f1966ec672cc6dc845fa5d579e874ae46d1cee4dbc8d147631",
+        "bytes": 14802,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/order_manager.py"
+      },
+      "services/execution_sidecar/filters.py": {
+        "sha256": "5897ca3ab71c2bda9e096b51aeaf3e9abae40c26048cc615b3ded5bbe6d417a8",
+        "bytes": 33819,
+        "repository_source": "services/execution_sidecar/filters.py"
+      },
+      "services/execution_sidecar/main.py": {
+        "sha256": "3f9a3beea2d975fc9d8fedcb96d89775b3f5e37e0ff13cfdd3c69dbbb4a0a919",
+        "bytes": 31484,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/main.py"
+      },
+      "services/execution_sidecar/protection_modes.py": {
+        "sha256": "fcaf83f7209ff458a8b4c0e14243fc7a4bc5e4166a53c3c44fa9c9dddcc4e541",
+        "bytes": 4152,
+        "repository_source": "services/execution_sidecar/protection_modes.py"
+      },
+      "services/execution_sidecar/simulation_adapter.py": {
+        "sha256": "b438c33d8b7e9c1c46432d2a7996aa4070a57cfdc06fb0004f4f01276d311432",
+        "bytes": 11885,
+        "repository_source": "services/execution_sidecar/simulation_adapter.py"
+      },
+      "services/universe_service/external_signals/writer_lock.py": {
+        "sha256": "072e364ff9bc470eb0abade98d7f8d16afda50b29ee61fa7fed2a011b232c6b8",
+        "bytes": 5046,
+        "repository_source": "services/universe_service/external_signals/writer_lock.py"
+      },
+      "services/universe_service/external_signals/budget.py": {
+        "sha256": "93829c38df1508f6f92ee2155f0f1998c35bbeab578da6be5756816a58b3d042",
+        "bytes": 14095,
+        "repository_source": "services/universe_service/external_signals/budget.py"
+      },
+      "services/universe_service/external_signals/__init__.py": {
+        "sha256": "618c40b150795084d1543143f0dc488d6510544f9fb3c47521de79d2c58d30d5",
+        "bytes": 652,
+        "repository_source": "services/universe_service/external_signals/__init__.py"
+      },
+      "services/universe_service/external_signals/enrichment.py": {
+        "sha256": "7af24e4986a3bf97027142253280a984ec559cc76aad1391966785c482cf260c",
+        "bytes": 35164,
+        "repository_source": "services/universe_service/external_signals/enrichment.py"
+      },
+      "services/universe_service/external_signals/httpguard.py": {
+        "sha256": "6773913d19e519c35a41841a468201a436ff274013ef2bca1440de32e6b672b1",
+        "bytes": 3186,
+        "repository_source": "services/universe_service/external_signals/httpguard.py"
+      },
+      "services/universe_service/external_signals/breaker.py": {
+        "sha256": "415e437caa5e873b9ef21881042b7040301abe59688052da38cdb08737127ac0",
+        "bytes": 4453,
+        "repository_source": "services/universe_service/external_signals/breaker.py"
+      },
+      "services/universe_service/external_signals/cmc_client.py": {
+        "sha256": "65340925bfd18ee70602bd69738e328dd5603e0a8c275a25627e1678c241edfb",
+        "bytes": 8043,
+        "repository_source": "services/universe_service/external_signals/cmc_client.py"
+      },
+      "services/universe_service/external_signals/coingecko_client.py": {
+        "sha256": "b0c73ed29a6844de71ddde3f508cfc47af14cee7f0df2f6ab518c59618b67303",
+        "bytes": 5155,
+        "repository_source": "services/universe_service/external_signals/coingecko_client.py"
+      },
+      "monitor_only.py": {
+        "sha256": "7eb8cf2f993e128380bbae4b00eca4983b7d6fd8287c4f102cdcee62538c5cee",
+        "bytes": 2708,
+        "repository_source": "runtime_owner/deployed_services/overrides/execution-sidecar/monitor_only.py"
+      }
+    },
+    "sharia-screener": {
+      "services/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/sharia_retriever/__init__.py": {
+        "sha256": "d2b8c8f66a130a6440ffbe61b40c5f329eb2cdc7b89ea1e77823d646861ba57b",
+        "bytes": 1068,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_retriever/__init__.py"
+      },
+      "services/sharia_retriever/retriever.py": {
+        "sha256": "347acbf384f01f6a805013b1bc9ad835fb2e08e2c5c142aa294a401faef76c27",
+        "bytes": 25781,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_retriever/retriever.py"
+      },
+      "services/sharia_retriever/store.py": {
+        "sha256": "58a4403640c8b6d4c166e50470593b0912d7fa957e75d8930466b56d2dee5224",
+        "bytes": 3699,
+        "repository_source": "services/sharia_retriever/store.py"
+      },
+      "services/common/provider_budget_contract.py": {
+        "sha256": "a26dcdbbdb00e76f28535f561b859b0f995ccd4b550f1c882aadbcdeb45a5082",
+        "bytes": 5548,
+        "repository_source": "services/common/provider_budget_contract.py"
+      },
+      "services/common/retention.py": {
+        "sha256": "6b3e52e05e65429a1d053253995b882500fb9913fd15a18fd877be3747a49d62",
+        "bytes": 1414,
+        "repository_source": "services/common/retention.py"
+      },
+      "services/common/sharia_v19.py": {
+        "sha256": "5eb9fd5338d80fcaf0d39bb3f4935a75b57dd91136c72a83a7551b659b04d865",
+        "bytes": 27819,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/common/sharia_v19.py"
+      },
+      "services/common/paths.py": {
+        "sha256": "f6f4065f74c60eccf5c51f12e5431595c516ccf5582677c0c5a44eec9ebd7305",
+        "bytes": 3230,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/common/paths.py"
+      },
+      "services/common/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/common/evidence_providers.py": {
+        "sha256": "e8c76e1cd75a2847903420b764d4d4669283c1420ebbb0729021b5e565b282cf",
+        "bytes": 3173,
+        "repository_source": "services/common/evidence_providers.py"
+      },
+      "services/common/strategy_fingerprint.py": {
+        "sha256": "09fe2da098d405eab7cac48fc9b7ecde7b2cbf6f3f69450ca989d461f272a959",
+        "bytes": 3892,
+        "repository_source": "services/common/strategy_fingerprint.py"
+      },
+      "services/common/backtest_pairs.py": {
+        "sha256": "8203ceb04fc61aca0084956b37757bc7f5f29600a6e3ee0a3e80a9d17eecbbe6",
+        "bytes": 2372,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/common/backtest_pairs.py"
+      },
+      "services/common/audit.py": {
+        "sha256": "e633eb809709ae243fe39a65022afda6f2a4764a989859f80147fba86681a360",
+        "bytes": 3291,
+        "repository_source": "services/common/audit.py"
+      },
+      "services/common/envelope.py": {
+        "sha256": "b9953189df754a4944ac3f359f82f3aab53e18072535eeaa73a89b49c5c7d23f",
+        "bytes": 7797,
+        "repository_source": "services/common/envelope.py"
+      },
+      "services/common/config_bounds.py": {
+        "sha256": "814a1e4d55a686e0fef88ad5192bf2fb5e03a2630eec53d8801fdcc2a6868e23",
+        "bytes": 1876,
+        "repository_source": "services/common/config_bounds.py"
+      },
+      "services/common/models.py": {
+        "sha256": "be050babe8a315539cc2f2dd603373596e168968b867c8b7233558bd02913d6a",
+        "bytes": 1200,
+        "repository_source": "services/common/models.py"
+      },
+      "services/common/sharia_attestation.py": {
+        "sha256": "55fc7d9b206cf0d4193124bab4d770ae80371dd939054c737c4cfa363c998757",
+        "bytes": 5604,
+        "repository_source": "services/common/sharia_attestation.py"
+      },
+      "services/common/binance_public.py": {
+        "sha256": "468b906da3abf76579535ce166c8d28643cff19ea17367f6de0b25c459614818",
+        "bytes": 9110,
+        "repository_source": "services/common/binance_public.py"
+      },
+      "services/common/atomic.py": {
+        "sha256": "ec74fb0651ff7a05c5ab6c6637e2a38b91e58b27535144ffe9cc4bb98f9c301d",
+        "bytes": 1342,
+        "repository_source": "services/common/atomic.py"
+      },
+      "services/sharia_screener/queue_store.py": {
+        "sha256": "20880168d329a979a75e45a114d80a83fc624ed3387d0c0e3747ea0ff89999d9",
+        "bytes": 17691,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/queue_store.py"
+      },
+      "services/sharia_screener/bridge.py": {
+        "sha256": "e7623a1ddf73fe0a0e828b63562454d4402db20296cbe86aef32953d59d0d87d",
+        "bytes": 9266,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/bridge.py"
+      },
+      "services/sharia_screener/manual_registry_service.py": {
+        "sha256": "39af9f36d60e2eb95b159388783a59df5fe6a950aa4e1f846987f37c327da4e9",
+        "bytes": 13496,
+        "repository_source": "services/sharia_screener/manual_registry_service.py"
+      },
+      "services/sharia_screener/local_runner.py": {
+        "sha256": "e93fed8ec286dd2978df1bcf518110891523f138030b3c1c4a95731cce65e74f",
+        "bytes": 11736,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/local_runner.py"
+      },
+      "services/sharia_screener/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/sharia_screener/approval.py": {
+        "sha256": "f5451c9edb7c36fe73e99e685ce44f9c0569eb60611b2f4a98e4f1eb677abafe",
+        "bytes": 8206,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/approval.py"
+      },
+      "services/sharia_screener/guarded_main.py": {
+        "sha256": "d774d996a6ef9b73698fae77c5603cb9b3e873265813bd63001df04c8f819fde",
+        "bytes": 636,
+        "repository_source": "services/sharia_screener/guarded_main.py"
+      },
+      "services/sharia_screener/source_discovery.py": {
+        "sha256": "a77c0cab0af7905953761bd8479baa40881e9167b873ceb3e2b9aac9a96522da",
+        "bytes": 26644,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/source_discovery.py"
+      },
+      "services/sharia_screener/runner.py": {
+        "sha256": "7298f5ebad396b7d45849d3344d7218f6be92e70de930dfe19f92973656d4f66",
+        "bytes": 543,
+        "repository_source": "services/sharia_screener/runner.py"
+      },
+      "services/sharia_screener/manual_registry.py": {
+        "sha256": "1cb61f6cd0550712857c777927934cf9f77fff9ec0ef9c54c11f8ae09e2f2e68",
+        "bytes": 10410,
+        "repository_source": "services/sharia_screener/manual_registry.py"
+      },
+      "services/sharia_screener/evidence_binding.py": {
+        "sha256": "9ac79034ad08984d06e87b7896d78fb730965c6ad94812d3abd0e19c86d09adb",
+        "bytes": 7430,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/evidence_binding.py"
+      },
+      "services/sharia_screener/readiness.py": {
+        "sha256": "1e650ef2825478735e315c89c0c15b2c1e4df957b70fc25f3e7193f63ec12270",
+        "bytes": 678,
+        "repository_source": "services/sharia_screener/readiness.py"
+      },
+      "services/sharia_screener/registry_commands.py": {
+        "sha256": "3bbe9d5c53a41498e547516569a063838efafe3c4d873171cc5d3621445b1ca2",
+        "bytes": 9510,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/registry_commands.py"
+      },
+      "services/sharia_screener/service.py": {
+        "sha256": "077f8570d1320ef8aa0af710ce7a4401e50f9e1f76141a2949e8cf191a0a499d",
+        "bytes": 31599,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/service.py"
+      },
+      "services/sharia_screener/source_registry.py": {
+        "sha256": "eab4294edb6d077a8a99e1cafde8d3190fee7881b257b5936d14b0cb0cddecce",
+        "bytes": 10986,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/source_registry.py"
+      },
+      "services/sharia_screener/verdict_policy.py": {
+        "sha256": "afde5fc2733d6e5a4aea50e436adf3cf55ff83e5d1e32428214f57f8dc6f55e2",
+        "bytes": 14736,
+        "repository_source": "services/sharia_screener/verdict_policy.py"
+      },
+      "services/universe_service/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/universe_service/sharia_filter.py": {
+        "sha256": "242e9ae28aa23d89435280cfef3f094020d14cb16f6bad4800c52d488eb28dd8",
+        "bytes": 13006,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/universe_service/sharia_filter.py"
+      },
+      "services/universe_service/scanner.py": {
+        "sha256": "eddc92b28387d62b62dc9a0d73f08a8ac191095b712d4351f5fd7e0787804b15",
+        "bytes": 19024,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/scanner.py"
+      },
+      "services/universe_service/validate_sharia.py": {
+        "sha256": "afa16ae9fb3a999559f611a2d6da6bab2b2da337d75493578d22b44ea63e51c0",
+        "bytes": 2987,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/validate_sharia.py"
+      },
+      "services/universe_service/ranker.py": {
+        "sha256": "267b743782453979cbc6fbbf77fa37895dfdec9910b1d190ba6efa898b7c8e2a",
+        "bytes": 1840,
+        "repository_source": "services/universe_service/ranker.py"
+      },
+      "services/universe_service/snapshot_store.py": {
+        "sha256": "aa4bc05c079cb3d68d782e145dbbf3a5b3cc1255987bdd552b2e9214070d17c6",
+        "bytes": 12084,
+        "repository_source": "services/universe_service/snapshot_store.py"
+      },
+      "services/universe_service/sharia_gate.py": {
+        "sha256": "c79eb3eff5a8274ab29d446d3f47f1366f9f0f8acdc1ae78cae9af2d6d80c475",
+        "bytes": 12173,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/universe_service/sharia_gate.py"
+      },
+      "services/sharia_rules/__init__.py": {
+        "sha256": "eebf2797b2b26dfcc73be23227e14519c45339971367be7116e93c5e149867ca",
+        "bytes": 870,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_rules/__init__.py"
+      },
+      "services/sharia_rules/engine.py": {
+        "sha256": "3a0b0bea1e2a3bfceda1a7e21e7de4298be3a60f40b6cc17fdc11592b953fce3",
+        "bytes": 28825,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_rules/engine.py"
+      },
+      "services/market_context/analytics.py": {
+        "sha256": "a25bb94407c65b71cef1f103a9ba13c407dcdc88c87a64ecaa9d7f42e36ddad9",
+        "bytes": 17359,
+        "repository_source": "services/market_context/analytics.py"
+      },
+      "services/market_context/__init__.py": {
+        "sha256": "4a8440d31fd9ba93f47c6aba14700fea404d65842225e3a3a7c5031d1ed3717f",
+        "bytes": 340,
+        "repository_source": "services/market_context/__init__.py"
+      },
+      "services/market_context/spot_stream.py": {
+        "sha256": "a4e8e4457a8858b49185f3b918af1bc53286cfe67a10fc9b4e3aa750788639e0",
+        "bytes": 14752,
+        "repository_source": "services/market_context/spot_stream.py"
+      },
+      "services/market_context/universe_main.py": {
+        "sha256": "aa04a25a027b15707cab3204c931051f0931b328350c8dbb4e36e8499fd64d3f",
+        "bytes": 646,
+        "repository_source": "services/market_context/universe_main.py"
+      },
+      "services/market_context/evidence.py": {
+        "sha256": "69162ecff7212165b7e74f10cd8276b96522ad2fb65c07cf67a6c873130dd083",
+        "bytes": 4331,
+        "repository_source": "services/market_context/evidence.py"
+      },
+      "services/market_context/service.py": {
+        "sha256": "b388b235a1179af158f9410baf6e9fd3355c0c52126f92323e8fc5579ab370bd",
+        "bytes": 7999,
+        "repository_source": "services/market_context/service.py"
+      },
+      "services/market_context/execution_observer.py": {
+        "sha256": "1b740b7564cfd328923d21cdc6b8333e16ae76ae2ff83b65deee33c48f55fc02",
+        "bytes": 4868,
+        "repository_source": "services/market_context/execution_observer.py"
+      },
+      "services/telegram_broker/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/telegram_broker/callbacks.py": {
+        "sha256": "1f2932fa7fa64ee70a783fae5f5c5bf86af9b0dced8f8f9b43266d8d55391ec4",
+        "bytes": 1163,
+        "repository_source": "services/telegram_broker/callbacks.py"
+      },
+      "services/telegram_broker/authorization.py": {
+        "sha256": "8ecdc84648545ece0fcb7b9edb5be54f6063ef271e0969073224494c8e4835c5",
+        "bytes": 297,
+        "repository_source": "services/telegram_broker/authorization.py"
+      },
+      "services/telegram_broker/bot.py": {
+        "sha256": "f49abd3f71a3a8dfc74493141b4ea871f2e8cd3cd8c75689eea07ae9e401ac94",
+        "bytes": 119986,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/telegram_broker/bot.py"
+      },
+      "services/sharia_egress_proxy/__init__.py": {
+        "sha256": "35f0b2655643dcd2feb5f5d5e677126b0e8af52ad6350a467865c41780a69bb3",
+        "bytes": 69,
+        "repository_source": "services/sharia_egress_proxy/__init__.py"
+      },
+      "services/sharia_egress_proxy/server.py": {
+        "sha256": "fbfb07fd7825048c0246a4eb20ca985207272677c5143e3ddbde21136aeb41d8",
+        "bytes": 7604,
+        "repository_source": "services/sharia_egress_proxy/server.py"
+      },
+      "services/sharia_operator/__init__.py": {
+        "sha256": "0e03a8577be9613b81579f37313b9690b2492308a7772b38cf03634a420720bc",
+        "bytes": 75,
+        "repository_source": "services/sharia_operator/__init__.py"
+      },
+      "services/sharia_operator/source_review.py": {
+        "sha256": "96b3fcdeeda48e9283079b5318c034e71646217e7bdbbdbbbfefd739af842059",
+        "bytes": 5455,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_operator/source_review.py"
+      },
+      "services/execution_sidecar/package_mode.py": {
+        "sha256": "4a09dd03e4c23b770d2eaa31fd2ccc6ffe0e8f1c29d2c7b1bc159a1c5db61f22",
+        "bytes": 4661,
+        "repository_source": "services/execution_sidecar/package_mode.py"
+      },
+      "services/execution_sidecar/live_evidence.py": {
+        "sha256": "1a10ec57f479b68ba8c26b2a5bf1e9065f68cafa662c75f0ecf456a0d7c76732",
+        "bytes": 3971,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/live_evidence.py"
+      },
+      "services/execution_sidecar/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/execution_sidecar/reconciler.py": {
+        "sha256": "c3ef1c46abb44001901b9988d94586ff4e33ae928f159385ab004ca4309fa92f",
+        "bytes": 674,
+        "repository_source": "services/execution_sidecar/reconciler.py"
+      },
+      "services/execution_sidecar/guarded_main.py": {
+        "sha256": "8958250e549a4290c0b5fd47f8e228b366f9abf32aefe1f387327b0ccffd7e38",
+        "bytes": 559,
+        "repository_source": "services/execution_sidecar/guarded_main.py"
+      },
+      "services/execution_sidecar/user_data_stream.py": {
+        "sha256": "85e64a72d8b60e2e91a9a56fa46e69d3a3970221903919f3820b1ef92ee89c83",
+        "bytes": 11548,
+        "repository_source": "services/execution_sidecar/user_data_stream.py"
+      },
+      "services/execution_sidecar/risk_checks.py": {
+        "sha256": "1664091dfbbcf8fbdcf27363dcb41d85aa4a10eab9849df829bb6d761680d93a",
+        "bytes": 10051,
+        "repository_source": "services/execution_sidecar/risk_checks.py"
+      },
+      "services/execution_sidecar/core_adapter.py": {
+        "sha256": "647ca0f0e80d2307c98df966f0062830a4616036eff1bf24bdb6927720267da3",
+        "bytes": 107580,
+        "repository_source": "services/execution_sidecar/core_adapter.py"
+      },
+      "services/execution_sidecar/state_store.py": {
+        "sha256": "fd77b9688970978cfedaa53f526ce6fa4f7f00a12efc20f641f793e5cf9bb767",
+        "bytes": 46775,
+        "repository_source": "services/execution_sidecar/state_store.py"
+      },
+      "services/execution_sidecar/binance_contract_guard.py": {
+        "sha256": "6e83c2eb58678b3f0bfdb8e859f76ed184d8d5a0240e9f9f348a9f8b1599742a",
+        "bytes": 25338,
+        "repository_source": "services/execution_sidecar/binance_contract_guard.py"
+      },
+      "services/execution_sidecar/order_manager.py": {
+        "sha256": "f1bccb6c9d9003f1966ec672cc6dc845fa5d579e874ae46d1cee4dbc8d147631",
+        "bytes": 14802,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/order_manager.py"
+      },
+      "services/execution_sidecar/filters.py": {
+        "sha256": "5897ca3ab71c2bda9e096b51aeaf3e9abae40c26048cc615b3ded5bbe6d417a8",
+        "bytes": 33819,
+        "repository_source": "services/execution_sidecar/filters.py"
+      },
+      "services/execution_sidecar/main.py": {
+        "sha256": "3f9a3beea2d975fc9d8fedcb96d89775b3f5e37e0ff13cfdd3c69dbbb4a0a919",
+        "bytes": 31484,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/main.py"
+      },
+      "services/execution_sidecar/protection_modes.py": {
+        "sha256": "fcaf83f7209ff458a8b4c0e14243fc7a4bc5e4166a53c3c44fa9c9dddcc4e541",
+        "bytes": 4152,
+        "repository_source": "services/execution_sidecar/protection_modes.py"
+      },
+      "services/execution_sidecar/simulation_adapter.py": {
+        "sha256": "b438c33d8b7e9c1c46432d2a7996aa4070a57cfdc06fb0004f4f01276d311432",
+        "bytes": 11885,
+        "repository_source": "services/execution_sidecar/simulation_adapter.py"
+      },
+      "services/universe_service/external_signals/writer_lock.py": {
+        "sha256": "072e364ff9bc470eb0abade98d7f8d16afda50b29ee61fa7fed2a011b232c6b8",
+        "bytes": 5046,
+        "repository_source": "services/universe_service/external_signals/writer_lock.py"
+      },
+      "services/universe_service/external_signals/budget.py": {
+        "sha256": "93829c38df1508f6f92ee2155f0f1998c35bbeab578da6be5756816a58b3d042",
+        "bytes": 14095,
+        "repository_source": "services/universe_service/external_signals/budget.py"
+      },
+      "services/universe_service/external_signals/__init__.py": {
+        "sha256": "618c40b150795084d1543143f0dc488d6510544f9fb3c47521de79d2c58d30d5",
+        "bytes": 652,
+        "repository_source": "services/universe_service/external_signals/__init__.py"
+      },
+      "services/universe_service/external_signals/enrichment.py": {
+        "sha256": "7af24e4986a3bf97027142253280a984ec559cc76aad1391966785c482cf260c",
+        "bytes": 35164,
+        "repository_source": "services/universe_service/external_signals/enrichment.py"
+      },
+      "services/universe_service/external_signals/httpguard.py": {
+        "sha256": "6773913d19e519c35a41841a468201a436ff274013ef2bca1440de32e6b672b1",
+        "bytes": 3186,
+        "repository_source": "services/universe_service/external_signals/httpguard.py"
+      },
+      "services/universe_service/external_signals/breaker.py": {
+        "sha256": "415e437caa5e873b9ef21881042b7040301abe59688052da38cdb08737127ac0",
+        "bytes": 4453,
+        "repository_source": "services/universe_service/external_signals/breaker.py"
+      },
+      "services/universe_service/external_signals/cmc_client.py": {
+        "sha256": "65340925bfd18ee70602bd69738e328dd5603e0a8c275a25627e1678c241edfb",
+        "bytes": 8043,
+        "repository_source": "services/universe_service/external_signals/cmc_client.py"
+      },
+      "services/universe_service/external_signals/coingecko_client.py": {
+        "sha256": "b0c73ed29a6844de71ddde3f508cfc47af14cee7f0df2f6ab518c59618b67303",
+        "bytes": 5155,
+        "repository_source": "services/universe_service/external_signals/coingecko_client.py"
+      }
+    },
+    "sharia-research": {
+      "services/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/sharia_retriever/__init__.py": {
+        "sha256": "d2b8c8f66a130a6440ffbe61b40c5f329eb2cdc7b89ea1e77823d646861ba57b",
+        "bytes": 1068,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_retriever/__init__.py"
+      },
+      "services/sharia_retriever/retriever.py": {
+        "sha256": "347acbf384f01f6a805013b1bc9ad835fb2e08e2c5c142aa294a401faef76c27",
+        "bytes": 25781,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_retriever/retriever.py"
+      },
+      "services/sharia_retriever/store.py": {
+        "sha256": "58a4403640c8b6d4c166e50470593b0912d7fa957e75d8930466b56d2dee5224",
+        "bytes": 3699,
+        "repository_source": "services/sharia_retriever/store.py"
+      },
+      "services/common/provider_budget_contract.py": {
+        "sha256": "a26dcdbbdb00e76f28535f561b859b0f995ccd4b550f1c882aadbcdeb45a5082",
+        "bytes": 5548,
+        "repository_source": "services/common/provider_budget_contract.py"
+      },
+      "services/common/retention.py": {
+        "sha256": "6b3e52e05e65429a1d053253995b882500fb9913fd15a18fd877be3747a49d62",
+        "bytes": 1414,
+        "repository_source": "services/common/retention.py"
+      },
+      "services/common/sharia_v19.py": {
+        "sha256": "5eb9fd5338d80fcaf0d39bb3f4935a75b57dd91136c72a83a7551b659b04d865",
+        "bytes": 27819,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/common/sharia_v19.py"
+      },
+      "services/common/paths.py": {
+        "sha256": "f6f4065f74c60eccf5c51f12e5431595c516ccf5582677c0c5a44eec9ebd7305",
+        "bytes": 3230,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/common/paths.py"
+      },
+      "services/common/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/common/evidence_providers.py": {
+        "sha256": "e8c76e1cd75a2847903420b764d4d4669283c1420ebbb0729021b5e565b282cf",
+        "bytes": 3173,
+        "repository_source": "services/common/evidence_providers.py"
+      },
+      "services/common/strategy_fingerprint.py": {
+        "sha256": "09fe2da098d405eab7cac48fc9b7ecde7b2cbf6f3f69450ca989d461f272a959",
+        "bytes": 3892,
+        "repository_source": "services/common/strategy_fingerprint.py"
+      },
+      "services/common/backtest_pairs.py": {
+        "sha256": "8203ceb04fc61aca0084956b37757bc7f5f29600a6e3ee0a3e80a9d17eecbbe6",
+        "bytes": 2372,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/common/backtest_pairs.py"
+      },
+      "services/common/audit.py": {
+        "sha256": "e633eb809709ae243fe39a65022afda6f2a4764a989859f80147fba86681a360",
+        "bytes": 3291,
+        "repository_source": "services/common/audit.py"
+      },
+      "services/common/envelope.py": {
+        "sha256": "b9953189df754a4944ac3f359f82f3aab53e18072535eeaa73a89b49c5c7d23f",
+        "bytes": 7797,
+        "repository_source": "services/common/envelope.py"
+      },
+      "services/common/config_bounds.py": {
+        "sha256": "814a1e4d55a686e0fef88ad5192bf2fb5e03a2630eec53d8801fdcc2a6868e23",
+        "bytes": 1876,
+        "repository_source": "services/common/config_bounds.py"
+      },
+      "services/common/models.py": {
+        "sha256": "be050babe8a315539cc2f2dd603373596e168968b867c8b7233558bd02913d6a",
+        "bytes": 1200,
+        "repository_source": "services/common/models.py"
+      },
+      "services/common/sharia_attestation.py": {
+        "sha256": "55fc7d9b206cf0d4193124bab4d770ae80371dd939054c737c4cfa363c998757",
+        "bytes": 5604,
+        "repository_source": "services/common/sharia_attestation.py"
+      },
+      "services/common/binance_public.py": {
+        "sha256": "468b906da3abf76579535ce166c8d28643cff19ea17367f6de0b25c459614818",
+        "bytes": 9110,
+        "repository_source": "services/common/binance_public.py"
+      },
+      "services/common/atomic.py": {
+        "sha256": "ec74fb0651ff7a05c5ab6c6637e2a38b91e58b27535144ffe9cc4bb98f9c301d",
+        "bytes": 1342,
+        "repository_source": "services/common/atomic.py"
+      },
+      "services/sharia_screener/queue_store.py": {
+        "sha256": "20880168d329a979a75e45a114d80a83fc624ed3387d0c0e3747ea0ff89999d9",
+        "bytes": 17691,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/queue_store.py"
+      },
+      "services/sharia_screener/bridge.py": {
+        "sha256": "e7623a1ddf73fe0a0e828b63562454d4402db20296cbe86aef32953d59d0d87d",
+        "bytes": 9266,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/bridge.py"
+      },
+      "services/sharia_screener/manual_registry_service.py": {
+        "sha256": "39af9f36d60e2eb95b159388783a59df5fe6a950aa4e1f846987f37c327da4e9",
+        "bytes": 13496,
+        "repository_source": "services/sharia_screener/manual_registry_service.py"
+      },
+      "services/sharia_screener/local_runner.py": {
+        "sha256": "e93fed8ec286dd2978df1bcf518110891523f138030b3c1c4a95731cce65e74f",
+        "bytes": 11736,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/local_runner.py"
+      },
+      "services/sharia_screener/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/sharia_screener/approval.py": {
+        "sha256": "f5451c9edb7c36fe73e99e685ce44f9c0569eb60611b2f4a98e4f1eb677abafe",
+        "bytes": 8206,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/approval.py"
+      },
+      "services/sharia_screener/guarded_main.py": {
+        "sha256": "d774d996a6ef9b73698fae77c5603cb9b3e873265813bd63001df04c8f819fde",
+        "bytes": 636,
+        "repository_source": "services/sharia_screener/guarded_main.py"
+      },
+      "services/sharia_screener/source_discovery.py": {
+        "sha256": "a77c0cab0af7905953761bd8479baa40881e9167b873ceb3e2b9aac9a96522da",
+        "bytes": 26644,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/source_discovery.py"
+      },
+      "services/sharia_screener/runner.py": {
+        "sha256": "7298f5ebad396b7d45849d3344d7218f6be92e70de930dfe19f92973656d4f66",
+        "bytes": 543,
+        "repository_source": "services/sharia_screener/runner.py"
+      },
+      "services/sharia_screener/manual_registry.py": {
+        "sha256": "1cb61f6cd0550712857c777927934cf9f77fff9ec0ef9c54c11f8ae09e2f2e68",
+        "bytes": 10410,
+        "repository_source": "services/sharia_screener/manual_registry.py"
+      },
+      "services/sharia_screener/evidence_binding.py": {
+        "sha256": "9ac79034ad08984d06e87b7896d78fb730965c6ad94812d3abd0e19c86d09adb",
+        "bytes": 7430,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/evidence_binding.py"
+      },
+      "services/sharia_screener/readiness.py": {
+        "sha256": "1e650ef2825478735e315c89c0c15b2c1e4df957b70fc25f3e7193f63ec12270",
+        "bytes": 678,
+        "repository_source": "services/sharia_screener/readiness.py"
+      },
+      "services/sharia_screener/registry_commands.py": {
+        "sha256": "3604d6313a6009b8b71ea478697c079b409ce797fc39b4b783106a75d7e51a50",
+        "bytes": 7412,
+        "repository_source": "services/sharia_screener/registry_commands.py"
+      },
+      "services/sharia_screener/service.py": {
+        "sha256": "077f8570d1320ef8aa0af710ce7a4401e50f9e1f76141a2949e8cf191a0a499d",
+        "bytes": 31599,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/service.py"
+      },
+      "services/sharia_screener/source_registry.py": {
+        "sha256": "eab4294edb6d077a8a99e1cafde8d3190fee7881b257b5936d14b0cb0cddecce",
+        "bytes": 10986,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/source_registry.py"
+      },
+      "services/sharia_screener/verdict_policy.py": {
+        "sha256": "afde5fc2733d6e5a4aea50e436adf3cf55ff83e5d1e32428214f57f8dc6f55e2",
+        "bytes": 14736,
+        "repository_source": "services/sharia_screener/verdict_policy.py"
+      },
+      "services/universe_service/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/universe_service/sharia_filter.py": {
+        "sha256": "242e9ae28aa23d89435280cfef3f094020d14cb16f6bad4800c52d488eb28dd8",
+        "bytes": 13006,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/universe_service/sharia_filter.py"
+      },
+      "services/universe_service/scanner.py": {
+        "sha256": "eddc92b28387d62b62dc9a0d73f08a8ac191095b712d4351f5fd7e0787804b15",
+        "bytes": 19024,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/scanner.py"
+      },
+      "services/universe_service/validate_sharia.py": {
+        "sha256": "afa16ae9fb3a999559f611a2d6da6bab2b2da337d75493578d22b44ea63e51c0",
+        "bytes": 2987,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/validate_sharia.py"
+      },
+      "services/universe_service/ranker.py": {
+        "sha256": "267b743782453979cbc6fbbf77fa37895dfdec9910b1d190ba6efa898b7c8e2a",
+        "bytes": 1840,
+        "repository_source": "services/universe_service/ranker.py"
+      },
+      "services/universe_service/snapshot_store.py": {
+        "sha256": "aa4bc05c079cb3d68d782e145dbbf3a5b3cc1255987bdd552b2e9214070d17c6",
+        "bytes": 12084,
+        "repository_source": "services/universe_service/snapshot_store.py"
+      },
+      "services/universe_service/sharia_gate.py": {
+        "sha256": "c79eb3eff5a8274ab29d446d3f47f1366f9f0f8acdc1ae78cae9af2d6d80c475",
+        "bytes": 12173,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/universe_service/sharia_gate.py"
+      },
+      "services/sharia_rules/__init__.py": {
+        "sha256": "eebf2797b2b26dfcc73be23227e14519c45339971367be7116e93c5e149867ca",
+        "bytes": 870,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_rules/__init__.py"
+      },
+      "services/sharia_rules/engine.py": {
+        "sha256": "3a0b0bea1e2a3bfceda1a7e21e7de4298be3a60f40b6cc17fdc11592b953fce3",
+        "bytes": 28825,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_rules/engine.py"
+      },
+      "services/market_context/analytics.py": {
+        "sha256": "a25bb94407c65b71cef1f103a9ba13c407dcdc88c87a64ecaa9d7f42e36ddad9",
+        "bytes": 17359,
+        "repository_source": "services/market_context/analytics.py"
+      },
+      "services/market_context/__init__.py": {
+        "sha256": "4a8440d31fd9ba93f47c6aba14700fea404d65842225e3a3a7c5031d1ed3717f",
+        "bytes": 340,
+        "repository_source": "services/market_context/__init__.py"
+      },
+      "services/market_context/spot_stream.py": {
+        "sha256": "a4e8e4457a8858b49185f3b918af1bc53286cfe67a10fc9b4e3aa750788639e0",
+        "bytes": 14752,
+        "repository_source": "services/market_context/spot_stream.py"
+      },
+      "services/market_context/universe_main.py": {
+        "sha256": "aa04a25a027b15707cab3204c931051f0931b328350c8dbb4e36e8499fd64d3f",
+        "bytes": 646,
+        "repository_source": "services/market_context/universe_main.py"
+      },
+      "services/market_context/evidence.py": {
+        "sha256": "69162ecff7212165b7e74f10cd8276b96522ad2fb65c07cf67a6c873130dd083",
+        "bytes": 4331,
+        "repository_source": "services/market_context/evidence.py"
+      },
+      "services/market_context/service.py": {
+        "sha256": "b388b235a1179af158f9410baf6e9fd3355c0c52126f92323e8fc5579ab370bd",
+        "bytes": 7999,
+        "repository_source": "services/market_context/service.py"
+      },
+      "services/market_context/execution_observer.py": {
+        "sha256": "1b740b7564cfd328923d21cdc6b8333e16ae76ae2ff83b65deee33c48f55fc02",
+        "bytes": 4868,
+        "repository_source": "services/market_context/execution_observer.py"
+      },
+      "services/telegram_broker/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/telegram_broker/callbacks.py": {
+        "sha256": "1f2932fa7fa64ee70a783fae5f5c5bf86af9b0dced8f8f9b43266d8d55391ec4",
+        "bytes": 1163,
+        "repository_source": "services/telegram_broker/callbacks.py"
+      },
+      "services/telegram_broker/authorization.py": {
+        "sha256": "8ecdc84648545ece0fcb7b9edb5be54f6063ef271e0969073224494c8e4835c5",
+        "bytes": 297,
+        "repository_source": "services/telegram_broker/authorization.py"
+      },
+      "services/telegram_broker/bot.py": {
+        "sha256": "f49abd3f71a3a8dfc74493141b4ea871f2e8cd3cd8c75689eea07ae9e401ac94",
+        "bytes": 119986,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/telegram_broker/bot.py"
+      },
+      "services/sharia_egress_proxy/__init__.py": {
+        "sha256": "35f0b2655643dcd2feb5f5d5e677126b0e8af52ad6350a467865c41780a69bb3",
+        "bytes": 69,
+        "repository_source": "services/sharia_egress_proxy/__init__.py"
+      },
+      "services/sharia_egress_proxy/server.py": {
+        "sha256": "fbfb07fd7825048c0246a4eb20ca985207272677c5143e3ddbde21136aeb41d8",
+        "bytes": 7604,
+        "repository_source": "services/sharia_egress_proxy/server.py"
+      },
+      "services/sharia_operator/__init__.py": {
+        "sha256": "0e03a8577be9613b81579f37313b9690b2492308a7772b38cf03634a420720bc",
+        "bytes": 75,
+        "repository_source": "services/sharia_operator/__init__.py"
+      },
+      "services/sharia_operator/source_review.py": {
+        "sha256": "96b3fcdeeda48e9283079b5318c034e71646217e7bdbbdbbbfefd739af842059",
+        "bytes": 5455,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_operator/source_review.py"
+      },
+      "services/execution_sidecar/package_mode.py": {
+        "sha256": "4a09dd03e4c23b770d2eaa31fd2ccc6ffe0e8f1c29d2c7b1bc159a1c5db61f22",
+        "bytes": 4661,
+        "repository_source": "services/execution_sidecar/package_mode.py"
+      },
+      "services/execution_sidecar/live_evidence.py": {
+        "sha256": "1a10ec57f479b68ba8c26b2a5bf1e9065f68cafa662c75f0ecf456a0d7c76732",
+        "bytes": 3971,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/live_evidence.py"
+      },
+      "services/execution_sidecar/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/execution_sidecar/reconciler.py": {
+        "sha256": "c3ef1c46abb44001901b9988d94586ff4e33ae928f159385ab004ca4309fa92f",
+        "bytes": 674,
+        "repository_source": "services/execution_sidecar/reconciler.py"
+      },
+      "services/execution_sidecar/guarded_main.py": {
+        "sha256": "8958250e549a4290c0b5fd47f8e228b366f9abf32aefe1f387327b0ccffd7e38",
+        "bytes": 559,
+        "repository_source": "services/execution_sidecar/guarded_main.py"
+      },
+      "services/execution_sidecar/user_data_stream.py": {
+        "sha256": "85e64a72d8b60e2e91a9a56fa46e69d3a3970221903919f3820b1ef92ee89c83",
+        "bytes": 11548,
+        "repository_source": "services/execution_sidecar/user_data_stream.py"
+      },
+      "services/execution_sidecar/risk_checks.py": {
+        "sha256": "1664091dfbbcf8fbdcf27363dcb41d85aa4a10eab9849df829bb6d761680d93a",
+        "bytes": 10051,
+        "repository_source": "services/execution_sidecar/risk_checks.py"
+      },
+      "services/execution_sidecar/core_adapter.py": {
+        "sha256": "647ca0f0e80d2307c98df966f0062830a4616036eff1bf24bdb6927720267da3",
+        "bytes": 107580,
+        "repository_source": "services/execution_sidecar/core_adapter.py"
+      },
+      "services/execution_sidecar/state_store.py": {
+        "sha256": "fd77b9688970978cfedaa53f526ce6fa4f7f00a12efc20f641f793e5cf9bb767",
+        "bytes": 46775,
+        "repository_source": "services/execution_sidecar/state_store.py"
+      },
+      "services/execution_sidecar/binance_contract_guard.py": {
+        "sha256": "6e83c2eb58678b3f0bfdb8e859f76ed184d8d5a0240e9f9f348a9f8b1599742a",
+        "bytes": 25338,
+        "repository_source": "services/execution_sidecar/binance_contract_guard.py"
+      },
+      "services/execution_sidecar/order_manager.py": {
+        "sha256": "f1bccb6c9d9003f1966ec672cc6dc845fa5d579e874ae46d1cee4dbc8d147631",
+        "bytes": 14802,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/order_manager.py"
+      },
+      "services/execution_sidecar/filters.py": {
+        "sha256": "5897ca3ab71c2bda9e096b51aeaf3e9abae40c26048cc615b3ded5bbe6d417a8",
+        "bytes": 33819,
+        "repository_source": "services/execution_sidecar/filters.py"
+      },
+      "services/execution_sidecar/main.py": {
+        "sha256": "3f9a3beea2d975fc9d8fedcb96d89775b3f5e37e0ff13cfdd3c69dbbb4a0a919",
+        "bytes": 31484,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/main.py"
+      },
+      "services/execution_sidecar/protection_modes.py": {
+        "sha256": "fcaf83f7209ff458a8b4c0e14243fc7a4bc5e4166a53c3c44fa9c9dddcc4e541",
+        "bytes": 4152,
+        "repository_source": "services/execution_sidecar/protection_modes.py"
+      },
+      "services/execution_sidecar/simulation_adapter.py": {
+        "sha256": "b438c33d8b7e9c1c46432d2a7996aa4070a57cfdc06fb0004f4f01276d311432",
+        "bytes": 11885,
+        "repository_source": "services/execution_sidecar/simulation_adapter.py"
+      },
+      "services/universe_service/external_signals/writer_lock.py": {
+        "sha256": "072e364ff9bc470eb0abade98d7f8d16afda50b29ee61fa7fed2a011b232c6b8",
+        "bytes": 5046,
+        "repository_source": "services/universe_service/external_signals/writer_lock.py"
+      },
+      "services/universe_service/external_signals/budget.py": {
+        "sha256": "93829c38df1508f6f92ee2155f0f1998c35bbeab578da6be5756816a58b3d042",
+        "bytes": 14095,
+        "repository_source": "services/universe_service/external_signals/budget.py"
+      },
+      "services/universe_service/external_signals/__init__.py": {
+        "sha256": "618c40b150795084d1543143f0dc488d6510544f9fb3c47521de79d2c58d30d5",
+        "bytes": 652,
+        "repository_source": "services/universe_service/external_signals/__init__.py"
+      },
+      "services/universe_service/external_signals/enrichment.py": {
+        "sha256": "7af24e4986a3bf97027142253280a984ec559cc76aad1391966785c482cf260c",
+        "bytes": 35164,
+        "repository_source": "services/universe_service/external_signals/enrichment.py"
+      },
+      "services/universe_service/external_signals/httpguard.py": {
+        "sha256": "6773913d19e519c35a41841a468201a436ff274013ef2bca1440de32e6b672b1",
+        "bytes": 3186,
+        "repository_source": "services/universe_service/external_signals/httpguard.py"
+      },
+      "services/universe_service/external_signals/breaker.py": {
+        "sha256": "415e437caa5e873b9ef21881042b7040301abe59688052da38cdb08737127ac0",
+        "bytes": 4453,
+        "repository_source": "services/universe_service/external_signals/breaker.py"
+      },
+      "services/universe_service/external_signals/cmc_client.py": {
+        "sha256": "65340925bfd18ee70602bd69738e328dd5603e0a8c275a25627e1678c241edfb",
+        "bytes": 8043,
+        "repository_source": "services/universe_service/external_signals/cmc_client.py"
+      },
+      "services/universe_service/external_signals/coingecko_client.py": {
+        "sha256": "b0c73ed29a6844de71ddde3f508cfc47af14cee7f0df2f6ab518c59618b67303",
+        "bytes": 5155,
+        "repository_source": "services/universe_service/external_signals/coingecko_client.py"
+      }
+    },
+    "sharia-egress-proxy": {
+      "services/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/sharia_retriever/__init__.py": {
+        "sha256": "d2b8c8f66a130a6440ffbe61b40c5f329eb2cdc7b89ea1e77823d646861ba57b",
+        "bytes": 1068,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_retriever/__init__.py"
+      },
+      "services/sharia_retriever/retriever.py": {
+        "sha256": "347acbf384f01f6a805013b1bc9ad835fb2e08e2c5c142aa294a401faef76c27",
+        "bytes": 25781,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_retriever/retriever.py"
+      },
+      "services/sharia_retriever/store.py": {
+        "sha256": "58a4403640c8b6d4c166e50470593b0912d7fa957e75d8930466b56d2dee5224",
+        "bytes": 3699,
+        "repository_source": "services/sharia_retriever/store.py"
+      },
+      "services/common/provider_budget_contract.py": {
+        "sha256": "a26dcdbbdb00e76f28535f561b859b0f995ccd4b550f1c882aadbcdeb45a5082",
+        "bytes": 5548,
+        "repository_source": "services/common/provider_budget_contract.py"
+      },
+      "services/common/retention.py": {
+        "sha256": "6b3e52e05e65429a1d053253995b882500fb9913fd15a18fd877be3747a49d62",
+        "bytes": 1414,
+        "repository_source": "services/common/retention.py"
+      },
+      "services/common/sharia_v19.py": {
+        "sha256": "5eb9fd5338d80fcaf0d39bb3f4935a75b57dd91136c72a83a7551b659b04d865",
+        "bytes": 27819,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/common/sharia_v19.py"
+      },
+      "services/common/paths.py": {
+        "sha256": "f6f4065f74c60eccf5c51f12e5431595c516ccf5582677c0c5a44eec9ebd7305",
+        "bytes": 3230,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/common/paths.py"
+      },
+      "services/common/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/common/evidence_providers.py": {
+        "sha256": "e8c76e1cd75a2847903420b764d4d4669283c1420ebbb0729021b5e565b282cf",
+        "bytes": 3173,
+        "repository_source": "services/common/evidence_providers.py"
+      },
+      "services/common/strategy_fingerprint.py": {
+        "sha256": "09fe2da098d405eab7cac48fc9b7ecde7b2cbf6f3f69450ca989d461f272a959",
+        "bytes": 3892,
+        "repository_source": "services/common/strategy_fingerprint.py"
+      },
+      "services/common/backtest_pairs.py": {
+        "sha256": "8203ceb04fc61aca0084956b37757bc7f5f29600a6e3ee0a3e80a9d17eecbbe6",
+        "bytes": 2372,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/common/backtest_pairs.py"
+      },
+      "services/common/audit.py": {
+        "sha256": "e633eb809709ae243fe39a65022afda6f2a4764a989859f80147fba86681a360",
+        "bytes": 3291,
+        "repository_source": "services/common/audit.py"
+      },
+      "services/common/envelope.py": {
+        "sha256": "b9953189df754a4944ac3f359f82f3aab53e18072535eeaa73a89b49c5c7d23f",
+        "bytes": 7797,
+        "repository_source": "services/common/envelope.py"
+      },
+      "services/common/config_bounds.py": {
+        "sha256": "814a1e4d55a686e0fef88ad5192bf2fb5e03a2630eec53d8801fdcc2a6868e23",
+        "bytes": 1876,
+        "repository_source": "services/common/config_bounds.py"
+      },
+      "services/common/models.py": {
+        "sha256": "be050babe8a315539cc2f2dd603373596e168968b867c8b7233558bd02913d6a",
+        "bytes": 1200,
+        "repository_source": "services/common/models.py"
+      },
+      "services/common/sharia_attestation.py": {
+        "sha256": "55fc7d9b206cf0d4193124bab4d770ae80371dd939054c737c4cfa363c998757",
+        "bytes": 5604,
+        "repository_source": "services/common/sharia_attestation.py"
+      },
+      "services/common/binance_public.py": {
+        "sha256": "468b906da3abf76579535ce166c8d28643cff19ea17367f6de0b25c459614818",
+        "bytes": 9110,
+        "repository_source": "services/common/binance_public.py"
+      },
+      "services/common/atomic.py": {
+        "sha256": "ec74fb0651ff7a05c5ab6c6637e2a38b91e58b27535144ffe9cc4bb98f9c301d",
+        "bytes": 1342,
+        "repository_source": "services/common/atomic.py"
+      },
+      "services/sharia_screener/queue_store.py": {
+        "sha256": "20880168d329a979a75e45a114d80a83fc624ed3387d0c0e3747ea0ff89999d9",
+        "bytes": 17691,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/queue_store.py"
+      },
+      "services/sharia_screener/bridge.py": {
+        "sha256": "e7623a1ddf73fe0a0e828b63562454d4402db20296cbe86aef32953d59d0d87d",
+        "bytes": 9266,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/bridge.py"
+      },
+      "services/sharia_screener/manual_registry_service.py": {
+        "sha256": "39af9f36d60e2eb95b159388783a59df5fe6a950aa4e1f846987f37c327da4e9",
+        "bytes": 13496,
+        "repository_source": "services/sharia_screener/manual_registry_service.py"
+      },
+      "services/sharia_screener/local_runner.py": {
+        "sha256": "e93fed8ec286dd2978df1bcf518110891523f138030b3c1c4a95731cce65e74f",
+        "bytes": 11736,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/local_runner.py"
+      },
+      "services/sharia_screener/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/sharia_screener/approval.py": {
+        "sha256": "f5451c9edb7c36fe73e99e685ce44f9c0569eb60611b2f4a98e4f1eb677abafe",
+        "bytes": 8206,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/approval.py"
+      },
+      "services/sharia_screener/guarded_main.py": {
+        "sha256": "d774d996a6ef9b73698fae77c5603cb9b3e873265813bd63001df04c8f819fde",
+        "bytes": 636,
+        "repository_source": "services/sharia_screener/guarded_main.py"
+      },
+      "services/sharia_screener/source_discovery.py": {
+        "sha256": "a77c0cab0af7905953761bd8479baa40881e9167b873ceb3e2b9aac9a96522da",
+        "bytes": 26644,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/source_discovery.py"
+      },
+      "services/sharia_screener/runner.py": {
+        "sha256": "7298f5ebad396b7d45849d3344d7218f6be92e70de930dfe19f92973656d4f66",
+        "bytes": 543,
+        "repository_source": "services/sharia_screener/runner.py"
+      },
+      "services/sharia_screener/manual_registry.py": {
+        "sha256": "1cb61f6cd0550712857c777927934cf9f77fff9ec0ef9c54c11f8ae09e2f2e68",
+        "bytes": 10410,
+        "repository_source": "services/sharia_screener/manual_registry.py"
+      },
+      "services/sharia_screener/evidence_binding.py": {
+        "sha256": "9ac79034ad08984d06e87b7896d78fb730965c6ad94812d3abd0e19c86d09adb",
+        "bytes": 7430,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/evidence_binding.py"
+      },
+      "services/sharia_screener/readiness.py": {
+        "sha256": "1e650ef2825478735e315c89c0c15b2c1e4df957b70fc25f3e7193f63ec12270",
+        "bytes": 678,
+        "repository_source": "services/sharia_screener/readiness.py"
+      },
+      "services/sharia_screener/registry_commands.py": {
+        "sha256": "3604d6313a6009b8b71ea478697c079b409ce797fc39b4b783106a75d7e51a50",
+        "bytes": 7412,
+        "repository_source": "services/sharia_screener/registry_commands.py"
+      },
+      "services/sharia_screener/service.py": {
+        "sha256": "077f8570d1320ef8aa0af710ce7a4401e50f9e1f76141a2949e8cf191a0a499d",
+        "bytes": 31599,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/service.py"
+      },
+      "services/sharia_screener/source_registry.py": {
+        "sha256": "eab4294edb6d077a8a99e1cafde8d3190fee7881b257b5936d14b0cb0cddecce",
+        "bytes": 10986,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_screener/source_registry.py"
+      },
+      "services/sharia_screener/verdict_policy.py": {
+        "sha256": "afde5fc2733d6e5a4aea50e436adf3cf55ff83e5d1e32428214f57f8dc6f55e2",
+        "bytes": 14736,
+        "repository_source": "services/sharia_screener/verdict_policy.py"
+      },
+      "services/universe_service/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/universe_service/sharia_filter.py": {
+        "sha256": "242e9ae28aa23d89435280cfef3f094020d14cb16f6bad4800c52d488eb28dd8",
+        "bytes": 13006,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/universe_service/sharia_filter.py"
+      },
+      "services/universe_service/scanner.py": {
+        "sha256": "eddc92b28387d62b62dc9a0d73f08a8ac191095b712d4351f5fd7e0787804b15",
+        "bytes": 19024,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/scanner.py"
+      },
+      "services/universe_service/validate_sharia.py": {
+        "sha256": "afa16ae9fb3a999559f611a2d6da6bab2b2da337d75493578d22b44ea63e51c0",
+        "bytes": 2987,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/universe_service/validate_sharia.py"
+      },
+      "services/universe_service/ranker.py": {
+        "sha256": "267b743782453979cbc6fbbf77fa37895dfdec9910b1d190ba6efa898b7c8e2a",
+        "bytes": 1840,
+        "repository_source": "services/universe_service/ranker.py"
+      },
+      "services/universe_service/snapshot_store.py": {
+        "sha256": "aa4bc05c079cb3d68d782e145dbbf3a5b3cc1255987bdd552b2e9214070d17c6",
+        "bytes": 12084,
+        "repository_source": "services/universe_service/snapshot_store.py"
+      },
+      "services/universe_service/sharia_gate.py": {
+        "sha256": "c79eb3eff5a8274ab29d446d3f47f1366f9f0f8acdc1ae78cae9af2d6d80c475",
+        "bytes": 12173,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/universe_service/sharia_gate.py"
+      },
+      "services/sharia_rules/__init__.py": {
+        "sha256": "eebf2797b2b26dfcc73be23227e14519c45339971367be7116e93c5e149867ca",
+        "bytes": 870,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_rules/__init__.py"
+      },
+      "services/sharia_rules/engine.py": {
+        "sha256": "3a0b0bea1e2a3bfceda1a7e21e7de4298be3a60f40b6cc17fdc11592b953fce3",
+        "bytes": 28825,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_rules/engine.py"
+      },
+      "services/market_context/analytics.py": {
+        "sha256": "a25bb94407c65b71cef1f103a9ba13c407dcdc88c87a64ecaa9d7f42e36ddad9",
+        "bytes": 17359,
+        "repository_source": "services/market_context/analytics.py"
+      },
+      "services/market_context/__init__.py": {
+        "sha256": "4a8440d31fd9ba93f47c6aba14700fea404d65842225e3a3a7c5031d1ed3717f",
+        "bytes": 340,
+        "repository_source": "services/market_context/__init__.py"
+      },
+      "services/market_context/spot_stream.py": {
+        "sha256": "a4e8e4457a8858b49185f3b918af1bc53286cfe67a10fc9b4e3aa750788639e0",
+        "bytes": 14752,
+        "repository_source": "services/market_context/spot_stream.py"
+      },
+      "services/market_context/universe_main.py": {
+        "sha256": "aa04a25a027b15707cab3204c931051f0931b328350c8dbb4e36e8499fd64d3f",
+        "bytes": 646,
+        "repository_source": "services/market_context/universe_main.py"
+      },
+      "services/market_context/evidence.py": {
+        "sha256": "69162ecff7212165b7e74f10cd8276b96522ad2fb65c07cf67a6c873130dd083",
+        "bytes": 4331,
+        "repository_source": "services/market_context/evidence.py"
+      },
+      "services/market_context/service.py": {
+        "sha256": "b388b235a1179af158f9410baf6e9fd3355c0c52126f92323e8fc5579ab370bd",
+        "bytes": 7999,
+        "repository_source": "services/market_context/service.py"
+      },
+      "services/market_context/execution_observer.py": {
+        "sha256": "1b740b7564cfd328923d21cdc6b8333e16ae76ae2ff83b65deee33c48f55fc02",
+        "bytes": 4868,
+        "repository_source": "services/market_context/execution_observer.py"
+      },
+      "services/telegram_broker/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/telegram_broker/callbacks.py": {
+        "sha256": "1f2932fa7fa64ee70a783fae5f5c5bf86af9b0dced8f8f9b43266d8d55391ec4",
+        "bytes": 1163,
+        "repository_source": "services/telegram_broker/callbacks.py"
+      },
+      "services/telegram_broker/authorization.py": {
+        "sha256": "8ecdc84648545ece0fcb7b9edb5be54f6063ef271e0969073224494c8e4835c5",
+        "bytes": 297,
+        "repository_source": "services/telegram_broker/authorization.py"
+      },
+      "services/telegram_broker/bot.py": {
+        "sha256": "f49abd3f71a3a8dfc74493141b4ea871f2e8cd3cd8c75689eea07ae9e401ac94",
+        "bytes": 119986,
+        "repository_source": "runtime_owner/deployed_services/overrides/universe/services/telegram_broker/bot.py"
+      },
+      "services/sharia_egress_proxy/__init__.py": {
+        "sha256": "35f0b2655643dcd2feb5f5d5e677126b0e8af52ad6350a467865c41780a69bb3",
+        "bytes": 69,
+        "repository_source": "services/sharia_egress_proxy/__init__.py"
+      },
+      "services/sharia_egress_proxy/server.py": {
+        "sha256": "fbfb07fd7825048c0246a4eb20ca985207272677c5143e3ddbde21136aeb41d8",
+        "bytes": 7604,
+        "repository_source": "services/sharia_egress_proxy/server.py"
+      },
+      "services/sharia_operator/__init__.py": {
+        "sha256": "0e03a8577be9613b81579f37313b9690b2492308a7772b38cf03634a420720bc",
+        "bytes": 75,
+        "repository_source": "services/sharia_operator/__init__.py"
+      },
+      "services/sharia_operator/source_review.py": {
+        "sha256": "96b3fcdeeda48e9283079b5318c034e71646217e7bdbbdbbbfefd739af842059",
+        "bytes": 5455,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/sharia_operator/source_review.py"
+      },
+      "services/execution_sidecar/package_mode.py": {
+        "sha256": "4a09dd03e4c23b770d2eaa31fd2ccc6ffe0e8f1c29d2c7b1bc159a1c5db61f22",
+        "bytes": 4661,
+        "repository_source": "services/execution_sidecar/package_mode.py"
+      },
+      "services/execution_sidecar/live_evidence.py": {
+        "sha256": "1a10ec57f479b68ba8c26b2a5bf1e9065f68cafa662c75f0ecf456a0d7c76732",
+        "bytes": 3971,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/live_evidence.py"
+      },
+      "services/execution_sidecar/__init__.py": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "repository_source": "services/common/__init__.py"
+      },
+      "services/execution_sidecar/reconciler.py": {
+        "sha256": "c3ef1c46abb44001901b9988d94586ff4e33ae928f159385ab004ca4309fa92f",
+        "bytes": 674,
+        "repository_source": "services/execution_sidecar/reconciler.py"
+      },
+      "services/execution_sidecar/guarded_main.py": {
+        "sha256": "8958250e549a4290c0b5fd47f8e228b366f9abf32aefe1f387327b0ccffd7e38",
+        "bytes": 559,
+        "repository_source": "services/execution_sidecar/guarded_main.py"
+      },
+      "services/execution_sidecar/user_data_stream.py": {
+        "sha256": "85e64a72d8b60e2e91a9a56fa46e69d3a3970221903919f3820b1ef92ee89c83",
+        "bytes": 11548,
+        "repository_source": "services/execution_sidecar/user_data_stream.py"
+      },
+      "services/execution_sidecar/risk_checks.py": {
+        "sha256": "1664091dfbbcf8fbdcf27363dcb41d85aa4a10eab9849df829bb6d761680d93a",
+        "bytes": 10051,
+        "repository_source": "services/execution_sidecar/risk_checks.py"
+      },
+      "services/execution_sidecar/core_adapter.py": {
+        "sha256": "647ca0f0e80d2307c98df966f0062830a4616036eff1bf24bdb6927720267da3",
+        "bytes": 107580,
+        "repository_source": "services/execution_sidecar/core_adapter.py"
+      },
+      "services/execution_sidecar/state_store.py": {
+        "sha256": "fd77b9688970978cfedaa53f526ce6fa4f7f00a12efc20f641f793e5cf9bb767",
+        "bytes": 46775,
+        "repository_source": "services/execution_sidecar/state_store.py"
+      },
+      "services/execution_sidecar/binance_contract_guard.py": {
+        "sha256": "6e83c2eb58678b3f0bfdb8e859f76ed184d8d5a0240e9f9f348a9f8b1599742a",
+        "bytes": 25338,
+        "repository_source": "services/execution_sidecar/binance_contract_guard.py"
+      },
+      "services/execution_sidecar/order_manager.py": {
+        "sha256": "f1bccb6c9d9003f1966ec672cc6dc845fa5d579e874ae46d1cee4dbc8d147631",
+        "bytes": 14802,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/order_manager.py"
+      },
+      "services/execution_sidecar/filters.py": {
+        "sha256": "5897ca3ab71c2bda9e096b51aeaf3e9abae40c26048cc615b3ded5bbe6d417a8",
+        "bytes": 33819,
+        "repository_source": "services/execution_sidecar/filters.py"
+      },
+      "services/execution_sidecar/main.py": {
+        "sha256": "3f9a3beea2d975fc9d8fedcb96d89775b3f5e37e0ff13cfdd3c69dbbb4a0a919",
+        "bytes": 31484,
+        "repository_source": "runtime_owner/deployed_services/overrides/telegram-broker/services/execution_sidecar/main.py"
+      },
+      "services/execution_sidecar/protection_modes.py": {
+        "sha256": "fcaf83f7209ff458a8b4c0e14243fc7a4bc5e4166a53c3c44fa9c9dddcc4e541",
+        "bytes": 4152,
+        "repository_source": "services/execution_sidecar/protection_modes.py"
+      },
+      "services/execution_sidecar/simulation_adapter.py": {
+        "sha256": "b438c33d8b7e9c1c46432d2a7996aa4070a57cfdc06fb0004f4f01276d311432",
+        "bytes": 11885,
+        "repository_source": "services/execution_sidecar/simulation_adapter.py"
+      },
+      "services/universe_service/external_signals/writer_lock.py": {
+        "sha256": "072e364ff9bc470eb0abade98d7f8d16afda50b29ee61fa7fed2a011b232c6b8",
+        "bytes": 5046,
+        "repository_source": "services/universe_service/external_signals/writer_lock.py"
+      },
+      "services/universe_service/external_signals/budget.py": {
+        "sha256": "93829c38df1508f6f92ee2155f0f1998c35bbeab578da6be5756816a58b3d042",
+        "bytes": 14095,
+        "repository_source": "services/universe_service/external_signals/budget.py"
+      },
+      "services/universe_service/external_signals/__init__.py": {
+        "sha256": "618c40b150795084d1543143f0dc488d6510544f9fb3c47521de79d2c58d30d5",
+        "bytes": 652,
+        "repository_source": "services/universe_service/external_signals/__init__.py"
+      },
+      "services/universe_service/external_signals/enrichment.py": {
+        "sha256": "7af24e4986a3bf97027142253280a984ec559cc76aad1391966785c482cf260c",
+        "bytes": 35164,
+        "repository_source": "services/universe_service/external_signals/enrichment.py"
+      },
+      "services/universe_service/external_signals/httpguard.py": {
+        "sha256": "6773913d19e519c35a41841a468201a436ff274013ef2bca1440de32e6b672b1",
+        "bytes": 3186,
+        "repository_source": "services/universe_service/external_signals/httpguard.py"
+      },
+      "services/universe_service/external_signals/breaker.py": {
+        "sha256": "415e437caa5e873b9ef21881042b7040301abe59688052da38cdb08737127ac0",
+        "bytes": 4453,
+        "repository_source": "services/universe_service/external_signals/breaker.py"
+      },
+      "services/universe_service/external_signals/cmc_client.py": {
+        "sha256": "65340925bfd18ee70602bd69738e328dd5603e0a8c275a25627e1678c241edfb",
+        "bytes": 8043,
+        "repository_source": "services/universe_service/external_signals/cmc_client.py"
+      },
+      "services/universe_service/external_signals/coingecko_client.py": {
+        "sha256": "b0c73ed29a6844de71ddde3f508cfc47af14cee7f0df2f6ab518c59618b67303",
+        "bytes": 5155,
+        "repository_source": "services/universe_service/external_signals/coingecko_client.py"
+      }
+    }
+  }
+}

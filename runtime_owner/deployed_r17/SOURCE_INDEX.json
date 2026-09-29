@@ -1,0 +1,127 @@
+{
+  "kind": "Exact deployed r17 custom owner source; archival, not activated",
+  "image_id": "sha256:87c25dfc5b3058891491b6fd0647c86fe9a71f96d8ba41a2693b42797fcada83",
+  "verified_at_utc": "2026-09-29T23:04:00Z",
+  "files": {
+    "binana-strategies/BinanaNfiSpot.py": {
+      "bytes": 7403,
+      "sha256": "cdb226d2bd2bf1a737b630eb0a686da9e09ba263f4b709e0dd3f1510b20d3166",
+      "repository_source": "runtime_owner/deployed_r17/overrides/binana-strategies/BinanaNfiSpot.py"
+    },
+    "binana-strategies/binana_vendor/NostalgiaForInfinityX8.py": {
+      "bytes": 2505700,
+      "sha256": "fcf9f622a3ad797bd143561d1017f3930220f22c793905af929ff1d33bbde686",
+      "repository_source": "runtime_owner/owner/binana-strategies/binana_vendor/NostalgiaForInfinityX8.py"
+    },
+    "freqtrade/binana/__init__.py": {
+      "bytes": 79,
+      "sha256": "b27d08f7c6b48cbff2ef9bb99a89adef207d2c1c426d0eb59fd7d92790c52295",
+      "repository_source": "runtime_owner/owner/freqtrade/binana/__init__.py"
+    },
+    "freqtrade/binana/allocation.py": {
+      "bytes": 2228,
+      "sha256": "51400315c30a61d6f0cc887dae3735e45730fb0e3cf322bbf4dbba6f4d4a4789",
+      "repository_source": "runtime_owner/owner/freqtrade/binana/allocation.py"
+    },
+    "freqtrade/binana/binance_order_lists.py": {
+      "bytes": 14078,
+      "sha256": "494e1da8157d2ad0ac1aab5bdd1e27b0ff9cbc68e5cf391cc099e8c614c22875",
+      "repository_source": "runtime_owner/deployed_r17/overrides/freqtrade/binana/binance_order_lists.py"
+    },
+    "freqtrade/binana/cache.py": {
+      "bytes": 15370,
+      "sha256": "8a6b889e1fc1eaf3ae30f299aef46da80cee1c07cf17f48771ed07cb15fd94f6",
+      "repository_source": "runtime_owner/owner/freqtrade/binana/cache.py"
+    },
+    "freqtrade/binana/cache_runtime.py": {
+      "bytes": 2304,
+      "sha256": "6e08f4580a4a43140300e33b01aab89009b629703f633d4e1d6ac7cc5cdbba43",
+      "repository_source": "runtime_owner/owner/freqtrade/binana/cache_runtime.py"
+    },
+    "freqtrade/binana/confluence.py": {
+      "bytes": 3480,
+      "sha256": "10a9dd68fa4a47616ce6512951ce5f334678e9e354a90cc5d8ff1101de003f39",
+      "repository_source": "runtime_owner/deployed_r17/overrides/freqtrade/binana/confluence.py"
+    },
+    "freqtrade/binana/durable_journal.py": {
+      "bytes": 5412,
+      "sha256": "2fcc90eb8f09503c6dca87217ec771df3ed78ac60cece1a6f6338de4850949e2",
+      "repository_source": "runtime_owner/deployed_r17/overrides/freqtrade/binana/durable_journal.py"
+    },
+    "freqtrade/binana/environment.py": {
+      "bytes": 2490,
+      "sha256": "b889ac5a13994905cf6f40cb4c6863cf0c8f501c080051f2696ae560bfc4cc3a",
+      "repository_source": "runtime_owner/deployed_r17/overrides/freqtrade/binana/environment.py"
+    },
+    "freqtrade/binana/execution_manager.py": {
+      "bytes": 36816,
+      "sha256": "57bc0c04fe57510492b105981201a6cfefd6be531a836f070211d6917e4740d4",
+      "repository_source": "runtime_owner/deployed_r17/overrides/freqtrade/binana/execution_manager.py"
+    },
+    "freqtrade/binana/market_data.py": {
+      "bytes": 7570,
+      "sha256": "125ee1259f7eb135bcc52cd93b9734b18984573ac592c847a1881cfda84677d1",
+      "repository_source": "runtime_owner/deployed_r17/overrides/freqtrade/binana/market_data.py"
+    },
+    "freqtrade/binana/protection_plan.py": {
+      "bytes": 5178,
+      "sha256": "6c942931d6e7c6aae162372d1f520657079519d51c794d4be2d850a5d26ded30",
+      "repository_source": "runtime_owner/owner/freqtrade/binana/protection_plan.py"
+    },
+    "freqtrade/binana/quality_gate.py": {
+      "bytes": 476,
+      "sha256": "a045a9d528fd85f1dfa6dcddf0ff17312f52b265134b764bae39d905a549450d",
+      "repository_source": "runtime_owner/owner/freqtrade/binana/quality_gate.py"
+    },
+    "freqtrade/binana/recovery_contract.py": {
+      "bytes": 5318,
+      "sha256": "f5a1dac359a6d2a26977cfca1add07a51472f1e28a168ca291c7de7049e58709",
+      "repository_source": "runtime_owner/owner/freqtrade/binana/recovery_contract.py"
+    },
+    "freqtrade/binana/registry.py": {
+      "bytes": 3328,
+      "sha256": "41cde0f2cf23a3ea279895820dda1ece6e0fd72343bceeefe3921e4d6ece48e1",
+      "repository_source": "runtime_owner/deployed_r17/overrides/freqtrade/binana/registry.py"
+    },
+    "freqtrade/binana/state_store.py": {
+      "bytes": 18674,
+      "sha256": "6c30ba71a19525c936f85dc9d26e9f07ee36f6aef0ebc353f4f0fc4314e4d6ec",
+      "repository_source": "runtime_owner/deployed_r17/overrides/freqtrade/binana/state_store.py"
+    },
+    "freqtrade/binana/verified_recovery.py": {
+      "bytes": 25826,
+      "sha256": "0e8ec0f475e91e3a29586bbb6341587e7645249eae220ff1642be66842280626",
+      "repository_source": "runtime_owner/deployed_r17/overrides/freqtrade/binana/verified_recovery.py"
+    },
+    "freqtrade/exchange/binance.py": {
+      "bytes": 25738,
+      "sha256": "e4c4cb52d35b445e269322db7e19d1b39354c7ee793eff2eff7d08eb40e1ef2a",
+      "repository_source": "runtime_owner/deployed_r17/overrides/freqtrade/exchange/binance.py"
+    },
+    "freqtrade/freqtradebot.py": {
+      "bytes": 118958,
+      "sha256": "aa02b3afb1fea8256700a4ced9c4e17e9c5214b8a266764fa801ca882b15895a",
+      "repository_source": "runtime_owner/deployed_r17/overrides/freqtrade/freqtradebot.py"
+    },
+    "freqtrade/persistence/trade_model.py": {
+      "bytes": 87431,
+      "sha256": "defd4b3be44b0260879707857173587ee9b390e2a1e5463d686bec6ac3554f30",
+      "repository_source": "runtime_owner/deployed_r17/overrides/freqtrade/persistence/trade_model.py"
+    },
+    "freqtrade/resolvers/exchange_resolver.py": {
+      "bytes": 4363,
+      "sha256": "baa1046bdb4fc82273c6426f5cc1def35444d4679c6eff2e0b1421eebe37ee2a",
+      "repository_source": "runtime_owner/owner/freqtrade/resolvers/exchange_resolver.py"
+    },
+    "freqtrade/rpc/api_server/deps.py": {
+      "bytes": 3159,
+      "sha256": "d34ebdd125575f3a0ecc47978503b5af31a9024a4b9e72b69b777dc5a0471905",
+      "repository_source": "runtime_owner/owner/freqtrade/rpc/api_server/deps.py"
+    },
+    "freqtrade/rpc/rpc.py": {
+      "bytes": 74814,
+      "sha256": "3ecbefd64813cc66803a914198524def9ac1f75ddb1ed254c13c607bc228db41",
+      "repository_source": "runtime_owner/deployed_r17/overrides/freqtrade/rpc/rpc.py"
+    }
+  }
+}
