@@ -30,3 +30,15 @@ The v19.3 research implementation still lacks complete typed adverse verdicts, p
 [Documentation coverage](DOCUMENT_COVERAGE_20261007.json) records all 143 supplied URLs mapped to 93 distinct documents. Six retrievals failed and two outputs were truncated; extraction does not establish end-to-end reading. These limits are retained explicitly.
 
 No LIVE deployment, real-money orders, or changes to the separate Bitcoin Testnet bot occurred.
+
+## Dependency audit follow-up
+
+The new CI run detected newly published advisories affecting existing pins. Both packages now pin multidict 6.9.1, pypdf 6.19.0, urllib3 2.8.0 and monitoring PyJWT 2.15.0 with upstream PyPI distribution hashes. Both exact lock-file audits pass after the updates. Upstream references: [multidict](https://github.com/aio-libs/multidict/security/advisories/GHSA-54p9-h82j-f925), [pypdf](https://github.com/py-pdf/pypdf/releases/tag/6.19.0), [urllib3](https://github.com/urllib3/urllib3/releases/tag/2.8.0), [PyJWT](https://github.com/jpadilla/pyjwt/security/advisories/GHSA-x33g-cr3x-6449). A passing source audit does not update older running images.
+
+## Authenticated candidate rehearsal and historical state repair
+
+A GET-only candidate probe against copies of the repaired AWS databases found three historical intents (trades 34/NEAR, 47/ONE and 53/LPT) whose states had been overwritten as rejected despite completed retained-balance settlement. Fifteen scoped exchange order identities were verified terminal. The candidate now rejects repeated admission before it can overwrite an existing Trade or order generation; its revised 162-test suite passed in an isolated image. This prevention change is not deployed to the trading owner.
+
+The guarded script `scripts/recovery/repair_retained_intent_states_20261007.py` pins the authenticated evidence, validates retained economics and terminal identities, locks both databases and verifies full logical preservation. Rehearsal changed three state cells; repetition changed zero, injected failure rolled back completely, and a concurrent canonical writer was rejected. The repaired clone then passed closed-acknowledgment and authenticated REST reconciliation, with 35 retained pairs and none executable.
+
+After review, the same three-state repair was applied on AWS with a fresh backup at `/var/backups/binana-testnet/retained-intent-repair-20261007/live-before`. Repetition changed zero. Canonical data, incidents and every other extension field were unchanged. The original recovery incident remains open; this is not an authenticated order-lifecycle or soak certificate.

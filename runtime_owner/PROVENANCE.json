@@ -4,12 +4,12 @@
   "recovered_owner_base_commit": "4169c544d91f05d77f8fd94d70a81b3e71115ff4",
   "running_image_id": "sha256:87c25dfc5b3058891491b6fd0647c86fe9a71f96d8ba41a2693b42797fcada83",
   "validation": {
-    "tests": 160,
-    "seconds": 27.643,
+    "tests": 162,
     "network": "none",
     "credentials": false,
     "runtime_state_mounted": false,
-    "authenticated_exchange_acceptance": false
+    "authenticated_exchange_acceptance": false,
+    "note": "162 tests passed in the isolated AWS recovery-validation-20261007-r3 image; the earlier ten 160-test runs refer to the preceding snapshot."
   },
   "files": {
     "owner/binana-strategies/BinanaNfiSpot.py": {
@@ -65,8 +65,8 @@
       "bytes": 4292
     },
     "owner/freqtrade/binana/execution_manager.py": {
-      "sha256": "eef7260cd8c1734e18b929e5e69695d03cd8c5a970c5016fb467b8d7a59a011e",
-      "bytes": 47981
+      "sha256": "cb76c50f783b84ec8e3e788d6046e174f06b58a298395f00dd6e2f90258e036c",
+      "bytes": 48252
     },
     "owner/freqtrade/binana/market_data.py": {
       "sha256": "69f70fb102d298d9f104daae74b848ec809b9bda02f070c09d2fc19949be2769",
@@ -287,6 +287,10 @@
     "runtime-fixes/telegram/runtime_stable_panel.py": {
       "sha256": "a1216db01178948a4dc5996b1d8de88f489dcb08aafc8c2fa6f8752d274db0f1",
       "bytes": 105573
+    },
+    "tests/test_owned_signal_replay.py": {
+      "sha256": "4f8927ec56b09831e00970e8cc63488840c4098017efa73f850d5d92cb8d2a19",
+      "bytes": 2652
     }
   }
 }

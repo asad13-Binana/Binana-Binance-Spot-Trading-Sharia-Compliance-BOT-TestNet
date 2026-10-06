@@ -302,6 +302,9 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
                 raise AdmissionRejected(reason)
             if state in self.TERMINAL_INTENT_STATES:
                 raise AdmissionRejected('SIGNAL_ALREADY_TERMINAL')
+            # A repeated signal must not overwrite an existing trade or order lifecycle.
+            if existing.get('freqtrade_trade_id') is not None or self.store.latest_generation(intent_id) is not None:
+                raise AdmissionRejected('SIGNAL_ALREADY_OWNED')
             nominal=Decimal(str(existing['nominal_usdt']))
             if not nominal.is_finite() or nominal <= 0:
                 raise AdmissionRejected('CANONICAL_NOMINAL_INVALID')

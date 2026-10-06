@@ -1,8 +1,8 @@
 # Recovered AWS Testnet owner candidate
 
-This source snapshot preserves the newer Freqtrade 2026.8/NFI owner lineage that is absent from the older root deployment package. It includes the reviewed recovery changes and 160 isolated Linux test cases. It is NOT the currently deployed r17 image and is not wired into root Compose or CI deployment.
+This source snapshot preserves the newer Freqtrade 2026.8/NFI owner lineage that is absent from the older root deployment package. It includes the reviewed recovery changes and 162 isolated Linux test cases. It is NOT the currently deployed r17 image and is not wired into root Compose or CI deployment.
 
-Do not activate this snapshot or copy it into LIVE. Its runtime contract forbids real-money trading. Source/config/image reproducibility, canonical accounting migration, retained-inventory disposal and authenticated lifecycle/soak acceptance remain release blockers.
+Do not activate this snapshot or copy it into LIVE. Its runtime contract forbids real-money trading. Source/config/image reproducibility, historical intent-state repair, retained-inventory disposal and authenticated lifecycle/soak acceptance remain release blockers.
 
 PROVENANCE.json binds every copied source file to its exact SHA256 and records the validation environment. The owner modules were recovered from the AWS working tree (base commit 4169c54) and modified during the September recovery. The NFI strategy bytes were preserved. The tests directory is the latest canonical test set; obsolete duplicate test copies and Python caches are excluded.
 

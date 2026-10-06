@@ -197,5 +197,41 @@
     "individual_executable": 0,
     "aggregate_executable": 0,
     "order_requests": 0
+  },
+  "candidate_followup": {
+    "owner_tests": 162,
+    "read_only_probe_get_requests": 20,
+    "closed_acknowledgments_ready": true,
+    "authenticated_rest_ok": true,
+    "open_exchange_orders": 0,
+    "open_order_lists": 0,
+    "retained_pairs": 35,
+    "executable_pairs": 0,
+    "clone_only": true
+  },
+  "historical_intent_repair": {
+    "trades": [
+      34,
+      47,
+      53
+    ],
+    "state": "DUST_RETAINED",
+    "changed": 3,
+    "repeat_changed": 0,
+    "canonical_unchanged": true,
+    "incidents_unchanged": true,
+    "other_extension_fields_unchanged": true,
+    "rollback_rehearsal": true,
+    "concurrent_writer_rejected": true,
+    "backup": "/var/backups/binana-testnet/retained-intent-repair-20261007/live-before"
+  },
+  "security_pins": {
+    "multidict": "6.9.1",
+    "pypdf": "6.19.0",
+    "urllib3": "2.8.0",
+    "PyJWT": "2.15.0",
+    "service_lock_audit": "passed",
+    "monitoring_lock_audit": "passed",
+    "running_images_updated": false
   }
 }
