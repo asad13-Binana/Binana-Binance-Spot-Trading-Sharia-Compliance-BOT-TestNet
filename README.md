@@ -1,10 +1,10 @@
 # BINANA Binance Spot Testnet
 
-Latest update: **375 owner-listed symbols**, preserving the previous 305 and adding only 70 missing from the latest 177-symbol list. AWS signed projection verified. Testnet PR #29 is merged. Trading remains paused pending the accounting-recovery incident and execution checks.
+Latest update: **375 owner-listed symbols**, with existing entries preserved. Testnet PR #30 is merged and its main-branch CI passed. AWS research now loads the exact Sharia v19.3 controller; the startup configuration is repaired. Trading remains paused pending owner lifecycle and execution acceptance.
 
 The active AWS deployment uses Freqtrade 2026.8/NFI as its sole order owner, with a monitor-only sidecar. The root package below still represents the older deployment layout; it must not be used to overwrite AWS until runtime integration is complete. Recovered owner source is in `runtime_owner/`.
 
-See [current status and recent changes](docs/recovery/RECOVERY_STATUS_20260930.md) and [the additive registry record](docs/recovery/REGISTRY_ADDITIONS_20260930.json). Historical deployment and validation notes below do not certify the current candidate.
+See [current status and recent changes](docs/recovery/RECOVERY_STATUS_20261007.md) and [the additive registry record](docs/recovery/REGISTRY_ADDITIONS_20260930.json). Historical deployment and validation notes below do not certify the current candidate.
 
 ## Disclaimer and risk warning
 

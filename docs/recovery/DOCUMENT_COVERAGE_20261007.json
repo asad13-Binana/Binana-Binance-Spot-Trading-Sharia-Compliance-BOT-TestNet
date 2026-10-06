@@ -1,0 +1,863 @@
+{
+  "method": "Keenable extraction across all 143 supplied URL references; extraction summaries do not certify end-to-end review",
+  "entries": [
+    {
+      "url": "https://github.com/bmoscon/cryptofeed.git",
+      "document": "https://github.com/bmoscon/cryptofeed.git",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.sqlite.org/docs.html",
+      "document": "https://www.sqlite.org/docs.html",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://github.com/sqlite/sqlite.git",
+      "document": "https://github.com/sqlite/sqlite.git",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://core.telegram.org/",
+      "document": "https://core.telegram.org/",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://core.telegram.org/bots/api",
+      "document": "https://core.telegram.org/bots/api",
+      "retrieval": "truncated",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://core.telegram.org/constructor/document",
+      "document": "https://core.telegram.org/constructor/document",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://t.me/DocTutorials",
+      "document": "https://t.me/DocTutorials",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md",
+      "document": "https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.binance.com/en/academy/articles/how-to-place-an-otoco-order-with-the-binance-api",
+      "document": "https://www.binance.com/en/academy/articles/how-to-place-an-otoco-order-with-the-binance-api",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.binance.com/en/academy/articles/how-to-place-an-oco-order-with-the-binance-api",
+      "document": "https://www.binance.com/en/academy/articles/how-to-place-an-oco-order-with-the-binance-api",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://github.com/binance/binance-spot-api-docs/tree/master/demo-mode",
+      "document": "https://github.com/binance/binance-spot-api-docs/tree/master/demo-mode",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.binance.com/en/academy/glossary/oco-order",
+      "document": "https://www.binance.com/en/academy/glossary/oco-order",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://python-binance.readthedocs.io/en/latest/binance.html",
+      "document": "https://python-binance.readthedocs.io/en/latest/binance.html",
+      "retrieval": "truncated",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://core.telegram.org/api/layers",
+      "document": "https://core.telegram.org/api/layers",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://docs.python-telegram-bot.org/en/stable/",
+      "document": "https://docs.python-telegram-bot.org/en/stable/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://github.com/CryptoSignal/Crypto-Signal.git",
+      "document": "https://github.com/CryptoSignal/Crypto-Signal.git",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://github.com/iterativv/NostalgiaForInfinity.git",
+      "document": "https://github.com/iterativv/NostalgiaForInfinity.git",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/plugins/",
+      "document": "https://www.freqtrade.io/en/stable/plugins/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://github.com/freqtrade/freqtrade/releases/tag/2026.8",
+      "document": "https://github.com/freqtrade/freqtrade/releases/tag/2026.8",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://github.com/topics/freqtrade-strategies?o=desc&s=stars",
+      "document": "https://github.com/topics/freqtrade-strategies?o=desc&s=stars",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://github.com/orgs/freqtrade/repositories",
+      "document": "https://github.com/orgs/freqtrade/repositories",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#delete-open-orders",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#delete-order",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#delete-order-list",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-amend-keep-priority",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-cancel-replace",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-list-oco",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-list-opo",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-list-opoco",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-list-oto",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-list-otoco",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-oco",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-test",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#sor-order",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#sor-order-test",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/general#exchange-info",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/general",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/general#execution-rules",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/general",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/general#ping",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/general",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/general#time",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/general",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/general",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/general",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#agg-trades",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#avg-price",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#depth",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#get-trades",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#historical-trades",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#historical-block-trades",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#klines",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#ticker",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#ticker24hr",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#ticker-book-ticker",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#ticker-price",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#ticker-trading-day",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#ui-klines",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#reference-price",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#reference-price-calculation",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#account-commission",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#all-order-list",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#all-orders",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#get-account",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#get-open-orders",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#get-order",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#get-order-list",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#my-allocations",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#my-filters",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#my-prevented-matches",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#my-trades",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#open-order-list",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#order-amendments",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#rate-limit-order",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/~schemas",
+      "document": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/~schemas",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/sdks-tools/connectors/python",
+      "document": "https://developers.binance.com/en/docs/sdks-tools/connectors/python",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/products/spot/testnet/CHANGELOG",
+      "document": "https://developers.binance.com/en/docs/products/spot/testnet/CHANGELOG",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/catalog",
+      "document": "https://developers.binance.com/en/docs/catalog",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/sdks-tools/overview",
+      "document": "https://developers.binance.com/en/docs/sdks-tools/overview",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/agent-native/overview",
+      "document": "https://developers.binance.com/en/docs/agent-native/overview",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://core.telegram.org/api/obtaining_api_id",
+      "document": "https://core.telegram.org/api/obtaining_api_id",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://core.telegram.org/bots/samples",
+      "document": "https://core.telegram.org/bots/samples",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://github.com/chatflowphp/telegram/blob/main/docs/development/index.md",
+      "document": "https://github.com/chatflowphp/telegram/blob/main/docs/development/index.md",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://telegram.org/blog",
+      "document": "https://telegram.org/blog",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://programmingarehard.com/2024/11/30/telegram-for-developers.html/",
+      "document": "https://programmingarehard.com/2024/11/30/telegram-for-developers.html/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://telegram.org/tos/bot-developers",
+      "document": "https://telegram.org/tos/bot-developers",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.binance.com/en/binance-api",
+      "document": "https://www.binance.com/en/binance-api",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/configuration/",
+      "document": "https://www.freqtrade.io/en/stable/configuration/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/configuration/#the-freqtrade-configuration-file",
+      "document": "https://www.freqtrade.io/en/stable/configuration/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/backtesting/",
+      "document": "https://www.freqtrade.io/en/stable/backtesting/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/exchanges/#binance",
+      "document": "https://www.freqtrade.io/en/stable/exchanges/",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/exchanges/",
+      "document": "https://www.freqtrade.io/en/stable/exchanges/",
+      "retrieval": "failed",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/docker_quickstart/",
+      "document": "https://www.freqtrade.io/en/stable/docker_quickstart/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/data-download/",
+      "document": "https://www.freqtrade.io/en/stable/data-download/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/installation/",
+      "document": "https://www.freqtrade.io/en/stable/installation/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/installation/#script-installation",
+      "document": "https://www.freqtrade.io/en/stable/installation/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/installation/#manual-installation",
+      "document": "https://www.freqtrade.io/en/stable/installation/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/products/spot/testnet/rest-api",
+      "document": "https://developers.binance.com/en/docs/products/spot/testnet/rest-api",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.binance.com/en/academy/glossary/testnet",
+      "document": "https://www.binance.com/en/academy/glossary/testnet",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/products/spot/testnet/general-info",
+      "document": "https://developers.binance.com/en/docs/products/spot/testnet/general-info",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/",
+      "document": "https://developers.binance.com/en/docs/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.binance.com/en/support/faq/detail/ab78f9a1b8824cf0a106b4229c76496d",
+      "document": "https://www.binance.com/en/support/faq/detail/ab78f9a1b8824cf0a106b4229c76496d",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/products/spot/testnet/user-data-stream",
+      "document": "https://developers.binance.com/en/docs/products/spot/testnet/user-data-stream",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://github.com/binance/binance-spot-api-docs/blob/master/testnet/fix-api.md",
+      "document": "https://github.com/binance/binance-spot-api-docs/blob/master/testnet/fix-api.md",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://github.com/0gfoundation",
+      "document": "https://github.com/0gfoundation",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://docs.0g.ai/developer-hub/getting-started",
+      "document": "https://docs.0g.ai/developer-hub/getting-started",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/plotting/",
+      "document": "https://www.freqtrade.io/en/stable/plotting/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/data-analysis/",
+      "document": "https://www.freqtrade.io/en/stable/data-analysis/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/strategy_analysis_example/",
+      "document": "https://www.freqtrade.io/en/stable/strategy_analysis_example/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/advanced-backtesting/",
+      "document": "https://www.freqtrade.io/en/stable/advanced-backtesting/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/advanced-setup/",
+      "document": "https://www.freqtrade.io/en/stable/advanced-setup/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/trade-object/",
+      "document": "https://www.freqtrade.io/en/stable/trade-object/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/lookahead-analysis/",
+      "document": "https://www.freqtrade.io/en/stable/lookahead-analysis/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/recursive-analysis/",
+      "document": "https://www.freqtrade.io/en/stable/recursive-analysis/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/strategy-advanced/",
+      "document": "https://www.freqtrade.io/en/stable/strategy-advanced/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/advanced-hyperopt/",
+      "document": "https://www.freqtrade.io/en/stable/advanced-hyperopt/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/advanced-orderflow/",
+      "document": "https://www.freqtrade.io/en/stable/advanced-orderflow/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/producer-consumer/",
+      "document": "https://www.freqtrade.io/en/stable/producer-consumer/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/sql_cheatsheet/",
+      "document": "https://www.freqtrade.io/en/stable/sql_cheatsheet/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/strategy_migration/",
+      "document": "https://www.freqtrade.io/en/stable/strategy_migration/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/updating/",
+      "document": "https://www.freqtrade.io/en/stable/updating/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/deprecated/",
+      "document": "https://www.freqtrade.io/en/stable/deprecated/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/developer/",
+      "document": "https://www.freqtrade.io/en/stable/developer/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/freqai-developers/",
+      "document": "https://www.freqtrade.io/en/stable/freqai-developers/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/utils/",
+      "document": "https://www.freqtrade.io/en/stable/utils/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/hyperopt/",
+      "document": "https://www.freqtrade.io/en/stable/hyperopt/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/freqai/",
+      "document": "https://www.freqtrade.io/en/stable/freqai/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/freqai-configuration/",
+      "document": "https://www.freqtrade.io/en/stable/freqai-configuration/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/freqai-parameter-table/",
+      "document": "https://www.freqtrade.io/en/stable/freqai-parameter-table/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/freqai-feature-engineering/",
+      "document": "https://www.freqtrade.io/en/stable/freqai-feature-engineering/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/freqai-running/",
+      "document": "https://www.freqtrade.io/en/stable/freqai-running/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/freqai-reinforcement-learning/",
+      "document": "https://www.freqtrade.io/en/stable/freqai-reinforcement-learning/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/stoploss/",
+      "document": "https://www.freqtrade.io/en/stable/stoploss/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/bot-usage/",
+      "document": "https://www.freqtrade.io/en/stable/bot-usage/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/telegram-usage/",
+      "document": "https://www.freqtrade.io/en/stable/telegram-usage/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/strategy-customization/",
+      "document": "https://www.freqtrade.io/en/stable/strategy-customization/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/strategy-callbacks/",
+      "document": "https://www.freqtrade.io/en/stable/strategy-callbacks/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://github.com/freqtrade/freqtrade",
+      "document": "https://github.com/freqtrade/freqtrade",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/stable/",
+      "document": "https://www.freqtrade.io/en/stable/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://github.com/freqtrade/freqtrade-strategies#free-trading-strategies",
+      "document": "https://github.com/freqtrade/freqtrade-strategies",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://github.com/freqtrade/freqtrade-strategies/",
+      "document": "https://github.com/freqtrade/freqtrade-strategies/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://github.com/freqtrade/freqtrade-strategies/tree/main/user_data/strategies",
+      "document": "https://github.com/freqtrade/freqtrade-strategies/tree/main/user_data/strategies",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/latest/strategy-customization/",
+      "document": "https://www.freqtrade.io/en/latest/strategy-customization/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/latest/strategy-101/",
+      "document": "https://www.freqtrade.io/en/latest/strategy-101/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/latest/bot-basics/",
+      "document": "https://www.freqtrade.io/en/latest/bot-basics/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    },
+    {
+      "url": "https://www.freqtrade.io/en/latest/backtesting/",
+      "document": "https://www.freqtrade.io/en/latest/backtesting/",
+      "retrieval": "extracted",
+      "full_end_to_end_review": false
+    }
+  ]
+}

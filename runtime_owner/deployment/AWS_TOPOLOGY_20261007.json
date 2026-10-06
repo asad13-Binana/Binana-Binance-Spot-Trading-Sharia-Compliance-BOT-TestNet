@@ -1,0 +1,699 @@
+{
+  "captured_at": "2026-10-06T21:31:23.389451+00:00",
+  "kind": "Observed deployment topology; environment values intentionally omitted; not a runnable Compose file",
+  "services": {
+    "freqtrade": {
+      "image_id": "sha256:87c25dfc5b3058891491b6fd0647c86fe9a71f96d8ba41a2693b42797fcada83",
+      "configured_image": "binana-testnet-freqtrade:repair-20260919-r17",
+      "user": "binana",
+      "entrypoint": [
+        "/home/ftuser/.local/bin/freqtrade"
+      ],
+      "command": [
+        "trade",
+        "--logfile",
+        "/freqtrade/shared/freqtrade/logs/freqtrade-owner.log",
+        "--config",
+        "/freqtrade/binana-config/config.json",
+        "--strategy-path",
+        "/freqtrade/binana-strategies",
+        "--strategy",
+        "BinanaNfiSpot"
+      ],
+      "environment_names": [
+        "BOT_ENVIRONMENT",
+        "BOT_INSTANCE_ID",
+        "BOT_PRODUCT",
+        "ENVELOPE_RELEASE_HASH",
+        "FREQTRADE__API_SERVER__ENABLED",
+        "FREQTRADE__API_SERVER__JWT_SECRET_KEY",
+        "FREQTRADE__API_SERVER__LISTEN_IP_ADDRESS",
+        "FREQTRADE__API_SERVER__PASSWORD",
+        "FREQTRADE__API_SERVER__USERNAME",
+        "FREQTRADE__API_SERVER__WS_TOKEN",
+        "FREQTRADE__EXCHANGE__ENABLE_WS",
+        "FREQTRADE__EXCHANGE__KEY",
+        "FREQTRADE__EXCHANGE__SECRET",
+        "FREQTRADE__INITIAL_STATE",
+        "FREQTRADE__PAIRLISTS",
+        "FT_APP_ENV",
+        "LANG",
+        "LC_ALL",
+        "LOG_LEVEL",
+        "PATH",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONFAULTHANDLER",
+        "PYTHONPATH",
+        "PYTHON_SHA256",
+        "PYTHON_VERSION",
+        "SHARIA_FILE",
+        "SIGNAL_HEARTBEAT",
+        "SIGNAL_HMAC_KEY",
+        "SIGNAL_INBOX",
+        "SIGNAL_PROCESSED",
+        "SIGNAL_REJECTED",
+        "UNIVERSE_FILE"
+      ],
+      "mounts": [
+        {
+          "source": "/opt/binana-testnet/current/freqtrade/user_data/config.json",
+          "target": "/freqtrade/user_data/config.json",
+          "writable": false
+        },
+        {
+          "source": "/opt/binana-testnet/current/freqtrade/user_data/strategies",
+          "target": "/freqtrade/user_data/strategies",
+          "writable": false
+        },
+        {
+          "source": "/opt/binana-testnet/current/services",
+          "target": "/freqtrade/services_src/services",
+          "writable": false
+        },
+        {
+          "source": "/opt/binana-testnet/current/RELEASE_SHA256.txt",
+          "target": "/freqtrade/services_src/RELEASE_SHA256.txt",
+          "writable": false
+        },
+        {
+          "source": "/var/lib/binana-testnet/shared",
+          "target": "/freqtrade/shared",
+          "writable": true
+        },
+        {
+          "source": "/var/lib/binana-testnet/shared/sharia",
+          "target": "/freqtrade/shared/sharia",
+          "writable": false
+        },
+        {
+          "source": "/var/lib/binana-testnet/shared/universe",
+          "target": "/freqtrade/shared/universe",
+          "writable": false
+        },
+        {
+          "source": "/home/ubuntu/binana-repair-20260912T130255Z/release-config",
+          "target": "/freqtrade/binana-config",
+          "writable": false
+        }
+      ],
+      "host_policy": {
+        "NetworkMode": "binana-testnet_control",
+        "ReadonlyRootfs": false,
+        "Memory": 1887436800,
+        "NanoCpus": 900000000,
+        "PidsLimit": 192,
+        "CapDrop": [
+          "ALL"
+        ],
+        "SecurityOpt": [
+          "no-new-privileges:true"
+        ],
+        "RestartPolicy": {
+          "Name": "unless-stopped",
+          "MaximumRetryCount": 0
+        }
+      },
+      "networks": [
+        "binana-testnet_control",
+        "binana-testnet_runtime-egress"
+      ]
+    },
+    "telegram-broker": {
+      "image_id": "sha256:f39bca9c799e6ddc1e927c0541d59592fe3d9522a21694c24eebcbe508b459bd",
+      "configured_image": "binana-testnet-services:telegram-repair-20260912-r15",
+      "user": "999:987",
+      "entrypoint": null,
+      "command": [
+        "python",
+        "/app/runtime_stable_panel.py"
+      ],
+      "environment_names": [
+        "AUDIT_LOG",
+        "AUDIT_LOG_BACKUPS",
+        "AUDIT_LOG_MAX_BYTES",
+        "BINANCE_PUBLIC_BASE",
+        "BOT_ENVIRONMENT",
+        "BOT_INSTANCE_ID",
+        "BOT_PRODUCT",
+        "CALLBACK_TTL_SECONDS",
+        "COMMAND_HMAC_KEY",
+        "ENVELOPE_RELEASE_HASH",
+        "EXECUTION_MODE",
+        "FREQTRADE_API_PASSWORD",
+        "FREQTRADE_API_URL",
+        "FREQTRADE_API_USERNAME",
+        "FREQTRADE_API_WS_TOKEN",
+        "GPG_KEY",
+        "HOME",
+        "LANG",
+        "LOG_LEVEL",
+        "MAX_SPREAD_RATIO",
+        "MAX_UNIVERSE_AGE_SECONDS",
+        "MIN_LISTING_AGE_DAYS",
+        "MIN_QUOTE_VOLUME_USDT",
+        "PATH",
+        "PIP_NO_CACHE_DIR",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONPATH",
+        "PYTHONUNBUFFERED",
+        "PYTHON_SHA256",
+        "PYTHON_VERSION",
+        "SHARED_ROOT",
+        "SHARIA_APPROVAL_HMAC_KEY",
+        "SHARIA_DECISION_INBOX",
+        "SHARIA_DISCOVERY_CURRENT_DIR",
+        "SHARIA_HMAC_KEY",
+        "SHARIA_QUEUE_INBOX",
+        "SHARIA_REGISTRY_COMMAND_INBOX",
+        "SHARIA_REPORTS_DIR",
+        "SHARIA_RESEARCH_ROOT",
+        "SHARIA_RESEARCH_RUNTIME_DIR",
+        "SHARIA_RESULTS_DIR",
+        "SHARIA_RESULT_HMAC_KEY",
+        "SHARIA_RESULT_VERIFY_PUBLIC_KEY_B64",
+        "SHARIA_RUNTIME_DIR",
+        "SHARIA_SIGNAL_GATE_MODE",
+        "SHARIA_SOURCE_REGISTRY",
+        "SIGNAL_HMAC_KEY",
+        "TELEGRAM_BOT_TOKEN",
+        "TELEGRAM_OWNER_CHAT_ID",
+        "TESTNET_AUTO_RESUME_ON_RESTART",
+        "UNIVERSE_LIMIT"
+      ],
+      "mounts": [
+        {
+          "source": "/var/lib/binana-testnet/shared",
+          "target": "/app/shared",
+          "writable": true
+        },
+        {
+          "source": "/var/lib/binana-testnet/shared/sharia",
+          "target": "/app/shared/sharia",
+          "writable": false
+        },
+        {
+          "source": "/var/lib/binana-testnet/shared/universe",
+          "target": "/app/shared/universe",
+          "writable": false
+        },
+        {
+          "source": "/home/ubuntu/binana-runtime-fixes/telegram/runtime_stable_panel.py",
+          "target": "/app/runtime_stable_panel.py",
+          "writable": false
+        }
+      ],
+      "host_policy": {
+        "NetworkMode": "binana-testnet_control",
+        "ReadonlyRootfs": true,
+        "Memory": 125829120,
+        "NanoCpus": 40000000,
+        "PidsLimit": 96,
+        "CapDrop": [
+          "ALL"
+        ],
+        "SecurityOpt": [
+          "no-new-privileges:true"
+        ],
+        "RestartPolicy": {
+          "Name": "unless-stopped",
+          "MaximumRetryCount": 0
+        }
+      },
+      "networks": [
+        "binana-testnet_control",
+        "binana-testnet_runtime-egress"
+      ]
+    },
+    "universe": {
+      "image_id": "sha256:62c9df37722ac28198464102f1ca17679181ca8dbfb8b823560dc2fdef4608b0",
+      "configured_image": "binana-testnet-services:universe-repair-20260912-r10",
+      "user": "999:987",
+      "entrypoint": null,
+      "command": [
+        "python",
+        "-m",
+        "services.market_context.universe_main"
+      ],
+      "environment_names": [
+        "AUDIT_LOG",
+        "AUDIT_LOG_BACKUPS",
+        "AUDIT_LOG_MAX_BYTES",
+        "BINANCE_PUBLIC_BASE",
+        "BINANCE_SPOT_MARKET_STREAM",
+        "BOT_ENVIRONMENT",
+        "BOT_INSTANCE_ID",
+        "BOT_PRODUCT",
+        "CMC_API_KEY",
+        "CMC_MONTHLY_LIMIT",
+        "CMC_PER_MINUTE_LIMIT",
+        "CMC_RECONCILE_SECONDS",
+        "CMC_TRENDING_LIMIT",
+        "COINGECKO_API_KEY",
+        "COINGECKO_MONTHLY_LIMIT",
+        "COINGECKO_PER_MINUTE_LIMIT",
+        "COINMARKETCAP_API_KEY",
+        "ENABLE_CMC_TRENDING",
+        "ENABLE_COINGECKO_SIGNALS",
+        "ENABLE_SPOT_MICROSTRUCTURE",
+        "ENVELOPE_RELEASE_HASH",
+        "EXTERNAL_BREAKER_COOLDOWN_SECONDS",
+        "EXTERNAL_MIN_MARKET_CAP_USD",
+        "EXTERNAL_SIGNALS_REFRESH_SECONDS",
+        "GPG_KEY",
+        "HOME",
+        "HTTP_TIMEOUT_SECONDS",
+        "LANG",
+        "LEGACY_HALAL_FILE",
+        "LOG_LEVEL",
+        "MARKET_CONTEXT_EVIDENCE_MAX_AGE_SECONDS",
+        "MARKET_CONTEXT_FILE",
+        "MARKET_CONTEXT_HEALTH_FILE",
+        "MARKET_CONTEXT_MAX_AGE_MS",
+        "MARKET_CONTEXT_PUBLISH_SECONDS",
+        "MARKET_CONTEXT_ROTATION_SECONDS",
+        "MARKET_CONTEXT_UNIVERSE_POLL_SECONDS",
+        "MAX_SPREAD_RATIO",
+        "MIN_LISTING_AGE_DAYS",
+        "MIN_QUOTE_VOLUME_USDT",
+        "PATH",
+        "PIP_NO_CACHE_DIR",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONPATH",
+        "PYTHONUNBUFFERED",
+        "PYTHON_SHA256",
+        "PYTHON_VERSION",
+        "SHARED_ROOT",
+        "SHARIA_FILE",
+        "SHARIA_RESULT_VERIFY_PUBLIC_KEY_B64",
+        "STABLECOINS",
+        "UNIVERSE_LIMIT",
+        "UNIVERSE_REFRESH_SECONDS",
+        "UNIVERSE_ROOT",
+        "UNIVERSE_SNAPSHOT_MAX_FILES"
+      ],
+      "mounts": [
+        {
+          "source": "/home/ubuntu/binana-runtime-fixes/market_context/analytics.py",
+          "target": "/app/services/market_context/analytics.py",
+          "writable": false
+        },
+        {
+          "source": "/var/lib/binana-testnet/shared",
+          "target": "/app/shared",
+          "writable": true
+        },
+        {
+          "source": "/var/lib/binana-testnet/shared/sharia",
+          "target": "/app/shared/sharia",
+          "writable": false
+        },
+        {
+          "source": "/home/ubuntu/binana-runtime-fixes/universe/scanner.py",
+          "target": "/app/services/universe_service/scanner.py",
+          "writable": false
+        },
+        {
+          "source": "/home/ubuntu/binana-runtime-fixes/market_context/spot_stream.py",
+          "target": "/app/services/market_context/spot_stream.py",
+          "writable": false
+        }
+      ],
+      "host_policy": {
+        "NetworkMode": "binana-testnet_control",
+        "ReadonlyRootfs": true,
+        "Memory": 188743680,
+        "NanoCpus": 70000000,
+        "PidsLimit": 96,
+        "CapDrop": [
+          "ALL"
+        ],
+        "SecurityOpt": [
+          "no-new-privileges:true"
+        ],
+        "RestartPolicy": {
+          "Name": "unless-stopped",
+          "MaximumRetryCount": 0
+        }
+      },
+      "networks": [
+        "binana-testnet_control",
+        "binana-testnet_runtime-egress"
+      ]
+    },
+    "execution-sidecar": {
+      "image_id": "sha256:bd428041f9deecf102e8c4257c0b152bae0298de91ac8dbfa014d7d664154271",
+      "configured_image": "binana-testnet-services:v101-4dd60e295d145e62",
+      "user": "999:987",
+      "entrypoint": null,
+      "command": [
+        "python",
+        "/app/monitor_only.py"
+      ],
+      "environment_names": [
+        "AUDIT_LOG",
+        "AUDIT_LOG_BACKUPS",
+        "AUDIT_LOG_MAX_BYTES",
+        "AUTO_CONFIRM",
+        "BINANCE_API_KEY",
+        "BINANCE_API_SECRET",
+        "BINANCE_PUBLIC_BASE",
+        "BINANCE_TESTNET",
+        "BOT_ENVIRONMENT",
+        "BOT_INSTANCE_ID",
+        "BOT_PRODUCT",
+        "CAPTURE_SIGNAL_MARKET_CONTEXT",
+        "COMMAND_HMAC_KEY",
+        "COMMAND_MAX_AGE_SECONDS",
+        "COMMAND_RESULT_MAX_AGE_SECONDS",
+        "COMMAND_RESULT_MAX_FILES",
+        "DISK_CRITICAL_PERCENT",
+        "ENVELOPE_RELEASE_HASH",
+        "EXECUTION_MODE",
+        "GPG_KEY",
+        "HOME",
+        "LANG",
+        "LEGACY_HALAL_FILE",
+        "LEGACY_RUNTIME_DIR",
+        "LIVE_EVIDENCE_KEY",
+        "LOG_LEVEL",
+        "MARKET_CONTEXT_EVIDENCE_MAX_AGE_SECONDS",
+        "MARKET_CONTEXT_FILE",
+        "MARKET_CONTEXT_SIGNAL_EVIDENCE_DIR",
+        "MARKET_CONTEXT_SIGNAL_EVIDENCE_MAX_FILES",
+        "MAX_CANDLE_AGE_SECONDS",
+        "MAX_POSITIONS",
+        "MAX_SIGNAL_AGE_SECONDS",
+        "MAX_STOPOUTS_GLOBAL_DAY",
+        "MAX_STOPOUTS_PER_PAIR_DAY",
+        "MAX_UNIVERSE_AGE_SECONDS",
+        "PAIR_COOLDOWN_SECONDS",
+        "PATH",
+        "PIP_NO_CACHE_DIR",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONPATH",
+        "PYTHONUNBUFFERED",
+        "PYTHON_SHA256",
+        "PYTHON_VERSION",
+        "SHARED_ROOT",
+        "SHARIA_FILE",
+        "SHARIA_HMAC_KEY",
+        "SHARIA_RESULT_HMAC_KEY",
+        "SHARIA_RESULT_VERIFY_PUBLIC_KEY_B64",
+        "SHARIA_SIGNAL_GATE_MODE",
+        "SIDECAR_RELEASE_HASH",
+        "SIGNAL_ARCHIVE_MAX_FILES",
+        "SIGNAL_HMAC_KEY",
+        "SIGNAL_INBOX",
+        "SIGNAL_PROCESSED",
+        "SIGNAL_REJECTED",
+        "SIGNAL_SCREENING_TIMEOUT_SECONDS",
+        "SQLITE_BACKUP_INTERVAL_SECONDS",
+        "SQLITE_BACKUP_RETAIN",
+        "TESTNET_AUTO_RESUME_ON_RESTART",
+        "TRADE_SIZE_USDT",
+        "UNIVERSE_FILE"
+      ],
+      "mounts": [
+        {
+          "source": "/var/lib/binana-testnet/shared/sharia",
+          "target": "/app/shared/sharia",
+          "writable": false
+        },
+        {
+          "source": "/var/lib/binana-testnet/shared/universe",
+          "target": "/app/shared/universe",
+          "writable": false
+        },
+        {
+          "source": "/home/ubuntu/binana-runtime-fixes/sidecar/monitor_only.py",
+          "target": "/app/monitor_only.py",
+          "writable": false
+        },
+        {
+          "source": "/var/lib/binana-testnet/shared",
+          "target": "/app/shared",
+          "writable": true
+        }
+      ],
+      "host_policy": {
+        "NetworkMode": "binana-testnet_control",
+        "ReadonlyRootfs": true,
+        "Memory": 314572800,
+        "NanoCpus": 80000000,
+        "PidsLimit": 128,
+        "CapDrop": [
+          "ALL"
+        ],
+        "SecurityOpt": [
+          "no-new-privileges:true"
+        ],
+        "RestartPolicy": {
+          "Name": "unless-stopped",
+          "MaximumRetryCount": 0
+        }
+      },
+      "networks": [
+        "binana-testnet_control",
+        "binana-testnet_runtime-egress"
+      ]
+    },
+    "sharia-screener": {
+      "image_id": "sha256:f6beede23a1ca9c697ee5c071b6056dffa50f7e3824ce40510a72a9db60889ee",
+      "configured_image": "binana-testnet-services:halal-registry-repair-20260912-r2",
+      "user": "999:987",
+      "entrypoint": null,
+      "command": [
+        "python",
+        "-m",
+        "services.sharia_screener.manual_registry_service"
+      ],
+      "environment_names": [
+        "AUDIT_LOG",
+        "BOT_ENVIRONMENT",
+        "BOT_INSTANCE_ID",
+        "BOT_PRODUCT",
+        "ENVELOPE_RELEASE_HASH",
+        "GPG_KEY",
+        "HOME",
+        "LANG",
+        "LEGACY_HALAL_FILE",
+        "LOG_LEVEL",
+        "PATH",
+        "PIP_NO_CACHE_DIR",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONPATH",
+        "PYTHONUNBUFFERED",
+        "PYTHON_SHA256",
+        "PYTHON_VERSION",
+        "SHARED_ROOT",
+        "SHARIA_APPROVAL_HMAC_KEY",
+        "SHARIA_FILE",
+        "SHARIA_MANUAL_REGISTRY_POLL_SECONDS",
+        "SHARIA_REGISTRY_COMMAND_ROOT",
+        "SHARIA_REGISTRY_MODE",
+        "SHARIA_RESEARCH_ROOT",
+        "SHARIA_RESULT_HMAC_KEY",
+        "SHARIA_RESULT_SIGNING_PRIVATE_KEY_B64",
+        "SHARIA_RESULT_VERIFY_PUBLIC_KEY_B64"
+      ],
+      "mounts": [
+        {
+          "source": "/var/lib/binana-testnet/shared",
+          "target": "/app/shared",
+          "writable": true
+        },
+        {
+          "source": "/var/lib/binana-testnet/shared/universe",
+          "target": "/app/shared/universe",
+          "writable": false
+        }
+      ],
+      "host_policy": {
+        "NetworkMode": "none",
+        "ReadonlyRootfs": true,
+        "Memory": 146800640,
+        "NanoCpus": 40000000,
+        "PidsLimit": 96,
+        "CapDrop": [
+          "ALL"
+        ],
+        "SecurityOpt": [
+          "no-new-privileges:true"
+        ],
+        "RestartPolicy": {
+          "Name": "unless-stopped",
+          "MaximumRetryCount": 0
+        }
+      },
+      "networks": [
+        "none"
+      ]
+    },
+    "sharia-research": {
+      "image_id": "sha256:bd428041f9deecf102e8c4257c0b152bae0298de91ac8dbfa014d7d664154271",
+      "configured_image": "binana-testnet-services:v101-4dd60e295d145e62",
+      "user": "999:987",
+      "entrypoint": null,
+      "command": [
+        "python",
+        "-m",
+        "services.sharia_screener.guarded_main"
+      ],
+      "environment_names": [
+        "AUDIT_LOG",
+        "BOT_ENVIRONMENT",
+        "BOT_INSTANCE_ID",
+        "BOT_PRODUCT",
+        "CMC_API_KEY",
+        "COINGECKO_API_KEY",
+        "COINMARKETCAP_API_KEY",
+        "ENVELOPE_RELEASE_HASH",
+        "EXECUTION_MODE",
+        "GPG_KEY",
+        "HOME",
+        "HTTPS_PROXY",
+        "HTTP_PROXY",
+        "LANG",
+        "LEGACY_HALAL_FILE",
+        "LOG_LEVEL",
+        "NO_PROXY",
+        "PATH",
+        "PIP_NO_CACHE_DIR",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONPATH",
+        "PYTHONUNBUFFERED",
+        "PYTHON_SHA256",
+        "PYTHON_VERSION",
+        "SHARED_ROOT",
+        "SHARIA_APPROVAL_HMAC_KEY",
+        "SHARIA_ARCHIVE_RETENTION_DAYS",
+        "SHARIA_AUTO_SOURCE_DISCOVERY_ENABLED",
+        "SHARIA_CMC_MONTHLY_LIMIT",
+        "SHARIA_CMC_PER_MINUTE_LIMIT",
+        "SHARIA_COINGECKO_MONTHLY_LIMIT",
+        "SHARIA_COINGECKO_PER_MINUTE_LIMIT",
+        "SHARIA_CONTROLLER_FILE",
+        "SHARIA_DECISION_INBOX",
+        "SHARIA_DECISION_PROCESSED",
+        "SHARIA_DISCOVERY_ARCHIVE_DIR",
+        "SHARIA_DISCOVERY_CURRENT_DIR",
+        "SHARIA_DISCOVERY_DIR",
+        "SHARIA_EVIDENCE_DIR",
+        "SHARIA_FILE",
+        "SHARIA_HMAC_KEY",
+        "SHARIA_IDLE_SCAN_ENABLED",
+        "SHARIA_MAX_SCANS_PER_DAY",
+        "SHARIA_MIN_SECONDS_BETWEEN_SCANS",
+        "SHARIA_PINNED_EGRESS_PROXY",
+        "SHARIA_QUEUE_INBOX",
+        "SHARIA_QUEUE_PROCESSED",
+        "SHARIA_REPORTS_DIR",
+        "SHARIA_RESULTS_DIR",
+        "SHARIA_RESULT_HMAC_KEY",
+        "SHARIA_RESULT_SIGNING_PRIVATE_KEY_B64",
+        "SHARIA_RESULT_VERIFY_PUBLIC_KEY_B64",
+        "SHARIA_RUNTIME_DIR",
+        "SHARIA_SOURCE_API_TIMEOUT_SECONDS",
+        "SHARIA_SOURCE_BREAKER_COOLDOWN_SECONDS",
+        "SHARIA_SOURCE_FAILURE_REFRESH_HOURS",
+        "SHARIA_SOURCE_REFRESH_DAYS",
+        "SHARIA_SOURCE_REGISTRY",
+        "UNIVERSE_FILE",
+        "http_proxy",
+        "https_proxy",
+        "no_proxy"
+      ],
+      "mounts": [
+        {
+          "source": "/var/lib/binana-testnet/shared",
+          "target": "/app/shared",
+          "writable": true
+        },
+        {
+          "source": "/var/lib/binana-testnet/shared/sharia",
+          "target": "/app/shared/sharia",
+          "writable": false
+        },
+        {
+          "source": "/var/lib/binana-testnet/shared/universe",
+          "target": "/app/shared/universe",
+          "writable": false
+        }
+      ],
+      "host_policy": {
+        "NetworkMode": "binana-testnet_sharia-egress",
+        "ReadonlyRootfs": true,
+        "Memory": 167772160,
+        "NanoCpus": 40000000,
+        "PidsLimit": 96,
+        "CapDrop": [
+          "ALL"
+        ],
+        "SecurityOpt": [
+          "no-new-privileges:true"
+        ],
+        "RestartPolicy": {
+          "Name": "unless-stopped",
+          "MaximumRetryCount": 0
+        }
+      },
+      "networks": [
+        "binana-testnet_sharia-egress"
+      ]
+    },
+    "sharia-egress-proxy": {
+      "image_id": "sha256:bd428041f9deecf102e8c4257c0b152bae0298de91ac8dbfa014d7d664154271",
+      "configured_image": "binana-testnet-services:v101-4dd60e295d145e62",
+      "user": "999:987",
+      "entrypoint": null,
+      "command": [
+        "python",
+        "-m",
+        "services.sharia_egress_proxy.server"
+      ],
+      "environment_names": [
+        "BOT_ENVIRONMENT",
+        "BOT_INSTANCE_ID",
+        "BOT_PRODUCT",
+        "GPG_KEY",
+        "HOME",
+        "LANG",
+        "LOG_LEVEL",
+        "PATH",
+        "PIP_NO_CACHE_DIR",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONPATH",
+        "PYTHONUNBUFFERED",
+        "PYTHON_SHA256",
+        "PYTHON_VERSION",
+        "SHARIA_PROXY_CONNECT_TIMEOUT",
+        "SHARIA_PROXY_IDLE_TIMEOUT",
+        "SHARIA_PROXY_LISTEN_HOST",
+        "SHARIA_PROXY_LISTEN_PORT",
+        "SHARIA_PROXY_MAX_CONNECTIONS"
+      ],
+      "mounts": [],
+      "host_policy": {
+        "NetworkMode": "binana-testnet_runtime-egress",
+        "ReadonlyRootfs": true,
+        "Memory": 52428800,
+        "NanoCpus": 30000000,
+        "PidsLimit": 64,
+        "CapDrop": [
+          "ALL"
+        ],
+        "SecurityOpt": [
+          "no-new-privileges:true"
+        ],
+        "RestartPolicy": {
+          "Name": "unless-stopped",
+          "MaximumRetryCount": 0
+        }
+      },
+      "networks": [
+        "binana-testnet_runtime-egress",
+        "binana-testnet_sharia-egress"
+      ]
+    }
+  }
+}

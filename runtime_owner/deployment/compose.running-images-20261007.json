@@ -1,0 +1,25 @@
+{
+  "services": {
+    "freqtrade": {
+      "image": "binana-testnet-freqtrade@sha256:87c25dfc5b3058891491b6fd0647c86fe9a71f96d8ba41a2693b42797fcada83"
+    },
+    "telegram-broker": {
+      "image": "binana-testnet-services@sha256:f39bca9c799e6ddc1e927c0541d59592fe3d9522a21694c24eebcbe508b459bd"
+    },
+    "universe": {
+      "image": "binana-testnet-services@sha256:62c9df37722ac28198464102f1ca17679181ca8dbfb8b823560dc2fdef4608b0"
+    },
+    "execution-sidecar": {
+      "image": "binana-testnet-services@sha256:bd428041f9deecf102e8c4257c0b152bae0298de91ac8dbfa014d7d664154271"
+    },
+    "sharia-screener": {
+      "image": "binana-testnet-services@sha256:f6beede23a1ca9c697ee5c071b6056dffa50f7e3824ce40510a72a9db60889ee"
+    },
+    "sharia-research": {
+      "image": "binana-testnet-services@sha256:098918b085606f22c005c5237d58b834532bf8f142c78f55c382270dd4512b98"
+    },
+    "sharia-egress-proxy": {
+      "image": "binana-testnet-services@sha256:bd428041f9deecf102e8c4257c0b152bae0298de91ac8dbfa014d7d664154271"
+    }
+  }
+}

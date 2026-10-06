@@ -1,0 +1,126 @@
+{
+  "captured_at_utc": "2026-10-06",
+  "source_sha256": "eabd0e6b44b2fe9d74dd054e3a22077c96ce4bc37c5fefc2016c9d194b002123",
+  "policy": {
+    "binana": {
+      "allocation_usdt": 1000,
+      "allow_live": false,
+      "defensive_stop_fraction": 0.006,
+      "enabled": true,
+      "environment": "testnet",
+      "estimated_exit_fee_fraction": 0.001,
+      "fixed_target_fraction": 0.015,
+      "flow_policy": {
+        "normal_buy_ratio": 0.52,
+        "promote_buy_ratio": 0.58,
+        "promotion_min_profit_fraction": 0.004,
+        "strong_buy_ratio": 0.62
+      },
+      "halal_registry_path": "/freqtrade/shared/sharia/halal_coins.json",
+      "liquidity": {
+        "good_max_slippage_bps": 25,
+        "good_max_spread_bps": 30,
+        "good_min_depth_quote": 1000,
+        "hard_max_slippage_bps": 75,
+        "hard_max_spread_bps": 100,
+        "hard_min_depth_quote": 250,
+        "max_context_age_seconds": 30,
+        "min_quote_volume_24h": 1000000,
+        "require_sequence_book": true
+      },
+      "logical_emergency_stop_fraction": 0.05,
+      "logical_roi_fraction": 0.99,
+      "market_context_path": "/freqtrade/shared/market_context/current.json",
+      "normal_stop_fraction": 0.01,
+      "pending_base_fee_reserve_fraction": 0,
+      "promotion_check_seconds": 10,
+      "single_halal_decision": true,
+      "spot_only": true,
+      "state_db_path": "/freqtrade/shared/freqtrade/binana-extension.sqlite",
+      "stop_limit_buffer_fraction": 0.0015,
+      "testnet_epoch_id": "binana-20260910-owner-cutover-1",
+      "trailing_delta_bips": 75,
+      "confluence_policy": {
+        "enabled": true,
+        "min_score": 5,
+        "timeframe": "5m",
+        "minimum_volume_votes": 2,
+        "minimum_momentum_votes": 2
+      }
+    },
+    "cancel_open_orders_on_exit": true,
+    "dry_run": false,
+    "entry_pricing": {
+      "order_book_top": 1,
+      "price_side": "other",
+      "use_order_book": true
+    },
+    "exchange": {
+      "binana_testnet": true,
+      "ccxt_async_config": {},
+      "ccxt_config": {},
+      "name": "binance",
+      "pair_blacklist": [
+        "BTC/USDT",
+        "ETH/USDT",
+        "BNB/USDT",
+        "SOL/USDT",
+        "XRP/USDT",
+        "USDC/USDT",
+        "FDUSD/USDT",
+        "TUSD/USDT",
+        "USDP/USDT",
+        "DAI/USDT",
+        "EUR/USDT",
+        "AEUR/USDT",
+        "BUSD/USDT",
+        "USDE/USDT",
+        "USDS/USDT",
+        "PYUSD/USDT",
+        "USD1/USDT",
+        "USDG/USDT",
+        "RLUSD/USDT",
+        "EURC/USDT",
+        "EURI/USDT",
+        ".*(UP|DOWN|BULL|BEAR)/USDT"
+      ],
+      "pair_whitelist": [
+        ".*\\/USDT"
+      ],
+      "enable_ws": false
+    },
+    "exit_pricing": {
+      "order_book_top": 1,
+      "price_side": "same",
+      "use_order_book": true
+    },
+    "force_entry_enable": false,
+    "initial_state": "stopped",
+    "internals": {
+      "process_throttle_secs": 5
+    },
+    "margin_mode": "",
+    "max_open_trades": 4,
+    "pairlists": [
+      {
+        "keep_pairlist_on_failure": false,
+        "method": "RemotePairList",
+        "pairlist_url": "file:////freqtrade/shared/universe/current_pairlist.json",
+        "read_timeout": 10,
+        "refresh_period": 300
+      }
+    ],
+    "position_adjustment_enable": false,
+    "stake_amount": 250,
+    "stake_currency": "USDT",
+    "timeframe": "5m",
+    "tradable_balance_ratio": 0.99,
+    "trading_mode": "spot",
+    "unfilledtimeout": {
+      "entry": 5,
+      "exit": 3,
+      "unit": "minutes"
+    },
+    "startup_candle_count": 800
+  }
+}

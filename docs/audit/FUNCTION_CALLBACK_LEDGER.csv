@@ -1555,6 +1555,9 @@ runtime_owner/deployed_services/overrides/universe/services/universe_service/sha
 runtime_owner/deployed_services/overrides/universe/services/universe_service/sharia_gate.py,ManualRegistryFilter.current_halal_symbols,function,top-level-or-method,231,233,-,other
 runtime_owner/deployed_services/overrides/universe/services/universe_service/sharia_gate.py,ManualRegistryFilter.sync_legacy_compat,function,top-level-or-method,235,238,-,other
 runtime_owner/deployed_services/overrides/universe/services/universe_service/sharia_gate.py,load_sharia_gate,function,top-level-or-method,241,247,-,other
+runtime_owner/deployment/materialize_context.py,materialize,function,top-level-or-method,9,35,-,other
+runtime_owner/deployment/materialize_context.py,main,function,top-level-or-method,38,42,-,other
+runtime_owner/deployment/validate_image.py,main,function,top-level-or-method,10,31,-,other
 runtime_owner/owner/binana-strategies/BinanaNfiSpot.py,_journal_strategy_event,function,top-level-or-method,25,33,-,other
 runtime_owner/owner/binana-strategies/BinanaNfiSpot.py,_journal_latest_signal,function,top-level-or-method,35,45,-,other
 runtime_owner/owner/binana-strategies/BinanaNfiSpot.py,BinanaNfiSpot.__init__,function,top-level-or-method,61,84,-,other
@@ -3940,6 +3943,11 @@ tests/test_oracle_host_loss_resilience.py,test_restore_is_staging_only_and_rejec
 tests/test_oracle_host_loss_resilience.py,test_systemd_orders_local_then_offhost_backup_and_does_not_auto_enable_it,function,top-level-or-method,74,85,-,test
 tests/test_oracle_host_loss_resilience.py,test_external_alarm_uses_oracles_grouped_absence_query_and_no_instance_auth,function,top-level-or-method,88,95,-,test
 tests/test_oracle_host_loss_resilience.py,test_no_artificial_activity_or_false_permanence_claim,function,top-level-or-method,98,109,-,test
+tests/test_owner_build_context.py,OwnerBuildContext.fixture,function,top-level-or-method,16,27,-,test
+tests/test_owner_build_context.py,OwnerBuildContext.test_only_manifested_bytes_enter_context,function,top-level-or-method,29,39,-,test
+tests/test_owner_build_context.py,OwnerBuildContext.test_tampered_source_fails_before_creating_context,function,top-level-or-method,41,48,-,test
+tests/test_owner_build_context.py,OwnerBuildContext.test_existing_destination_is_not_merged,function,top-level-or-method,50,59,-,test
+tests/test_owner_build_context.py,OwnerBuildContext.test_traversal_is_rejected,function,top-level-or-method,61,70,-,test
 tests/test_package_mode.py,_mode_file,function,top-level-or-method,36,39,-,test
 tests/test_package_mode.py,StateStub.__init__,function,top-level-or-method,45,48,-,test
 tests/test_package_mode.py,StateStub.set_entries,function,top-level-or-method,50,51,-,test

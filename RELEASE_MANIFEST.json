@@ -109,8 +109,8 @@
       "size": 877
     },
     "README.md": {
-      "sha256": "e4a1c7b8819aa45429b486b2a31810e71a973e5c5db7b5e032d4ed0e4423b12d",
-      "size": 4428
+      "sha256": "8d0cf0f83393ca2f1a2bff44d07d1a29971677c4ee9f3bef24a5ff876c8c090f",
+      "size": 4455
     },
     "RELEASE_MODE": {
       "sha256": "e4b87a69f913da48060c909bafab37d64bcf4dc7d835a19d388da46ebd838c3d",
@@ -365,16 +365,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "9a6fbd31b30f2db64c47a130a8d571e26ef38ece46d09300ce263aff0126e82b",
-      "size": 79049
+      "sha256": "c086c7ecc5badd8ca4aaf11dbf966c2071d06e941bff3995f8d13565f1c253f1",
+      "size": 81138
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "71997ccaa99ad96ea0bcf67485650048e8719efa3ffaa618228a415c1a8e8f21",
-      "size": 622611
+      "sha256": "cb3b3d4d13c9841da931ba215ffa8fd643c72c81f49cfbb79051aec8a5460615",
+      "size": 623537
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -416,9 +416,21 @@
       "sha256": "032d71d7091d781dae4e60a0c4bee4830d72eb08da4094ef8bda282bec552bc2",
       "size": 7025
     },
+    "docs/recovery/AWS_VERIFICATION_20261007.json": {
+      "sha256": "961efbfe30e91255098820127b59a81f860a782ef8e36e7b10c2dcff7245c088",
+      "size": 5390
+    },
+    "docs/recovery/DOCUMENT_COVERAGE_20261007.json": {
+      "sha256": "e2db379f41a9e42df722dc84a21283a1c18c52e5f36e095abab603f276803e18",
+      "size": 37176
+    },
     "docs/recovery/RECOVERY_STATUS_20260930.md": {
       "sha256": "95cf77d1a4bafc550c54fc66d80274e6a6e37743c52f89db6e9cb40e53a74186",
       "size": 7995
+    },
+    "docs/recovery/RECOVERY_STATUS_20261007.md": {
+      "sha256": "64b3db2f9a9ce4143127baedf866956ebfbb70cac85688b28a893965f58baaeb",
+      "size": 4654
     },
     "docs/recovery/REGISTRY_ADDITIONS_20260930.json": {
       "sha256": "32a8a6fb9f7dba0a15f566052f9cd6e49ba360be47f71e8f7cbb5e187c813432",
@@ -975,6 +987,42 @@
     "runtime_owner/deployed_services/overrides/universe/services/universe_service/sharia_gate.py": {
       "sha256": "c79eb3eff5a8274ab29d446d3f47f1366f9f0f8acdc1ae78cae9af2d6d80c475",
       "size": 12173
+    },
+    "runtime_owner/deployment/AWS_POLICY_20261007.json": {
+      "sha256": "9103e318d3b0fd491a147ba3b0d812dcd8fb2e6a24a3513e6632262290046294",
+      "size": 3525
+    },
+    "runtime_owner/deployment/AWS_TOPOLOGY_20261007.json": {
+      "sha256": "5b898949935c43228e3d80e77a7c19af02950160725dca8251a8b8c8e95201ce",
+      "size": 20524
+    },
+    "runtime_owner/deployment/Dockerfile": {
+      "sha256": "87153703086183e8197f9dd70ca53085327eb8cea723e8dcfcd8fa80bae9d1fe",
+      "size": 778
+    },
+    "runtime_owner/deployment/README.md": {
+      "sha256": "4a3a3643d238a47c1d50cc0b3ef54cf92600d36bba51afaf011c253a29027488",
+      "size": 2628
+    },
+    "runtime_owner/deployment/binana-stage1-start": {
+      "sha256": "0258d37975ca8d188d89f764ef427e669101eded2652afe311df9a06d810c7d6",
+      "size": 1760
+    },
+    "runtime_owner/deployment/compose.research-v193.yml": {
+      "sha256": "6a3425dca287a62dd0b9d13fa302ae1cf5749bf25b3ef44cfd600b44a4404777",
+      "size": 352
+    },
+    "runtime_owner/deployment/compose.running-images-20261007.json": {
+      "sha256": "ae31434704fbb8d80dd6ba21a5bd67aa8fe602761ccbde193792c50b355173e3",
+      "size": 1032
+    },
+    "runtime_owner/deployment/materialize_context.py": {
+      "sha256": "32ee73c3e47a9e10906cf762ba97dd61552f7eae197df923d55185c630871c60",
+      "size": 2081
+    },
+    "runtime_owner/deployment/validate_image.py": {
+      "sha256": "eeaae0ae87ba2333dfc2d601ad26113baccea5634a0a4df530aa1a91c690067d",
+      "size": 1497
     },
     "runtime_owner/owner/binana-strategies/BinanaNfiSpot.py": {
       "sha256": "5ae124884ca3fca6c16d477eed4c85d6a3e650b5d13476b4b26b4cdaa7945583",
@@ -1823,6 +1871,10 @@
     "tests/test_oracle_host_loss_resilience.py": {
       "sha256": "759941eb5c7d5ec29e9e74c0e6c469658534c45787bd9ea5d4bafb1411b1fb72",
       "size": 4758
+    },
+    "tests/test_owner_build_context.py": {
+      "sha256": "72f736ff6d2a67c8c916c0d4279aacd6612231f27d7c447c8d026c403d05ce51",
+      "size": 3228
     },
     "tests/test_package_mode.py": {
       "sha256": "3289f0cc3c7c62a6b118c7046e23357e149b36ede959d10667c9ca119cc3d7e5",

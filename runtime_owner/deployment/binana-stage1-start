@@ -1,0 +1,22 @@
+#!/bin/sh
+set -eu
+export RELEASE_TAG=v101-4dd60e295d145e62
+COMPOSE="/usr/bin/docker compose -p binana-testnet --env-file /etc/binana-testnet/.env -f /opt/binana-testnet/current/docker-compose.yml -f /home/ubuntu/binana-runtime-fixes/compose.runtime-fixes.yml -f /home/ubuntu/binana-runtime-fixes/compose.freqtrade-owner.yml -f /home/ubuntu/binana-runtime-fixes/compose.sharia-v193.yml -f /home/ubuntu/binana-runtime-fixes/compose.running-images-20261007.json"
+# Start all BINANA services without waiting on dependency-health serialization.
+$COMPOSE up -d --no-deps --no-build --pull never sharia-egress-proxy sharia-screener sharia-research universe execution-sidecar freqtrade telegram-broker
+# Verify every requested BINANA service reaches running+healthy where healthcheck exists.
+deadline=$(( $(date +%s) + 140 ))
+services="binana-testnet-sharia-egress-proxy-1 binana-testnet-sharia-screener-1 binana-testnet-sharia-research-1 binana-testnet-universe-1 binana-testnet-execution-sidecar-1 binana-testnet-freqtrade-1 binana-testnet-telegram-broker-1"
+while [ "$(date +%s)" -lt "$deadline" ]; do
+  pending=0
+  for c in $services; do
+    state=$(/usr/bin/docker inspect -f '{{.State.Status}}' "$c" 2>/dev/null || echo missing)
+    health=$(/usr/bin/docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$c" 2>/dev/null || echo missing)
+    if [ "$state" != running ]; then pending=1; continue; fi
+    if [ "$health" != none ] && [ "$health" != healthy ]; then pending=1; fi
+  done
+  [ "$pending" -eq 0 ] && exit 0
+  sleep 3
+done
+for c in $services; do /usr/bin/docker inspect -f '{{.Name}} status={{.State.Status}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$c" 2>/dev/null || true; done >&2
+exit 1
