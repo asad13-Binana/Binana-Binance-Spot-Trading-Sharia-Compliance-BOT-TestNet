@@ -262,5 +262,35 @@
       "pypdf": "6.19.0",
       "urllib3": "2.8.0"
     }
+  },
+  "zero_fill_state_repair": {
+    "targets": 25,
+    "verified_orders": 75,
+    "authenticated_get_requests": 177,
+    "evidence_sha256": "3b0039b6313f75bf1fe8ac7bfe499b4a40f177a29644b7ecd30a1bba583d6dd3",
+    "applied_changes": 25,
+    "repeat_changes": 0,
+    "canonical_unchanged": true,
+    "incidents_unchanged": true,
+    "other_extension_fields_unchanged": true,
+    "rollback_rehearsal": true,
+    "concurrent_writer_rejected": true,
+    "backup": "/var/backups/binana-testnet/zero-fill-intent-repair-20261007/live-before"
+  },
+  "owner_boot_followup": {
+    "image": "sha256:a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523",
+    "tests": 164,
+    "cloned_databases": true,
+    "exchange_writes_blocked": true,
+    "pairs": 106,
+    "canonical_reconciliation_ready": true,
+    "private_stream_fresh": true,
+    "retained_pairs": 35,
+    "executable_pairs": 0,
+    "unexpected_incidents": 0,
+    "shutdown_completed": true,
+    "owner_deployed": false,
+    "authenticated_lifecycle_acceptance": false,
+    "independent_offline_runs": 10
   }
 }

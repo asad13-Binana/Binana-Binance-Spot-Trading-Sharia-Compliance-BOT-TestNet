@@ -4,12 +4,12 @@
   "recovered_owner_base_commit": "4169c544d91f05d77f8fd94d70a81b3e71115ff4",
   "running_image_id": "sha256:87c25dfc5b3058891491b6fd0647c86fe9a71f96d8ba41a2693b42797fcada83",
   "validation": {
-    "tests": 162,
+    "tests": 164,
     "network": "none",
     "credentials": false,
     "runtime_state_mounted": false,
     "authenticated_exchange_acceptance": false,
-    "note": "162 tests passed in the isolated AWS recovery-validation-20261007-r3 image; the earlier ten 160-test runs refer to the preceding snapshot."
+    "note": "164 tests passed in ten isolated AWS recovery-validation-20261007-r4 containers. A separate authenticated GET-only full boot on repaired database copies passed startup, reconciliation and shutdown; trading lifecycle acceptance remains incomplete."
   },
   "files": {
     "owner/binana-strategies/BinanaNfiSpot.py": {
@@ -57,16 +57,16 @@
       "bytes": 5583
     },
     "owner/freqtrade/binana/entry_recovery.py": {
-      "sha256": "8348f2a8544b4a7a18b4d54cc5b1fcfbe0fd79f33c9fb16c17ee3e2397762ed8",
-      "bytes": 9559
+      "sha256": "4b953ef135d074d8b1acf05e20476a01d93a0b60e37f4a9cdd734d2b2e168212",
+      "bytes": 9713
     },
     "owner/freqtrade/binana/environment.py": {
       "sha256": "0383f2442b256e75be06e4f8031ad48efde5949177f9fb7b64e46c0e3dc3d1b5",
       "bytes": 4292
     },
     "owner/freqtrade/binana/execution_manager.py": {
-      "sha256": "cb76c50f783b84ec8e3e788d6046e174f06b58a298395f00dd6e2f90258e036c",
-      "bytes": 48252
+      "sha256": "0a0767b392a49f93f38182d6a5b402c67ad9b300509eb662126544f796b15941",
+      "bytes": 48300
     },
     "owner/freqtrade/binana/market_data.py": {
       "sha256": "69f70fb102d298d9f104daae74b848ec809b9bda02f070c09d2fc19949be2769",
@@ -125,8 +125,8 @@
       "bytes": 26243
     },
     "owner/freqtrade/freqtradebot.py": {
-      "sha256": "8b0205408c588f8b9ac6a57f7e72556648114119c5a3d100c66742554ea55b42",
-      "bytes": 128966
+      "sha256": "2b7964d7f637cb45eadfebd4fb7d4f2025ffc53769e4f6b9c5506acfc4d75181",
+      "bytes": 129084
     },
     "owner/freqtrade/persistence/trade_model.py": {
       "sha256": "ba64440fba0726bf5578a7ddb1e532994a57fea9a3dbcc85d093ae4ebef9c5e3",
@@ -173,8 +173,8 @@
       "bytes": 6485
     },
     "tests/test_entry_reconstruction.py": {
-      "sha256": "ef1dda915c69e2809d540ffa55422e16adf90aba40031b10188ea0713ecd26e5",
-      "bytes": 13965
+      "sha256": "48d126e7af08fb3be40d374a235e23bbec53ff8db1a602b473e1a068a5836213",
+      "bytes": 14504
     },
     "tests/test_exact_commissions.py": {
       "sha256": "8692ea67f690795844a36bb3a337451accc0b53f07d65d1854814f85e76df1ae",
@@ -201,8 +201,8 @@
       "bytes": 15792
     },
     "tests/test_owner_monitoring.py": {
-      "sha256": "7d5d393b4e857005e0d1d76ce4b4beb0570f3901445b11ab652c4188f21d0e41",
-      "bytes": 3815
+      "sha256": "d432f443acbe39925d4bec0fbd589327789c1536d1cfc8c7db4d53e79290af45",
+      "bytes": 4692
     },
     "tests/test_owner_resume_gate.py": {
       "sha256": "895cc537bf6d19c5f284591804e430d1cddf88f97cada0428fc5d1da1ca77645",

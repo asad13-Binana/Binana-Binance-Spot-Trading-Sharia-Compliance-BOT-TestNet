@@ -49,4 +49,12 @@ After both updated PR heads passed CI, the research service alone was rebuilt fr
 
 The persistent startup image overlay now pins this research digest. The reviewed rollback script is preserved under scripts/recovery; its private backup and receipt remain at `/var/backups/binana-testnet/research-security-20261007`. Free disk after the security build is 3.1 GB. Only the unused failed owner validation image was removed; running and rollback images were preserved.
 
-CI passed on the runtime-source commits: Testnet run 37538798885 and LIVE run 37538445296. The final deployment-record commit must also pass CI.
+CI passed on the runtime-source commits: Testnet run 37538798885 and LIVE run 37538445296. The deployment-record commit d81ef2f passed CI run 37540289790. Subsequent changes require their own CI result.
+
+## Full startup rehearsal and zero-fill state repair
+
+A full GET-only startup probe on copied databases found 25 older intents whose terminal zero-fill states had been overwritten by later signal rejections. Their generation records still said CLOSED_NO_FILL, but missing legacy plan data caused entry reconstruction to fail. The initial probe reported startup and shutdown success while creating 25 clone-only incidents; that result was not accepted as trading readiness.
+
+A fresh authenticated audit verified all 25 lists and 75 child orders as terminal with no fills, no associated exchange trades and no open exchange obligations. The hash-bound state-only repair passed clone application, idempotency, injected rollback and concurrent-writer rejection. It then changed exactly 25 intent states to CLOSED_NO_FILL on AWS; repetition changed zero. Canonical data, incidents and every other extension field were preserved. The backup and receipts are at `/var/backups/binana-testnet/zero-fill-intent-repair-20261007`.
+
+The candidate also now propagates per-intent entry-recovery failures into canonical readiness instead of reporting ready when no Trade is open. Two regressions reproduced the old defect before the fix; the updated 164-test suite passed in ten separate isolated containers. Its immutable r4 image is a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523. A stricter full startup rehearsal on repaired copies loaded 106 active pairs, authenticated REST and the private stream, reconciled 35 retained pairs with none executable, preserved only the original incident, and shut down cleanly. Exchange writes were blocked throughout. This candidate remains undeployed, and these checks do not certify order lifecycle, active-position restart or soak acceptance.

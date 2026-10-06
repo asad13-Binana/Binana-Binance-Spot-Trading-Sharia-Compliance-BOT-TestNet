@@ -64,3 +64,16 @@ class OwnerMonitoring(unittest.TestCase):
         ns['_binana_reconcile_external_exits'](bot,[SimpleNamespace(id=7,pair='ADA/USDT')])
         self.assertFalse(owner.canonical_reconciliation_ready)
         self.assertEqual(owner.store.incident.call_args.kwargs['code'],'CANONICAL_RECONCILIATION_FAILED')
+
+    def test_unbound_failure_prevents_canonical_readiness_without_open_trades(self):
+        owner = SimpleNamespace(store=Mock(), recover_closed_acknowledgments=lambda: True,
+                                entry_reconciliation_ready=False)
+        bot = SimpleNamespace(binana=owner, _binana_recover_unbound_entries=lambda: [])
+        ns = {'logger': logging.getLogger('test'), 'Trade': SimpleNamespace(session=Mock()), 'Order': object}
+        exec(compile(ast.Module(body=[method('_binana_reconcile_external_exits')], type_ignores=[]),
+                     'test', 'exec'), ns)
+        ns['_binana_reconcile_external_exits'](bot, [])
+        self.assertIs(owner.canonical_reconciliation_ready, False)
+        owner.entry_reconciliation_ready = True
+        ns['_binana_reconcile_external_exits'](bot, [])
+        self.assertIs(owner.canonical_reconciliation_ready, True)

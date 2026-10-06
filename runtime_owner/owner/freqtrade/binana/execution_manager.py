@@ -62,6 +62,7 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
         self._retained_health = {}
         self._rest_checked_at = 0.0
         self.canonical_reconciliation_ready = False
+        self.entry_reconciliation_ready = False
 
     def start_user_stream(self):
         from .user_stream import PrivateUserStream

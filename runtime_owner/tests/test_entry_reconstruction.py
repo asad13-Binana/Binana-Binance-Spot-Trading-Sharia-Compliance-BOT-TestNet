@@ -88,6 +88,14 @@ class EntryReconstruction(unittest.TestCase):
         self.assertEqual(self.manager.recover_unbound_entries(),[])
         self.assertTrue(self.store.has_blockers())
 
+    def test_unbound_sweep_reports_failures_until_a_complete_verified_pass(self):
+        self.manager.order_lists.query_list.side_effect = TimeoutError('unavailable')
+        self.assertEqual(self.manager.recover_unbound_entries(), [])
+        self.assertIs(self.manager.entry_reconciliation_ready, False)
+        self.manager.order_lists.query_list.side_effect = lambda **kwargs: self.response
+        self.assertEqual(len(self.manager.recover_unbound_entries()), 1)
+        self.assertIs(self.manager.entry_reconciliation_ready, True)
+
     def test_pending_fok_response_never_creates_trade_before_expiry_recovery(self):
         init_db('sqlite:///'+str(self.root/'owner.sqlite'))
         self.order.update(status='open',filled=0,cost=0,remaining=250)

@@ -109,8 +109,8 @@
       "size": 877
     },
     "README.md": {
-      "sha256": "8d0cf0f83393ca2f1a2bff44d07d1a29971677c4ee9f3bef24a5ff876c8c090f",
-      "size": 4455
+      "sha256": "07d240a4fb61d475a9eb86ad8c3dd20d42e2d5ada4fd0e1fe53275877da7054f",
+      "size": 4504
     },
     "RELEASE_MODE": {
       "sha256": "e4b87a69f913da48060c909bafab37d64bcf4dc7d835a19d388da46ebd838c3d",
@@ -365,16 +365,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "22639dde4646d10f1ad5748a5232b6ce3472a2202a35b1bf4ddcf12fdaf465e4",
-      "size": 81659
+      "sha256": "67087b70a68df2db66c03d6667e3d5b81a5a3ebb1500160c68fd139b1b1720be",
+      "size": 81842
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "fc351a049e22e9d050d79bb52c657c38d55685e25723e6b03233d713dde48f21",
-      "size": 624795
+      "sha256": "787044170a7e001f7bb44bdfea0673056461df8a1aca6954efcf468b78226724",
+      "size": 625383
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -417,8 +417,8 @@
       "size": 7025
     },
     "docs/recovery/AWS_VERIFICATION_20261007.json": {
-      "sha256": "635de8978ea19369d65e1a136d430f58afb1c2bd0f955a36e2d92707c2af87f7",
-      "size": 7554
+      "sha256": "a6414d8389363f4e60a5ef5d92179f16a1df6e288119e33873d114e69b392a64",
+      "size": 8620
     },
     "docs/recovery/DOCUMENT_COVERAGE_20261007.json": {
       "sha256": "e2db379f41a9e42df722dc84a21283a1c18c52e5f36e095abab603f276803e18",
@@ -429,8 +429,8 @@
       "size": 7995
     },
     "docs/recovery/RECOVERY_STATUS_20261007.md": {
-      "sha256": "f1d4442ff2aa8dc7e9409f5f0ceeccd2b27f153469b6753c83d72d8d84088789",
-      "size": 7884
+      "sha256": "d508411c68c69edeb215acc7c763df72327bf40e7289fab50417bbb92b871b17",
+      "size": 9730
     },
     "docs/recovery/REGISTRY_ADDITIONS_20260930.json": {
       "sha256": "32a8a6fb9f7dba0a15f566052f9cd6e49ba360be47f71e8f7cbb5e187c813432",
@@ -749,12 +749,12 @@
       "size": 35815
     },
     "runtime_owner/PROVENANCE.json": {
-      "sha256": "08d05e992dcbade3d24c9eb6659b76401de28b1fcebf915437fcc03a09494d88",
-      "size": 11596
+      "sha256": "30278a7c356730449e5bee53c5061dba5632e70109a6bc99166bb4996e149530",
+      "size": 11704
     },
     "runtime_owner/README.md": {
-      "sha256": "ffe69bc4aa94c85a18f86ccc0eee7b0498bdba5979bced868d8e046e25534231",
-      "size": 2055
+      "sha256": "8a2b1b9a37c24299de5fc19f8d438344ddac5b48cf2be653318d0aad75fbed6e",
+      "size": 2023
     },
     "runtime_owner/deployed_r17/README.md": {
       "sha256": "b2a731b3ac0949da02e8a15d2015ded64bf2ce592b43c1a260880dd4b4b0e076",
@@ -1073,16 +1073,16 @@
       "size": 5583
     },
     "runtime_owner/owner/freqtrade/binana/entry_recovery.py": {
-      "sha256": "8348f2a8544b4a7a18b4d54cc5b1fcfbe0fd79f33c9fb16c17ee3e2397762ed8",
-      "size": 9559
+      "sha256": "4b953ef135d074d8b1acf05e20476a01d93a0b60e37f4a9cdd734d2b2e168212",
+      "size": 9713
     },
     "runtime_owner/owner/freqtrade/binana/environment.py": {
       "sha256": "0383f2442b256e75be06e4f8031ad48efde5949177f9fb7b64e46c0e3dc3d1b5",
       "size": 4292
     },
     "runtime_owner/owner/freqtrade/binana/execution_manager.py": {
-      "sha256": "cb76c50f783b84ec8e3e788d6046e174f06b58a298395f00dd6e2f90258e036c",
-      "size": 48252
+      "sha256": "0a0767b392a49f93f38182d6a5b402c67ad9b300509eb662126544f796b15941",
+      "size": 48300
     },
     "runtime_owner/owner/freqtrade/binana/market_data.py": {
       "sha256": "69f70fb102d298d9f104daae74b848ec809b9bda02f070c09d2fc19949be2769",
@@ -1137,8 +1137,8 @@
       "size": 26243
     },
     "runtime_owner/owner/freqtrade/freqtradebot.py": {
-      "sha256": "8b0205408c588f8b9ac6a57f7e72556648114119c5a3d100c66742554ea55b42",
-      "size": 128966
+      "sha256": "2b7964d7f637cb45eadfebd4fb7d4f2025ffc53769e4f6b9c5506acfc4d75181",
+      "size": 129084
     },
     "runtime_owner/owner/freqtrade/persistence/trade_model.py": {
       "sha256": "ba64440fba0726bf5578a7ddb1e532994a57fea9a3dbcc85d093ae4ebef9c5e3",
@@ -1189,8 +1189,8 @@
       "size": 6485
     },
     "runtime_owner/tests/test_entry_reconstruction.py": {
-      "sha256": "ef1dda915c69e2809d540ffa55422e16adf90aba40031b10188ea0713ecd26e5",
-      "size": 13965
+      "sha256": "48d126e7af08fb3be40d374a235e23bbec53ff8db1a602b473e1a068a5836213",
+      "size": 14504
     },
     "runtime_owner/tests/test_exact_commissions.py": {
       "sha256": "8692ea67f690795844a36bb3a337451accc0b53f07d65d1854814f85e76df1ae",
@@ -1221,8 +1221,8 @@
       "size": 2652
     },
     "runtime_owner/tests/test_owner_monitoring.py": {
-      "sha256": "7d5d393b4e857005e0d1d76ce4b4beb0570f3901445b11ab652c4188f21d0e41",
-      "size": 3815
+      "sha256": "d432f443acbe39925d4bec0fbd589327789c1536d1cfc8c7db4d53e79290af45",
+      "size": 4692
     },
     "runtime_owner/tests/test_owner_resume_gate.py": {
       "sha256": "895cc537bf6d19c5f284591804e430d1cddf88f97cada0428fc5d1da1ca77645",
@@ -1347,6 +1347,10 @@
     "scripts/recovery/repair_retained_metadata_20260930.py": {
       "sha256": "546efb49335e2e01f2aaaeab6edba83070fb66c60493718d848bd402dae3b661",
       "size": 8980
+    },
+    "scripts/recovery/repair_zero_fill_intent_states_20261007.py": {
+      "sha256": "ecbad1d97ac35248809ccf67dc5b91ef34ff5d12690d9ec754fa2b5b26916105",
+      "size": 6657
     },
     "scripts/resolve_image_digests.sh": {
       "sha256": "ba9fa2a8cd11934d0f23951f81d70793bad1411c813866285103e1b70f573f39",
