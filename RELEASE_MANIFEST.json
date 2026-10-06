@@ -365,16 +365,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "544261357b16645ccc0cd11515955ac8f743b8bc23c83d429c945bcb059a5c08",
-      "size": 81482
+      "sha256": "22639dde4646d10f1ad5748a5232b6ce3472a2202a35b1bf4ddcf12fdaf465e4",
+      "size": 81659
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "b052664213342b5beeba34d1d4a9ac4f8e82db36539bf53ddd2bb0f73e470de3",
-      "size": 624687
+      "sha256": "fc351a049e22e9d050d79bb52c657c38d55685e25723e6b03233d713dde48f21",
+      "size": 624795
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -417,8 +417,8 @@
       "size": 7025
     },
     "docs/recovery/AWS_VERIFICATION_20261007.json": {
-      "sha256": "f20a3946ac619dccce0b0bbf279fc285440ea7834c6ffc9b26e3d210619422cf",
-      "size": 6363
+      "sha256": "635de8978ea19369d65e1a136d430f58afb1c2bd0f955a36e2d92707c2af87f7",
+      "size": 7554
     },
     "docs/recovery/DOCUMENT_COVERAGE_20261007.json": {
       "sha256": "e2db379f41a9e42df722dc84a21283a1c18c52e5f36e095abab603f276803e18",
@@ -429,8 +429,8 @@
       "size": 7995
     },
     "docs/recovery/RECOVERY_STATUS_20261007.md": {
-      "sha256": "7bd9ba91da58d75cea02f73e604eb72ffaa33a3779e70f018adbe39fb9bc0c14",
-      "size": 6810
+      "sha256": "f1d4442ff2aa8dc7e9409f5f0ceeccd2b27f153469b6753c83d72d8d84088789",
+      "size": 7884
     },
     "docs/recovery/REGISTRY_ADDITIONS_20260930.json": {
       "sha256": "32a8a6fb9f7dba0a15f566052f9cd6e49ba360be47f71e8f7cbb5e187c813432",
@@ -1001,19 +1001,19 @@
       "size": 778
     },
     "runtime_owner/deployment/README.md": {
-      "sha256": "4a3a3643d238a47c1d50cc0b3ef54cf92600d36bba51afaf011c253a29027488",
-      "size": 2628
+      "sha256": "99a5f4679f8cbd54a26d01df33c6b47991b0d31cac036ee52ba5e68c8615a506",
+      "size": 2853
     },
     "runtime_owner/deployment/binana-stage1-start": {
       "sha256": "0258d37975ca8d188d89f764ef427e669101eded2652afe311df9a06d810c7d6",
       "size": 1760
     },
     "runtime_owner/deployment/compose.research-v193.yml": {
-      "sha256": "6a3425dca287a62dd0b9d13fa302ae1cf5749bf25b3ef44cfd600b44a4404777",
-      "size": 352
+      "sha256": "92864e94f6e2330d44cb7b1040870d1622fe607cab9449352ff6503b8c0983de",
+      "size": 404
     },
     "runtime_owner/deployment/compose.running-images-20261007.json": {
-      "sha256": "ae31434704fbb8d80dd6ba21a5bd67aa8fe602761ccbde193792c50b355173e3",
+      "sha256": "65b89f6e2e5fa4d133cae3c4ec0e75cccccaa43a5a8a04c2b4008bbf6a79cab1",
       "size": 1032
     },
     "runtime_owner/deployment/materialize_context.py": {
@@ -1331,6 +1331,10 @@
     "scripts/healthcheck.sh": {
       "sha256": "df018036423f62242b13b9dbbe3cab14c29d562b8b6b2315a14c7512a7605ced",
       "size": 1356
+    },
+    "scripts/recovery/deploy_research_security_20261007.py": {
+      "sha256": "9a010704654c889d8bb1e9dec5a73d4a7607627896a873da58a687fb4eb8d462",
+      "size": 7442
     },
     "scripts/recovery/repair_mina_identity_20260930.py": {
       "sha256": "d8db7bd987f268d51ba10f7fee475e61f06d743ffc8cdc1d1062f688292132a1",

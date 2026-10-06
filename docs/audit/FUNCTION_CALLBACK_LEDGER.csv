@@ -2696,6 +2696,7 @@ scripts/generate_evidence_status.py,_atomic_json,function,top-level-or-method,57
 scripts/generate_evidence_status.py,build_evidence,function,top-level-or-method,77,118,-,release-script
 scripts/generate_evidence_status.py,parse_args,function,top-level-or-method,121,131,-,release-script
 scripts/generate_evidence_status.py,main,function,top-level-or-method,134,136,-,release-script
+scripts/recovery/deploy_research_security_20261007.py,run,function,top-level-or-method,4,7,-,release-script
 scripts/recovery/repair_mina_identity_20260930.py,snapshot,function,top-level-or-method,22,33,-,release-script
 scripts/recovery/repair_mina_identity_20260930.py,TransactionBoundStore.__init__,function,top-level-or-method,38,39,-,release-script
 scripts/recovery/repair_mina_identity_20260930.py,TransactionBoundStore.tx,function,top-level-or-method,42,43,contextmanager,release-script

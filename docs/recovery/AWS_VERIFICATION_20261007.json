@@ -181,7 +181,7 @@
     "open_incidents": 1,
     "registry_symbols": 375,
     "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
-    "free_disk_gb": 3.6
+    "free_disk_gb": 3.1
   },
   "github": {
     "testnet_merge": "6611df5792451f4c7c21092640d93c79bb9274dc",
@@ -207,7 +207,8 @@
     "open_order_lists": 0,
     "retained_pairs": 35,
     "executable_pairs": 0,
-    "clone_only": true
+    "clone_only": true,
+    "owner_image": "sha256:180a79b71ff0a7c690e28f9c5a13d88705c60e22a435bfd67751e767b9206a3f"
   },
   "historical_intent_repair": {
     "trades": [
@@ -232,6 +233,34 @@
     "PyJWT": "2.15.0",
     "service_lock_audit": "passed",
     "monitoring_lock_audit": "passed",
-    "running_images_updated": false
+    "research_runtime_updated": true,
+    "other_running_images_updated": false
+  },
+  "research_security_rollout": {
+    "timestamp": "2026-10-06T22:20:24.961251+00:00",
+    "old_image": "sha256:098918b085606f22c005c5237d58b834532bf8f142c78f55c382270dd4512b98",
+    "new_image": "sha256:b74ef9a872624554a9377c50af7eec878ed2cd828730151a24970fbd1d8d58e4",
+    "controller": {
+      "controller_sha256": "418e7280f0b6a5f4cd9ba3887b8be3099f5fcc4b18bfca66808749720a4dd355",
+      "health_ok": true,
+      "health_ts": 1791325223.8538048,
+      "ready_for_screening": true,
+      "controller_integrity": null,
+      "keys_loaded": false
+    },
+    "registry_unchanged": true,
+    "other_container_ids_unchanged": true,
+    "idle_scan_enabled": false,
+    "candidate_limitations": [
+      "typed adverse verdicts and retry evidence incomplete",
+      "autonomous official-domain traversal incomplete",
+      "old Telegram labels may show V19.1"
+    ],
+    "source_commit": "0c4a9d82dcf117a516eb5c77a0052daa74441266",
+    "security_dependency_versions": {
+      "multidict": "6.9.1",
+      "pypdf": "6.19.0",
+      "urllib3": "2.8.0"
+    }
   }
 }

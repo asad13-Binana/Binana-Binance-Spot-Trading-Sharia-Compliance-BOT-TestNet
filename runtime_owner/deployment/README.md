@@ -24,3 +24,5 @@ The checked-in `binana-stage1-start` is the repaired host script. `compose.runni
 `compose.research-v193.yml` records the research-only image/controller override. The installed host filename is `compose.sharia-v193.yml`; both express the same override. The final image overlay takes precedence and pins the built research image.
 
 The pre-upgrade topology was captured at 21:31 UTC on October 6 (October 7 in the owner's timezone). The upgrade completed at 21:37 UTC. The latest image overlay and verification receipt supersede that snapshot for the research image. Credentials and runtime database copies must remain on AWS.
+
+The final research overlay pins the subsequent dependency-security build b74ef9a… from source commit 0c4a9d8. The earlier research image remains a rollback artifact. See the verification record for both deployment events.

@@ -42,3 +42,11 @@ A GET-only candidate probe against copies of the repaired AWS databases found th
 The guarded script `scripts/recovery/repair_retained_intent_states_20261007.py` pins the authenticated evidence, validates retained economics and terminal identities, locks both databases and verifies full logical preservation. Rehearsal changed three state cells; repetition changed zero, injected failure rolled back completely, and a concurrent canonical writer was rejected. The repaired clone then passed closed-acknowledgment and authenticated REST reconciliation, with 35 retained pairs and none executable.
 
 After review, the same three-state repair was applied on AWS with a fresh backup at `/var/backups/binana-testnet/retained-intent-repair-20261007/live-before`. Repetition changed zero. Canonical data, incidents and every other extension field were unchanged. The original recovery incident remains open; this is not an authenticated order-lifecycle or soak certificate.
+
+## Research dependency rollout
+
+After both updated PR heads passed CI, the research service alone was rebuilt from 0c4a9d82dcf117a516eb5c77a0052daa74441266 and deployed using the immutable image b74ef9a872624554a9377c50af7eec878ed2cd828730151a24970fbd1d8d58e4. Runtime imports confirm multidict 6.9.1, pypdf 6.19.0 and urllib3 2.8.0. Fresh health and controller hash checks passed. The manual registry and the other six container identities remained unchanged. Their older dependency sets, including the retained owner base, were not upgraded.
+
+The persistent startup image overlay now pins this research digest. The reviewed rollback script is preserved under scripts/recovery; its private backup and receipt remain at `/var/backups/binana-testnet/research-security-20261007`. Free disk after the security build is 3.1 GB. Only the unused failed owner validation image was removed; running and rollback images were preserved.
+
+CI passed on the runtime-source commits: Testnet run 37538798885 and LIVE run 37538445296. The final deployment-record commit must also pass CI.

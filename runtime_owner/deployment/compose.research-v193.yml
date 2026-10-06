@@ -2,6 +2,6 @@
 # Preserve the stack's explicit ENVELOPE_RELEASE_HASH and research-only paths.
 services:
   sharia-research:
-    image: binana-testnet-services:sharia-v193-6611df5
+    image: binana-testnet-services@sha256:b74ef9a872624554a9377c50af7eec878ed2cd828730151a24970fbd1d8d58e4
     environment:
       SHARIA_CONTROLLER_FILE: /app/shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json
