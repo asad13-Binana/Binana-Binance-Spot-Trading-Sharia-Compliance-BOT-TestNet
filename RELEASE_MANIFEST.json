@@ -365,16 +365,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "67087b70a68df2db66c03d6667e3d5b81a5a3ebb1500160c68fd139b1b1720be",
-      "size": 81842
+      "sha256": "8d76c1bd7350c7cda468c91e7711e03ee367d9a74a00d401268387fcf5bbc612",
+      "size": 82699
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "787044170a7e001f7bb44bdfea0673056461df8a1aca6954efcf468b78226724",
-      "size": 625383
+      "sha256": "e878b7547f2a0ce021988236d132daa2b4400622c489187506afd83a25533768",
+      "size": 627883
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -424,13 +424,17 @@
       "sha256": "e2db379f41a9e42df722dc84a21283a1c18c52e5f36e095abab603f276803e18",
       "size": 37176
     },
+    "docs/recovery/ORDER_VALIDATION_AND_CLEANUP_20261007.json": {
+      "sha256": "af7f49e748a9272d1ffc8b5f09b553e4e22d8d824b039ff2a6ba3fc5189de0ea",
+      "size": 7175
+    },
     "docs/recovery/RECOVERY_STATUS_20260930.md": {
       "sha256": "95cf77d1a4bafc550c54fc66d80274e6a6e37743c52f89db6e9cb40e53a74186",
       "size": 7995
     },
     "docs/recovery/RECOVERY_STATUS_20261007.md": {
-      "sha256": "d508411c68c69edeb215acc7c763df72327bf40e7289fab50417bbb92b871b17",
-      "size": 9730
+      "sha256": "c5c7baa0ab988f4d2bcde224fa2436c6f35d6aad7bded207afa03a83d66de0aa",
+      "size": 11400
     },
     "docs/recovery/REGISTRY_ADDITIONS_20260930.json": {
       "sha256": "32a8a6fb9f7dba0a15f566052f9cd6e49ba360be47f71e8f7cbb5e187c813432",
@@ -1332,9 +1336,17 @@
       "sha256": "df018036423f62242b13b9dbbe3cab14c29d562b8b6b2315a14c7512a7605ced",
       "size": 1356
     },
+    "scripts/recovery/compact_old_binana_backups_20261007.py": {
+      "sha256": "176791c8622c50e8244e7640d8beebfc0bd816a93f2385a2b0f6be3637ba18b8",
+      "size": 4237
+    },
     "scripts/recovery/deploy_research_security_20261007.py": {
       "sha256": "9a010704654c889d8bb1e9dec5a73d4a7607627896a873da58a687fb4eb8d462",
       "size": 7442
+    },
+    "scripts/recovery/probe_testnet_order_validation.py": {
+      "sha256": "96cf24e39bcbfd7d0b4699a522a962eb8b9ba6bbe6185fd9890818f0cddfaed2",
+      "size": 8086
     },
     "scripts/recovery/repair_mina_identity_20260930.py": {
       "sha256": "d8db7bd987f268d51ba10f7fee475e61f06d743ffc8cdc1d1062f688292132a1",
@@ -1351,6 +1363,10 @@
     "scripts/recovery/repair_zero_fill_intent_states_20261007.py": {
       "sha256": "ecbad1d97ac35248809ccf67dc5b91ef34ff5d12690d9ec754fa2b5b26916105",
       "size": 6657
+    },
+    "scripts/recovery/run_testnet_order_validation.py": {
+      "sha256": "b2ac5542b1a1fac0702b8240bc65cf3e53eca9d6f8b516755fe0ba65db243cb7",
+      "size": 6069
     },
     "scripts/resolve_image_digests.sh": {
       "sha256": "ba9fa2a8cd11934d0f23951f81d70793bad1411c813866285103e1b70f573f39",
@@ -1887,6 +1903,10 @@
     "tests/test_oracle_host_loss_resilience.py": {
       "sha256": "759941eb5c7d5ec29e9e74c0e6c469658534c45787bd9ea5d4bafb1411b1fb72",
       "size": 4758
+    },
+    "tests/test_order_validation_transport.py": {
+      "sha256": "5f2f8963125487de421cfe64a928ead0fd9f6db294b2aef8ccb2abac10d0edb8",
+      "size": 3605
     },
     "tests/test_owner_build_context.py": {
       "sha256": "72f736ff6d2a67c8c916c0d4279aacd6612231f27d7c447c8d026c403d05ce51",
