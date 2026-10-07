@@ -1,0 +1,25 @@
+{
+  "source": "Preserved AWS universe source; explicit repair overlay, not an archival rewrite",
+  "files": {
+    "analytics.py": {
+      "original_sha256": "1d0a891ed70d360bf1305f6a781d32afad145922fb1cf997e2d7ffb7c7f8767b",
+      "sha256": "ba6688a7b72a4591d01ccef9104a765d34ac58229d7c2bd9bb0f9bbd8fded04f"
+    },
+    "service.py": {
+      "original_sha256": "0ba25107c84caec129aeac1a67773485e84a6f694c8910bdd3752ca241a84008",
+      "sha256": "c32fc22d9423ba6df2b4d905812003be1e7c11f207dae5f8007c026f977d1a60"
+    },
+    "spot_stream.py": {
+      "original_sha256": "43e00ea7e8a12a28cceb56136f527eb321b61a73fe13053c60fabfc9b472be05",
+      "sha256": "a25d16b5e494a0f58539ac2a015c58f5f9d5825f38dc98c83daba733d2cffefe"
+    },
+    "l2_book.py": {
+      "original_sha256": "882a9ae6848227728fcf3a08f94280f26ba0c2d68a08e5af7ab56aefb8134d35",
+      "sha256": "882a9ae6848227728fcf3a08f94280f26ba0c2d68a08e5af7ab56aefb8134d35"
+    },
+    "l2_collector.py": {
+      "original_sha256": "103a4da5186cc36454d79982289f075176b2ec8b1b3d59baafe9c9c7af60f36d",
+      "sha256": "103a4da5186cc36454d79982289f075176b2ec8b1b3d59baafe9c9c7af60f36d"
+    }
+  }
+}

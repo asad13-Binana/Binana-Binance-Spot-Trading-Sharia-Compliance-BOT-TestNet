@@ -1,0 +1,13 @@
+{
+  "services": {
+    "universe": {
+      "cpus": 0.75,
+      "mem_limit": "512m",
+      "volumes": [
+        "/home/ubuntu/binana-runtime-fixes/market-recovery-20261007/analytics.py:/app/services/market_context/analytics.py:ro",
+        "/home/ubuntu/binana-runtime-fixes/market-recovery-20261007/service.py:/app/services/market_context/service.py:ro",
+        "/home/ubuntu/binana-runtime-fixes/market-recovery-20261007/spot_stream.py:/app/services/market_context/spot_stream.py:ro"
+      ]
+    }
+  }
+}

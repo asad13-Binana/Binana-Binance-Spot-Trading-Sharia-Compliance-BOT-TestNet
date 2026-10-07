@@ -109,8 +109,8 @@
       "size": 877
     },
     "README.md": {
-      "sha256": "07d240a4fb61d475a9eb86ad8c3dd20d42e2d5ada4fd0e1fe53275877da7054f",
-      "size": 4504
+      "sha256": "ec2d378c1d621cec3c5493c3eadf8941b1cd42f4595225e26fed3c972d1a405e",
+      "size": 4721
     },
     "RELEASE_MODE": {
       "sha256": "e4b87a69f913da48060c909bafab37d64bcf4dc7d835a19d388da46ebd838c3d",
@@ -365,16 +365,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "8d76c1bd7350c7cda468c91e7711e03ee367d9a74a00d401268387fcf5bbc612",
-      "size": 82699
+      "sha256": "f752e61ccf9436419742e613371a2d2aa60485281a3f13ea02cecd68ae53549d",
+      "size": 84833
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "e878b7547f2a0ce021988236d132daa2b4400622c489187506afd83a25533768",
-      "size": 627883
+      "sha256": "b8ba99cddf851b07d054bf8d38a27a076eee224da74a6b5aca72bf3204a16134",
+      "size": 637855
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -424,6 +424,10 @@
       "sha256": "e2db379f41a9e42df722dc84a21283a1c18c52e5f36e095abab603f276803e18",
       "size": 37176
     },
+    "docs/recovery/MARKET_RECOVERY_20261007.json": {
+      "sha256": "b7623a744fe2de65d29bf3ea07954ff5a2452e26b46cb73fffdd2adb7d91612f",
+      "size": 1347
+    },
     "docs/recovery/ORDER_VALIDATION_AND_CLEANUP_20261007.json": {
       "sha256": "af7f49e748a9272d1ffc8b5f09b553e4e22d8d824b039ff2a6ba3fc5189de0ea",
       "size": 7175
@@ -433,8 +437,8 @@
       "size": 7995
     },
     "docs/recovery/RECOVERY_STATUS_20261007.md": {
-      "sha256": "c5c7baa0ab988f4d2bcde224fa2436c6f35d6aad7bded207afa03a83d66de0aa",
-      "size": 11400
+      "sha256": "221d6ffe78ab45a259ad50850e62eebc9460cee94d7843c6183fd030f865b5e3",
+      "size": 12376
     },
     "docs/recovery/REGISTRY_ADDITIONS_20260930.json": {
       "sha256": "32a8a6fb9f7dba0a15f566052f9cd6e49ba360be47f71e8f7cbb5e187c813432",
@@ -1001,24 +1005,36 @@
       "size": 20524
     },
     "runtime_owner/deployment/Dockerfile": {
-      "sha256": "87153703086183e8197f9dd70ca53085327eb8cea723e8dcfcd8fa80bae9d1fe",
-      "size": 778
+      "sha256": "580e7d972d18e3f71315b253a44d8920b0b3e44d6f64c6e948140ad84f402d85",
+      "size": 726
     },
     "runtime_owner/deployment/README.md": {
-      "sha256": "99a5f4679f8cbd54a26d01df33c6b47991b0d31cac036ee52ba5e68c8615a506",
-      "size": 2853
+      "sha256": "93cd8be91c39ab13a55468e47a08ffd8a2774f668a9251ce6491f2444702e78b",
+      "size": 3558
     },
     "runtime_owner/deployment/binana-stage1-start": {
-      "sha256": "0258d37975ca8d188d89f764ef427e669101eded2652afe311df9a06d810c7d6",
-      "size": 1760
+      "sha256": "9c6bd36f5e3b21b65669e35bec597782cfd82e48d5ab136ea65a286f04fa9766",
+      "size": 2032
+    },
+    "runtime_owner/deployment/build_verified_owner.py": {
+      "sha256": "99bd84249cfe4336a04f15638eba68c037d133d664e8cddd896976e3addacca9",
+      "size": 830
+    },
+    "runtime_owner/deployment/compose.market-recovery-20261007.json": {
+      "sha256": "1b7a7ea670573bbde4259070143541041cbcc955ca2b8a668f65397f80d88e7c",
+      "size": 505
     },
     "runtime_owner/deployment/compose.research-v193.yml": {
       "sha256": "92864e94f6e2330d44cb7b1040870d1622fe607cab9449352ff6503b8c0983de",
       "size": 404
     },
     "runtime_owner/deployment/compose.running-images-20261007.json": {
-      "sha256": "65b89f6e2e5fa4d133cae3c4ec0e75cccccaa43a5a8a04c2b4008bbf6a79cab1",
-      "size": 1032
+      "sha256": "9d209a4d5f8d3b473139be7691822c3c80472a11a523e3d1069e06ed3e09f97f",
+      "size": 708
+    },
+    "runtime_owner/deployment/local-images-20261007.json": {
+      "sha256": "3f5d00a4ff31b9423ccd3fa32d7642436bebc6374f66c04bd29a507ad6be4a9f",
+      "size": 1311
     },
     "runtime_owner/deployment/materialize_context.py": {
       "sha256": "32ee73c3e47a9e10906cf762ba97dd61552f7eae197df923d55185c630871c60",
@@ -1027,6 +1043,34 @@
     "runtime_owner/deployment/validate_image.py": {
       "sha256": "eeaae0ae87ba2333dfc2d601ad26113baccea5634a0a4df530aa1a91c690067d",
       "size": 1497
+    },
+    "runtime_owner/deployment/verify_local_images.py": {
+      "sha256": "81f2ffa668f61b5028f6653cffea64083dc26ae84f23412170f967194560593d",
+      "size": 1907
+    },
+    "runtime_owner/market_context_repair/PROVENANCE.json": {
+      "sha256": "fd4b657076cbd0fb72c6bad1e62c2b1a82119dfa605a6cdc6a4cc2de7440c60f",
+      "size": 1141
+    },
+    "runtime_owner/market_context_repair/analytics.py": {
+      "sha256": "ba6688a7b72a4591d01ccef9104a765d34ac58229d7c2bd9bb0f9bbd8fded04f",
+      "size": 18943
+    },
+    "runtime_owner/market_context_repair/l2_book.py": {
+      "sha256": "882a9ae6848227728fcf3a08f94280f26ba0c2d68a08e5af7ab56aefb8134d35",
+      "size": 5513
+    },
+    "runtime_owner/market_context_repair/l2_collector.py": {
+      "sha256": "103a4da5186cc36454d79982289f075176b2ec8b1b3d59baafe9c9c7af60f36d",
+      "size": 3162
+    },
+    "runtime_owner/market_context_repair/service.py": {
+      "sha256": "c32fc22d9423ba6df2b4d905812003be1e7c11f207dae5f8007c026f977d1a60",
+      "size": 9133
+    },
+    "runtime_owner/market_context_repair/spot_stream.py": {
+      "sha256": "a25d16b5e494a0f58539ac2a015c58f5f9d5825f38dc98c83daba733d2cffefe",
+      "size": 16437
     },
     "runtime_owner/owner/binana-strategies/BinanaNfiSpot.py": {
       "sha256": "5ae124884ca3fca6c16d477eed4c85d6a3e650b5d13476b4b26b4cdaa7945583",
@@ -1340,6 +1384,10 @@
       "sha256": "176791c8622c50e8244e7640d8beebfc0bd816a93f2385a2b0f6be3637ba18b8",
       "size": 4237
     },
+    "scripts/recovery/deploy_market_recovery_20261007.py": {
+      "sha256": "ce560767fbc7cd5a65da903fa5baa50bf111c4fb6ec6131026a4b9b98b099e1f",
+      "size": 7521
+    },
     "scripts/recovery/deploy_research_security_20261007.py": {
       "sha256": "9a010704654c889d8bb1e9dec5a73d4a7607627896a873da58a687fb4eb8d462",
       "size": 7442
@@ -1545,7 +1593,7 @@
       "size": 340
     },
     "services/market_context/analytics.py": {
-      "sha256": "a25bb94407c65b71cef1f103a9ba13c407dcdc88c87a64ecaa9d7f42e36ddad9",
+      "sha256": "eaa84b11527a55e2331a9ad27a0db582a2264ab25e6258f1b06f73d3b9758324",
       "size": 17359
     },
     "services/market_context/evidence.py": {
@@ -1892,6 +1940,10 @@
       "sha256": "4d11a62e892134ce33545a91d2f3b23448ad9b7f8cbecfafa2936d2a85384c41",
       "size": 8453
     },
+    "tests/test_market_recovery_20261007.py": {
+      "sha256": "af8b52c8dbb35b491c3c8205f5ba2b65a4ccaab35dbbf2d202049b4bd85ff670",
+      "size": 4515
+    },
     "tests/test_oracle_capacity_contract.py": {
       "sha256": "12559e0dbced356c2ada65e3f36ca3ca6cd3d5ccf9cd5df10537655255d1ccb0",
       "size": 1806
@@ -1969,8 +2021,8 @@
       "size": 14608
     },
     "tests/test_spot_microstructure.py": {
-      "sha256": "31e638b192293b488eb1daa87a5ed99278e46697954ea08b80ca2fee7f760f4d",
-      "size": 14897
+      "sha256": "d7663cad7c592f65cfbc18ebafb91bd3bc13cca500f981556da58b739d41f9b5",
+      "size": 15320
     },
     "tests/test_strategy_probe.py": {
       "sha256": "2486ed14f31be5ea87fecb9b1cd3e884135dfc82218e395cb8bfd8012e025d5f",

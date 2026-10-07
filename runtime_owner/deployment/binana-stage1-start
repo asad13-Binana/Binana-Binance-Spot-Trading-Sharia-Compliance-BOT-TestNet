@@ -1,7 +1,8 @@
 #!/bin/sh
 set -eu
+python3 /home/ubuntu/binana-runtime-fixes/verify_local_images.py /home/ubuntu/binana-runtime-fixes/local-images-20261007.json /home/ubuntu/binana-runtime-fixes/compose.running-images-20261007.json
 export RELEASE_TAG=v101-4dd60e295d145e62
-COMPOSE="/usr/bin/docker compose -p binana-testnet --env-file /etc/binana-testnet/.env -f /opt/binana-testnet/current/docker-compose.yml -f /home/ubuntu/binana-runtime-fixes/compose.runtime-fixes.yml -f /home/ubuntu/binana-runtime-fixes/compose.freqtrade-owner.yml -f /home/ubuntu/binana-runtime-fixes/compose.sharia-v193.yml -f /home/ubuntu/binana-runtime-fixes/compose.running-images-20261007.json"
+COMPOSE="/usr/bin/docker compose -p binana-testnet --env-file /etc/binana-testnet/.env -f /opt/binana-testnet/current/docker-compose.yml -f /home/ubuntu/binana-runtime-fixes/compose.runtime-fixes.yml -f /home/ubuntu/binana-runtime-fixes/compose.freqtrade-owner.yml -f /home/ubuntu/binana-runtime-fixes/compose.sharia-v193.yml -f /home/ubuntu/binana-runtime-fixes/compose.running-images-20261007.json -f /home/ubuntu/binana-runtime-fixes/compose.market-recovery-20261007.json"
 # Start all BINANA services without waiting on dependency-health serialization.
 $COMPOSE up -d --no-deps --no-build --pull never sharia-egress-proxy sharia-screener sharia-research universe execution-sidecar freqtrade telegram-broker
 # Verify every requested BINANA service reaches running+healthy where healthcheck exists.

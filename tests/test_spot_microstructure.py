@@ -411,3 +411,12 @@ def test_protected_strategy_is_not_imported_by_market_context():
     )
     assert "IctSmcStrategy" not in source
     assert "legacy_core" not in source
+
+
+def test_one_letter_spot_symbols_are_valid_and_empty_base_is_rejected():
+    from services.market_context.analytics import MarketDataError
+    analytics = SpotMicrostructureAnalytics()
+    assert set(analytics.set_symbols({"SUSDT", "UUSDT", "LTCUSDT"})) == {"SUSDT", "UUSDT", "LTCUSDT"}
+    with pytest.raises(MarketDataError):
+        analytics.set_symbols({"USDT"})
+    assert analytics.snapshot()["symbol_count"] == 3

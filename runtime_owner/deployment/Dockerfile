@@ -1,6 +1,6 @@
 # This recovery build deliberately depends on the retained AWS r17 image.
 # A clean-host rebuild of that base is a separate, still-open release blocker.
-ARG BASE_IMAGE=binana-testnet-freqtrade@sha256:87c25dfc5b3058891491b6fd0647c86fe9a71f96d8ba41a2693b42797fcada83
+ARG BASE_IMAGE=binana-testnet-freqtrade:repair-20260919-r17
 FROM ${BASE_IMAGE}
 USER root
 COPY --chown=999:987 owner/freqtrade/ /freqtrade/freqtrade/
