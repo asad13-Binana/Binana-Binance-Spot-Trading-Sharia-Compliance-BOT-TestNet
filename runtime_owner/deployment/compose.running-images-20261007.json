@@ -1,0 +1,25 @@
+{
+  "services": {
+    "freqtrade": {
+      "image": "binana-testnet-freqtrade:repair-20260919-r17"
+    },
+    "telegram-broker": {
+      "image": "binana-testnet-services:telegram-repair-20260912-r15"
+    },
+    "universe": {
+      "image": "binana-testnet-services:universe-repair-20260912-r10"
+    },
+    "execution-sidecar": {
+      "image": "binana-testnet-services:v101-4dd60e295d145e62"
+    },
+    "sharia-screener": {
+      "image": "binana-testnet-services:halal-registry-repair-20260912-r2"
+    },
+    "sharia-research": {
+      "image": "binana-testnet-services:sharia-security-0c4a9d8"
+    },
+    "sharia-egress-proxy": {
+      "image": "binana-testnet-services:v101-4dd60e295d145e62"
+    }
+  }
+}

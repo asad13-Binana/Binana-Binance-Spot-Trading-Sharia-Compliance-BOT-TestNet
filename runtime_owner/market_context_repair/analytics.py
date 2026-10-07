@@ -10,10 +10,11 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
+from .l2_collector import DepthCollector
 
 SYMBOL_RE = re.compile(r"[A-Z0-9]{1,24}USDT")
 WINDOWS = (10, 30, 60)
-MAX_SYMBOLS = 50
+MAX_SYMBOLS = 200
 
 
 class MarketDataError(ValueError):
@@ -39,7 +40,7 @@ def _integer(value: object, field_name: str, *, positive: bool = False) -> int:
         parsed = int(value)
     except (TypeError, ValueError, OverflowError) as exc:
         raise MarketDataError(f"{field_name} is not an integer") from exc
-    if parsed < (1 if positive else 0):
+    if parsed < (1 if positive else 0) or Decimal(str(value)) != parsed:
         raise MarketDataError(f"{field_name} is outside the permitted range")
     return parsed
 
@@ -95,7 +96,7 @@ class _SymbolState:
 
 
 class SpotMicrostructureAnalytics:
-    """Aggregate one-second flow buckets for at most fifty active symbols.
+    """Aggregate one-second flow buckets for a bounded active Spot symbol set.
 
     One-second buckets bound memory independently of trade rate.  The public
     feed can emit many aggregate trades per second; retaining every event for
@@ -106,7 +107,7 @@ class SpotMicrostructureAnalytics:
         self,
         *,
         max_age_ms: int = 5_000,
-        max_event_lag_ms: int = 120_000,
+        max_event_lag_ms: int = 5_000,
         monotonic: Callable[[], float] = time.monotonic,
         wall_clock: Callable[[], float] = time.time,
     ) -> None:
@@ -118,6 +119,7 @@ class SpotMicrostructureAnalytics:
         self.max_event_lag_ms = int(max_event_lag_ms)
         self._monotonic = monotonic
         self._wall_clock = wall_clock
+        self.depth = DepthCollector()
         self._active: set[str] = set()
         self._states: dict[str, _SymbolState] = {}
         self._lock = threading.RLock()
@@ -129,6 +131,7 @@ class SpotMicrostructureAnalytics:
             "out_of_order_messages": 0,
             "inactive_symbol_messages": 0,
         }
+        self._malformed_reasons: dict[str, int] = {}
 
     def set_symbols(
         self, symbols: set[str] | list[str] | tuple[str, ...]
@@ -144,7 +147,22 @@ class SpotMicrostructureAnalytics:
                 self._states.setdefault(symbol, _SymbolState())
             for symbol in set(self._states) - normalized:
                 del self._states[symbol]
+        self.depth.set_symbols(normalized)
         return tuple(sorted(normalized))
+
+    def reset_connection(self):
+        with self._lock:
+            self._states={symbol:_SymbolState() for symbol in self._active}
+        self.depth.reset()
+
+    def ingest_depth(self,payload,*,received_mono,received_wall):
+        return self.depth.ingest(payload,received_mono)
+
+    def _record_malformed(self, stream: str, exc: MarketDataError) -> None:
+        reason = f"{stream}:{str(exc)[:160]}"
+        with self._lock:
+            self._stats["malformed_messages"] += 1
+            self._malformed_reasons[reason] = self._malformed_reasons.get(reason, 0) + 1
 
     def _state(self, symbol: str) -> _SymbolState:
         if symbol not in self._active:
@@ -202,6 +220,9 @@ class SpotMicrostructureAnalytics:
                 ):
                     self._stats["out_of_order_messages"] += 1
                     return False
+                if state.last_agg_id is not None and aggregate_id != state.last_agg_id+1:
+                    state.buckets.clear();state.cvd_quote_session=Decimal(0)
+                    state.session_started_wall=None
                 self._purge(state, now_mono)
                 second = int(now_mono)
                 if not state.buckets or state.buckets[-1].second != second:
@@ -224,9 +245,8 @@ class SpotMicrostructureAnalytics:
                     state.session_started_wall = now_wall
                 self._stats["accepted_agg_trades"] += 1
             return True
-        except MarketDataError:
-            with self._lock:
-                self._stats["malformed_messages"] += 1
+        except MarketDataError as exc:
+            self._record_malformed("aggTrade", exc)
             return False
 
     def ingest_book_ticker(
@@ -273,9 +293,8 @@ class SpotMicrostructureAnalytics:
                 state.book_received_wall = now_wall
                 self._stats["accepted_book_tickers"] += 1
             return True
-        except MarketDataError:
-            with self._lock:
-                self._stats["malformed_messages"] += 1
+        except MarketDataError as exc:
+            self._record_malformed("bookTicker", exc)
             return False
 
     @staticmethod
@@ -314,13 +333,18 @@ class SpotMicrostructureAnalytics:
             if state.book_received_mono is None
             else max(0, round((now_mono - state.book_received_mono) * 1000))
         )
-        flow_fresh = agg_age_ms is not None and agg_age_ms <= self.max_age_ms
+        coverage=0 if state.session_started_wall is None else self._wall_clock()-state.session_started_wall
+        event_age=None if state.last_agg_event_ms is None else self._wall_clock()*1000-state.last_agg_event_ms
+        flow_fresh = (agg_age_ms is not None and agg_age_ms <= self.max_age_ms and
+            coverage>=60 and event_age is not None and -1000<=event_age<=self.max_age_ms)
         book_fresh = book_age_ms is not None and book_age_ms <= self.max_age_ms
         flow: dict[str, object] = {
             "status": "fresh"
             if flow_fresh
             else ("stale" if agg_age_ms is not None else "unavailable"),
             "agg_trade_age_ms": agg_age_ms,
+            "continuous_coverage_seconds": coverage,
+            "exchange_event_age_ms": event_age,
             "last_agg_trade_event_time_ms": state.last_agg_event_ms,
             "last_agg_trade_received_at": (
                 _iso(state.last_agg_received_wall)
@@ -397,6 +421,7 @@ class SpotMicrostructureAnalytics:
             "advisory_only": True,
             "spot_aggressive_flow": flow,
             "top_of_book_liquidity": book,
+            "l2_order_book": self.depth.view(symbol,now_mono,self.max_age_ms),
         }
 
     def snapshot(
@@ -415,6 +440,7 @@ class SpotMicrostructureAnalytics:
                 for symbol in sorted(self._active)
             }
             stats = dict(self._stats)
+            stats["malformed_reasons"] = dict(sorted(self._malformed_reasons.items()))
         fresh = sum(value["status"] == "fresh" for value in symbols.values())
         return {
             "schema_version": 1,
@@ -424,6 +450,7 @@ class SpotMicrostructureAnalytics:
             "can_trade": False,
             "features": [
                 "aggTrade",
+                "sequence_verified_depth_100ms",
                 "bookTicker_local_monotonic_freshness",
                 "aggressive_buy_sell_windows",
                 "spot_cvd",

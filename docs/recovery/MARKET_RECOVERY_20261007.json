@@ -1,0 +1,45 @@
+{
+  "deployed_at": "2026-10-07T13:23:17.051914912Z",
+  "backup": "/var/backups/binana-testnet/market-recovery-20261007T132301Z",
+  "universe_container_id": "ad656076d30d293aa228998d0416ea69ba84bee1459e8087d9abb40b2e955a92",
+  "other_six_binana_containers_unchanged": true,
+  "old_cpu_limit": 0.07,
+  "new_cpu_limit": 0.75,
+  "old_memory_mib": 180,
+  "new_memory_mib": 512,
+  "observations": [
+    {
+      "at": 1791379497,
+      "symbols": 126,
+      "fresh": 72,
+      "malformed": 0,
+      "reconnects": 0
+    },
+    {
+      "at": 1791379546,
+      "symbols": 126,
+      "fresh": 82,
+      "sequence_verified_books": 125,
+      "malformed": 0,
+      "reconnects": 0,
+      "universe_match": true
+    },
+    {
+      "at": 1791379727,
+      "symbols": 126,
+      "fresh": 80,
+      "sequence_verified_books": 125,
+      "malformed": 0,
+      "reconnects": 0,
+      "universe_match": true
+    }
+  ],
+  "unit_test_result": "33 passed plus 10 transport subtests; LIVE shared suite 19 passed",
+  "trade_resume": false,
+  "trade_resume_reason": "Owner lifecycle acceptance remains incomplete",
+  "references": [
+    "https://raw.githubusercontent.com/binance/binance-spot-api-docs/master/web-socket-streams.md",
+    "https://docs.docker.com/engine/containers/resource_constraints/",
+    "https://docs.docker.com/reference/cli/docker/image/pull/"
+  ]
+}

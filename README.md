@@ -1,10 +1,10 @@
 # BINANA Binance Spot Testnet
 
-Latest update: **375 owner-listed symbols**, preserving the previous 305 and adding only 70 missing from the latest 177-symbol list. AWS signed projection verified. Testnet PR #29 is merged. Trading remains paused pending the accounting-recovery incident and execution checks.
+Latest update (October 7, 2026): the AWS public Spot collector now accepts one-letter symbols, follows the full eligible universe, and has enough CPU to keep trade flow and sequenced depth fresh. Startup verifies retained local image identities before Compose runs. The manual registry contains **375 owner-listed symbols**; Sharia research loads the exact supplied v19.3 controller. The repaired execution-owner candidate is still awaiting lifecycle acceptance, so trading remains paused.
 
 The active AWS deployment uses Freqtrade 2026.8/NFI as its sole order owner, with a monitor-only sidecar. The root package below still represents the older deployment layout; it must not be used to overwrite AWS until runtime integration is complete. Recovered owner source is in `runtime_owner/`.
 
-See [current status and recent changes](docs/recovery/RECOVERY_STATUS_20260930.md) and [the additive registry record](docs/recovery/REGISTRY_ADDITIONS_20260930.json). Historical deployment and validation notes below do not certify the current candidate.
+See [current status and recent changes](docs/recovery/RECOVERY_STATUS_20261007.md) and [the additive registry record](docs/recovery/REGISTRY_ADDITIONS_20260930.json). Historical deployment and validation notes below do not certify the current candidate.
 
 ## Disclaimer and risk warning
 
@@ -64,12 +64,12 @@ extracted deterministic artifact.
 
 - Testnet must be deployed first; live requires matching release markers and a
   signed live-evidence envelope.
-- Freqtrade is signal-only; the execution sidecar is the only Binance order
-  owner.
+- On AWS, Freqtrade/NFI owns orders and the execution sidecar only monitors.
+  The legacy root Compose package has a different topology and is not the AWS installer.
 - Research decisions require the supplied v19.3 controller and signed owner approval; the operational manual registry is a separate gate.
 - Inter-service messages are HMAC-authenticated and release-bound.
 - BNB and BTC are excluded as bases; no BNB fee dependency.
-- Trading secrets exist only in Oracle's mode-600 private env, never in Git.
+- AWS trading secrets remain in private server configuration, never in Git.
 
 ## Documentation
 

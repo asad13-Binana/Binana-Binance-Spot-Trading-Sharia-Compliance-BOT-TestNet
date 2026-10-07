@@ -1,0 +1,296 @@
+{
+  "research_deployment": {
+    "timestamp": "2026-10-06T21:37:08.687781+00:00",
+    "old_image": "sha256:bd428041f9deecf102e8c4257c0b152bae0298de91ac8dbfa014d7d664154271",
+    "new_image": "sha256:098918b085606f22c005c5237d58b834532bf8f142c78f55c382270dd4512b98",
+    "controller": {
+      "controller_sha256": "418e7280f0b6a5f4cd9ba3887b8be3099f5fcc4b18bfca66808749720a4dd355",
+      "health_ok": true,
+      "health_ts": 1791322628.084427,
+      "ready_for_screening": true,
+      "controller_integrity": null,
+      "keys_loaded": false
+    },
+    "registry_unchanged": true,
+    "other_container_ids_unchanged": true,
+    "idle_scan_enabled": false,
+    "candidate_limitations": [
+      "typed adverse verdicts and retry evidence incomplete",
+      "autonomous official-domain traversal incomplete",
+      "old Telegram labels may show V19.1"
+    ]
+  },
+  "boot_repair": {
+    "before_sha256": "d11c5e09da4dba0dfe655bc424313992fe4a552988293672178f86334c51dc79",
+    "after_sha256": "0258d37975ca8d188d89f764ef427e669101eded2652afe311df9a06d810c7d6",
+    "services_matched": 7,
+    "compose_checks_per_service": 13,
+    "startup_executed": false,
+    "systemd_enabled": true,
+    "condition_path_present": true
+  },
+  "boot_checks": [
+    {
+      "service": "freqtrade",
+      "checks": {
+        "image": true,
+        "command": true,
+        "environment": true,
+        "bind_mounts": true,
+        "read_only": true,
+        "memory": true,
+        "cpus": true,
+        "pids": true,
+        "cap_drop": true,
+        "security_opt": true,
+        "restart": true,
+        "user": true,
+        "networks": true
+      }
+    },
+    {
+      "service": "telegram-broker",
+      "checks": {
+        "image": true,
+        "command": true,
+        "environment": true,
+        "bind_mounts": true,
+        "read_only": true,
+        "memory": true,
+        "cpus": true,
+        "pids": true,
+        "cap_drop": true,
+        "security_opt": true,
+        "restart": true,
+        "user": true,
+        "networks": true
+      }
+    },
+    {
+      "service": "universe",
+      "checks": {
+        "image": true,
+        "command": true,
+        "environment": true,
+        "bind_mounts": true,
+        "read_only": true,
+        "memory": true,
+        "cpus": true,
+        "pids": true,
+        "cap_drop": true,
+        "security_opt": true,
+        "restart": true,
+        "user": true,
+        "networks": true
+      }
+    },
+    {
+      "service": "execution-sidecar",
+      "checks": {
+        "image": true,
+        "command": true,
+        "environment": true,
+        "bind_mounts": true,
+        "read_only": true,
+        "memory": true,
+        "cpus": true,
+        "pids": true,
+        "cap_drop": true,
+        "security_opt": true,
+        "restart": true,
+        "user": true,
+        "networks": true
+      }
+    },
+    {
+      "service": "sharia-screener",
+      "checks": {
+        "image": true,
+        "command": true,
+        "environment": true,
+        "bind_mounts": true,
+        "read_only": true,
+        "memory": true,
+        "cpus": true,
+        "pids": true,
+        "cap_drop": true,
+        "security_opt": true,
+        "restart": true,
+        "user": true,
+        "networks": true
+      },
+      "network_mode": "none"
+    },
+    {
+      "service": "sharia-research",
+      "checks": {
+        "image": true,
+        "command": true,
+        "environment": true,
+        "bind_mounts": true,
+        "read_only": true,
+        "memory": true,
+        "cpus": true,
+        "pids": true,
+        "cap_drop": true,
+        "security_opt": true,
+        "restart": true,
+        "user": true,
+        "networks": true
+      }
+    },
+    {
+      "service": "sharia-egress-proxy",
+      "checks": {
+        "image": true,
+        "command": true,
+        "environment": true,
+        "bind_mounts": true,
+        "read_only": true,
+        "memory": true,
+        "cpus": true,
+        "pids": true,
+        "cap_drop": true,
+        "security_opt": true,
+        "restart": true,
+        "user": true,
+        "networks": true
+      }
+    }
+  ],
+  "accounting_audit": {
+    "report": "/var/lib/binana-testnet/shared/runtime/repair_economic_audit_20261007_exact.json",
+    "filled_orders": 174,
+    "trades": 85,
+    "quantity_mismatches": 0,
+    "cost_mismatches": 0,
+    "identity_unverified": 0,
+    "errors": 0
+  },
+  "validation": {
+    "owner_tests_per_run": 160,
+    "owner_independent_runs": 10,
+    "owner_image": "sha256:96a591f935d09ab92bbef6b2dff85118322e1b2d19248421c0e4fc70fd0df5c9",
+    "sharia_tests": 93,
+    "authenticated_lifecycle_acceptance": false
+  },
+  "runtime": {
+    "owner": "r17",
+    "trading_state": "PAUSED",
+    "open_trades": 0,
+    "open_incidents": 1,
+    "registry_symbols": 375,
+    "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+    "free_disk_gb": 3.1
+  },
+  "github": {
+    "testnet_merge": "6611df5792451f4c7c21092640d93c79bb9274dc",
+    "testnet_ci_run": 36645104687,
+    "live_merge": "f346a7a91f6a228e048e34ba9da5f9a92c5ff66a",
+    "live_ci_run": 36645110522,
+    "pr28": "closed as superseded"
+  },
+  "retained_filter_check": {
+    "report": "/home/ubuntu/binana-recovery-20260926/retained-filter-check-20261007.json",
+    "retained_trades": 73,
+    "pairs": 35,
+    "individual_executable": 0,
+    "aggregate_executable": 0,
+    "order_requests": 0
+  },
+  "candidate_followup": {
+    "owner_tests": 162,
+    "read_only_probe_get_requests": 20,
+    "closed_acknowledgments_ready": true,
+    "authenticated_rest_ok": true,
+    "open_exchange_orders": 0,
+    "open_order_lists": 0,
+    "retained_pairs": 35,
+    "executable_pairs": 0,
+    "clone_only": true,
+    "owner_image": "sha256:180a79b71ff0a7c690e28f9c5a13d88705c60e22a435bfd67751e767b9206a3f"
+  },
+  "historical_intent_repair": {
+    "trades": [
+      34,
+      47,
+      53
+    ],
+    "state": "DUST_RETAINED",
+    "changed": 3,
+    "repeat_changed": 0,
+    "canonical_unchanged": true,
+    "incidents_unchanged": true,
+    "other_extension_fields_unchanged": true,
+    "rollback_rehearsal": true,
+    "concurrent_writer_rejected": true,
+    "backup": "/var/backups/binana-testnet/retained-intent-repair-20261007/live-before"
+  },
+  "security_pins": {
+    "multidict": "6.9.1",
+    "pypdf": "6.19.0",
+    "urllib3": "2.8.0",
+    "PyJWT": "2.15.0",
+    "service_lock_audit": "passed",
+    "monitoring_lock_audit": "passed",
+    "research_runtime_updated": true,
+    "other_running_images_updated": false
+  },
+  "research_security_rollout": {
+    "timestamp": "2026-10-06T22:20:24.961251+00:00",
+    "old_image": "sha256:098918b085606f22c005c5237d58b834532bf8f142c78f55c382270dd4512b98",
+    "new_image": "sha256:b74ef9a872624554a9377c50af7eec878ed2cd828730151a24970fbd1d8d58e4",
+    "controller": {
+      "controller_sha256": "418e7280f0b6a5f4cd9ba3887b8be3099f5fcc4b18bfca66808749720a4dd355",
+      "health_ok": true,
+      "health_ts": 1791325223.8538048,
+      "ready_for_screening": true,
+      "controller_integrity": null,
+      "keys_loaded": false
+    },
+    "registry_unchanged": true,
+    "other_container_ids_unchanged": true,
+    "idle_scan_enabled": false,
+    "candidate_limitations": [
+      "typed adverse verdicts and retry evidence incomplete",
+      "autonomous official-domain traversal incomplete",
+      "old Telegram labels may show V19.1"
+    ],
+    "source_commit": "0c4a9d82dcf117a516eb5c77a0052daa74441266",
+    "security_dependency_versions": {
+      "multidict": "6.9.1",
+      "pypdf": "6.19.0",
+      "urllib3": "2.8.0"
+    }
+  },
+  "zero_fill_state_repair": {
+    "targets": 25,
+    "verified_orders": 75,
+    "authenticated_get_requests": 177,
+    "evidence_sha256": "3b0039b6313f75bf1fe8ac7bfe499b4a40f177a29644b7ecd30a1bba583d6dd3",
+    "applied_changes": 25,
+    "repeat_changes": 0,
+    "canonical_unchanged": true,
+    "incidents_unchanged": true,
+    "other_extension_fields_unchanged": true,
+    "rollback_rehearsal": true,
+    "concurrent_writer_rejected": true,
+    "backup": "/var/backups/binana-testnet/zero-fill-intent-repair-20261007/live-before"
+  },
+  "owner_boot_followup": {
+    "image": "sha256:a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523",
+    "tests": 164,
+    "cloned_databases": true,
+    "exchange_writes_blocked": true,
+    "pairs": 106,
+    "canonical_reconciliation_ready": true,
+    "private_stream_fresh": true,
+    "retained_pairs": 35,
+    "executable_pairs": 0,
+    "unexpected_incidents": 0,
+    "shutdown_completed": true,
+    "owner_deployed": false,
+    "authenticated_lifecycle_acceptance": false,
+    "independent_offline_runs": 10
+  }
+}

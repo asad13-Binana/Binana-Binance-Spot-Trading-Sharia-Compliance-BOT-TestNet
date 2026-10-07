@@ -1,0 +1,239 @@
+{
+  "captured_at_utc": "2026-10-07T12:21:17.314Z",
+  "validation": [
+    {
+      "started_at": 1791375673.4082112,
+      "matching_engine_orders_submitted": 0,
+      "authenticated_lifecycle_acceptance": false,
+      "pairs": [
+        {
+          "pair": "LTC/USDT",
+          "notional": "249.9539600000000000",
+          "preflight": {
+            "symbol": "LTCUSDT",
+            "additional_orders": 3,
+            "open_orders": 0,
+            "open_order_lists": 0,
+            "open_algo_orders": 0,
+            "average_price": "66.95000000"
+          },
+          "quantity": "3.73400000",
+          "protected_quantity": "3.73400000",
+          "commission_reserve": "0E-8",
+          "tests": [
+            {
+              "role": "working",
+              "passed": true
+            },
+            {
+              "role": "take_profit",
+              "passed": true
+            },
+            {
+              "role": "stop",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "pair": "LINK/USDT",
+          "notional": "249.9705800000000000",
+          "preflight": {
+            "symbol": "LINKUSDT",
+            "additional_orders": 3,
+            "open_orders": 0,
+            "open_order_lists": 0,
+            "open_algo_orders": 0,
+            "average_price": "13.35159622"
+          },
+          "quantity": "18.73000000",
+          "protected_quantity": "18.73000000",
+          "commission_reserve": "0E-8",
+          "tests": [
+            {
+              "role": "working",
+              "passed": true
+            },
+            {
+              "role": "take_profit",
+              "passed": true
+            },
+            {
+              "role": "stop",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "pair": "ADA/USDT",
+          "notional": "249.9804300000000000",
+          "preflight": {
+            "symbol": "ADAUSDT",
+            "additional_orders": 3,
+            "open_orders": 0,
+            "open_order_lists": 0,
+            "open_algo_orders": 0,
+            "average_price": "0.25513168"
+          },
+          "quantity": "980.70000000",
+          "protected_quantity": "980.70000000",
+          "commission_reserve": "0E-8",
+          "tests": [
+            {
+              "role": "working",
+              "passed": true
+            },
+            {
+              "role": "take_profit",
+              "passed": true
+            },
+            {
+              "role": "stop",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "pair": "NEAR/USDT",
+          "notional": "249.5688000000000000",
+          "preflight": {
+            "symbol": "NEARUSDT",
+            "additional_orders": 3,
+            "open_orders": 0,
+            "open_order_lists": 0,
+            "open_algo_orders": 0,
+            "average_price": "5.05460000"
+          },
+          "quantity": "49.40000000",
+          "protected_quantity": "49.40000000",
+          "commission_reserve": "0E-8",
+          "tests": [
+            {
+              "role": "working",
+              "passed": true
+            },
+            {
+              "role": "take_profit",
+              "passed": true
+            },
+            {
+              "role": "stop",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "pair": "PAXG/USDT",
+          "notional": "249.7111160000000000",
+          "preflight": {
+            "symbol": "PAXGUSDT",
+            "additional_orders": 3,
+            "open_orders": 0,
+            "open_order_lists": 0,
+            "open_algo_orders": 0,
+            "average_price": "4134.20960553"
+          },
+          "quantity": "0.06040000",
+          "protected_quantity": "0.06040000",
+          "commission_reserve": "0E-8",
+          "tests": [
+            {
+              "role": "working",
+              "passed": true
+            },
+            {
+              "role": "take_profit",
+              "passed": true
+            },
+            {
+              "role": "stop",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "passed": true,
+      "open_orders_after": 0,
+      "open_lists_after": 0,
+      "completed_at": 1791375677.3145418
+    },
+    {
+      "root": "/var/backups/binana-testnet/order-validation-20261007T122111Z",
+      "image": "sha256:a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523",
+      "probe_sha256": "96cf24e39bcbfd7d0b4699a522a962eb8b9ba6bbe6185fd9890818f0cddfaed2",
+      "exit_code": 0,
+      "owner_state_before": {
+        "state": "paused",
+        "dry_run": false,
+        "trading_mode": "spot"
+      },
+      "owner_state_after": {
+        "state": "paused",
+        "dry_run": false,
+        "trading_mode": "spot"
+      },
+      "owner_container_unchanged": true,
+      "owner_image_unchanged": true,
+      "trade_order_counts_and_open_incidents_unchanged": true,
+      "live_database_mounted": false,
+      "authenticated_lifecycle_acceptance": false,
+      "passed": true
+    }
+  ],
+  "backup_compaction": [
+    {
+      "source": "/var/backups/binana-testnet/20260919T202653Z",
+      "archive": "/var/backups/binana-testnet/20260919T202653Z.verified.tar.gz",
+      "files": 11632,
+      "original_bytes": 336757761,
+      "archive_bytes": 42949478,
+      "archive_sha256": "57819c3963a3cd9979e071cf47c468d3b2ff70a8565d97307deedef20cd6d5ed",
+      "verified": true,
+      "duplicate_removed": true
+    },
+    {
+      "source": "/var/backups/binana-testnet/20260919T202747Z",
+      "archive": "/var/backups/binana-testnet/20260919T202747Z.verified.tar.gz",
+      "files": 11632,
+      "original_bytes": 336758772,
+      "archive_bytes": 42950079,
+      "archive_sha256": "b68c90bfa07dba566a38658f8a8b45809005ab12c67f21e6f5a40072e8077ab6",
+      "verified": true,
+      "duplicate_removed": true
+    },
+    {
+      "source": "/var/backups/binana-testnet/20260923T013209Z",
+      "archive": "/var/backups/binana-testnet/20260923T013209Z.verified.tar.gz",
+      "files": 11930,
+      "original_bytes": 348866574,
+      "archive_bytes": 45341416,
+      "archive_sha256": "ef0c61f216b6575e19247b8141ec8023cb13f9b6b8cdf3a73c859c10bb9e5c80",
+      "verified": true,
+      "duplicate_removed": true
+    },
+    {
+      "source": "/var/backups/binana-testnet/20260923T111404Z",
+      "archive": "/var/backups/binana-testnet/20260923T111404Z.verified.tar.gz",
+      "files": 11968,
+      "original_bytes": 351603551,
+      "archive_bytes": 45593708,
+      "archive_sha256": "05368f9b75d75b527e68ac7a968fb7177c85f64bca5cffb05198fc1422219d77",
+      "verified": true,
+      "duplicate_removed": true
+    },
+    {
+      "source": "/var/backups/binana-testnet/20260923T120758Z",
+      "archive": "/var/backups/binana-testnet/20260923T120758Z.verified.tar.gz",
+      "files": 11972,
+      "original_bytes": 351852773,
+      "archive_bytes": 45605667,
+      "archive_sha256": "336c5069a9755ce0259ac484198b69a2166eb164754e2679875b9f9d7b0831a4",
+      "verified": true,
+      "duplicate_removed": true
+    }
+  ],
+  "free_disk_after": "4.1G",
+  "trading_resumed": false,
+  "live_deployment": false,
+  "bitcoin_bot_touched": false
+}

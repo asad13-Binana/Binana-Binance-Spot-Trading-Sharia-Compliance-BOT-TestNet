@@ -62,6 +62,7 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
         self._retained_health = {}
         self._rest_checked_at = 0.0
         self.canonical_reconciliation_ready = False
+        self.entry_reconciliation_ready = False
 
     def start_user_stream(self):
         from .user_stream import PrivateUserStream
@@ -302,6 +303,9 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
                 raise AdmissionRejected(reason)
             if state in self.TERMINAL_INTENT_STATES:
                 raise AdmissionRejected('SIGNAL_ALREADY_TERMINAL')
+            # A repeated signal must not overwrite an existing trade or order lifecycle.
+            if existing.get('freqtrade_trade_id') is not None or self.store.latest_generation(intent_id) is not None:
+                raise AdmissionRejected('SIGNAL_ALREADY_OWNED')
             nominal=Decimal(str(existing['nominal_usdt']))
             if not nominal.is_finite() or nominal <= 0:
                 raise AdmissionRejected('CANONICAL_NOMINAL_INVALID')

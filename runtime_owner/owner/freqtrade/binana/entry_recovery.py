@@ -71,6 +71,7 @@ class EntryRecovery:
             raise RecoveryBlocked('CANONICAL_ENTRY_TIME_MISMATCH')
 
     def recover_unbound_entries(self):
+        self.entry_reconciliation_ready = False
         with self.store._connect() as connection:
             intents = [dict(row) for row in connection.execute('''
                 SELECT i.* FROM intents i WHERE i.freqtrade_trade_id IS NULL
@@ -80,6 +81,7 @@ class EntryRecovery:
                 ORDER BY i.created_ts
             ''')]
         results = []
+        failed = False
         for intent in intents:
             intent_id = intent['intent_id']
             try:
@@ -87,10 +89,12 @@ class EntryRecovery:
                 if result is not None:
                     results.append(result)
             except Exception as exc:
+                failed = True
                 self.store.set_intent_state(intent_id, 'UNKNOWN')
                 self.store.incident(incident_id='entry-recovery-'+intent_id,
                     intent_id=intent_id, pair=intent['pair'], code='ENTRY_RECONSTRUCTION_BLOCKED',
                     detail=str(exc)[:200] if isinstance(exc, RecoveryBlocked) else type(exc).__name__)
+        self.entry_reconciliation_ready = not failed
         return results
 
     def _recover_unbound_entry(self, intent):

@@ -353,6 +353,8 @@ class FreqtradeBot(LoggingMixin):
             self.binana.store.close_incident('closed-ack-sweep')
         try:
             recovered = self._binana_recover_unbound_entries()
+            if getattr(self.binana, 'entry_reconciliation_ready', False) is not True:
+                failures = True
             existing_ids = {trade.id for trade in trades}
             trades = list(trades) + [trade for trade in recovered if trade.id not in existing_ids]
         except Exception as exc:
