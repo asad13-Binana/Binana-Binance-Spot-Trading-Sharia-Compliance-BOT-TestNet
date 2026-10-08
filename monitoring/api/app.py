@@ -146,7 +146,7 @@ def sharia(request_id: str = Depends(require_bearer)):
 
 @app.get(API + "/market-context")
 def market_context(
-    symbol: str | None = Query(None, pattern=r"^[A-Za-z0-9]{2,24}USDT$"),
+    symbol: str | None = Query(None, pattern=r"^[A-Za-z0-9]{1,24}USDT$"),
     request_id: str = Depends(require_bearer),
 ):
     """Read-only Spot flow/liquidity evidence; never a trading-control API."""

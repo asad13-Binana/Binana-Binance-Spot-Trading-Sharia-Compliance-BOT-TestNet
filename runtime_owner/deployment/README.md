@@ -28,3 +28,7 @@ The pre-upgrade topology was captured at 21:31 UTC on October 6 (October 7 in th
 The final research overlay pins the subsequent dependency-security build b74ef9a… from source commit 0c4a9d8. The earlier research image remains a rollback artifact. See the verification record for both deployment events.
 
 The October 7 market recovery overlay changes only universe CPU (0.07 to 0.75), memory (180 to 512 MiB), and three collector source mounts. It preserves the existing 96-process limit. The original AWS files remain archived under deployed_services; market_context_repair records the deployed repairs and their source hashes.
+
+## October 8 accepted AWS owner
+
+The running image overlay and local-image manifest now pin recovery-validation-20261007-r4 (a90b7f66…). The actual stopped rollout and r17 rollback rehearsal passed before the existing acceptance certificate was issued and the broker Resume path enabled entries. All accounting and order data remained unchanged; only startup_time and the four exact StateStore identity constraints were accepted as startup changes. Retain r17 and the verified backups for recovery. The candidate image defaults to an offline validator; the existing AWS Compose owner overlay explicitly selects the real Freqtrade entrypoint and command.

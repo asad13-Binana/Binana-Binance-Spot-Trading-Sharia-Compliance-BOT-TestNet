@@ -624,7 +624,7 @@ def market_context_status(symbol: str | None = None) -> dict:
     }
     if symbol:
         normalized = str(symbol).upper()
-        if not re.fullmatch(r"[A-Z0-9]{2,24}USDT", normalized):
+        if not re.fullmatch(r"[A-Z0-9]{1,24}USDT", normalized):
             result["symbol_error"] = "invalid_symbol"
         else:
             record = payload["symbols"].get(normalized)

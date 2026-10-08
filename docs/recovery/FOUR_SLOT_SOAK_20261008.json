@@ -1,0 +1,5106 @@
+{
+  "receipt": {
+    "root": "/var/backups/binana-testnet/controlled-owner-20261008T125807Z",
+    "image": "sha256:a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523",
+    "probe_sha256": "6d05be5c67ce3e9b6a31ba64f26490baf9417fc8ff5912f1bd330147cf4c45f1",
+    "source_config_sha256": "eabd0e6b44b2fe9d74dd054e3a22077c96ce4bc37c5fefc2016c9d194b002123",
+    "source_databases": {
+      "binana-owner.sqlite": [
+        [
+          [
+            85
+          ]
+        ],
+        [
+          [
+            176
+          ]
+        ],
+        [
+          [
+            0
+          ]
+        ]
+      ],
+      "binana-owner.sqlite_logical_sha256": "37ecef24f7a85d6c979e20046c781129da4cc9713814a3a05b9323ca1e2282f6",
+      "binana-extension.sqlite": [
+        [
+          [
+            "repair-economic-settlement-replay-20260920",
+            "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED",
+            "OPEN"
+          ]
+        ]
+      ],
+      "binana-extension.sqlite_logical_sha256": "97f5101d5861c5cd06c2a2b6f1f48d48260f351ac52f06c3c792e687e3caeb7e"
+    },
+    "phases": [
+      {
+        "phase": "entry",
+        "passed": true,
+        "exit_code": 0,
+        "error": null,
+        "canonical": {
+          "LTC/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T125807Z-LTC",
+              "pair": "LTC/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 86,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "OPEN",
+              "created_ts": 1791464296.9232585,
+              "updated_ts": 1791464914.2028306
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 86,
+                "is_open": true,
+                "amount": 3.892,
+                "stake_amount": 249.4772,
+                "open_rate": 64.1,
+                "close_rate": null,
+                "realized_profit": 0,
+                "close_profit_abs": 0,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "3.892",
+                  "basis": "249.4772",
+                  "invested": "249.4772",
+                  "realized": "0",
+                  "execution_rate": "64.1",
+                  "fees": {
+                    "buy": {
+                      "LTC": "0.0"
+                    },
+                    "sell": {}
+                  },
+                  "entries": {
+                    "34300": {
+                      "quantity": "3.892"
+                    }
+                  },
+                  "exits": {}
+                },
+                "receipts": {
+                  "orders": {
+                    "34300": {
+                      "amount": "3.892",
+                      "client_id": "BW1W4f521f5fb2bceb62",
+                      "created": "1791464297248",
+                      "fills": {
+                        "1176": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "LTC": "0.0"
+                          },
+                          "id": "1176",
+                          "quantity": "3.892",
+                          "quote": "249.4772",
+                          "quote_fee": "0",
+                          "timestamp": "1791464297248"
+                        }
+                      },
+                      "id": "34300",
+                      "side": "buy"
+                    }
+                  },
+                  "pair": "LTC/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "34300",
+                    "filled": 3.892,
+                    "cost": 249.4772
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          },
+          "LINK/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T125807Z-LINK",
+              "pair": "LINK/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 87,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "OPEN",
+              "created_ts": 1791464300.751071,
+              "updated_ts": 1791464914.5796907
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 87,
+                "is_open": true,
+                "amount": 19.28,
+                "stake_amount": 249.40608,
+                "open_rate": 12.936,
+                "close_rate": null,
+                "realized_profit": 0,
+                "close_profit_abs": 0,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "19.28",
+                  "basis": "249.40608",
+                  "invested": "249.40608",
+                  "realized": "0",
+                  "execution_rate": "12.936",
+                  "fees": {
+                    "buy": {
+                      "LINK": "0.0"
+                    },
+                    "sell": {}
+                  },
+                  "entries": {
+                    "78297": {
+                      "quantity": "19.28"
+                    }
+                  },
+                  "exits": {}
+                },
+                "receipts": {
+                  "orders": {
+                    "78297": {
+                      "amount": "19.28",
+                      "client_id": "BW1W32aff11eb2da29e0",
+                      "created": "1791464300931",
+                      "fills": {
+                        "7983": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "LINK": "0.0"
+                          },
+                          "id": "7983",
+                          "quantity": "19.28",
+                          "quote": "249.40608",
+                          "quote_fee": "0",
+                          "timestamp": "1791464300931"
+                        }
+                      },
+                      "id": "78297",
+                      "side": "buy"
+                    }
+                  },
+                  "pair": "LINK/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "78297",
+                    "filled": 19.28,
+                    "cost": 249.40608
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          },
+          "ADA/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T125807Z-ADA",
+              "pair": "ADA/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 88,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "OPEN",
+              "created_ts": 1791464303.6849513,
+              "updated_ts": 1791464914.9599323
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 88,
+                "is_open": true,
+                "amount": 1008.8,
+                "stake_amount": 249.678,
+                "open_rate": 0.2475,
+                "close_rate": null,
+                "realized_profit": 0,
+                "close_profit_abs": 0,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "1008.8",
+                  "basis": "249.678",
+                  "invested": "249.678",
+                  "realized": "0",
+                  "execution_rate": "0.2475",
+                  "fees": {
+                    "buy": {
+                      "ADA": "0.0"
+                    },
+                    "sell": {}
+                  },
+                  "entries": {
+                    "30138": {
+                      "quantity": "1008.8"
+                    }
+                  },
+                  "exits": {}
+                },
+                "receipts": {
+                  "orders": {
+                    "30138": {
+                      "amount": "1008.8",
+                      "client_id": "BW1Wf1981ea3149a5ea4",
+                      "created": "1791464303959",
+                      "fills": {
+                        "5489": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "ADA": "0.0"
+                          },
+                          "id": "5489",
+                          "quantity": "1008.8",
+                          "quote": "249.678",
+                          "quote_fee": "0",
+                          "timestamp": "1791464303959"
+                        }
+                      },
+                      "id": "30138",
+                      "side": "buy"
+                    }
+                  },
+                  "pair": "ADA/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "30138",
+                    "filled": 1008.8,
+                    "cost": 249.678
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          },
+          "NEAR/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T125807Z-NEAR",
+              "pair": "NEAR/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 89,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "OPEN",
+              "created_ts": 1791464308.6238089,
+              "updated_ts": 1791464915.337693
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 89,
+                "is_open": true,
+                "amount": 49.2,
+                "stake_amount": 249.5916,
+                "open_rate": 5.073,
+                "close_rate": null,
+                "realized_profit": 0,
+                "close_profit_abs": 0,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "49.2",
+                  "basis": "249.5916",
+                  "invested": "249.5916",
+                  "realized": "0",
+                  "execution_rate": "5.073",
+                  "fees": {
+                    "buy": {
+                      "NEAR": "0.0"
+                    },
+                    "sell": {}
+                  },
+                  "entries": {
+                    "79389": {
+                      "quantity": "49.2"
+                    }
+                  },
+                  "exits": {}
+                },
+                "receipts": {
+                  "orders": {
+                    "79389": {
+                      "amount": "49.2",
+                      "client_id": "BW1W0106dae60cbd7b42",
+                      "created": "1791464308957",
+                      "fills": {
+                        "3173": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "NEAR": "0.0"
+                          },
+                          "id": "3173",
+                          "quantity": "49.2",
+                          "quote": "249.5916",
+                          "quote_fee": "0",
+                          "timestamp": "1791464308957"
+                        }
+                      },
+                      "id": "79389",
+                      "side": "buy"
+                    }
+                  },
+                  "pair": "NEAR/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "79389",
+                    "filled": 49.2,
+                    "cost": 249.5916
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "phase": "restart",
+        "passed": true,
+        "exit_code": 0,
+        "error": null,
+        "canonical": {
+          "LTC/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T125807Z-LTC",
+              "pair": "LTC/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 86,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "OPEN",
+              "created_ts": 1791464296.9232585,
+              "updated_ts": 1791464924.2419474
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 86,
+                "is_open": true,
+                "amount": 3.892,
+                "stake_amount": 249.4772,
+                "open_rate": 64.1,
+                "close_rate": null,
+                "realized_profit": 0,
+                "close_profit_abs": 0,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "3.892",
+                  "basis": "249.4772",
+                  "invested": "249.4772",
+                  "realized": "0",
+                  "execution_rate": "64.1",
+                  "fees": {
+                    "buy": {
+                      "LTC": "0.0"
+                    },
+                    "sell": {}
+                  },
+                  "entries": {
+                    "34300": {
+                      "quantity": "3.892"
+                    }
+                  },
+                  "exits": {}
+                },
+                "receipts": {
+                  "orders": {
+                    "34300": {
+                      "amount": "3.892",
+                      "client_id": "BW1W4f521f5fb2bceb62",
+                      "created": "1791464297248",
+                      "fills": {
+                        "1176": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "LTC": "0.0"
+                          },
+                          "id": "1176",
+                          "quantity": "3.892",
+                          "quote": "249.4772",
+                          "quote_fee": "0",
+                          "timestamp": "1791464297248"
+                        }
+                      },
+                      "id": "34300",
+                      "side": "buy"
+                    }
+                  },
+                  "pair": "LTC/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "34300",
+                    "filled": 3.892,
+                    "cost": 249.4772
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          },
+          "LINK/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T125807Z-LINK",
+              "pair": "LINK/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 87,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "OPEN",
+              "created_ts": 1791464300.751071,
+              "updated_ts": 1791464925.4238398
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 87,
+                "is_open": true,
+                "amount": 19.28,
+                "stake_amount": 249.40608,
+                "open_rate": 12.936,
+                "close_rate": null,
+                "realized_profit": 0,
+                "close_profit_abs": 0,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "19.28",
+                  "basis": "249.40608",
+                  "invested": "249.40608",
+                  "realized": "0",
+                  "execution_rate": "12.936",
+                  "fees": {
+                    "buy": {
+                      "LINK": "0.0"
+                    },
+                    "sell": {}
+                  },
+                  "entries": {
+                    "78297": {
+                      "quantity": "19.28"
+                    }
+                  },
+                  "exits": {}
+                },
+                "receipts": {
+                  "orders": {
+                    "78297": {
+                      "amount": "19.28",
+                      "client_id": "BW1W32aff11eb2da29e0",
+                      "created": "1791464300931",
+                      "fills": {
+                        "7983": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "LINK": "0.0"
+                          },
+                          "id": "7983",
+                          "quantity": "19.28",
+                          "quote": "249.40608",
+                          "quote_fee": "0",
+                          "timestamp": "1791464300931"
+                        }
+                      },
+                      "id": "78297",
+                      "side": "buy"
+                    }
+                  },
+                  "pair": "LINK/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "78297",
+                    "filled": 19.28,
+                    "cost": 249.40608
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          },
+          "ADA/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T125807Z-ADA",
+              "pair": "ADA/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 88,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "OPEN",
+              "created_ts": 1791464303.6849513,
+              "updated_ts": 1791464925.8037305
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 88,
+                "is_open": true,
+                "amount": 1008.8,
+                "stake_amount": 249.678,
+                "open_rate": 0.2475,
+                "close_rate": null,
+                "realized_profit": 0,
+                "close_profit_abs": 0,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "1008.8",
+                  "basis": "249.678",
+                  "invested": "249.678",
+                  "realized": "0",
+                  "execution_rate": "0.2475",
+                  "fees": {
+                    "buy": {
+                      "ADA": "0.0"
+                    },
+                    "sell": {}
+                  },
+                  "entries": {
+                    "30138": {
+                      "quantity": "1008.8"
+                    }
+                  },
+                  "exits": {}
+                },
+                "receipts": {
+                  "orders": {
+                    "30138": {
+                      "amount": "1008.8",
+                      "client_id": "BW1Wf1981ea3149a5ea4",
+                      "created": "1791464303959",
+                      "fills": {
+                        "5489": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "ADA": "0.0"
+                          },
+                          "id": "5489",
+                          "quantity": "1008.8",
+                          "quote": "249.678",
+                          "quote_fee": "0",
+                          "timestamp": "1791464303959"
+                        }
+                      },
+                      "id": "30138",
+                      "side": "buy"
+                    }
+                  },
+                  "pair": "ADA/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "30138",
+                    "filled": 1008.8,
+                    "cost": 249.678
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          },
+          "NEAR/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T125807Z-NEAR",
+              "pair": "NEAR/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 89,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "OPEN",
+              "created_ts": 1791464308.6238089,
+              "updated_ts": 1791464926.186448
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 89,
+                "is_open": true,
+                "amount": 49.2,
+                "stake_amount": 249.5916,
+                "open_rate": 5.073,
+                "close_rate": null,
+                "realized_profit": 0,
+                "close_profit_abs": 0,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "49.2",
+                  "basis": "249.5916",
+                  "invested": "249.5916",
+                  "realized": "0",
+                  "execution_rate": "5.073",
+                  "fees": {
+                    "buy": {
+                      "NEAR": "0.0"
+                    },
+                    "sell": {}
+                  },
+                  "entries": {
+                    "79389": {
+                      "quantity": "49.2"
+                    }
+                  },
+                  "exits": {}
+                },
+                "receipts": {
+                  "orders": {
+                    "79389": {
+                      "amount": "49.2",
+                      "client_id": "BW1W0106dae60cbd7b42",
+                      "created": "1791464308957",
+                      "fills": {
+                        "3173": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "NEAR": "0.0"
+                          },
+                          "id": "3173",
+                          "quantity": "49.2",
+                          "quote": "249.5916",
+                          "quote_fee": "0",
+                          "timestamp": "1791464308957"
+                        }
+                      },
+                      "id": "79389",
+                      "side": "buy"
+                    }
+                  },
+                  "pair": "NEAR/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "79389",
+                    "filled": 49.2,
+                    "cost": 249.5916
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "phase": "exit",
+        "passed": true,
+        "exit_code": 0,
+        "error": null,
+        "canonical": {
+          "LTC/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T125807Z-LTC",
+              "pair": "LTC/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 86,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "EXIT_FILLED",
+              "created_ts": 1791464296.9232585,
+              "updated_ts": 1791464967.0427969
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 86,
+                "is_open": false,
+                "amount": 3.892,
+                "stake_amount": 249.4772,
+                "open_rate": 64.1,
+                "close_rate": 64.08,
+                "realized_profit": -0.07784,
+                "close_profit_abs": -0.07784,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "0.000",
+                  "basis": "0.0000",
+                  "invested": "249.4772",
+                  "realized": "-0.07784",
+                  "execution_rate": "64.1",
+                  "fees": {
+                    "buy": {
+                      "LTC": "0.0"
+                    },
+                    "sell": {
+                      "USDT": "0.0"
+                    }
+                  },
+                  "entries": {
+                    "34300": {
+                      "quantity": "3.892"
+                    }
+                  },
+                  "exits": {
+                    "34618": {
+                      "profit": "-0.07784",
+                      "basis": "249.4772",
+                      "quantity": "3.892"
+                    }
+                  }
+                },
+                "receipts": {
+                  "orders": {
+                    "34300": {
+                      "amount": "3.892",
+                      "client_id": "BW1W4f521f5fb2bceb62",
+                      "created": "1791464297248",
+                      "fills": {
+                        "1176": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "LTC": "0.0"
+                          },
+                          "id": "1176",
+                          "quantity": "3.892",
+                          "quote": "249.4772",
+                          "quote_fee": "0",
+                          "timestamp": "1791464297248"
+                        }
+                      },
+                      "id": "34300",
+                      "side": "buy"
+                    },
+                    "34618": {
+                      "amount": "3.892",
+                      "client_id": "BE2E05c044602c822506",
+                      "created": "1791464952056",
+                      "fills": {
+                        "1185": {
+                          "base_fee": "0",
+                          "fees": {
+                            "USDT": "0.0"
+                          },
+                          "id": "1185",
+                          "quantity": "3.892",
+                          "quote": "249.39936",
+                          "quote_fee": "0.0",
+                          "timestamp": "1791464952056"
+                        }
+                      },
+                      "id": "34618",
+                      "side": "sell"
+                    }
+                  },
+                  "pair": "LTC/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "34300",
+                    "filled": 3.892,
+                    "cost": 249.4772
+                  },
+                  {
+                    "id": "34618",
+                    "filled": 3.892,
+                    "cost": 249.39936
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          },
+          "LINK/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T125807Z-LINK",
+              "pair": "LINK/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 87,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "EXIT_FILLED",
+              "created_ts": 1791464300.751071,
+              "updated_ts": 1791464967.7036047
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 87,
+                "is_open": false,
+                "amount": 19.28,
+                "stake_amount": 249.40608,
+                "open_rate": 12.936,
+                "close_rate": 12.945,
+                "realized_profit": 0.17352,
+                "close_profit_abs": 0.17352,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "0.00",
+                  "basis": "0.00000",
+                  "invested": "249.40608",
+                  "realized": "0.17352",
+                  "execution_rate": "12.936",
+                  "fees": {
+                    "buy": {
+                      "LINK": "0.0"
+                    },
+                    "sell": {
+                      "USDT": "0.0"
+                    }
+                  },
+                  "entries": {
+                    "78297": {
+                      "quantity": "19.28"
+                    }
+                  },
+                  "exits": {
+                    "79012": {
+                      "profit": "0.17352",
+                      "basis": "249.40608",
+                      "quantity": "19.28"
+                    }
+                  }
+                },
+                "receipts": {
+                  "orders": {
+                    "78297": {
+                      "amount": "19.28",
+                      "client_id": "BW1W32aff11eb2da29e0",
+                      "created": "1791464300931",
+                      "fills": {
+                        "7983": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "LINK": "0.0"
+                          },
+                          "id": "7983",
+                          "quantity": "19.28",
+                          "quote": "249.40608",
+                          "quote_fee": "0",
+                          "timestamp": "1791464300931"
+                        }
+                      },
+                      "id": "78297",
+                      "side": "buy"
+                    },
+                    "79012": {
+                      "amount": "19.28",
+                      "client_id": "BE2E8ac92c11f193fc8f",
+                      "created": "1791464952894",
+                      "fills": {
+                        "8131": {
+                          "base_fee": "0",
+                          "fees": {
+                            "USDT": "0.0"
+                          },
+                          "id": "8131",
+                          "quantity": "19.28",
+                          "quote": "249.5796",
+                          "quote_fee": "0.0",
+                          "timestamp": "1791464952894"
+                        }
+                      },
+                      "id": "79012",
+                      "side": "sell"
+                    }
+                  },
+                  "pair": "LINK/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "78297",
+                    "filled": 19.28,
+                    "cost": 249.40608
+                  },
+                  {
+                    "id": "79012",
+                    "filled": 19.28,
+                    "cost": 249.5796
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          },
+          "ADA/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T125807Z-ADA",
+              "pair": "ADA/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 88,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "EXIT_FILLED",
+              "created_ts": 1791464303.6849513,
+              "updated_ts": 1791464968.3685944
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 88,
+                "is_open": false,
+                "amount": 1008.8,
+                "stake_amount": 249.678,
+                "open_rate": 0.2475,
+                "close_rate": 0.2473,
+                "realized_profit": -0.20176,
+                "close_profit_abs": -0.20176,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "0.0",
+                  "basis": "0.000",
+                  "invested": "249.678",
+                  "realized": "-0.20176",
+                  "execution_rate": "0.2475",
+                  "fees": {
+                    "buy": {
+                      "ADA": "0.0"
+                    },
+                    "sell": {
+                      "USDT": "0.0"
+                    }
+                  },
+                  "entries": {
+                    "30138": {
+                      "quantity": "1008.8"
+                    }
+                  },
+                  "exits": {
+                    "30417": {
+                      "profit": "-0.20176",
+                      "basis": "249.678",
+                      "quantity": "1008.8"
+                    }
+                  }
+                },
+                "receipts": {
+                  "orders": {
+                    "30138": {
+                      "amount": "1008.8",
+                      "client_id": "BW1Wf1981ea3149a5ea4",
+                      "created": "1791464303959",
+                      "fills": {
+                        "5489": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "ADA": "0.0"
+                          },
+                          "id": "5489",
+                          "quantity": "1008.8",
+                          "quote": "249.678",
+                          "quote_fee": "0",
+                          "timestamp": "1791464303959"
+                        }
+                      },
+                      "id": "30138",
+                      "side": "buy"
+                    },
+                    "30417": {
+                      "amount": "1008.8",
+                      "client_id": "BE2E341e6b692a8f4ffe",
+                      "created": "1791464953733",
+                      "fills": {
+                        "5534": {
+                          "base_fee": "0",
+                          "fees": {
+                            "USDT": "0.0"
+                          },
+                          "id": "5534",
+                          "quantity": "1008.8",
+                          "quote": "249.47624",
+                          "quote_fee": "0.0",
+                          "timestamp": "1791464953733"
+                        }
+                      },
+                      "id": "30417",
+                      "side": "sell"
+                    }
+                  },
+                  "pair": "ADA/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "30138",
+                    "filled": 1008.8,
+                    "cost": 249.678
+                  },
+                  {
+                    "id": "30417",
+                    "filled": 1008.8,
+                    "cost": 249.47624
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          },
+          "NEAR/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T125807Z-NEAR",
+              "pair": "NEAR/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 89,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "EXIT_FILLED",
+              "created_ts": 1791464308.6238089,
+              "updated_ts": 1791464969.0310507
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 89,
+                "is_open": false,
+                "amount": 49.2,
+                "stake_amount": 249.5916,
+                "open_rate": 5.073,
+                "close_rate": 5.065,
+                "realized_profit": -0.3936,
+                "close_profit_abs": -0.3936,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "0.0",
+                  "basis": "0.0000",
+                  "invested": "249.5916",
+                  "realized": "-0.3936",
+                  "execution_rate": "5.073",
+                  "fees": {
+                    "buy": {
+                      "NEAR": "0.0"
+                    },
+                    "sell": {
+                      "USDT": "0.0"
+                    }
+                  },
+                  "entries": {
+                    "79389": {
+                      "quantity": "49.2"
+                    }
+                  },
+                  "exits": {
+                    "79895": {
+                      "profit": "-0.3936",
+                      "basis": "249.5916",
+                      "quantity": "49.2"
+                    }
+                  }
+                },
+                "receipts": {
+                  "orders": {
+                    "79389": {
+                      "amount": "49.2",
+                      "client_id": "BW1W0106dae60cbd7b42",
+                      "created": "1791464308957",
+                      "fills": {
+                        "3173": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "NEAR": "0.0"
+                          },
+                          "id": "3173",
+                          "quantity": "49.2",
+                          "quote": "249.5916",
+                          "quote_fee": "0",
+                          "timestamp": "1791464308957"
+                        }
+                      },
+                      "id": "79389",
+                      "side": "buy"
+                    },
+                    "79895": {
+                      "amount": "49.2",
+                      "client_id": "BE2E7bad38e1b2a44045",
+                      "created": "1791464954571",
+                      "fills": {
+                        "3193": {
+                          "base_fee": "0",
+                          "fees": {
+                            "USDT": "0.0"
+                          },
+                          "id": "3193",
+                          "quantity": "49.2",
+                          "quote": "249.198",
+                          "quote_fee": "0.0",
+                          "timestamp": "1791464954571"
+                        }
+                      },
+                      "id": "79895",
+                      "side": "sell"
+                    }
+                  },
+                  "pair": "NEAR/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "79389",
+                    "filled": 49.2,
+                    "cost": 249.5916
+                  },
+                  {
+                    "id": "79895",
+                    "filled": 49.2,
+                    "cost": 249.198
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "phase": "closed_restart",
+        "passed": true,
+        "exit_code": 0,
+        "error": null,
+        "canonical": {
+          "LTC/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T125807Z-LTC",
+              "pair": "LTC/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 86,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "EXIT_FILLED",
+              "created_ts": 1791464296.9232585,
+              "updated_ts": 1791464967.0427969
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 86,
+                "is_open": false,
+                "amount": 3.892,
+                "stake_amount": 249.4772,
+                "open_rate": 64.1,
+                "close_rate": 64.08,
+                "realized_profit": -0.07784,
+                "close_profit_abs": -0.07784,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "0.000",
+                  "basis": "0.0000",
+                  "invested": "249.4772",
+                  "realized": "-0.07784",
+                  "execution_rate": "64.1",
+                  "fees": {
+                    "buy": {
+                      "LTC": "0.0"
+                    },
+                    "sell": {
+                      "USDT": "0.0"
+                    }
+                  },
+                  "entries": {
+                    "34300": {
+                      "quantity": "3.892"
+                    }
+                  },
+                  "exits": {
+                    "34618": {
+                      "profit": "-0.07784",
+                      "basis": "249.4772",
+                      "quantity": "3.892"
+                    }
+                  }
+                },
+                "receipts": {
+                  "orders": {
+                    "34300": {
+                      "amount": "3.892",
+                      "client_id": "BW1W4f521f5fb2bceb62",
+                      "created": "1791464297248",
+                      "fills": {
+                        "1176": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "LTC": "0.0"
+                          },
+                          "id": "1176",
+                          "quantity": "3.892",
+                          "quote": "249.4772",
+                          "quote_fee": "0",
+                          "timestamp": "1791464297248"
+                        }
+                      },
+                      "id": "34300",
+                      "side": "buy"
+                    },
+                    "34618": {
+                      "amount": "3.892",
+                      "client_id": "BE2E05c044602c822506",
+                      "created": "1791464952056",
+                      "fills": {
+                        "1185": {
+                          "base_fee": "0",
+                          "fees": {
+                            "USDT": "0.0"
+                          },
+                          "id": "1185",
+                          "quantity": "3.892",
+                          "quote": "249.39936",
+                          "quote_fee": "0.0",
+                          "timestamp": "1791464952056"
+                        }
+                      },
+                      "id": "34618",
+                      "side": "sell"
+                    }
+                  },
+                  "pair": "LTC/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "34300",
+                    "filled": 3.892,
+                    "cost": 249.4772
+                  },
+                  {
+                    "id": "34618",
+                    "filled": 3.892,
+                    "cost": 249.39936
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          },
+          "LINK/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T125807Z-LINK",
+              "pair": "LINK/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 87,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "EXIT_FILLED",
+              "created_ts": 1791464300.751071,
+              "updated_ts": 1791464967.7036047
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 87,
+                "is_open": false,
+                "amount": 19.28,
+                "stake_amount": 249.40608,
+                "open_rate": 12.936,
+                "close_rate": 12.945,
+                "realized_profit": 0.17352,
+                "close_profit_abs": 0.17352,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "0.00",
+                  "basis": "0.00000",
+                  "invested": "249.40608",
+                  "realized": "0.17352",
+                  "execution_rate": "12.936",
+                  "fees": {
+                    "buy": {
+                      "LINK": "0.0"
+                    },
+                    "sell": {
+                      "USDT": "0.0"
+                    }
+                  },
+                  "entries": {
+                    "78297": {
+                      "quantity": "19.28"
+                    }
+                  },
+                  "exits": {
+                    "79012": {
+                      "profit": "0.17352",
+                      "basis": "249.40608",
+                      "quantity": "19.28"
+                    }
+                  }
+                },
+                "receipts": {
+                  "orders": {
+                    "78297": {
+                      "amount": "19.28",
+                      "client_id": "BW1W32aff11eb2da29e0",
+                      "created": "1791464300931",
+                      "fills": {
+                        "7983": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "LINK": "0.0"
+                          },
+                          "id": "7983",
+                          "quantity": "19.28",
+                          "quote": "249.40608",
+                          "quote_fee": "0",
+                          "timestamp": "1791464300931"
+                        }
+                      },
+                      "id": "78297",
+                      "side": "buy"
+                    },
+                    "79012": {
+                      "amount": "19.28",
+                      "client_id": "BE2E8ac92c11f193fc8f",
+                      "created": "1791464952894",
+                      "fills": {
+                        "8131": {
+                          "base_fee": "0",
+                          "fees": {
+                            "USDT": "0.0"
+                          },
+                          "id": "8131",
+                          "quantity": "19.28",
+                          "quote": "249.5796",
+                          "quote_fee": "0.0",
+                          "timestamp": "1791464952894"
+                        }
+                      },
+                      "id": "79012",
+                      "side": "sell"
+                    }
+                  },
+                  "pair": "LINK/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "78297",
+                    "filled": 19.28,
+                    "cost": 249.40608
+                  },
+                  {
+                    "id": "79012",
+                    "filled": 19.28,
+                    "cost": 249.5796
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          },
+          "ADA/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T125807Z-ADA",
+              "pair": "ADA/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 88,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "EXIT_FILLED",
+              "created_ts": 1791464303.6849513,
+              "updated_ts": 1791464968.3685944
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 88,
+                "is_open": false,
+                "amount": 1008.8,
+                "stake_amount": 249.678,
+                "open_rate": 0.2475,
+                "close_rate": 0.2473,
+                "realized_profit": -0.20176,
+                "close_profit_abs": -0.20176,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "0.0",
+                  "basis": "0.000",
+                  "invested": "249.678",
+                  "realized": "-0.20176",
+                  "execution_rate": "0.2475",
+                  "fees": {
+                    "buy": {
+                      "ADA": "0.0"
+                    },
+                    "sell": {
+                      "USDT": "0.0"
+                    }
+                  },
+                  "entries": {
+                    "30138": {
+                      "quantity": "1008.8"
+                    }
+                  },
+                  "exits": {
+                    "30417": {
+                      "profit": "-0.20176",
+                      "basis": "249.678",
+                      "quantity": "1008.8"
+                    }
+                  }
+                },
+                "receipts": {
+                  "orders": {
+                    "30138": {
+                      "amount": "1008.8",
+                      "client_id": "BW1Wf1981ea3149a5ea4",
+                      "created": "1791464303959",
+                      "fills": {
+                        "5489": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "ADA": "0.0"
+                          },
+                          "id": "5489",
+                          "quantity": "1008.8",
+                          "quote": "249.678",
+                          "quote_fee": "0",
+                          "timestamp": "1791464303959"
+                        }
+                      },
+                      "id": "30138",
+                      "side": "buy"
+                    },
+                    "30417": {
+                      "amount": "1008.8",
+                      "client_id": "BE2E341e6b692a8f4ffe",
+                      "created": "1791464953733",
+                      "fills": {
+                        "5534": {
+                          "base_fee": "0",
+                          "fees": {
+                            "USDT": "0.0"
+                          },
+                          "id": "5534",
+                          "quantity": "1008.8",
+                          "quote": "249.47624",
+                          "quote_fee": "0.0",
+                          "timestamp": "1791464953733"
+                        }
+                      },
+                      "id": "30417",
+                      "side": "sell"
+                    }
+                  },
+                  "pair": "ADA/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "30138",
+                    "filled": 1008.8,
+                    "cost": 249.678
+                  },
+                  {
+                    "id": "30417",
+                    "filled": 1008.8,
+                    "cost": 249.47624
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          },
+          "NEAR/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T125807Z-NEAR",
+              "pair": "NEAR/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 89,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "EXIT_FILLED",
+              "created_ts": 1791464308.6238089,
+              "updated_ts": 1791464969.0310507
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 89,
+                "is_open": false,
+                "amount": 49.2,
+                "stake_amount": 249.5916,
+                "open_rate": 5.073,
+                "close_rate": 5.065,
+                "realized_profit": -0.3936,
+                "close_profit_abs": -0.3936,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "0.0",
+                  "basis": "0.0000",
+                  "invested": "249.5916",
+                  "realized": "-0.3936",
+                  "execution_rate": "5.073",
+                  "fees": {
+                    "buy": {
+                      "NEAR": "0.0"
+                    },
+                    "sell": {
+                      "USDT": "0.0"
+                    }
+                  },
+                  "entries": {
+                    "79389": {
+                      "quantity": "49.2"
+                    }
+                  },
+                  "exits": {
+                    "79895": {
+                      "profit": "-0.3936",
+                      "basis": "249.5916",
+                      "quantity": "49.2"
+                    }
+                  }
+                },
+                "receipts": {
+                  "orders": {
+                    "79389": {
+                      "amount": "49.2",
+                      "client_id": "BW1W0106dae60cbd7b42",
+                      "created": "1791464308957",
+                      "fills": {
+                        "3173": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "NEAR": "0.0"
+                          },
+                          "id": "3173",
+                          "quantity": "49.2",
+                          "quote": "249.5916",
+                          "quote_fee": "0",
+                          "timestamp": "1791464308957"
+                        }
+                      },
+                      "id": "79389",
+                      "side": "buy"
+                    },
+                    "79895": {
+                      "amount": "49.2",
+                      "client_id": "BE2E7bad38e1b2a44045",
+                      "created": "1791464954571",
+                      "fills": {
+                        "3193": {
+                          "base_fee": "0",
+                          "fees": {
+                            "USDT": "0.0"
+                          },
+                          "id": "3193",
+                          "quantity": "49.2",
+                          "quote": "249.198",
+                          "quote_fee": "0.0",
+                          "timestamp": "1791464954571"
+                        }
+                      },
+                      "id": "79895",
+                      "side": "sell"
+                    }
+                  },
+                  "pair": "NEAR/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "79389",
+                    "filled": 49.2,
+                    "cost": 249.5916
+                  },
+                  {
+                    "id": "79895",
+                    "filled": 49.2,
+                    "cost": 249.198
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "live_writable_mounts": false,
+    "release_certificate_created": false,
+    "strategy_admission_verified": false,
+    "slot_soak": 4,
+    "passed": true,
+    "base_probe_sha256": "a83a86e11969d9497ce16e5c4f827932cf3b84c01837b77b2da47f39a3669656",
+    "owner_config_unchanged": true,
+    "owner_container_unchanged": true,
+    "owner_image_unchanged": true,
+    "owner_state_unchanged": true,
+    "trade_order_counts_and_open_incidents_unchanged": true,
+    "requires_exchange_reconciliation": false
+  },
+  "phases": {
+    "entry": {
+      "started_at": 1791464292.4032671,
+      "phase": "entry",
+      "slots": 4,
+      "soak_seconds_required": 600,
+      "intents": {
+        "LTC/USDT": "soak-controlled-owner-20261008T125807Z-LTC",
+        "LINK/USDT": "soak-controlled-owner-20261008T125807Z-LINK",
+        "ADA/USDT": "soak-controlled-owner-20261008T125807Z-ADA",
+        "NEAR/USDT": "soak-controlled-owner-20261008T125807Z-NEAR"
+      },
+      "passed": true,
+      "strategy_admission_verified": false,
+      "release_certificate_created": false,
+      "samples": [
+        {
+          "at": 1791464315.6205506,
+          "elapsed_seconds": 1.8218580554239452,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464331.555041,
+          "elapsed_seconds": 17.756347781047225,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464345.532653,
+          "elapsed_seconds": 31.733959273435175,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464360.6828601,
+          "elapsed_seconds": 46.88416651310399,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464374.6491628,
+          "elapsed_seconds": 60.85046941926703,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464390.6199517,
+          "elapsed_seconds": 76.82125818403438,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464404.5910335,
+          "elapsed_seconds": 90.79234005510807,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464419.8803172,
+          "elapsed_seconds": 106.0816238722764,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464434.6550205,
+          "elapsed_seconds": 120.85632717330009,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464450.6139903,
+          "elapsed_seconds": 136.81529690418392,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464465.381684,
+          "elapsed_seconds": 151.58299076743424,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464480.5354555,
+          "elapsed_seconds": 166.73676222003996,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464494.501228,
+          "elapsed_seconds": 180.70253482321277,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464508.158941,
+          "elapsed_seconds": 194.36024772422388,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464522.130791,
+          "elapsed_seconds": 208.3320980113931,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464538.0995717,
+          "elapsed_seconds": 224.30087840138003,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464552.075088,
+          "elapsed_seconds": 238.27639485010877,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464567.2317755,
+          "elapsed_seconds": 253.43308241805062,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464581.9932563,
+          "elapsed_seconds": 268.19456321699545,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464596.3376148,
+          "elapsed_seconds": 282.53892182325944,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464611.1038418,
+          "elapsed_seconds": 297.3051486411132,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464627.0557005,
+          "elapsed_seconds": 313.2570070014335,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464640.2757947,
+          "elapsed_seconds": 326.477101447992,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464655.4907072,
+          "elapsed_seconds": 341.69201395101845,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464669.4555805,
+          "elapsed_seconds": 355.65688714943826,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464685.4451532,
+          "elapsed_seconds": 371.6464597079903,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464699.4044201,
+          "elapsed_seconds": 385.605726798065,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464713.9157014,
+          "elapsed_seconds": 400.1170083452016,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464727.085747,
+          "elapsed_seconds": 413.2870533224195,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464742.23745,
+          "elapsed_seconds": 428.4387562763877,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464755.4062536,
+          "elapsed_seconds": 441.6075598630123,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464770.5627036,
+          "elapsed_seconds": 456.7640100661665,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464784.529784,
+          "elapsed_seconds": 470.73109038639814,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464799.6940436,
+          "elapsed_seconds": 485.89535015728325,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464812.0782135,
+          "elapsed_seconds": 498.27951995423064,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464828.0321383,
+          "elapsed_seconds": 514.2334444583394,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464841.994073,
+          "elapsed_seconds": 528.1953792371787,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464857.134843,
+          "elapsed_seconds": 543.3361495682038,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464870.3171868,
+          "elapsed_seconds": 556.5184929552488,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464885.4642692,
+          "elapsed_seconds": 571.6655754530802,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464898.6518598,
+          "elapsed_seconds": 584.853166132234,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464912.1975152,
+          "elapsed_seconds": 598.3988217203878,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464915.37257,
+          "elapsed_seconds": 601.5738766603172,
+          "positions": 4,
+          "occupied_slots": 4,
+          "reserved_nominal": "1000",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        }
+      ],
+      "account_before": {
+        "LTC": "7.00000000",
+        "LINK": "36.00000000",
+        "ADA": "1937.00000000",
+        "NEAR": "96.00000000",
+        "USDT": "10000.09184000"
+      },
+      "all_pair_preflight": {
+        "LTC/USDT": {
+          "symbol": "LTCUSDT",
+          "additional_orders": 3,
+          "open_orders": 0,
+          "open_order_lists": 0,
+          "open_algo_orders": 0,
+          "average_price": "64.13000000"
+        },
+        "LINK/USDT": {
+          "symbol": "LINKUSDT",
+          "additional_orders": 3,
+          "open_orders": 0,
+          "open_order_lists": 0,
+          "open_algo_orders": 0,
+          "average_price": "12.93884928"
+        },
+        "ADA/USDT": {
+          "symbol": "ADAUSDT",
+          "additional_orders": 3,
+          "open_orders": 0,
+          "open_order_lists": 0,
+          "open_algo_orders": 0,
+          "average_price": "0.24764959"
+        },
+        "NEAR/USDT": {
+          "symbol": "NEARUSDT",
+          "additional_orders": 3,
+          "open_orders": 0,
+          "open_order_lists": 0,
+          "open_algo_orders": 0,
+          "average_price": "5.06968808"
+        }
+      },
+      "entries": {
+        "LTC/USDT": {
+          "quantity": "3.89200000",
+          "limit": "64.23000000",
+          "nominal": "249.9831600000000000",
+          "response": {
+            "id": "34300",
+            "clientOrderId": "BW1W4f521f5fb2bceb62",
+            "symbol": "LTC/USDT",
+            "status": "closed",
+            "side": "buy",
+            "type": "limit",
+            "price": 64.23,
+            "amount": 3.892,
+            "filled": 3.892,
+            "remaining": 0,
+            "cost": 249.4772,
+            "average": 64.1,
+            "timestamp": 1791464297248,
+            "info": {
+              "symbol": "LTCUSDT",
+              "orderId": 34300,
+              "orderListId": 12567,
+              "clientOrderId": "BW1W4f521f5fb2bceb62",
+              "transactTime": 1791464297248,
+              "price": "64.23000000",
+              "origQty": "3.89200000",
+              "executedQty": "3.89200000",
+              "origQuoteOrderQty": "0.00000000",
+              "cummulativeQuoteQty": "249.47720000",
+              "status": "FILLED",
+              "timeInForce": "FOK",
+              "type": "LIMIT",
+              "side": "BUY",
+              "workingTime": 1791464297248,
+              "fills": [
+                {
+                  "price": "64.10000000",
+                  "qty": "3.89200000",
+                  "commission": "0.00000000",
+                  "commissionAsset": "LTC",
+                  "tradeId": 1176
+                }
+              ],
+              "selfTradePreventionMode": "EXPIRE_MAKER"
+            }
+          }
+        },
+        "LINK/USDT": {
+          "quantity": "19.28000000",
+          "limit": "12.96200000",
+          "nominal": "249.9073600000000000",
+          "response": {
+            "id": "78297",
+            "clientOrderId": "BW1W32aff11eb2da29e0",
+            "symbol": "LINK/USDT",
+            "status": "closed",
+            "side": "buy",
+            "type": "limit",
+            "price": 12.962,
+            "amount": 19.28,
+            "filled": 19.28,
+            "remaining": 0,
+            "cost": 249.40608,
+            "average": 12.936,
+            "timestamp": 1791464300931,
+            "info": {
+              "symbol": "LINKUSDT",
+              "orderId": 78297,
+              "orderListId": 12569,
+              "clientOrderId": "BW1W32aff11eb2da29e0",
+              "transactTime": 1791464300931,
+              "price": "12.96200000",
+              "origQty": "19.28000000",
+              "executedQty": "19.28000000",
+              "origQuoteOrderQty": "0.00000000",
+              "cummulativeQuoteQty": "249.40608000",
+              "status": "FILLED",
+              "timeInForce": "FOK",
+              "type": "LIMIT",
+              "side": "BUY",
+              "workingTime": 1791464300931,
+              "fills": [
+                {
+                  "price": "12.93600000",
+                  "qty": "19.28000000",
+                  "commission": "0.00000000",
+                  "commissionAsset": "LINK",
+                  "tradeId": 7983
+                }
+              ],
+              "selfTradePreventionMode": "EXPIRE_MAKER"
+            }
+          }
+        },
+        "ADA/USDT": {
+          "quantity": "1008.80000000",
+          "limit": "0.24780000",
+          "nominal": "249.9806400000000000",
+          "response": {
+            "id": "30138",
+            "clientOrderId": "BW1Wf1981ea3149a5ea4",
+            "symbol": "ADA/USDT",
+            "status": "closed",
+            "side": "buy",
+            "type": "limit",
+            "price": 0.2478,
+            "amount": 1008.8,
+            "filled": 1008.8,
+            "remaining": 0,
+            "cost": 249.678,
+            "average": 0.2475,
+            "timestamp": 1791464303959,
+            "info": {
+              "symbol": "ADAUSDT",
+              "orderId": 30138,
+              "orderListId": 12570,
+              "clientOrderId": "BW1Wf1981ea3149a5ea4",
+              "transactTime": 1791464303959,
+              "price": "0.24780000",
+              "origQty": "1008.80000000",
+              "executedQty": "1008.80000000",
+              "origQuoteOrderQty": "0.00000000",
+              "cummulativeQuoteQty": "249.67800000",
+              "status": "FILLED",
+              "timeInForce": "FOK",
+              "type": "LIMIT",
+              "side": "BUY",
+              "workingTime": 1791464303959,
+              "fills": [
+                {
+                  "price": "0.24750000",
+                  "qty": "1008.80000000",
+                  "commission": "0.00000000",
+                  "commissionAsset": "ADA",
+                  "tradeId": 5489
+                }
+              ],
+              "selfTradePreventionMode": "EXPIRE_MAKER"
+            }
+          }
+        },
+        "NEAR/USDT": {
+          "quantity": "49.20000000",
+          "limit": "5.07800000",
+          "nominal": "249.8376000000000000",
+          "response": {
+            "id": "79389",
+            "clientOrderId": "BW1W0106dae60cbd7b42",
+            "symbol": "NEAR/USDT",
+            "status": "closed",
+            "side": "buy",
+            "type": "limit",
+            "price": 5.078,
+            "amount": 49.2,
+            "filled": 49.2,
+            "remaining": 0,
+            "cost": 249.5916,
+            "average": 5.073,
+            "timestamp": 1791464308957,
+            "info": {
+              "symbol": "NEARUSDT",
+              "orderId": 79389,
+              "orderListId": 12572,
+              "clientOrderId": "BW1W0106dae60cbd7b42",
+              "transactTime": 1791464308957,
+              "price": "5.07800000",
+              "origQty": "49.20000000",
+              "executedQty": "49.20000000",
+              "origQuoteOrderQty": "0.00000000",
+              "cummulativeQuoteQty": "249.59160000",
+              "status": "FILLED",
+              "timeInForce": "FOK",
+              "type": "LIMIT",
+              "side": "BUY",
+              "workingTime": 1791464308957,
+              "fills": [
+                {
+                  "price": "5.07300000",
+                  "qty": "49.20000000",
+                  "commission": "0.00000000",
+                  "commissionAsset": "NEAR",
+                  "tradeId": 3173
+                }
+              ],
+              "selfTradePreventionMode": "EXPIRE_MAKER"
+            }
+          }
+        }
+      },
+      "soak_seconds_observed": 601.5738766603172,
+      "canonical": {
+        "LTC/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T125807Z-LTC",
+            "pair": "LTC/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 86,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "OPEN",
+            "created_ts": 1791464296.9232585,
+            "updated_ts": 1791464914.2028306
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 86,
+              "is_open": true,
+              "amount": 3.892,
+              "stake_amount": 249.4772,
+              "open_rate": 64.1,
+              "close_rate": null,
+              "realized_profit": 0,
+              "close_profit_abs": 0,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "3.892",
+                "basis": "249.4772",
+                "invested": "249.4772",
+                "realized": "0",
+                "execution_rate": "64.1",
+                "fees": {
+                  "buy": {
+                    "LTC": "0.0"
+                  },
+                  "sell": {}
+                },
+                "entries": {
+                  "34300": {
+                    "quantity": "3.892"
+                  }
+                },
+                "exits": {}
+              },
+              "receipts": {
+                "orders": {
+                  "34300": {
+                    "amount": "3.892",
+                    "client_id": "BW1W4f521f5fb2bceb62",
+                    "created": "1791464297248",
+                    "fills": {
+                      "1176": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "LTC": "0.0"
+                        },
+                        "id": "1176",
+                        "quantity": "3.892",
+                        "quote": "249.4772",
+                        "quote_fee": "0",
+                        "timestamp": "1791464297248"
+                      }
+                    },
+                    "id": "34300",
+                    "side": "buy"
+                  }
+                },
+                "pair": "LTC/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "34300",
+                  "filled": 3.892,
+                  "cost": 249.4772
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        },
+        "LINK/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T125807Z-LINK",
+            "pair": "LINK/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 87,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "OPEN",
+            "created_ts": 1791464300.751071,
+            "updated_ts": 1791464914.5796907
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 87,
+              "is_open": true,
+              "amount": 19.28,
+              "stake_amount": 249.40608,
+              "open_rate": 12.936,
+              "close_rate": null,
+              "realized_profit": 0,
+              "close_profit_abs": 0,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "19.28",
+                "basis": "249.40608",
+                "invested": "249.40608",
+                "realized": "0",
+                "execution_rate": "12.936",
+                "fees": {
+                  "buy": {
+                    "LINK": "0.0"
+                  },
+                  "sell": {}
+                },
+                "entries": {
+                  "78297": {
+                    "quantity": "19.28"
+                  }
+                },
+                "exits": {}
+              },
+              "receipts": {
+                "orders": {
+                  "78297": {
+                    "amount": "19.28",
+                    "client_id": "BW1W32aff11eb2da29e0",
+                    "created": "1791464300931",
+                    "fills": {
+                      "7983": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "LINK": "0.0"
+                        },
+                        "id": "7983",
+                        "quantity": "19.28",
+                        "quote": "249.40608",
+                        "quote_fee": "0",
+                        "timestamp": "1791464300931"
+                      }
+                    },
+                    "id": "78297",
+                    "side": "buy"
+                  }
+                },
+                "pair": "LINK/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "78297",
+                  "filled": 19.28,
+                  "cost": 249.40608
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        },
+        "ADA/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T125807Z-ADA",
+            "pair": "ADA/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 88,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "OPEN",
+            "created_ts": 1791464303.6849513,
+            "updated_ts": 1791464914.9599323
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 88,
+              "is_open": true,
+              "amount": 1008.8,
+              "stake_amount": 249.678,
+              "open_rate": 0.2475,
+              "close_rate": null,
+              "realized_profit": 0,
+              "close_profit_abs": 0,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "1008.8",
+                "basis": "249.678",
+                "invested": "249.678",
+                "realized": "0",
+                "execution_rate": "0.2475",
+                "fees": {
+                  "buy": {
+                    "ADA": "0.0"
+                  },
+                  "sell": {}
+                },
+                "entries": {
+                  "30138": {
+                    "quantity": "1008.8"
+                  }
+                },
+                "exits": {}
+              },
+              "receipts": {
+                "orders": {
+                  "30138": {
+                    "amount": "1008.8",
+                    "client_id": "BW1Wf1981ea3149a5ea4",
+                    "created": "1791464303959",
+                    "fills": {
+                      "5489": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "ADA": "0.0"
+                        },
+                        "id": "5489",
+                        "quantity": "1008.8",
+                        "quote": "249.678",
+                        "quote_fee": "0",
+                        "timestamp": "1791464303959"
+                      }
+                    },
+                    "id": "30138",
+                    "side": "buy"
+                  }
+                },
+                "pair": "ADA/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "30138",
+                  "filled": 1008.8,
+                  "cost": 249.678
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        },
+        "NEAR/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T125807Z-NEAR",
+            "pair": "NEAR/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 89,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "OPEN",
+            "created_ts": 1791464308.6238089,
+            "updated_ts": 1791464915.337693
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 89,
+              "is_open": true,
+              "amount": 49.2,
+              "stake_amount": 249.5916,
+              "open_rate": 5.073,
+              "close_rate": null,
+              "realized_profit": 0,
+              "close_profit_abs": 0,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "49.2",
+                "basis": "249.5916",
+                "invested": "249.5916",
+                "realized": "0",
+                "execution_rate": "5.073",
+                "fees": {
+                  "buy": {
+                    "NEAR": "0.0"
+                  },
+                  "sell": {}
+                },
+                "entries": {
+                  "79389": {
+                    "quantity": "49.2"
+                  }
+                },
+                "exits": {}
+              },
+              "receipts": {
+                "orders": {
+                  "79389": {
+                    "amount": "49.2",
+                    "client_id": "BW1W0106dae60cbd7b42",
+                    "created": "1791464308957",
+                    "fills": {
+                      "3173": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "NEAR": "0.0"
+                        },
+                        "id": "3173",
+                        "quantity": "49.2",
+                        "quote": "249.5916",
+                        "quote_fee": "0",
+                        "timestamp": "1791464308957"
+                      }
+                    },
+                    "id": "79389",
+                    "side": "buy"
+                  }
+                },
+                "pair": "NEAR/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "79389",
+                  "filled": 49.2,
+                  "cost": 249.5916
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        }
+      },
+      "unexpected_incidents": [],
+      "open_exchange_orders": [
+        {
+          "symbol": "LTCUSDT",
+          "orderId": 34301,
+          "orderListId": 12567,
+          "clientOrderId": "BS1S02d5b58e6533fd73",
+          "price": "63.49000000",
+          "origQty": "3.89200000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "STOP_LOSS_LIMIT",
+          "side": "SELL",
+          "stopPrice": "63.58000000",
+          "icebergQty": "0.00000000",
+          "time": 1791464297248,
+          "updateTime": 1791464297248,
+          "isWorking": false,
+          "workingTime": -1,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        },
+        {
+          "symbol": "LTCUSDT",
+          "orderId": 34302,
+          "orderListId": 12567,
+          "clientOrderId": "BT1T9cab009882478d4d",
+          "price": "65.26000000",
+          "origQty": "3.89200000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "LIMIT_MAKER",
+          "side": "SELL",
+          "stopPrice": "0.00000000",
+          "icebergQty": "0.00000000",
+          "time": 1791464297248,
+          "updateTime": 1791464297248,
+          "isWorking": true,
+          "workingTime": 1791464297248,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        },
+        {
+          "symbol": "ADAUSDT",
+          "orderId": 30139,
+          "orderListId": 12570,
+          "clientOrderId": "BS1S06cd11490dd1270d",
+          "price": "0.24490000",
+          "origQty": "1008.80000000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "STOP_LOSS_LIMIT",
+          "side": "SELL",
+          "stopPrice": "0.24530000",
+          "icebergQty": "0.00000000",
+          "time": 1791464303959,
+          "updateTime": 1791464303959,
+          "isWorking": false,
+          "workingTime": -1,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        },
+        {
+          "symbol": "ADAUSDT",
+          "orderId": 30140,
+          "orderListId": 12570,
+          "clientOrderId": "BT1T48846e78e129285e",
+          "price": "0.25180000",
+          "origQty": "1008.80000000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "LIMIT_MAKER",
+          "side": "SELL",
+          "stopPrice": "0.00000000",
+          "icebergQty": "0.00000000",
+          "time": 1791464303959,
+          "updateTime": 1791464303959,
+          "isWorking": true,
+          "workingTime": 1791464303959,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        },
+        {
+          "symbol": "LINKUSDT",
+          "orderId": 78298,
+          "orderListId": 12569,
+          "clientOrderId": "BS1S62987e92de272890",
+          "price": "12.81300000",
+          "origQty": "19.28000000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "STOP_LOSS_LIMIT",
+          "side": "SELL",
+          "stopPrice": "12.83200000",
+          "icebergQty": "0.00000000",
+          "time": 1791464300931,
+          "updateTime": 1791464300931,
+          "isWorking": false,
+          "workingTime": -1,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        },
+        {
+          "symbol": "LINKUSDT",
+          "orderId": 78299,
+          "orderListId": 12569,
+          "clientOrderId": "BT1T7d06ef792fe04ca0",
+          "price": "13.17000000",
+          "origQty": "19.28000000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "LIMIT_MAKER",
+          "side": "SELL",
+          "stopPrice": "0.00000000",
+          "icebergQty": "0.00000000",
+          "time": 1791464300931,
+          "updateTime": 1791464300931,
+          "isWorking": true,
+          "workingTime": 1791464300931,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        },
+        {
+          "symbol": "NEARUSDT",
+          "orderId": 79390,
+          "orderListId": 12572,
+          "clientOrderId": "BS1Sa530cab4d3fa9a30",
+          "price": "5.01900000",
+          "origQty": "49.20000000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "STOP_LOSS_LIMIT",
+          "side": "SELL",
+          "stopPrice": "5.02700000",
+          "icebergQty": "0.00000000",
+          "time": 1791464308957,
+          "updateTime": 1791464308957,
+          "isWorking": false,
+          "workingTime": -1,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        },
+        {
+          "symbol": "NEARUSDT",
+          "orderId": 79391,
+          "orderListId": 12572,
+          "clientOrderId": "BT1T9084470caedec59f",
+          "price": "5.16000000",
+          "origQty": "49.20000000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "LIMIT_MAKER",
+          "side": "SELL",
+          "stopPrice": "0.00000000",
+          "icebergQty": "0.00000000",
+          "time": 1791464308957,
+          "updateTime": 1791464308957,
+          "isWorking": true,
+          "workingTime": 1791464308957,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        }
+      ],
+      "open_exchange_lists": [
+        {
+          "orderListId": 12567,
+          "contingencyType": "OTO",
+          "listStatusType": "EXEC_STARTED",
+          "listOrderStatus": "EXECUTING",
+          "listClientOrderId": "BL1L06cdeb3a9a4a99c6",
+          "transactionTime": 1791464297248,
+          "symbol": "LTCUSDT",
+          "orders": [
+            {
+              "symbol": "LTCUSDT",
+              "orderId": 34300,
+              "clientOrderId": "BW1W4f521f5fb2bceb62"
+            },
+            {
+              "symbol": "LTCUSDT",
+              "orderId": 34301,
+              "clientOrderId": "BS1S02d5b58e6533fd73"
+            },
+            {
+              "symbol": "LTCUSDT",
+              "orderId": 34302,
+              "clientOrderId": "BT1T9cab009882478d4d"
+            }
+          ]
+        },
+        {
+          "orderListId": 12569,
+          "contingencyType": "OTO",
+          "listStatusType": "EXEC_STARTED",
+          "listOrderStatus": "EXECUTING",
+          "listClientOrderId": "BL1Lc5619a0ecea2ba5f",
+          "transactionTime": 1791464300931,
+          "symbol": "LINKUSDT",
+          "orders": [
+            {
+              "symbol": "LINKUSDT",
+              "orderId": 78297,
+              "clientOrderId": "BW1W32aff11eb2da29e0"
+            },
+            {
+              "symbol": "LINKUSDT",
+              "orderId": 78298,
+              "clientOrderId": "BS1S62987e92de272890"
+            },
+            {
+              "symbol": "LINKUSDT",
+              "orderId": 78299,
+              "clientOrderId": "BT1T7d06ef792fe04ca0"
+            }
+          ]
+        },
+        {
+          "orderListId": 12570,
+          "contingencyType": "OTO",
+          "listStatusType": "EXEC_STARTED",
+          "listOrderStatus": "EXECUTING",
+          "listClientOrderId": "BL1L5f00d1dcd21eae88",
+          "transactionTime": 1791464303959,
+          "symbol": "ADAUSDT",
+          "orders": [
+            {
+              "symbol": "ADAUSDT",
+              "orderId": 30138,
+              "clientOrderId": "BW1Wf1981ea3149a5ea4"
+            },
+            {
+              "symbol": "ADAUSDT",
+              "orderId": 30139,
+              "clientOrderId": "BS1S06cd11490dd1270d"
+            },
+            {
+              "symbol": "ADAUSDT",
+              "orderId": 30140,
+              "clientOrderId": "BT1T48846e78e129285e"
+            }
+          ]
+        },
+        {
+          "orderListId": 12572,
+          "contingencyType": "OTO",
+          "listStatusType": "EXEC_STARTED",
+          "listOrderStatus": "EXECUTING",
+          "listClientOrderId": "BL1Ld7376fc14a6d7327",
+          "transactionTime": 1791464308957,
+          "symbol": "NEARUSDT",
+          "orders": [
+            {
+              "symbol": "NEARUSDT",
+              "orderId": 79389,
+              "clientOrderId": "BW1W0106dae60cbd7b42"
+            },
+            {
+              "symbol": "NEARUSDT",
+              "orderId": 79390,
+              "clientOrderId": "BS1Sa530cab4d3fa9a30"
+            },
+            {
+              "symbol": "NEARUSDT",
+              "orderId": 79391,
+              "clientOrderId": "BT1T9084470caedec59f"
+            }
+          ]
+        }
+      ],
+      "account_after": {
+        "LTC": "10.89200000",
+        "LINK": "55.28000000",
+        "ADA": "2945.80000000",
+        "NEAR": "145.20000000",
+        "USDT": "9001.93896000"
+      },
+      "cleanup_unchanged": true,
+      "completed_at": 1791464916.6874218,
+      "mutations": {
+        "attempts": {
+          "POST /api/v3/orderList/otoco BL1L06cdeb3a9a4a99c6": {
+            "at": 1791464297.2384858,
+            "phase": "entry"
+          },
+          "POST /api/v3/orderList/otoco BL1Lc5619a0ecea2ba5f": {
+            "at": 1791464300.919429,
+            "phase": "entry"
+          },
+          "POST /api/v3/orderList/otoco BL1L5f00d1dcd21eae88": {
+            "at": 1791464303.9497344,
+            "phase": "entry"
+          },
+          "POST /api/v3/orderList/otoco BL1Ld7376fc14a6d7327": {
+            "at": 1791464308.947611,
+            "phase": "entry"
+          }
+        }
+      },
+      "transport_denials": []
+    },
+    "restart": {
+      "started_at": 1791464922.1202831,
+      "phase": "restart",
+      "slots": 4,
+      "soak_seconds_required": 600,
+      "intents": {
+        "LTC/USDT": "soak-controlled-owner-20261008T125807Z-LTC",
+        "LINK/USDT": "soak-controlled-owner-20261008T125807Z-LINK",
+        "ADA/USDT": "soak-controlled-owner-20261008T125807Z-ADA",
+        "NEAR/USDT": "soak-controlled-owner-20261008T125807Z-NEAR"
+      },
+      "passed": true,
+      "strategy_admission_verified": false,
+      "release_certificate_created": false,
+      "samples": [],
+      "account_before": {
+        "LTC": "10.89200000",
+        "LINK": "55.28000000",
+        "ADA": "2945.80000000",
+        "NEAR": "145.20000000",
+        "USDT": "9001.93896000"
+      },
+      "restart_accounting_unchanged": true,
+      "canonical": {
+        "LTC/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T125807Z-LTC",
+            "pair": "LTC/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 86,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "OPEN",
+            "created_ts": 1791464296.9232585,
+            "updated_ts": 1791464924.2419474
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 86,
+              "is_open": true,
+              "amount": 3.892,
+              "stake_amount": 249.4772,
+              "open_rate": 64.1,
+              "close_rate": null,
+              "realized_profit": 0,
+              "close_profit_abs": 0,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "3.892",
+                "basis": "249.4772",
+                "invested": "249.4772",
+                "realized": "0",
+                "execution_rate": "64.1",
+                "fees": {
+                  "buy": {
+                    "LTC": "0.0"
+                  },
+                  "sell": {}
+                },
+                "entries": {
+                  "34300": {
+                    "quantity": "3.892"
+                  }
+                },
+                "exits": {}
+              },
+              "receipts": {
+                "orders": {
+                  "34300": {
+                    "amount": "3.892",
+                    "client_id": "BW1W4f521f5fb2bceb62",
+                    "created": "1791464297248",
+                    "fills": {
+                      "1176": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "LTC": "0.0"
+                        },
+                        "id": "1176",
+                        "quantity": "3.892",
+                        "quote": "249.4772",
+                        "quote_fee": "0",
+                        "timestamp": "1791464297248"
+                      }
+                    },
+                    "id": "34300",
+                    "side": "buy"
+                  }
+                },
+                "pair": "LTC/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "34300",
+                  "filled": 3.892,
+                  "cost": 249.4772
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        },
+        "LINK/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T125807Z-LINK",
+            "pair": "LINK/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 87,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "OPEN",
+            "created_ts": 1791464300.751071,
+            "updated_ts": 1791464925.4238398
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 87,
+              "is_open": true,
+              "amount": 19.28,
+              "stake_amount": 249.40608,
+              "open_rate": 12.936,
+              "close_rate": null,
+              "realized_profit": 0,
+              "close_profit_abs": 0,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "19.28",
+                "basis": "249.40608",
+                "invested": "249.40608",
+                "realized": "0",
+                "execution_rate": "12.936",
+                "fees": {
+                  "buy": {
+                    "LINK": "0.0"
+                  },
+                  "sell": {}
+                },
+                "entries": {
+                  "78297": {
+                    "quantity": "19.28"
+                  }
+                },
+                "exits": {}
+              },
+              "receipts": {
+                "orders": {
+                  "78297": {
+                    "amount": "19.28",
+                    "client_id": "BW1W32aff11eb2da29e0",
+                    "created": "1791464300931",
+                    "fills": {
+                      "7983": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "LINK": "0.0"
+                        },
+                        "id": "7983",
+                        "quantity": "19.28",
+                        "quote": "249.40608",
+                        "quote_fee": "0",
+                        "timestamp": "1791464300931"
+                      }
+                    },
+                    "id": "78297",
+                    "side": "buy"
+                  }
+                },
+                "pair": "LINK/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "78297",
+                  "filled": 19.28,
+                  "cost": 249.40608
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        },
+        "ADA/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T125807Z-ADA",
+            "pair": "ADA/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 88,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "OPEN",
+            "created_ts": 1791464303.6849513,
+            "updated_ts": 1791464925.8037305
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 88,
+              "is_open": true,
+              "amount": 1008.8,
+              "stake_amount": 249.678,
+              "open_rate": 0.2475,
+              "close_rate": null,
+              "realized_profit": 0,
+              "close_profit_abs": 0,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "1008.8",
+                "basis": "249.678",
+                "invested": "249.678",
+                "realized": "0",
+                "execution_rate": "0.2475",
+                "fees": {
+                  "buy": {
+                    "ADA": "0.0"
+                  },
+                  "sell": {}
+                },
+                "entries": {
+                  "30138": {
+                    "quantity": "1008.8"
+                  }
+                },
+                "exits": {}
+              },
+              "receipts": {
+                "orders": {
+                  "30138": {
+                    "amount": "1008.8",
+                    "client_id": "BW1Wf1981ea3149a5ea4",
+                    "created": "1791464303959",
+                    "fills": {
+                      "5489": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "ADA": "0.0"
+                        },
+                        "id": "5489",
+                        "quantity": "1008.8",
+                        "quote": "249.678",
+                        "quote_fee": "0",
+                        "timestamp": "1791464303959"
+                      }
+                    },
+                    "id": "30138",
+                    "side": "buy"
+                  }
+                },
+                "pair": "ADA/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "30138",
+                  "filled": 1008.8,
+                  "cost": 249.678
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        },
+        "NEAR/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T125807Z-NEAR",
+            "pair": "NEAR/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 89,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "OPEN",
+            "created_ts": 1791464308.6238089,
+            "updated_ts": 1791464926.186448
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 89,
+              "is_open": true,
+              "amount": 49.2,
+              "stake_amount": 249.5916,
+              "open_rate": 5.073,
+              "close_rate": null,
+              "realized_profit": 0,
+              "close_profit_abs": 0,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "49.2",
+                "basis": "249.5916",
+                "invested": "249.5916",
+                "realized": "0",
+                "execution_rate": "5.073",
+                "fees": {
+                  "buy": {
+                    "NEAR": "0.0"
+                  },
+                  "sell": {}
+                },
+                "entries": {
+                  "79389": {
+                    "quantity": "49.2"
+                  }
+                },
+                "exits": {}
+              },
+              "receipts": {
+                "orders": {
+                  "79389": {
+                    "amount": "49.2",
+                    "client_id": "BW1W0106dae60cbd7b42",
+                    "created": "1791464308957",
+                    "fills": {
+                      "3173": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "NEAR": "0.0"
+                        },
+                        "id": "3173",
+                        "quantity": "49.2",
+                        "quote": "249.5916",
+                        "quote_fee": "0",
+                        "timestamp": "1791464308957"
+                      }
+                    },
+                    "id": "79389",
+                    "side": "buy"
+                  }
+                },
+                "pair": "NEAR/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "79389",
+                  "filled": 49.2,
+                  "cost": 249.5916
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        }
+      },
+      "unexpected_incidents": [],
+      "open_exchange_orders": [
+        {
+          "symbol": "LTCUSDT",
+          "orderId": 34301,
+          "orderListId": 12567,
+          "clientOrderId": "BS1S02d5b58e6533fd73",
+          "price": "63.49000000",
+          "origQty": "3.89200000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "STOP_LOSS_LIMIT",
+          "side": "SELL",
+          "stopPrice": "63.58000000",
+          "icebergQty": "0.00000000",
+          "time": 1791464297248,
+          "updateTime": 1791464297248,
+          "isWorking": false,
+          "workingTime": -1,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        },
+        {
+          "symbol": "LTCUSDT",
+          "orderId": 34302,
+          "orderListId": 12567,
+          "clientOrderId": "BT1T9cab009882478d4d",
+          "price": "65.26000000",
+          "origQty": "3.89200000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "LIMIT_MAKER",
+          "side": "SELL",
+          "stopPrice": "0.00000000",
+          "icebergQty": "0.00000000",
+          "time": 1791464297248,
+          "updateTime": 1791464297248,
+          "isWorking": true,
+          "workingTime": 1791464297248,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        },
+        {
+          "symbol": "ADAUSDT",
+          "orderId": 30139,
+          "orderListId": 12570,
+          "clientOrderId": "BS1S06cd11490dd1270d",
+          "price": "0.24490000",
+          "origQty": "1008.80000000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "STOP_LOSS_LIMIT",
+          "side": "SELL",
+          "stopPrice": "0.24530000",
+          "icebergQty": "0.00000000",
+          "time": 1791464303959,
+          "updateTime": 1791464303959,
+          "isWorking": false,
+          "workingTime": -1,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        },
+        {
+          "symbol": "ADAUSDT",
+          "orderId": 30140,
+          "orderListId": 12570,
+          "clientOrderId": "BT1T48846e78e129285e",
+          "price": "0.25180000",
+          "origQty": "1008.80000000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "LIMIT_MAKER",
+          "side": "SELL",
+          "stopPrice": "0.00000000",
+          "icebergQty": "0.00000000",
+          "time": 1791464303959,
+          "updateTime": 1791464303959,
+          "isWorking": true,
+          "workingTime": 1791464303959,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        },
+        {
+          "symbol": "LINKUSDT",
+          "orderId": 78298,
+          "orderListId": 12569,
+          "clientOrderId": "BS1S62987e92de272890",
+          "price": "12.81300000",
+          "origQty": "19.28000000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "STOP_LOSS_LIMIT",
+          "side": "SELL",
+          "stopPrice": "12.83200000",
+          "icebergQty": "0.00000000",
+          "time": 1791464300931,
+          "updateTime": 1791464300931,
+          "isWorking": false,
+          "workingTime": -1,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        },
+        {
+          "symbol": "LINKUSDT",
+          "orderId": 78299,
+          "orderListId": 12569,
+          "clientOrderId": "BT1T7d06ef792fe04ca0",
+          "price": "13.17000000",
+          "origQty": "19.28000000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "LIMIT_MAKER",
+          "side": "SELL",
+          "stopPrice": "0.00000000",
+          "icebergQty": "0.00000000",
+          "time": 1791464300931,
+          "updateTime": 1791464300931,
+          "isWorking": true,
+          "workingTime": 1791464300931,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        },
+        {
+          "symbol": "NEARUSDT",
+          "orderId": 79390,
+          "orderListId": 12572,
+          "clientOrderId": "BS1Sa530cab4d3fa9a30",
+          "price": "5.01900000",
+          "origQty": "49.20000000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "STOP_LOSS_LIMIT",
+          "side": "SELL",
+          "stopPrice": "5.02700000",
+          "icebergQty": "0.00000000",
+          "time": 1791464308957,
+          "updateTime": 1791464308957,
+          "isWorking": false,
+          "workingTime": -1,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        },
+        {
+          "symbol": "NEARUSDT",
+          "orderId": 79391,
+          "orderListId": 12572,
+          "clientOrderId": "BT1T9084470caedec59f",
+          "price": "5.16000000",
+          "origQty": "49.20000000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "LIMIT_MAKER",
+          "side": "SELL",
+          "stopPrice": "0.00000000",
+          "icebergQty": "0.00000000",
+          "time": 1791464308957,
+          "updateTime": 1791464308957,
+          "isWorking": true,
+          "workingTime": 1791464308957,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        }
+      ],
+      "open_exchange_lists": [
+        {
+          "orderListId": 12567,
+          "contingencyType": "OTO",
+          "listStatusType": "EXEC_STARTED",
+          "listOrderStatus": "EXECUTING",
+          "listClientOrderId": "BL1L06cdeb3a9a4a99c6",
+          "transactionTime": 1791464297248,
+          "symbol": "LTCUSDT",
+          "orders": [
+            {
+              "symbol": "LTCUSDT",
+              "orderId": 34300,
+              "clientOrderId": "BW1W4f521f5fb2bceb62"
+            },
+            {
+              "symbol": "LTCUSDT",
+              "orderId": 34301,
+              "clientOrderId": "BS1S02d5b58e6533fd73"
+            },
+            {
+              "symbol": "LTCUSDT",
+              "orderId": 34302,
+              "clientOrderId": "BT1T9cab009882478d4d"
+            }
+          ]
+        },
+        {
+          "orderListId": 12569,
+          "contingencyType": "OTO",
+          "listStatusType": "EXEC_STARTED",
+          "listOrderStatus": "EXECUTING",
+          "listClientOrderId": "BL1Lc5619a0ecea2ba5f",
+          "transactionTime": 1791464300931,
+          "symbol": "LINKUSDT",
+          "orders": [
+            {
+              "symbol": "LINKUSDT",
+              "orderId": 78297,
+              "clientOrderId": "BW1W32aff11eb2da29e0"
+            },
+            {
+              "symbol": "LINKUSDT",
+              "orderId": 78298,
+              "clientOrderId": "BS1S62987e92de272890"
+            },
+            {
+              "symbol": "LINKUSDT",
+              "orderId": 78299,
+              "clientOrderId": "BT1T7d06ef792fe04ca0"
+            }
+          ]
+        },
+        {
+          "orderListId": 12570,
+          "contingencyType": "OTO",
+          "listStatusType": "EXEC_STARTED",
+          "listOrderStatus": "EXECUTING",
+          "listClientOrderId": "BL1L5f00d1dcd21eae88",
+          "transactionTime": 1791464303959,
+          "symbol": "ADAUSDT",
+          "orders": [
+            {
+              "symbol": "ADAUSDT",
+              "orderId": 30138,
+              "clientOrderId": "BW1Wf1981ea3149a5ea4"
+            },
+            {
+              "symbol": "ADAUSDT",
+              "orderId": 30139,
+              "clientOrderId": "BS1S06cd11490dd1270d"
+            },
+            {
+              "symbol": "ADAUSDT",
+              "orderId": 30140,
+              "clientOrderId": "BT1T48846e78e129285e"
+            }
+          ]
+        },
+        {
+          "orderListId": 12572,
+          "contingencyType": "OTO",
+          "listStatusType": "EXEC_STARTED",
+          "listOrderStatus": "EXECUTING",
+          "listClientOrderId": "BL1Ld7376fc14a6d7327",
+          "transactionTime": 1791464308957,
+          "symbol": "NEARUSDT",
+          "orders": [
+            {
+              "symbol": "NEARUSDT",
+              "orderId": 79389,
+              "clientOrderId": "BW1W0106dae60cbd7b42"
+            },
+            {
+              "symbol": "NEARUSDT",
+              "orderId": 79390,
+              "clientOrderId": "BS1Sa530cab4d3fa9a30"
+            },
+            {
+              "symbol": "NEARUSDT",
+              "orderId": 79391,
+              "clientOrderId": "BT1T9084470caedec59f"
+            }
+          ]
+        }
+      ],
+      "account_after": {
+        "LTC": "10.89200000",
+        "LINK": "55.28000000",
+        "ADA": "2945.80000000",
+        "NEAR": "145.20000000",
+        "USDT": "9001.93896000"
+      },
+      "cleanup_unchanged": true,
+      "completed_at": 1791464929.4052396,
+      "mutations": {
+        "attempts": {
+          "POST /api/v3/orderList/otoco BL1L06cdeb3a9a4a99c6": {
+            "at": 1791464297.2384858,
+            "phase": "entry"
+          },
+          "POST /api/v3/orderList/otoco BL1Lc5619a0ecea2ba5f": {
+            "at": 1791464300.919429,
+            "phase": "entry"
+          },
+          "POST /api/v3/orderList/otoco BL1L5f00d1dcd21eae88": {
+            "at": 1791464303.9497344,
+            "phase": "entry"
+          },
+          "POST /api/v3/orderList/otoco BL1Ld7376fc14a6d7327": {
+            "at": 1791464308.947611,
+            "phase": "entry"
+          }
+        }
+      },
+      "transport_denials": []
+    },
+    "exit": {
+      "started_at": 1791464934.5931242,
+      "phase": "exit",
+      "slots": 4,
+      "soak_seconds_required": 600,
+      "intents": {
+        "LTC/USDT": "soak-controlled-owner-20261008T125807Z-LTC",
+        "LINK/USDT": "soak-controlled-owner-20261008T125807Z-LINK",
+        "ADA/USDT": "soak-controlled-owner-20261008T125807Z-ADA",
+        "NEAR/USDT": "soak-controlled-owner-20261008T125807Z-NEAR"
+      },
+      "passed": true,
+      "strategy_admission_verified": false,
+      "release_certificate_created": false,
+      "samples": [],
+      "account_before": {
+        "LTC": "10.89200000",
+        "LINK": "55.28000000",
+        "ADA": "2945.80000000",
+        "NEAR": "145.20000000",
+        "USDT": "9001.93896000"
+      },
+      "canonical": {
+        "LTC/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T125807Z-LTC",
+            "pair": "LTC/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 86,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "EXIT_FILLED",
+            "created_ts": 1791464296.9232585,
+            "updated_ts": 1791464967.0427969
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 86,
+              "is_open": false,
+              "amount": 3.892,
+              "stake_amount": 249.4772,
+              "open_rate": 64.1,
+              "close_rate": 64.08,
+              "realized_profit": -0.07784,
+              "close_profit_abs": -0.07784,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "0.000",
+                "basis": "0.0000",
+                "invested": "249.4772",
+                "realized": "-0.07784",
+                "execution_rate": "64.1",
+                "fees": {
+                  "buy": {
+                    "LTC": "0.0"
+                  },
+                  "sell": {
+                    "USDT": "0.0"
+                  }
+                },
+                "entries": {
+                  "34300": {
+                    "quantity": "3.892"
+                  }
+                },
+                "exits": {
+                  "34618": {
+                    "profit": "-0.07784",
+                    "basis": "249.4772",
+                    "quantity": "3.892"
+                  }
+                }
+              },
+              "receipts": {
+                "orders": {
+                  "34300": {
+                    "amount": "3.892",
+                    "client_id": "BW1W4f521f5fb2bceb62",
+                    "created": "1791464297248",
+                    "fills": {
+                      "1176": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "LTC": "0.0"
+                        },
+                        "id": "1176",
+                        "quantity": "3.892",
+                        "quote": "249.4772",
+                        "quote_fee": "0",
+                        "timestamp": "1791464297248"
+                      }
+                    },
+                    "id": "34300",
+                    "side": "buy"
+                  },
+                  "34618": {
+                    "amount": "3.892",
+                    "client_id": "BE2E05c044602c822506",
+                    "created": "1791464952056",
+                    "fills": {
+                      "1185": {
+                        "base_fee": "0",
+                        "fees": {
+                          "USDT": "0.0"
+                        },
+                        "id": "1185",
+                        "quantity": "3.892",
+                        "quote": "249.39936",
+                        "quote_fee": "0.0",
+                        "timestamp": "1791464952056"
+                      }
+                    },
+                    "id": "34618",
+                    "side": "sell"
+                  }
+                },
+                "pair": "LTC/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "34300",
+                  "filled": 3.892,
+                  "cost": 249.4772
+                },
+                {
+                  "id": "34618",
+                  "filled": 3.892,
+                  "cost": 249.39936
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        },
+        "LINK/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T125807Z-LINK",
+            "pair": "LINK/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 87,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "EXIT_FILLED",
+            "created_ts": 1791464300.751071,
+            "updated_ts": 1791464967.7036047
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 87,
+              "is_open": false,
+              "amount": 19.28,
+              "stake_amount": 249.40608,
+              "open_rate": 12.936,
+              "close_rate": 12.945,
+              "realized_profit": 0.17352,
+              "close_profit_abs": 0.17352,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "0.00",
+                "basis": "0.00000",
+                "invested": "249.40608",
+                "realized": "0.17352",
+                "execution_rate": "12.936",
+                "fees": {
+                  "buy": {
+                    "LINK": "0.0"
+                  },
+                  "sell": {
+                    "USDT": "0.0"
+                  }
+                },
+                "entries": {
+                  "78297": {
+                    "quantity": "19.28"
+                  }
+                },
+                "exits": {
+                  "79012": {
+                    "profit": "0.17352",
+                    "basis": "249.40608",
+                    "quantity": "19.28"
+                  }
+                }
+              },
+              "receipts": {
+                "orders": {
+                  "78297": {
+                    "amount": "19.28",
+                    "client_id": "BW1W32aff11eb2da29e0",
+                    "created": "1791464300931",
+                    "fills": {
+                      "7983": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "LINK": "0.0"
+                        },
+                        "id": "7983",
+                        "quantity": "19.28",
+                        "quote": "249.40608",
+                        "quote_fee": "0",
+                        "timestamp": "1791464300931"
+                      }
+                    },
+                    "id": "78297",
+                    "side": "buy"
+                  },
+                  "79012": {
+                    "amount": "19.28",
+                    "client_id": "BE2E8ac92c11f193fc8f",
+                    "created": "1791464952894",
+                    "fills": {
+                      "8131": {
+                        "base_fee": "0",
+                        "fees": {
+                          "USDT": "0.0"
+                        },
+                        "id": "8131",
+                        "quantity": "19.28",
+                        "quote": "249.5796",
+                        "quote_fee": "0.0",
+                        "timestamp": "1791464952894"
+                      }
+                    },
+                    "id": "79012",
+                    "side": "sell"
+                  }
+                },
+                "pair": "LINK/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "78297",
+                  "filled": 19.28,
+                  "cost": 249.40608
+                },
+                {
+                  "id": "79012",
+                  "filled": 19.28,
+                  "cost": 249.5796
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        },
+        "ADA/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T125807Z-ADA",
+            "pair": "ADA/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 88,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "EXIT_FILLED",
+            "created_ts": 1791464303.6849513,
+            "updated_ts": 1791464968.3685944
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 88,
+              "is_open": false,
+              "amount": 1008.8,
+              "stake_amount": 249.678,
+              "open_rate": 0.2475,
+              "close_rate": 0.2473,
+              "realized_profit": -0.20176,
+              "close_profit_abs": -0.20176,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "0.0",
+                "basis": "0.000",
+                "invested": "249.678",
+                "realized": "-0.20176",
+                "execution_rate": "0.2475",
+                "fees": {
+                  "buy": {
+                    "ADA": "0.0"
+                  },
+                  "sell": {
+                    "USDT": "0.0"
+                  }
+                },
+                "entries": {
+                  "30138": {
+                    "quantity": "1008.8"
+                  }
+                },
+                "exits": {
+                  "30417": {
+                    "profit": "-0.20176",
+                    "basis": "249.678",
+                    "quantity": "1008.8"
+                  }
+                }
+              },
+              "receipts": {
+                "orders": {
+                  "30138": {
+                    "amount": "1008.8",
+                    "client_id": "BW1Wf1981ea3149a5ea4",
+                    "created": "1791464303959",
+                    "fills": {
+                      "5489": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "ADA": "0.0"
+                        },
+                        "id": "5489",
+                        "quantity": "1008.8",
+                        "quote": "249.678",
+                        "quote_fee": "0",
+                        "timestamp": "1791464303959"
+                      }
+                    },
+                    "id": "30138",
+                    "side": "buy"
+                  },
+                  "30417": {
+                    "amount": "1008.8",
+                    "client_id": "BE2E341e6b692a8f4ffe",
+                    "created": "1791464953733",
+                    "fills": {
+                      "5534": {
+                        "base_fee": "0",
+                        "fees": {
+                          "USDT": "0.0"
+                        },
+                        "id": "5534",
+                        "quantity": "1008.8",
+                        "quote": "249.47624",
+                        "quote_fee": "0.0",
+                        "timestamp": "1791464953733"
+                      }
+                    },
+                    "id": "30417",
+                    "side": "sell"
+                  }
+                },
+                "pair": "ADA/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "30138",
+                  "filled": 1008.8,
+                  "cost": 249.678
+                },
+                {
+                  "id": "30417",
+                  "filled": 1008.8,
+                  "cost": 249.47624
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        },
+        "NEAR/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T125807Z-NEAR",
+            "pair": "NEAR/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 89,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "EXIT_FILLED",
+            "created_ts": 1791464308.6238089,
+            "updated_ts": 1791464969.0310507
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 89,
+              "is_open": false,
+              "amount": 49.2,
+              "stake_amount": 249.5916,
+              "open_rate": 5.073,
+              "close_rate": 5.065,
+              "realized_profit": -0.3936,
+              "close_profit_abs": -0.3936,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "0.0",
+                "basis": "0.0000",
+                "invested": "249.5916",
+                "realized": "-0.3936",
+                "execution_rate": "5.073",
+                "fees": {
+                  "buy": {
+                    "NEAR": "0.0"
+                  },
+                  "sell": {
+                    "USDT": "0.0"
+                  }
+                },
+                "entries": {
+                  "79389": {
+                    "quantity": "49.2"
+                  }
+                },
+                "exits": {
+                  "79895": {
+                    "profit": "-0.3936",
+                    "basis": "249.5916",
+                    "quantity": "49.2"
+                  }
+                }
+              },
+              "receipts": {
+                "orders": {
+                  "79389": {
+                    "amount": "49.2",
+                    "client_id": "BW1W0106dae60cbd7b42",
+                    "created": "1791464308957",
+                    "fills": {
+                      "3173": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "NEAR": "0.0"
+                        },
+                        "id": "3173",
+                        "quantity": "49.2",
+                        "quote": "249.5916",
+                        "quote_fee": "0",
+                        "timestamp": "1791464308957"
+                      }
+                    },
+                    "id": "79389",
+                    "side": "buy"
+                  },
+                  "79895": {
+                    "amount": "49.2",
+                    "client_id": "BE2E7bad38e1b2a44045",
+                    "created": "1791464954571",
+                    "fills": {
+                      "3193": {
+                        "base_fee": "0",
+                        "fees": {
+                          "USDT": "0.0"
+                        },
+                        "id": "3193",
+                        "quantity": "49.2",
+                        "quote": "249.198",
+                        "quote_fee": "0.0",
+                        "timestamp": "1791464954571"
+                      }
+                    },
+                    "id": "79895",
+                    "side": "sell"
+                  }
+                },
+                "pair": "NEAR/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "79389",
+                  "filled": 49.2,
+                  "cost": 249.5916
+                },
+                {
+                  "id": "79895",
+                  "filled": 49.2,
+                  "cost": 249.198
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        }
+      },
+      "unexpected_incidents": [],
+      "open_exchange_orders": [],
+      "open_exchange_lists": [],
+      "account_after": {
+        "LTC": "7.00000000",
+        "LINK": "36.00000000",
+        "ADA": "1937.00000000",
+        "NEAR": "96.00000000",
+        "USDT": "9999.59216000"
+      },
+      "cleanup_unchanged": true,
+      "completed_at": 1791464970.3943293,
+      "mutations": {
+        "attempts": {
+          "POST /api/v3/orderList/otoco BL1L06cdeb3a9a4a99c6": {
+            "at": 1791464297.2384858,
+            "phase": "entry"
+          },
+          "POST /api/v3/orderList/otoco BL1Lc5619a0ecea2ba5f": {
+            "at": 1791464300.919429,
+            "phase": "entry"
+          },
+          "POST /api/v3/orderList/otoco BL1L5f00d1dcd21eae88": {
+            "at": 1791464303.9497344,
+            "phase": "entry"
+          },
+          "POST /api/v3/orderList/otoco BL1Ld7376fc14a6d7327": {
+            "at": 1791464308.947611,
+            "phase": "entry"
+          },
+          "DELETE /api/v3/orderList BL1L06cdeb3a9a4a99c6": {
+            "at": 1791464946.2629623,
+            "phase": "exit"
+          },
+          "DELETE /api/v3/orderList BL1Lc5619a0ecea2ba5f": {
+            "at": 1791464946.9027326,
+            "phase": "exit"
+          },
+          "DELETE /api/v3/orderList BL1L5f00d1dcd21eae88": {
+            "at": 1791464947.5412662,
+            "phase": "exit"
+          },
+          "DELETE /api/v3/orderList BL1Ld7376fc14a6d7327": {
+            "at": 1791464948.1807563,
+            "phase": "exit"
+          },
+          "POST /api/v3/order BE2E05c044602c822506": {
+            "at": 1791464952.046801,
+            "phase": "exit"
+          },
+          "POST /api/v3/order BE2E8ac92c11f193fc8f": {
+            "at": 1791464952.8853557,
+            "phase": "exit"
+          },
+          "POST /api/v3/order BE2E341e6b692a8f4ffe": {
+            "at": 1791464953.7235096,
+            "phase": "exit"
+          },
+          "POST /api/v3/order BE2E7bad38e1b2a44045": {
+            "at": 1791464954.5617716,
+            "phase": "exit"
+          }
+        }
+      },
+      "transport_denials": []
+    },
+    "closed_restart": {
+      "started_at": 1791464975.470538,
+      "phase": "closed_restart",
+      "slots": 4,
+      "soak_seconds_required": 600,
+      "intents": {
+        "LTC/USDT": "soak-controlled-owner-20261008T125807Z-LTC",
+        "LINK/USDT": "soak-controlled-owner-20261008T125807Z-LINK",
+        "ADA/USDT": "soak-controlled-owner-20261008T125807Z-ADA",
+        "NEAR/USDT": "soak-controlled-owner-20261008T125807Z-NEAR"
+      },
+      "passed": true,
+      "strategy_admission_verified": false,
+      "release_certificate_created": false,
+      "samples": [],
+      "account_before": {
+        "LTC": "7.00000000",
+        "LINK": "36.00000000",
+        "ADA": "1937.00000000",
+        "NEAR": "96.00000000",
+        "USDT": "9999.59216000"
+      },
+      "restart_accounting_unchanged": true,
+      "canonical": {
+        "LTC/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T125807Z-LTC",
+            "pair": "LTC/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 86,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "EXIT_FILLED",
+            "created_ts": 1791464296.9232585,
+            "updated_ts": 1791464967.0427969
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 86,
+              "is_open": false,
+              "amount": 3.892,
+              "stake_amount": 249.4772,
+              "open_rate": 64.1,
+              "close_rate": 64.08,
+              "realized_profit": -0.07784,
+              "close_profit_abs": -0.07784,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "0.000",
+                "basis": "0.0000",
+                "invested": "249.4772",
+                "realized": "-0.07784",
+                "execution_rate": "64.1",
+                "fees": {
+                  "buy": {
+                    "LTC": "0.0"
+                  },
+                  "sell": {
+                    "USDT": "0.0"
+                  }
+                },
+                "entries": {
+                  "34300": {
+                    "quantity": "3.892"
+                  }
+                },
+                "exits": {
+                  "34618": {
+                    "profit": "-0.07784",
+                    "basis": "249.4772",
+                    "quantity": "3.892"
+                  }
+                }
+              },
+              "receipts": {
+                "orders": {
+                  "34300": {
+                    "amount": "3.892",
+                    "client_id": "BW1W4f521f5fb2bceb62",
+                    "created": "1791464297248",
+                    "fills": {
+                      "1176": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "LTC": "0.0"
+                        },
+                        "id": "1176",
+                        "quantity": "3.892",
+                        "quote": "249.4772",
+                        "quote_fee": "0",
+                        "timestamp": "1791464297248"
+                      }
+                    },
+                    "id": "34300",
+                    "side": "buy"
+                  },
+                  "34618": {
+                    "amount": "3.892",
+                    "client_id": "BE2E05c044602c822506",
+                    "created": "1791464952056",
+                    "fills": {
+                      "1185": {
+                        "base_fee": "0",
+                        "fees": {
+                          "USDT": "0.0"
+                        },
+                        "id": "1185",
+                        "quantity": "3.892",
+                        "quote": "249.39936",
+                        "quote_fee": "0.0",
+                        "timestamp": "1791464952056"
+                      }
+                    },
+                    "id": "34618",
+                    "side": "sell"
+                  }
+                },
+                "pair": "LTC/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "34300",
+                  "filled": 3.892,
+                  "cost": 249.4772
+                },
+                {
+                  "id": "34618",
+                  "filled": 3.892,
+                  "cost": 249.39936
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        },
+        "LINK/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T125807Z-LINK",
+            "pair": "LINK/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 87,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "EXIT_FILLED",
+            "created_ts": 1791464300.751071,
+            "updated_ts": 1791464967.7036047
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 87,
+              "is_open": false,
+              "amount": 19.28,
+              "stake_amount": 249.40608,
+              "open_rate": 12.936,
+              "close_rate": 12.945,
+              "realized_profit": 0.17352,
+              "close_profit_abs": 0.17352,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "0.00",
+                "basis": "0.00000",
+                "invested": "249.40608",
+                "realized": "0.17352",
+                "execution_rate": "12.936",
+                "fees": {
+                  "buy": {
+                    "LINK": "0.0"
+                  },
+                  "sell": {
+                    "USDT": "0.0"
+                  }
+                },
+                "entries": {
+                  "78297": {
+                    "quantity": "19.28"
+                  }
+                },
+                "exits": {
+                  "79012": {
+                    "profit": "0.17352",
+                    "basis": "249.40608",
+                    "quantity": "19.28"
+                  }
+                }
+              },
+              "receipts": {
+                "orders": {
+                  "78297": {
+                    "amount": "19.28",
+                    "client_id": "BW1W32aff11eb2da29e0",
+                    "created": "1791464300931",
+                    "fills": {
+                      "7983": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "LINK": "0.0"
+                        },
+                        "id": "7983",
+                        "quantity": "19.28",
+                        "quote": "249.40608",
+                        "quote_fee": "0",
+                        "timestamp": "1791464300931"
+                      }
+                    },
+                    "id": "78297",
+                    "side": "buy"
+                  },
+                  "79012": {
+                    "amount": "19.28",
+                    "client_id": "BE2E8ac92c11f193fc8f",
+                    "created": "1791464952894",
+                    "fills": {
+                      "8131": {
+                        "base_fee": "0",
+                        "fees": {
+                          "USDT": "0.0"
+                        },
+                        "id": "8131",
+                        "quantity": "19.28",
+                        "quote": "249.5796",
+                        "quote_fee": "0.0",
+                        "timestamp": "1791464952894"
+                      }
+                    },
+                    "id": "79012",
+                    "side": "sell"
+                  }
+                },
+                "pair": "LINK/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "78297",
+                  "filled": 19.28,
+                  "cost": 249.40608
+                },
+                {
+                  "id": "79012",
+                  "filled": 19.28,
+                  "cost": 249.5796
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        },
+        "ADA/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T125807Z-ADA",
+            "pair": "ADA/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 88,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "EXIT_FILLED",
+            "created_ts": 1791464303.6849513,
+            "updated_ts": 1791464968.3685944
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 88,
+              "is_open": false,
+              "amount": 1008.8,
+              "stake_amount": 249.678,
+              "open_rate": 0.2475,
+              "close_rate": 0.2473,
+              "realized_profit": -0.20176,
+              "close_profit_abs": -0.20176,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "0.0",
+                "basis": "0.000",
+                "invested": "249.678",
+                "realized": "-0.20176",
+                "execution_rate": "0.2475",
+                "fees": {
+                  "buy": {
+                    "ADA": "0.0"
+                  },
+                  "sell": {
+                    "USDT": "0.0"
+                  }
+                },
+                "entries": {
+                  "30138": {
+                    "quantity": "1008.8"
+                  }
+                },
+                "exits": {
+                  "30417": {
+                    "profit": "-0.20176",
+                    "basis": "249.678",
+                    "quantity": "1008.8"
+                  }
+                }
+              },
+              "receipts": {
+                "orders": {
+                  "30138": {
+                    "amount": "1008.8",
+                    "client_id": "BW1Wf1981ea3149a5ea4",
+                    "created": "1791464303959",
+                    "fills": {
+                      "5489": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "ADA": "0.0"
+                        },
+                        "id": "5489",
+                        "quantity": "1008.8",
+                        "quote": "249.678",
+                        "quote_fee": "0",
+                        "timestamp": "1791464303959"
+                      }
+                    },
+                    "id": "30138",
+                    "side": "buy"
+                  },
+                  "30417": {
+                    "amount": "1008.8",
+                    "client_id": "BE2E341e6b692a8f4ffe",
+                    "created": "1791464953733",
+                    "fills": {
+                      "5534": {
+                        "base_fee": "0",
+                        "fees": {
+                          "USDT": "0.0"
+                        },
+                        "id": "5534",
+                        "quantity": "1008.8",
+                        "quote": "249.47624",
+                        "quote_fee": "0.0",
+                        "timestamp": "1791464953733"
+                      }
+                    },
+                    "id": "30417",
+                    "side": "sell"
+                  }
+                },
+                "pair": "ADA/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "30138",
+                  "filled": 1008.8,
+                  "cost": 249.678
+                },
+                {
+                  "id": "30417",
+                  "filled": 1008.8,
+                  "cost": 249.47624
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        },
+        "NEAR/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T125807Z-NEAR",
+            "pair": "NEAR/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 89,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "EXIT_FILLED",
+            "created_ts": 1791464308.6238089,
+            "updated_ts": 1791464969.0310507
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 89,
+              "is_open": false,
+              "amount": 49.2,
+              "stake_amount": 249.5916,
+              "open_rate": 5.073,
+              "close_rate": 5.065,
+              "realized_profit": -0.3936,
+              "close_profit_abs": -0.3936,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "0.0",
+                "basis": "0.0000",
+                "invested": "249.5916",
+                "realized": "-0.3936",
+                "execution_rate": "5.073",
+                "fees": {
+                  "buy": {
+                    "NEAR": "0.0"
+                  },
+                  "sell": {
+                    "USDT": "0.0"
+                  }
+                },
+                "entries": {
+                  "79389": {
+                    "quantity": "49.2"
+                  }
+                },
+                "exits": {
+                  "79895": {
+                    "profit": "-0.3936",
+                    "basis": "249.5916",
+                    "quantity": "49.2"
+                  }
+                }
+              },
+              "receipts": {
+                "orders": {
+                  "79389": {
+                    "amount": "49.2",
+                    "client_id": "BW1W0106dae60cbd7b42",
+                    "created": "1791464308957",
+                    "fills": {
+                      "3173": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "NEAR": "0.0"
+                        },
+                        "id": "3173",
+                        "quantity": "49.2",
+                        "quote": "249.5916",
+                        "quote_fee": "0",
+                        "timestamp": "1791464308957"
+                      }
+                    },
+                    "id": "79389",
+                    "side": "buy"
+                  },
+                  "79895": {
+                    "amount": "49.2",
+                    "client_id": "BE2E7bad38e1b2a44045",
+                    "created": "1791464954571",
+                    "fills": {
+                      "3193": {
+                        "base_fee": "0",
+                        "fees": {
+                          "USDT": "0.0"
+                        },
+                        "id": "3193",
+                        "quantity": "49.2",
+                        "quote": "249.198",
+                        "quote_fee": "0.0",
+                        "timestamp": "1791464954571"
+                      }
+                    },
+                    "id": "79895",
+                    "side": "sell"
+                  }
+                },
+                "pair": "NEAR/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "79389",
+                  "filled": 49.2,
+                  "cost": 249.5916
+                },
+                {
+                  "id": "79895",
+                  "filled": 49.2,
+                  "cost": 249.198
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        }
+      },
+      "unexpected_incidents": [],
+      "open_exchange_orders": [],
+      "open_exchange_lists": [],
+      "account_after": {
+        "LTC": "7.00000000",
+        "LINK": "36.00000000",
+        "ADA": "1937.00000000",
+        "NEAR": "96.00000000",
+        "USDT": "9999.59216000"
+      },
+      "account_delta": {
+        "LTC": "0E-8",
+        "LINK": "0E-8",
+        "ADA": "0E-8",
+        "NEAR": "0E-8",
+        "USDT": "-0.49968000"
+      },
+      "account_delta_matches_receipts": true,
+      "cleanup_unchanged": true,
+      "completed_at": 1791464979.7451541,
+      "mutations": {
+        "attempts": {
+          "POST /api/v3/orderList/otoco BL1L06cdeb3a9a4a99c6": {
+            "at": 1791464297.2384858,
+            "phase": "entry"
+          },
+          "POST /api/v3/orderList/otoco BL1Lc5619a0ecea2ba5f": {
+            "at": 1791464300.919429,
+            "phase": "entry"
+          },
+          "POST /api/v3/orderList/otoco BL1L5f00d1dcd21eae88": {
+            "at": 1791464303.9497344,
+            "phase": "entry"
+          },
+          "POST /api/v3/orderList/otoco BL1Ld7376fc14a6d7327": {
+            "at": 1791464308.947611,
+            "phase": "entry"
+          },
+          "DELETE /api/v3/orderList BL1L06cdeb3a9a4a99c6": {
+            "at": 1791464946.2629623,
+            "phase": "exit"
+          },
+          "DELETE /api/v3/orderList BL1Lc5619a0ecea2ba5f": {
+            "at": 1791464946.9027326,
+            "phase": "exit"
+          },
+          "DELETE /api/v3/orderList BL1L5f00d1dcd21eae88": {
+            "at": 1791464947.5412662,
+            "phase": "exit"
+          },
+          "DELETE /api/v3/orderList BL1Ld7376fc14a6d7327": {
+            "at": 1791464948.1807563,
+            "phase": "exit"
+          },
+          "POST /api/v3/order BE2E05c044602c822506": {
+            "at": 1791464952.046801,
+            "phase": "exit"
+          },
+          "POST /api/v3/order BE2E8ac92c11f193fc8f": {
+            "at": 1791464952.8853557,
+            "phase": "exit"
+          },
+          "POST /api/v3/order BE2E341e6b692a8f4ffe": {
+            "at": 1791464953.7235096,
+            "phase": "exit"
+          },
+          "POST /api/v3/order BE2E7bad38e1b2a44045": {
+            "at": 1791464954.5617716,
+            "phase": "exit"
+          }
+        }
+      },
+      "transport_denials": []
+    }
+  }
+}

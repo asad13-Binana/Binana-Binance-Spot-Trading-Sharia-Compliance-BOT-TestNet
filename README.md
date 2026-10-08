@@ -1,6 +1,6 @@
 # BINANA Binance Spot Testnet
 
-Latest update (October 7, 2026): the AWS public Spot collector now accepts one-letter symbols, follows the full eligible universe, and has enough CPU to keep trade flow and sequenced depth fresh. Startup verifies retained local image identities before Compose runs. The manual registry contains **375 owner-listed symbols**; Sharia research loads the exact supplied v19.3 controller. The repaired execution-owner candidate is still awaiting lifecycle acceptance, so trading remains paused.
+Latest update (October 8, 2026): **AWS Binance Spot Testnet trading is resumed.** The verified owner is running with no open recovery incident and no Resume blockers. Acceptance includes protected entry/exit, repeated restarts, flat database restore, ten runs of the 164-test owner suite, one/four-position ten-minute soaks and an actual deployment/rollback rehearsal. The manual registry contains **375 owner-listed symbols**; research loads the exact supplied Sharia v19.3 controller.
 
 The active AWS deployment uses Freqtrade 2026.8/NFI as its sole order owner, with a monitor-only sidecar. The root package below still represents the older deployment layout; it must not be used to overwrite AWS until runtime integration is complete. Recovered owner source is in `runtime_owner/`.
 
@@ -68,7 +68,7 @@ extracted deterministic artifact.
   The legacy root Compose package has a different topology and is not the AWS installer.
 - Research decisions require the supplied v19.3 controller and signed owner approval; the operational manual registry is a separate gate.
 - Inter-service messages are HMAC-authenticated and release-bound.
-- BNB and BTC are excluded as bases; no BNB fee dependency.
+- BTC, BNB, XRP, SOL and ETH are excluded as execution bases by the recovered owner; manual registry membership does not override execution exclusions. There is no BNB fee dependency.
 - AWS trading secrets remain in private server configuration, never in Git.
 
 ## Documentation
