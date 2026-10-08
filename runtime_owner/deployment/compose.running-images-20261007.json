@@ -1,7 +1,7 @@
 {
   "services": {
     "freqtrade": {
-      "image": "binana-testnet-freqtrade:repair-20260919-r17"
+      "image": "binana-testnet-freqtrade:recovery-validation-20261007-r4"
     },
     "telegram-broker": {
       "image": "binana-testnet-services:telegram-repair-20260912-r15"

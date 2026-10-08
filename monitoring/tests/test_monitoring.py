@@ -239,7 +239,8 @@ def test_api_readiness_status_is_sanitised_and_exposed():
     assert payload["api_readiness"]["providers"]["binance"]["status"] == "PASS"
 
 
-def test_spot_market_context_is_bearer_protected_sanitised_and_advisory_only():
+@pytest.mark.parametrize("symbol", ["ETHUSDT", "SUSDT", "UUSDT"])
+def test_spot_market_context_is_bearer_protected_sanitised_and_advisory_only(symbol):
     now = datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z")
     _write(CONFIG.market_context_health_path, {
         "schema_version": 1, "ok": True, "ts": time.time(),
@@ -257,8 +258,8 @@ def test_spot_market_context_is_bearer_protected_sanitised_and_advisory_only():
         "fresh_symbol_count": 1,
         "statistics": {"accepted_agg_trades": 4},
         "symbols": {
-            "ETHUSDT": {
-                "symbol": "ETHUSDT", "status": "fresh", "advisory_only": True,
+            symbol: {
+                "symbol": symbol, "status": "fresh", "advisory_only": True,
                 "spot_aggressive_flow": {"cvd_quote_60s": "12.5"},
                 "top_of_book_liquidity": {"spread_bps": "1.2"},
             }
@@ -266,7 +267,7 @@ def test_spot_market_context_is_bearer_protected_sanitised_and_advisory_only():
     })
     assert client.get("/api/v1/market-context").status_code == 401
     response = client.get(
-        "/api/v1/market-context?symbol=ETHUSDT", headers=AUTH
+        f"/api/v1/market-context?symbol={symbol}", headers=AUTH
     )
     assert response.status_code == 200
     value = response.json()["spot_market_context"]

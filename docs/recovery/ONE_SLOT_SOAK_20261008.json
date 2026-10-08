@@ -1,0 +1,1950 @@
+{
+  "receipt": {
+    "root": "/var/backups/binana-testnet/controlled-owner-20261008T124602Z",
+    "image": "sha256:a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523",
+    "probe_sha256": "6d05be5c67ce3e9b6a31ba64f26490baf9417fc8ff5912f1bd330147cf4c45f1",
+    "source_config_sha256": "eabd0e6b44b2fe9d74dd054e3a22077c96ce4bc37c5fefc2016c9d194b002123",
+    "source_databases": {
+      "binana-owner.sqlite": [
+        [
+          [
+            85
+          ]
+        ],
+        [
+          [
+            176
+          ]
+        ],
+        [
+          [
+            0
+          ]
+        ]
+      ],
+      "binana-owner.sqlite_logical_sha256": "37ecef24f7a85d6c979e20046c781129da4cc9713814a3a05b9323ca1e2282f6",
+      "binana-extension.sqlite": [
+        [
+          [
+            "repair-economic-settlement-replay-20260920",
+            "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED",
+            "OPEN"
+          ]
+        ]
+      ],
+      "binana-extension.sqlite_logical_sha256": "97f5101d5861c5cd06c2a2b6f1f48d48260f351ac52f06c3c792e687e3caeb7e"
+    },
+    "phases": [
+      {
+        "phase": "entry",
+        "passed": true,
+        "exit_code": 0,
+        "error": null,
+        "canonical": {
+          "LTC/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T124602Z-LTC",
+              "pair": "LTC/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 86,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "OPEN",
+              "created_ts": 1791463571.8940706,
+              "updated_ts": 1791464176.5201688
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 86,
+                "is_open": true,
+                "amount": 3.897,
+                "stake_amount": 249.48594,
+                "open_rate": 64.02,
+                "close_rate": null,
+                "realized_profit": 0,
+                "close_profit_abs": 0,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "3.897",
+                  "basis": "249.48594",
+                  "invested": "249.48594",
+                  "realized": "0",
+                  "execution_rate": "64.02",
+                  "fees": {
+                    "buy": {
+                      "LTC": "0.0"
+                    },
+                    "sell": {}
+                  },
+                  "entries": {
+                    "33950": {
+                      "quantity": "3.897"
+                    }
+                  },
+                  "exits": {}
+                },
+                "receipts": {
+                  "orders": {
+                    "33950": {
+                      "amount": "3.897",
+                      "client_id": "BW1W97097f4beddb3934",
+                      "created": "1791463572215",
+                      "fills": {
+                        "1171": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "LTC": "0.0"
+                          },
+                          "id": "1171",
+                          "quantity": "3.897",
+                          "quote": "249.48594",
+                          "quote_fee": "0",
+                          "timestamp": "1791463572215"
+                        }
+                      },
+                      "id": "33950",
+                      "side": "buy"
+                    }
+                  },
+                  "pair": "LTC/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "33950",
+                    "filled": 3.897,
+                    "cost": 249.48594
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "phase": "restart",
+        "passed": true,
+        "exit_code": 0,
+        "error": null,
+        "canonical": {
+          "LTC/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T124602Z-LTC",
+              "pair": "LTC/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 86,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "OPEN",
+              "created_ts": 1791463571.8940706,
+              "updated_ts": 1791464187.431524
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 86,
+                "is_open": true,
+                "amount": 3.897,
+                "stake_amount": 249.48594,
+                "open_rate": 64.02,
+                "close_rate": null,
+                "realized_profit": 0,
+                "close_profit_abs": 0,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "3.897",
+                  "basis": "249.48594",
+                  "invested": "249.48594",
+                  "realized": "0",
+                  "execution_rate": "64.02",
+                  "fees": {
+                    "buy": {
+                      "LTC": "0.0"
+                    },
+                    "sell": {}
+                  },
+                  "entries": {
+                    "33950": {
+                      "quantity": "3.897"
+                    }
+                  },
+                  "exits": {}
+                },
+                "receipts": {
+                  "orders": {
+                    "33950": {
+                      "amount": "3.897",
+                      "client_id": "BW1W97097f4beddb3934",
+                      "created": "1791463572215",
+                      "fills": {
+                        "1171": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "LTC": "0.0"
+                          },
+                          "id": "1171",
+                          "quantity": "3.897",
+                          "quote": "249.48594",
+                          "quote_fee": "0",
+                          "timestamp": "1791463572215"
+                        }
+                      },
+                      "id": "33950",
+                      "side": "buy"
+                    }
+                  },
+                  "pair": "LTC/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "33950",
+                    "filled": 3.897,
+                    "cost": 249.48594
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "phase": "exit",
+        "passed": true,
+        "exit_code": 0,
+        "error": null,
+        "canonical": {
+          "LTC/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T124602Z-LTC",
+              "pair": "LTC/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 86,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "EXIT_FILLED",
+              "created_ts": 1791463571.8940706,
+              "updated_ts": 1791464215.4375849
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 86,
+                "is_open": false,
+                "amount": 3.897,
+                "stake_amount": 249.48594,
+                "open_rate": 64.02,
+                "close_rate": 64.13,
+                "realized_profit": 0.42867,
+                "close_profit_abs": 0.42867,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "0.000",
+                  "basis": "0.00000",
+                  "invested": "249.48594",
+                  "realized": "0.42867",
+                  "execution_rate": "64.02",
+                  "fees": {
+                    "buy": {
+                      "LTC": "0.0"
+                    },
+                    "sell": {
+                      "USDT": "0.0"
+                    }
+                  },
+                  "entries": {
+                    "33950": {
+                      "quantity": "3.897"
+                    }
+                  },
+                  "exits": {
+                    "34255": {
+                      "profit": "0.42867",
+                      "basis": "249.48594",
+                      "quantity": "3.897"
+                    }
+                  }
+                },
+                "receipts": {
+                  "orders": {
+                    "33950": {
+                      "amount": "3.897",
+                      "client_id": "BW1W97097f4beddb3934",
+                      "created": "1791463572215",
+                      "fills": {
+                        "1171": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "LTC": "0.0"
+                          },
+                          "id": "1171",
+                          "quantity": "3.897",
+                          "quote": "249.48594",
+                          "quote_fee": "0",
+                          "timestamp": "1791463572215"
+                        }
+                      },
+                      "id": "33950",
+                      "side": "buy"
+                    },
+                    "34255": {
+                      "amount": "3.897",
+                      "client_id": "BE2Eef019cb0585c575b",
+                      "created": "1791464207688",
+                      "fills": {
+                        "1175": {
+                          "base_fee": "0",
+                          "fees": {
+                            "USDT": "0.0"
+                          },
+                          "id": "1175",
+                          "quantity": "3.897",
+                          "quote": "249.91461",
+                          "quote_fee": "0.0",
+                          "timestamp": "1791464207688"
+                        }
+                      },
+                      "id": "34255",
+                      "side": "sell"
+                    }
+                  },
+                  "pair": "LTC/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "33950",
+                    "filled": 3.897,
+                    "cost": 249.48594
+                  },
+                  {
+                    "id": "34255",
+                    "filled": 3.897,
+                    "cost": 249.91461
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "phase": "closed_restart",
+        "passed": true,
+        "exit_code": 0,
+        "error": null,
+        "canonical": {
+          "LTC/USDT": {
+            "intent": {
+              "intent_id": "soak-controlled-owner-20261008T124602Z-LTC",
+              "pair": "LTC/USDT",
+              "signal_id": "controlled_slot_soak",
+              "freqtrade_trade_id": 86,
+              "halal_allowed": 1,
+              "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+              "nominal_usdt": "250",
+              "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+              "state": "EXIT_FILLED",
+              "created_ts": 1791463571.8940706,
+              "updated_ts": 1791464215.4375849
+            },
+            "canonical_ready": true,
+            "trades": [
+              {
+                "id": 86,
+                "is_open": false,
+                "amount": 3.897,
+                "stake_amount": 249.48594,
+                "open_rate": 64.02,
+                "close_rate": 64.13,
+                "realized_profit": 0.42867,
+                "close_profit_abs": 0.42867,
+                "fee_open": 0,
+                "fee_close": 0.001,
+                "economics": {
+                  "quantity": "0.000",
+                  "basis": "0.00000",
+                  "invested": "249.48594",
+                  "realized": "0.42867",
+                  "execution_rate": "64.02",
+                  "fees": {
+                    "buy": {
+                      "LTC": "0.0"
+                    },
+                    "sell": {
+                      "USDT": "0.0"
+                    }
+                  },
+                  "entries": {
+                    "33950": {
+                      "quantity": "3.897"
+                    }
+                  },
+                  "exits": {
+                    "34255": {
+                      "profit": "0.42867",
+                      "basis": "249.48594",
+                      "quantity": "3.897"
+                    }
+                  }
+                },
+                "receipts": {
+                  "orders": {
+                    "33950": {
+                      "amount": "3.897",
+                      "client_id": "BW1W97097f4beddb3934",
+                      "created": "1791463572215",
+                      "fills": {
+                        "1171": {
+                          "base_fee": "0.0",
+                          "fees": {
+                            "LTC": "0.0"
+                          },
+                          "id": "1171",
+                          "quantity": "3.897",
+                          "quote": "249.48594",
+                          "quote_fee": "0",
+                          "timestamp": "1791463572215"
+                        }
+                      },
+                      "id": "33950",
+                      "side": "buy"
+                    },
+                    "34255": {
+                      "amount": "3.897",
+                      "client_id": "BE2Eef019cb0585c575b",
+                      "created": "1791464207688",
+                      "fills": {
+                        "1175": {
+                          "base_fee": "0",
+                          "fees": {
+                            "USDT": "0.0"
+                          },
+                          "id": "1175",
+                          "quantity": "3.897",
+                          "quote": "249.91461",
+                          "quote_fee": "0.0",
+                          "timestamp": "1791464207688"
+                        }
+                      },
+                      "id": "34255",
+                      "side": "sell"
+                    }
+                  },
+                  "pair": "LTC/USDT",
+                  "schema_version": 1,
+                  "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+                },
+                "open_canonical_orders": 0,
+                "orders": [
+                  {
+                    "id": "33950",
+                    "filled": 3.897,
+                    "cost": 249.48594
+                  },
+                  {
+                    "id": "34255",
+                    "filled": 3.897,
+                    "cost": 249.91461
+                  }
+                ]
+              }
+            ],
+            "incidents": [
+              {
+                "id": "repair-economic-settlement-replay-20260920",
+                "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "live_writable_mounts": false,
+    "release_certificate_created": false,
+    "strategy_admission_verified": false,
+    "slot_soak": 1,
+    "passed": true,
+    "base_probe_sha256": "a83a86e11969d9497ce16e5c4f827932cf3b84c01837b77b2da47f39a3669656",
+    "owner_config_unchanged": true,
+    "owner_container_unchanged": true,
+    "owner_image_unchanged": true,
+    "owner_state_unchanged": true,
+    "trade_order_counts_and_open_incidents_unchanged": true,
+    "requires_exchange_reconciliation": false
+  },
+  "phases": {
+    "entry": {
+      "started_at": 1791463567.7466712,
+      "phase": "entry",
+      "slots": 1,
+      "soak_seconds_required": 600,
+      "intents": {
+        "LTC/USDT": "soak-controlled-owner-20261008T124602Z-LTC"
+      },
+      "passed": true,
+      "strategy_admission_verified": false,
+      "release_certificate_created": false,
+      "samples": [
+        {
+          "at": 1791463577.3521416,
+          "elapsed_seconds": 0.4150561671704054,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463587.7749794,
+          "elapsed_seconds": 10.837893030140549,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463600.446937,
+          "elapsed_seconds": 23.509851071983576,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463610.8612425,
+          "elapsed_seconds": 33.92415641108528,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463623.2689104,
+          "elapsed_seconds": 46.33182393293828,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463634.4678395,
+          "elapsed_seconds": 57.53075334522873,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463646.0565932,
+          "elapsed_seconds": 69.11950699891895,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463657.2576325,
+          "elapsed_seconds": 80.32054643984884,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463668.858736,
+          "elapsed_seconds": 91.9216497791931,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463679.271243,
+          "elapsed_seconds": 102.33415669202805,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463691.6502087,
+          "elapsed_seconds": 114.71312247402966,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463702.8463387,
+          "elapsed_seconds": 125.90925253601745,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463715.2319221,
+          "elapsed_seconds": 138.2948357271962,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463726.4322867,
+          "elapsed_seconds": 149.49520060094073,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463738.8192549,
+          "elapsed_seconds": 161.8821686198935,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463750.0178647,
+          "elapsed_seconds": 173.0807785312645,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463761.5956168,
+          "elapsed_seconds": 184.6585305291228,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463772.7924132,
+          "elapsed_seconds": 195.8553270129487,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463785.1733117,
+          "elapsed_seconds": 208.2362254760228,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463795.5853283,
+          "elapsed_seconds": 218.64824193483219,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463808.023896,
+          "elapsed_seconds": 231.0868100761436,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463819.2350626,
+          "elapsed_seconds": 242.2979765268974,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463831.671844,
+          "elapsed_seconds": 254.73475792026147,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463842.8757808,
+          "elapsed_seconds": 265.9386945818551,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463855.2596328,
+          "elapsed_seconds": 278.3225467079319,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463866.4608698,
+          "elapsed_seconds": 289.5237835692242,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463878.8612444,
+          "elapsed_seconds": 301.92415814101696,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463889.2772748,
+          "elapsed_seconds": 312.340188564267,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463901.671704,
+          "elapsed_seconds": 324.7346180691384,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463912.8723238,
+          "elapsed_seconds": 335.9352375930175,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463925.268669,
+          "elapsed_seconds": 348.3315827152692,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463936.4650161,
+          "elapsed_seconds": 359.52792964316905,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463948.8467958,
+          "elapsed_seconds": 371.9097095760517,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463960.064891,
+          "elapsed_seconds": 383.1278048949316,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463971.6600459,
+          "elapsed_seconds": 394.7229595310055,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463982.8590763,
+          "elapsed_seconds": 405.9219903512858,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791463995.2458718,
+          "elapsed_seconds": 418.3087856792845,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464005.6600802,
+          "elapsed_seconds": 428.7229939298704,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464018.0517027,
+          "elapsed_seconds": 441.1146166608669,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464029.2509172,
+          "elapsed_seconds": 452.31383086927235,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464041.6348052,
+          "elapsed_seconds": 464.6977188671008,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464052.0497992,
+          "elapsed_seconds": 475.11271284287795,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464064.4355338,
+          "elapsed_seconds": 487.49844763288274,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464075.6430783,
+          "elapsed_seconds": 498.7059920690954,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464088.0197778,
+          "elapsed_seconds": 511.082691594027,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464098.437494,
+          "elapsed_seconds": 521.5004077400081,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464110.897817,
+          "elapsed_seconds": 533.9607306821272,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464122.102707,
+          "elapsed_seconds": 545.1656205719337,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464133.7116554,
+          "elapsed_seconds": 556.774569068104,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464144.129071,
+          "elapsed_seconds": 567.1919847391546,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464155.7229462,
+          "elapsed_seconds": 578.785859902855,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464166.134835,
+          "elapsed_seconds": 589.1977489008568,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        },
+        {
+          "at": 1791464178.5108128,
+          "elapsed_seconds": 601.5737265720963,
+          "positions": 1,
+          "occupied_slots": 1,
+          "reserved_nominal": "250",
+          "protected": true,
+          "canonical_ready": true,
+          "rest_ok": true,
+          "private_stream_fresh": true,
+          "unexpected_incidents": []
+        }
+      ],
+      "account_before": {
+        "LTC": "7.00000000",
+        "USDT": "9999.66317000"
+      },
+      "all_pair_preflight": {
+        "LTC/USDT": {
+          "symbol": "LTCUSDT",
+          "additional_orders": 3,
+          "open_orders": 0,
+          "open_order_lists": 0,
+          "open_algo_orders": 0,
+          "average_price": "64.05083111"
+        }
+      },
+      "entries": {
+        "LTC/USDT": {
+          "quantity": "3.89700000",
+          "limit": "64.15000000",
+          "nominal": "249.9925500000000000",
+          "response": {
+            "id": "33950",
+            "clientOrderId": "BW1W97097f4beddb3934",
+            "symbol": "LTC/USDT",
+            "status": "closed",
+            "side": "buy",
+            "type": "limit",
+            "price": 64.15,
+            "amount": 3.897,
+            "filled": 3.897,
+            "remaining": 0,
+            "cost": 249.48594,
+            "average": 64.02,
+            "timestamp": 1791463572215,
+            "info": {
+              "symbol": "LTCUSDT",
+              "orderId": 33950,
+              "orderListId": 12470,
+              "clientOrderId": "BW1W97097f4beddb3934",
+              "transactTime": 1791463572215,
+              "price": "64.15000000",
+              "origQty": "3.89700000",
+              "executedQty": "3.89700000",
+              "origQuoteOrderQty": "0.00000000",
+              "cummulativeQuoteQty": "249.48594000",
+              "status": "FILLED",
+              "timeInForce": "FOK",
+              "type": "LIMIT",
+              "side": "BUY",
+              "workingTime": 1791463572215,
+              "fills": [
+                {
+                  "price": "64.02000000",
+                  "qty": "3.89700000",
+                  "commission": "0.00000000",
+                  "commissionAsset": "LTC",
+                  "tradeId": 1171
+                }
+              ],
+              "selfTradePreventionMode": "EXPIRE_MAKER"
+            }
+          }
+        }
+      },
+      "soak_seconds_observed": 601.5737265720963,
+      "canonical": {
+        "LTC/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T124602Z-LTC",
+            "pair": "LTC/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 86,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "OPEN",
+            "created_ts": 1791463571.8940706,
+            "updated_ts": 1791464176.5201688
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 86,
+              "is_open": true,
+              "amount": 3.897,
+              "stake_amount": 249.48594,
+              "open_rate": 64.02,
+              "close_rate": null,
+              "realized_profit": 0,
+              "close_profit_abs": 0,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "3.897",
+                "basis": "249.48594",
+                "invested": "249.48594",
+                "realized": "0",
+                "execution_rate": "64.02",
+                "fees": {
+                  "buy": {
+                    "LTC": "0.0"
+                  },
+                  "sell": {}
+                },
+                "entries": {
+                  "33950": {
+                    "quantity": "3.897"
+                  }
+                },
+                "exits": {}
+              },
+              "receipts": {
+                "orders": {
+                  "33950": {
+                    "amount": "3.897",
+                    "client_id": "BW1W97097f4beddb3934",
+                    "created": "1791463572215",
+                    "fills": {
+                      "1171": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "LTC": "0.0"
+                        },
+                        "id": "1171",
+                        "quantity": "3.897",
+                        "quote": "249.48594",
+                        "quote_fee": "0",
+                        "timestamp": "1791463572215"
+                      }
+                    },
+                    "id": "33950",
+                    "side": "buy"
+                  }
+                },
+                "pair": "LTC/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "33950",
+                  "filled": 3.897,
+                  "cost": 249.48594
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        }
+      },
+      "unexpected_incidents": [],
+      "open_exchange_orders": [
+        {
+          "symbol": "LTCUSDT",
+          "orderId": 33951,
+          "orderListId": 12470,
+          "clientOrderId": "BS1Sbcb572b09746f0b4",
+          "price": "63.41000000",
+          "origQty": "3.89700000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "STOP_LOSS_LIMIT",
+          "side": "SELL",
+          "stopPrice": "63.50000000",
+          "icebergQty": "0.00000000",
+          "time": 1791463572215,
+          "updateTime": 1791463572215,
+          "isWorking": false,
+          "workingTime": -1,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        },
+        {
+          "symbol": "LTCUSDT",
+          "orderId": 33952,
+          "orderListId": 12470,
+          "clientOrderId": "BT1T33d865c0ace94307",
+          "price": "65.18000000",
+          "origQty": "3.89700000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "LIMIT_MAKER",
+          "side": "SELL",
+          "stopPrice": "0.00000000",
+          "icebergQty": "0.00000000",
+          "time": 1791463572215,
+          "updateTime": 1791463572215,
+          "isWorking": true,
+          "workingTime": 1791463572215,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        }
+      ],
+      "open_exchange_lists": [
+        {
+          "orderListId": 12470,
+          "contingencyType": "OTO",
+          "listStatusType": "EXEC_STARTED",
+          "listOrderStatus": "EXECUTING",
+          "listClientOrderId": "BL1L7726eda8714144de",
+          "transactionTime": 1791463572215,
+          "symbol": "LTCUSDT",
+          "orders": [
+            {
+              "symbol": "LTCUSDT",
+              "orderId": 33950,
+              "clientOrderId": "BW1W97097f4beddb3934"
+            },
+            {
+              "symbol": "LTCUSDT",
+              "orderId": 33951,
+              "clientOrderId": "BS1Sbcb572b09746f0b4"
+            },
+            {
+              "symbol": "LTCUSDT",
+              "orderId": 33952,
+              "clientOrderId": "BT1T33d865c0ace94307"
+            }
+          ]
+        }
+      ],
+      "account_after": {
+        "LTC": "10.89700000",
+        "USDT": "9750.17723000"
+      },
+      "cleanup_unchanged": true,
+      "completed_at": 1791464179.7127445,
+      "mutations": {
+        "attempts": {
+          "POST /api/v3/orderList/otoco BL1L7726eda8714144de": {
+            "at": 1791463572.2040453,
+            "phase": "entry"
+          }
+        }
+      },
+      "transport_denials": []
+    },
+    "restart": {
+      "started_at": 1791464184.8959842,
+      "phase": "restart",
+      "slots": 1,
+      "soak_seconds_required": 600,
+      "intents": {
+        "LTC/USDT": "soak-controlled-owner-20261008T124602Z-LTC"
+      },
+      "passed": true,
+      "strategy_admission_verified": false,
+      "release_certificate_created": false,
+      "samples": [],
+      "account_before": {
+        "LTC": "10.89700000",
+        "USDT": "9750.17723000"
+      },
+      "restart_accounting_unchanged": true,
+      "canonical": {
+        "LTC/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T124602Z-LTC",
+            "pair": "LTC/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 86,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "OPEN",
+            "created_ts": 1791463571.8940706,
+            "updated_ts": 1791464187.431524
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 86,
+              "is_open": true,
+              "amount": 3.897,
+              "stake_amount": 249.48594,
+              "open_rate": 64.02,
+              "close_rate": null,
+              "realized_profit": 0,
+              "close_profit_abs": 0,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "3.897",
+                "basis": "249.48594",
+                "invested": "249.48594",
+                "realized": "0",
+                "execution_rate": "64.02",
+                "fees": {
+                  "buy": {
+                    "LTC": "0.0"
+                  },
+                  "sell": {}
+                },
+                "entries": {
+                  "33950": {
+                    "quantity": "3.897"
+                  }
+                },
+                "exits": {}
+              },
+              "receipts": {
+                "orders": {
+                  "33950": {
+                    "amount": "3.897",
+                    "client_id": "BW1W97097f4beddb3934",
+                    "created": "1791463572215",
+                    "fills": {
+                      "1171": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "LTC": "0.0"
+                        },
+                        "id": "1171",
+                        "quantity": "3.897",
+                        "quote": "249.48594",
+                        "quote_fee": "0",
+                        "timestamp": "1791463572215"
+                      }
+                    },
+                    "id": "33950",
+                    "side": "buy"
+                  }
+                },
+                "pair": "LTC/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "33950",
+                  "filled": 3.897,
+                  "cost": 249.48594
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        }
+      },
+      "unexpected_incidents": [],
+      "open_exchange_orders": [
+        {
+          "symbol": "LTCUSDT",
+          "orderId": 33951,
+          "orderListId": 12470,
+          "clientOrderId": "BS1Sbcb572b09746f0b4",
+          "price": "63.41000000",
+          "origQty": "3.89700000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "STOP_LOSS_LIMIT",
+          "side": "SELL",
+          "stopPrice": "63.50000000",
+          "icebergQty": "0.00000000",
+          "time": 1791463572215,
+          "updateTime": 1791463572215,
+          "isWorking": false,
+          "workingTime": -1,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        },
+        {
+          "symbol": "LTCUSDT",
+          "orderId": 33952,
+          "orderListId": 12470,
+          "clientOrderId": "BT1T33d865c0ace94307",
+          "price": "65.18000000",
+          "origQty": "3.89700000",
+          "executedQty": "0.00000000",
+          "cummulativeQuoteQty": "0.00000000",
+          "status": "NEW",
+          "timeInForce": "GTC",
+          "type": "LIMIT_MAKER",
+          "side": "SELL",
+          "stopPrice": "0.00000000",
+          "icebergQty": "0.00000000",
+          "time": 1791463572215,
+          "updateTime": 1791463572215,
+          "isWorking": true,
+          "workingTime": 1791463572215,
+          "origQuoteOrderQty": "0.00000000",
+          "selfTradePreventionMode": "EXPIRE_MAKER"
+        }
+      ],
+      "open_exchange_lists": [
+        {
+          "orderListId": 12470,
+          "contingencyType": "OTO",
+          "listStatusType": "EXEC_STARTED",
+          "listOrderStatus": "EXECUTING",
+          "listClientOrderId": "BL1L7726eda8714144de",
+          "transactionTime": 1791463572215,
+          "symbol": "LTCUSDT",
+          "orders": [
+            {
+              "symbol": "LTCUSDT",
+              "orderId": 33950,
+              "clientOrderId": "BW1W97097f4beddb3934"
+            },
+            {
+              "symbol": "LTCUSDT",
+              "orderId": 33951,
+              "clientOrderId": "BS1Sbcb572b09746f0b4"
+            },
+            {
+              "symbol": "LTCUSDT",
+              "orderId": 33952,
+              "clientOrderId": "BT1T33d865c0ace94307"
+            }
+          ]
+        }
+      ],
+      "account_after": {
+        "LTC": "10.89700000",
+        "USDT": "9750.17723000"
+      },
+      "cleanup_unchanged": true,
+      "completed_at": 1791464190.6123705,
+      "mutations": {
+        "attempts": {
+          "POST /api/v3/orderList/otoco BL1L7726eda8714144de": {
+            "at": 1791463572.2040453,
+            "phase": "entry"
+          }
+        }
+      },
+      "transport_denials": []
+    },
+    "exit": {
+      "started_at": 1791464195.7171075,
+      "phase": "exit",
+      "slots": 1,
+      "soak_seconds_required": 600,
+      "intents": {
+        "LTC/USDT": "soak-controlled-owner-20261008T124602Z-LTC"
+      },
+      "passed": true,
+      "strategy_admission_verified": false,
+      "release_certificate_created": false,
+      "samples": [],
+      "account_before": {
+        "LTC": "10.89700000",
+        "USDT": "9750.17723000"
+      },
+      "canonical": {
+        "LTC/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T124602Z-LTC",
+            "pair": "LTC/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 86,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "EXIT_FILLED",
+            "created_ts": 1791463571.8940706,
+            "updated_ts": 1791464215.4375849
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 86,
+              "is_open": false,
+              "amount": 3.897,
+              "stake_amount": 249.48594,
+              "open_rate": 64.02,
+              "close_rate": 64.13,
+              "realized_profit": 0.42867,
+              "close_profit_abs": 0.42867,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "0.000",
+                "basis": "0.00000",
+                "invested": "249.48594",
+                "realized": "0.42867",
+                "execution_rate": "64.02",
+                "fees": {
+                  "buy": {
+                    "LTC": "0.0"
+                  },
+                  "sell": {
+                    "USDT": "0.0"
+                  }
+                },
+                "entries": {
+                  "33950": {
+                    "quantity": "3.897"
+                  }
+                },
+                "exits": {
+                  "34255": {
+                    "profit": "0.42867",
+                    "basis": "249.48594",
+                    "quantity": "3.897"
+                  }
+                }
+              },
+              "receipts": {
+                "orders": {
+                  "33950": {
+                    "amount": "3.897",
+                    "client_id": "BW1W97097f4beddb3934",
+                    "created": "1791463572215",
+                    "fills": {
+                      "1171": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "LTC": "0.0"
+                        },
+                        "id": "1171",
+                        "quantity": "3.897",
+                        "quote": "249.48594",
+                        "quote_fee": "0",
+                        "timestamp": "1791463572215"
+                      }
+                    },
+                    "id": "33950",
+                    "side": "buy"
+                  },
+                  "34255": {
+                    "amount": "3.897",
+                    "client_id": "BE2Eef019cb0585c575b",
+                    "created": "1791464207688",
+                    "fills": {
+                      "1175": {
+                        "base_fee": "0",
+                        "fees": {
+                          "USDT": "0.0"
+                        },
+                        "id": "1175",
+                        "quantity": "3.897",
+                        "quote": "249.91461",
+                        "quote_fee": "0.0",
+                        "timestamp": "1791464207688"
+                      }
+                    },
+                    "id": "34255",
+                    "side": "sell"
+                  }
+                },
+                "pair": "LTC/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "33950",
+                  "filled": 3.897,
+                  "cost": 249.48594
+                },
+                {
+                  "id": "34255",
+                  "filled": 3.897,
+                  "cost": 249.91461
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        }
+      },
+      "unexpected_incidents": [],
+      "open_exchange_orders": [],
+      "open_exchange_lists": [],
+      "account_after": {
+        "LTC": "7.00000000",
+        "USDT": "10000.09184000"
+      },
+      "cleanup_unchanged": true,
+      "completed_at": 1791464216.767269,
+      "mutations": {
+        "attempts": {
+          "POST /api/v3/orderList/otoco BL1L7726eda8714144de": {
+            "at": 1791463572.2040453,
+            "phase": "entry"
+          },
+          "DELETE /api/v3/orderList BL1L7726eda8714144de": {
+            "at": 1791464203.8344243,
+            "phase": "exit"
+          },
+          "POST /api/v3/order BE2Eef019cb0585c575b": {
+            "at": 1791464207.677394,
+            "phase": "exit"
+          }
+        }
+      },
+      "transport_denials": []
+    },
+    "closed_restart": {
+      "started_at": 1791464222.4278498,
+      "phase": "closed_restart",
+      "slots": 1,
+      "soak_seconds_required": 600,
+      "intents": {
+        "LTC/USDT": "soak-controlled-owner-20261008T124602Z-LTC"
+      },
+      "passed": true,
+      "strategy_admission_verified": false,
+      "release_certificate_created": false,
+      "samples": [],
+      "account_before": {
+        "LTC": "7.00000000",
+        "USDT": "10000.09184000"
+      },
+      "restart_accounting_unchanged": true,
+      "canonical": {
+        "LTC/USDT": {
+          "intent": {
+            "intent_id": "soak-controlled-owner-20261008T124602Z-LTC",
+            "pair": "LTC/USDT",
+            "signal_id": "controlled_slot_soak",
+            "freqtrade_trade_id": 86,
+            "halal_allowed": 1,
+            "registry_sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
+            "nominal_usdt": "250",
+            "admission_json": "{\"kind\":\"controlled_testnet_slot_soak\",\"strategy_signal\":false}",
+            "state": "EXIT_FILLED",
+            "created_ts": 1791463571.8940706,
+            "updated_ts": 1791464215.4375849
+          },
+          "canonical_ready": true,
+          "trades": [
+            {
+              "id": 86,
+              "is_open": false,
+              "amount": 3.897,
+              "stake_amount": 249.48594,
+              "open_rate": 64.02,
+              "close_rate": 64.13,
+              "realized_profit": 0.42867,
+              "close_profit_abs": 0.42867,
+              "fee_open": 0,
+              "fee_close": 0.001,
+              "economics": {
+                "quantity": "0.000",
+                "basis": "0.00000",
+                "invested": "249.48594",
+                "realized": "0.42867",
+                "execution_rate": "64.02",
+                "fees": {
+                  "buy": {
+                    "LTC": "0.0"
+                  },
+                  "sell": {
+                    "USDT": "0.0"
+                  }
+                },
+                "entries": {
+                  "33950": {
+                    "quantity": "3.897"
+                  }
+                },
+                "exits": {
+                  "34255": {
+                    "profit": "0.42867",
+                    "basis": "249.48594",
+                    "quantity": "3.897"
+                  }
+                }
+              },
+              "receipts": {
+                "orders": {
+                  "33950": {
+                    "amount": "3.897",
+                    "client_id": "BW1W97097f4beddb3934",
+                    "created": "1791463572215",
+                    "fills": {
+                      "1171": {
+                        "base_fee": "0.0",
+                        "fees": {
+                          "LTC": "0.0"
+                        },
+                        "id": "1171",
+                        "quantity": "3.897",
+                        "quote": "249.48594",
+                        "quote_fee": "0",
+                        "timestamp": "1791463572215"
+                      }
+                    },
+                    "id": "33950",
+                    "side": "buy"
+                  },
+                  "34255": {
+                    "amount": "3.897",
+                    "client_id": "BE2Eef019cb0585c575b",
+                    "created": "1791464207688",
+                    "fills": {
+                      "1175": {
+                        "base_fee": "0",
+                        "fees": {
+                          "USDT": "0.0"
+                        },
+                        "id": "1175",
+                        "quantity": "3.897",
+                        "quote": "249.91461",
+                        "quote_fee": "0.0",
+                        "timestamp": "1791464207688"
+                      }
+                    },
+                    "id": "34255",
+                    "side": "sell"
+                  }
+                },
+                "pair": "LTC/USDT",
+                "schema_version": 1,
+                "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1"
+              },
+              "open_canonical_orders": 0,
+              "orders": [
+                {
+                  "id": "33950",
+                  "filled": 3.897,
+                  "cost": 249.48594
+                },
+                {
+                  "id": "34255",
+                  "filled": 3.897,
+                  "cost": 249.91461
+                }
+              ]
+            }
+          ],
+          "incidents": [
+            {
+              "id": "repair-economic-settlement-replay-20260920",
+              "code": "ECONOMIC_SETTLEMENT_REPLAY_REQUIRED"
+            }
+          ]
+        }
+      },
+      "unexpected_incidents": [],
+      "open_exchange_orders": [],
+      "open_exchange_lists": [],
+      "account_after": {
+        "LTC": "7.00000000",
+        "USDT": "10000.09184000"
+      },
+      "account_delta": {
+        "LTC": "0E-8",
+        "USDT": "0.42867000"
+      },
+      "account_delta_matches_receipts": true,
+      "cleanup_unchanged": true,
+      "completed_at": 1791464226.7740493,
+      "mutations": {
+        "attempts": {
+          "POST /api/v3/orderList/otoco BL1L7726eda8714144de": {
+            "at": 1791463572.2040453,
+            "phase": "entry"
+          },
+          "DELETE /api/v3/orderList BL1L7726eda8714144de": {
+            "at": 1791464203.8344243,
+            "phase": "exit"
+          },
+          "POST /api/v3/order BE2Eef019cb0585c575b": {
+            "at": 1791464207.677394,
+            "phase": "exit"
+          }
+        }
+      },
+      "transport_denials": []
+    }
+  }
+}

@@ -1,0 +1,333 @@
+{
+  "record_kind": "condensed_execution_receipts",
+  "full_receipts_retained_on_aws": true,
+  "rollouts": [
+    {
+      "root": "/var/backups/binana-testnet/owner-rollout-20261008T131358Z",
+      "image": "sha256:a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523",
+      "acceptance_receipts": {
+        "controlled-owner-20261007T141715Z/receipt.json": "3c2cc1e5550cc76bce6824450288d580275e63e077b0e13e0e2fb734b1c2138c",
+        "controlled-owner-20261007T141715Z/backup-restore/receipt.json": "e3c952a45c465f878c54444d4ff3846e28169e239d50a186f3ee4955484d7d16",
+        "controlled-owner-20261008T124602Z/receipt.json": "dda6a8656fb94ef7f9cfc6eb62c8e75247e04e68080a0bc9c3f99df09af94511",
+        "controlled-owner-20261008T125807Z/receipt.json": "b2b8f0fe477e5c4f77ea270633ce4078be12ee0430f561c687cea062f5ea84b5",
+        "owner-r4-10x-20261007/report.json": "2f2751c10113d23dd2169f2257bcd39815495d0111b229b4d0ad4e86256b9148"
+      },
+      "passed": false,
+      "stages": [],
+      "incident_cleared": false,
+      "certificate_created": false,
+      "trading_resumed": false,
+      "database_backups": {
+        "binana-owner.sqlite": "37ecef24f7a85d6c979e20046c781129da4cc9713814a3a05b9323ca1e2282f6",
+        "binana-extension.sqlite": "97f5101d5861c5cd06c2a2b6f1f48d48260f351ac52f06c3c792e687e3caeb7e"
+      },
+      "error_type": "RuntimeError",
+      "error": "CANONICAL_DATABASES_CHANGED_DURING_PAUSED_ROLLOUT",
+      "rollback": {
+        "state": {
+          "state": "stopped",
+          "dry_run": false,
+          "trading_mode": "spot"
+        },
+        "image": "sha256:87c25dfc5b3058891491b6fd0647c86fe9a71f96d8ba41a2693b42797fcada83"
+      },
+      "receipt_sha256": "80a6d141f1d45cfee0e68be5f650753c614182fff25e5828eaf5d8878ce88fbb"
+    },
+    {
+      "root": "/var/backups/binana-testnet/owner-rollout-20261008T132349Z",
+      "started_at": 1791465829.8389027,
+      "image": "sha256:a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523",
+      "acceptance_receipts": {
+        "controlled-owner-20261007T141715Z/receipt.json": "3c2cc1e5550cc76bce6824450288d580275e63e077b0e13e0e2fb734b1c2138c",
+        "controlled-owner-20261007T141715Z/backup-restore/receipt.json": "e3c952a45c465f878c54444d4ff3846e28169e239d50a186f3ee4955484d7d16",
+        "controlled-owner-20261008T124602Z/receipt.json": "dda6a8656fb94ef7f9cfc6eb62c8e75247e04e68080a0bc9c3f99df09af94511",
+        "controlled-owner-20261008T125807Z/receipt.json": "b2b8f0fe477e5c4f77ea270633ce4078be12ee0430f561c687cea062f5ea84b5",
+        "owner-r4-10x-20261007/report.json": "2f2751c10113d23dd2169f2257bcd39815495d0111b229b4d0ad4e86256b9148"
+      },
+      "passed": false,
+      "stages": [],
+      "incident_cleared": false,
+      "certificate_created": false,
+      "trading_resumed": false,
+      "database_backups": {
+        "binana-owner.sqlite": "37ecef24f7a85d6c979e20046c781129da4cc9713814a3a05b9323ca1e2282f6",
+        "binana-extension.sqlite": "97f5101d5861c5cd06c2a2b6f1f48d48260f351ac52f06c3c792e687e3caeb7e"
+      },
+      "error_type": "RuntimeError",
+      "error": "EXTENSION_DATABASE_CHANGED",
+      "rollback": {
+        "state": {
+          "state": "stopped",
+          "dry_run": false,
+          "trading_mode": "spot"
+        },
+        "image": "sha256:87c25dfc5b3058891491b6fd0647c86fe9a71f96d8ba41a2693b42797fcada83"
+      },
+      "receipt_sha256": "f676bf864f1d414069e1b13bab0a6af04d6b0726fce4f64afa62d1f7f5a5f0d0"
+    },
+    {
+      "root": "/var/backups/binana-testnet/owner-rollout-20261008T133140Z",
+      "started_at": 1791466300.0360746,
+      "image": "sha256:a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523",
+      "acceptance_receipts": {
+        "controlled-owner-20261007T141715Z/receipt.json": "3c2cc1e5550cc76bce6824450288d580275e63e077b0e13e0e2fb734b1c2138c",
+        "controlled-owner-20261007T141715Z/backup-restore/receipt.json": "e3c952a45c465f878c54444d4ff3846e28169e239d50a186f3ee4955484d7d16",
+        "controlled-owner-20261008T124602Z/receipt.json": "dda6a8656fb94ef7f9cfc6eb62c8e75247e04e68080a0bc9c3f99df09af94511",
+        "controlled-owner-20261008T125807Z/receipt.json": "b2b8f0fe477e5c4f77ea270633ce4078be12ee0430f561c687cea062f5ea84b5",
+        "owner-r4-10x-20261007/report.json": "2f2751c10113d23dd2169f2257bcd39815495d0111b229b4d0ad4e86256b9148"
+      },
+      "passed": false,
+      "stages": [],
+      "incident_cleared": false,
+      "certificate_created": false,
+      "trading_resumed": false,
+      "database_backups": {
+        "binana-owner.sqlite": "37ecef24f7a85d6c979e20046c781129da4cc9713814a3a05b9323ca1e2282f6",
+        "binana-extension.sqlite": "97f5101d5861c5cd06c2a2b6f1f48d48260f351ac52f06c3c792e687e3caeb7e"
+      },
+      "error_type": "RuntimeError",
+      "error": "EXTENSION_DATABASE_CHANGED",
+      "rollback": {
+        "state": {
+          "state": "stopped",
+          "dry_run": false,
+          "trading_mode": "spot"
+        },
+        "image": "sha256:87c25dfc5b3058891491b6fd0647c86fe9a71f96d8ba41a2693b42797fcada83"
+      },
+      "receipt_sha256": "dbd2522eef5595b2f6a992186d46678867da44d1a5f4c0bad3ee8bfc089758d1"
+    },
+    {
+      "root": "/var/backups/binana-testnet/owner-rollout-20261008T133935Z",
+      "started_at": 1791466775.4908917,
+      "image": "sha256:a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523",
+      "acceptance_receipts": {
+        "controlled-owner-20261007T141715Z/receipt.json": "3c2cc1e5550cc76bce6824450288d580275e63e077b0e13e0e2fb734b1c2138c",
+        "controlled-owner-20261007T141715Z/backup-restore/receipt.json": "e3c952a45c465f878c54444d4ff3846e28169e239d50a186f3ee4955484d7d16",
+        "controlled-owner-20261008T124602Z/receipt.json": "dda6a8656fb94ef7f9cfc6eb62c8e75247e04e68080a0bc9c3f99df09af94511",
+        "controlled-owner-20261008T125807Z/receipt.json": "b2b8f0fe477e5c4f77ea270633ce4078be12ee0430f561c687cea062f5ea84b5",
+        "owner-r4-10x-20261007/report.json": "2f2751c10113d23dd2169f2257bcd39815495d0111b229b4d0ad4e86256b9148"
+      },
+      "passed": true,
+      "stages": [
+        {
+          "stage": "candidate",
+          "state": {
+            "state": "stopped",
+            "dry_run": false,
+            "trading_mode": "spot"
+          },
+          "image": "sha256:a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523",
+          "readiness": {
+            "account_key_sha256": "8f8d21e5418a4a59ab8338504b37bc83e4eb979d1e27ffdd3001c345defafc44",
+            "authenticated_reconciliation": {
+              "checked_at": 1791466811.3471508,
+              "ok": true,
+              "open_lists": 0,
+              "open_orders": 0
+            },
+            "blockers": [
+              "release_evidence_unavailable",
+              "RECONCILIATION_BLOCKER_OPEN"
+            ],
+            "code_sha256": "d314c60b3a4bfd2f628843d15074d7edf23dcd9ac4d95a7769f3a102880499b6",
+            "config_sha256": "97f4ea3aa3147b4a537d268f134bd7220b73a1788b6b55e873bdccb59a38b353",
+            "exchange_epoch_id": "binana-20260910-owner-cutover-1",
+            "execution_environment": "TESTNET",
+            "generated_at": 1791466811.3585966,
+            "market_data_environment": "PRODUCTION_PUBLIC_SPOT",
+            "order_owner": "FREQTRADE",
+            "release_approved": false,
+            "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1",
+            "valid_until": 1791466841.358597,
+            "retained_inventory": {
+              "checked_at": 1791466811.3432713,
+              "executable_pairs": 0,
+              "ok": true
+            }
+          },
+          "accounting_and_extension_unchanged": true,
+          "startup_bookkeeping": {
+            "binana-extension.sqlite": {
+              "added_identity_constraints": {
+                "unique_intent_trade": {
+                  "type": "index",
+                  "sql_sha256": "80b23fd1c3f6b8d08c11c47a17906c9e99a785dc4756d9e7648a7d74f0b856c0"
+                },
+                "immutable_intent_trade": {
+                  "type": "trigger",
+                  "sql_sha256": "28d664fe49f716de55f1c61723cf255ab60b89d49a3ba3bfe7350c9e4f0954a4"
+                },
+                "immutable_protection_identity": {
+                  "type": "trigger",
+                  "sql_sha256": "54706a907caec910c286f2f9ecb4bf03adf27a3e6ff6eeb37dfb8d6bb4450e0f"
+                },
+                "immutable_order_identity": {
+                  "type": "trigger",
+                  "sql_sha256": "793ff2df092f5043357a3d63dd1ee26ab8d7dd120ed0065b8a2e376b5e0db6a4"
+                }
+              }
+            }
+          }
+        },
+        {
+          "stage": "rollback_rehearsal",
+          "state": {
+            "state": "stopped",
+            "dry_run": false,
+            "trading_mode": "spot"
+          },
+          "image": "sha256:87c25dfc5b3058891491b6fd0647c86fe9a71f96d8ba41a2693b42797fcada83",
+          "accounting_and_extension_unchanged": true,
+          "startup_bookkeeping": {
+            "binana-extension.sqlite": {
+              "added_identity_constraints": {
+                "unique_intent_trade": {
+                  "type": "index",
+                  "sql_sha256": "80b23fd1c3f6b8d08c11c47a17906c9e99a785dc4756d9e7648a7d74f0b856c0"
+                },
+                "immutable_intent_trade": {
+                  "type": "trigger",
+                  "sql_sha256": "28d664fe49f716de55f1c61723cf255ab60b89d49a3ba3bfe7350c9e4f0954a4"
+                },
+                "immutable_protection_identity": {
+                  "type": "trigger",
+                  "sql_sha256": "54706a907caec910c286f2f9ecb4bf03adf27a3e6ff6eeb37dfb8d6bb4450e0f"
+                },
+                "immutable_order_identity": {
+                  "type": "trigger",
+                  "sql_sha256": "793ff2df092f5043357a3d63dd1ee26ab8d7dd120ed0065b8a2e376b5e0db6a4"
+                }
+              }
+            }
+          }
+        },
+        {
+          "stage": "candidate_final",
+          "state": {
+            "state": "stopped",
+            "dry_run": false,
+            "trading_mode": "spot"
+          },
+          "image": "sha256:a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523",
+          "readiness": {
+            "account_key_sha256": "8f8d21e5418a4a59ab8338504b37bc83e4eb979d1e27ffdd3001c345defafc44",
+            "authenticated_reconciliation": {
+              "checked_at": 1791466887.0244496,
+              "ok": true,
+              "open_lists": 0,
+              "open_orders": 0
+            },
+            "blockers": [
+              "release_evidence_unavailable",
+              "RECONCILIATION_BLOCKER_OPEN"
+            ],
+            "code_sha256": "d314c60b3a4bfd2f628843d15074d7edf23dcd9ac4d95a7769f3a102880499b6",
+            "config_sha256": "97f4ea3aa3147b4a537d268f134bd7220b73a1788b6b55e873bdccb59a38b353",
+            "exchange_epoch_id": "binana-20260910-owner-cutover-1",
+            "execution_environment": "TESTNET",
+            "generated_at": 1791466887.034578,
+            "market_data_environment": "PRODUCTION_PUBLIC_SPOT",
+            "order_owner": "FREQTRADE",
+            "release_approved": false,
+            "scope_id": "binance-testnet|owner-testnet-account-1|binana-20260910-owner-cutover-1",
+            "valid_until": 1791466917.0345783,
+            "retained_inventory": {
+              "checked_at": 1791466887.0209363,
+              "executable_pairs": 0,
+              "ok": true
+            }
+          },
+          "accounting_and_extension_unchanged": true,
+          "startup_bookkeeping": {
+            "binana-extension.sqlite": {
+              "added_identity_constraints": {
+                "unique_intent_trade": {
+                  "type": "index",
+                  "sql_sha256": "80b23fd1c3f6b8d08c11c47a17906c9e99a785dc4756d9e7648a7d74f0b856c0"
+                },
+                "immutable_intent_trade": {
+                  "type": "trigger",
+                  "sql_sha256": "28d664fe49f716de55f1c61723cf255ab60b89d49a3ba3bfe7350c9e4f0954a4"
+                },
+                "immutable_protection_identity": {
+                  "type": "trigger",
+                  "sql_sha256": "54706a907caec910c286f2f9ecb4bf03adf27a3e6ff6eeb37dfb8d6bb4450e0f"
+                },
+                "immutable_order_identity": {
+                  "type": "trigger",
+                  "sql_sha256": "793ff2df092f5043357a3d63dd1ee26ab8d7dd120ed0065b8a2e376b5e0db6a4"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "incident_cleared": false,
+      "certificate_created": false,
+      "trading_resumed": false,
+      "database_backups": {
+        "binana-owner.sqlite": "37ecef24f7a85d6c979e20046c781129da4cc9713814a3a05b9323ca1e2282f6",
+        "binana-extension.sqlite": "97f5101d5861c5cd06c2a2b6f1f48d48260f351ac52f06c3c792e687e3caeb7e"
+      },
+      "other_six_containers_unchanged": true,
+      "owner_config_unchanged": true,
+      "receipt_sha256": "9fd596228646ef3351228be469410852c9eacf98d2f0cce560afeab13278b57b"
+    }
+  ],
+  "authorization": {
+    "image": "sha256:a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523",
+    "passed": true,
+    "trading_resumed": false,
+    "certificate_paths": [
+      "/var/lib/binana-testnet/shared/freqtrade/runtime/freqtrade_owner_patch_ready.json",
+      "/var/lib/binana-testnet/shared/runtime/freqtrade_owner_patch_ready.json"
+    ],
+    "incident_closed": "repair-economic-settlement-replay-20260920",
+    "certificate_sha256": "e2034b348c51a37f27a53445a4c96f68321a8102d9ea7672bd84c9ce143733ed",
+    "valid_until": 1792071763.9948468,
+    "bindings": {
+      "code_sha256": "d314c60b3a4bfd2f628843d15074d7edf23dcd9ac4d95a7769f3a102880499b6",
+      "config_sha256": "97f4ea3aa3147b4a537d268f134bd7220b73a1788b6b55e873bdccb59a38b353",
+      "exchange_epoch_id": "binana-20260910-owner-cutover-1",
+      "account_key_sha256": "8f8d21e5418a4a59ab8338504b37bc83e4eb979d1e27ffdd3001c345defafc44"
+    }
+  },
+  "resume": {
+    "broker_resume_blockers": [],
+    "start_requested": true,
+    "request_ok": true,
+    "owner_state": {
+      "state": "running",
+      "dry_run": false,
+      "trading_mode": "spot"
+    },
+    "verified_at": 1791467072.951459
+  },
+  "signal_evidence_patch": {
+    "path": "/opt/binana-testnet/releases/20260906T152501Z/services/market_context/evidence.py",
+    "before_sha256": "69162ecff7212165b7e74f10cd8276b96522ad2fb65c07cf67a6c873130dd083",
+    "after_sha256": "f0f025a9b7528273893905c068ff5ce18b42b56f798162a8daa3b5d1178b040d",
+    "owner_reload": "pending paused candidate rollout"
+  },
+  "startup_diff": [
+    {
+      "db": "binana-owner.sqlite",
+      "table": "KeyValueStore",
+      "before_count": 4,
+      "after_count": 4,
+      "changed": [
+        {
+          "key": 4,
+          "fields": [
+            {
+              "column": "datetime_value",
+              "before": "2026-09-23 12:09:53.900854",
+              "after": "2026-10-08 13:18:35.557830"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 MAX_SNAPSHOT_BYTES = 8 * 1024 * 1024
-SYMBOL_RE = re.compile(r"[A-Z0-9]{2,24}USDT")
+SYMBOL_RE = re.compile(r"[A-Z0-9]{1,24}USDT")
 
 
 def _epoch(value: object) -> float | None:

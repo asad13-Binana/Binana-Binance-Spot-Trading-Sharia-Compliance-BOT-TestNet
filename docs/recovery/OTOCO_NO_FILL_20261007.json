@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-07",
+  "candidate_image": "sha256:a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523",
+  "aws_evidence": "/var/backups/binana-testnet/otoco-no-fill-20261007T134225Z",
+  "matching_engine_post_attempts": 1,
+  "pair": "LTC/USDT",
+  "quantity": "3.77300000",
+  "working_limit": "66.25000000",
+  "maximum_nominal_usdt": "250",
+  "order_list_id": 1583,
+  "list_client_id": "BL1Lea77527d102457c8",
+  "orders": [
+    {
+      "id": 4532,
+      "role": "working",
+      "status": "EXPIRED",
+      "filled": "0",
+      "fills": 0
+    },
+    {
+      "id": 4533,
+      "role": "stop",
+      "status": "EXPIRED",
+      "filled": "0",
+      "fills": 0
+    },
+    {
+      "id": 4534,
+      "role": "take_profit",
+      "status": "EXPIRED",
+      "filled": "0",
+      "fills": 0
+    }
+  ],
+  "original_probe_passed": false,
+  "original_probe_error": {
+    "type": "OrderNotFound",
+    "exchange_code": -2013
+  },
+  "later_authenticated_read_reconciliation": {
+    "list_order_status": "ALL_DONE",
+    "list_client_id_matched": true,
+    "all_child_identities_matched": true,
+    "all_child_fills_zero": true,
+    "open_orders": 0,
+    "open_lists": 0,
+    "client_id_lookup_also_succeeded": true
+  },
+  "owner_container_image_and_database_counts_unchanged": true,
+  "owner_remains_paused": true,
+  "full_lifecycle_acceptance": false,
+  "lesson": "An acknowledged immediately expired OTOCO may not be query-visible immediately. Persist identities and retry read-only lookups; never repeat its POST."
+}

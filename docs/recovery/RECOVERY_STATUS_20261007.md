@@ -1,6 +1,20 @@
-# AWS recovery status — 7 October 2026
+# AWS recovery record — October 7–8, 2026
 
-The Testnet research service now runs the supplied v19.3 controller. The trading owner remains r17, paused with zero open trades and one recovery incident. This update does not certify trading readiness.
+Current status at October 8, 14:10 UTC: the verified r4 Testnet owner is running, with zero open trades, no Resume blockers and all seven BINANA containers healthy. The normal broker Resume succeeded at 13:44 UTC. LIVE PR #28 is merged, but no LIVE runtime was deployed or certified. The sections below preserve the chronological evidence, including earlier paused states; the final October 8 sections supersede those earlier status statements.
+
+## Latest verification — October 8
+
+PR #31 was merged by the owner at 13:36 UTC on October 7; merged-main CI run 37629892027 passed. Its two image-reference review threads were resolved after the fixes. LIVE PR #28 remains open, with its source checks passed; the LIVE package is not deployed or certified for real-money trading.
+
+The collector has now remained healthy for 23 hours. The October 8, 12:39 UTC observation reported a current 99-symbol universe and 78 fresh symbols. All seven BINANA containers were healthy. The unchanged r17 owner still had 85 historical trades, zero open trades and the original recovery incident.
+
+The immutable r4 candidate completed a real Testnet lifecycle on isolated database copies: FOK entry filled, both protective children became active, the actual Freqtrade recovery path created a canonical Trade, two fresh-process restarts preserved accounting and identities, and the candidate's operator exit canceled protection and sold only the verified owned quantity. A final restart found no remaining exchange orders/lists or additional incidents. Authenticated account movement matched recorded fills and fees. Both original database logical hashes, source configuration, container and image were unchanged. See [both runs, including the preserved failed first attempt](CONTROLLED_LIFECYCLE_20261007.json).
+
+The first filled rehearsal remains marked failed because its restrictive guard rejected an optional public CoinGecko display request and its exit check stopped before the next normal closed-acknowledgment pass. The subsequent run allowed only that exact credentialless GET and waited for normal reconciliation; all five phases passed. No production owner code was changed to obtain that result.
+
+[Backup/restore evidence](BACKUP_RESTORE_20261007.json) records identical source/backup/restored logical database hashes and a successful read-only candidate boot from the restored flat rehearsal. This is not active-position restore or deployed rollback evidence. The no-fill OTOCO acknowledgment and subsequent read-only reconciliation are preserved [separately](OTOCO_NO_FILL_20261007.json).
+
+The one- and four-position soak harness uses only LTC, LINK, ADA and NEAR, the unchanged 250-USDT stake and 1,000-USDT allocation, explicit manual test admissions, authenticated owned-quantity cleanup and durable no-replay request journals. Its local boundary suite has 37 passing tests. A prepared harness is not a completed soak: actual results must be recorded separately. No release certificate has been created.
 
 ## Applied and verified
 
@@ -23,7 +37,7 @@ See [machine-readable verification](AWS_VERIFICATION_20261007.json). Earlier dep
 
 ## Remaining work before Resume
 
-The owner candidate still needs aggregate retained-inventory lifecycle handling, authenticated protection/restart cases, a controlled Testnet lifecycle, one-slot and four-slot soaks, and rollback acceptance. Offline tests are not substitutes for these cases, and no acceptance certificate was fabricated. The resume gate continues to deny entries while the incident is open.
+The one-slot and four-slot soaks have now passed. Deployment/rollback acceptance is in progress. Aggregate retained-inventory disposal remains a functional limitation: current non-executable residuals may remain retained, while stale verification or executable aggregates must continue to block entries. The controlled filled lifecycle, active-position process restarts and flat backup/restore have now passed as recorded above. Offline tests are not substitutes for these cases, and no acceptance certificate was fabricated. The resume gate continues to deny entries while the incident is open.
 
 The v19.3 research implementation still lacks complete typed adverse verdicts, per-item six-step retry evidence and autonomous official-domain traversal. Old Telegram labels can still show v19.1. Research health and the controller hash do not establish complete controller compliance.
 
@@ -73,3 +87,30 @@ Five older BINANA backup trees from September 19 and 23 were archived. Every arc
 The collector rejected the valid one-letter assets S/USDT and U/USDT, retaining an obsolete 56-symbol universe. Its 0.07 CPU limit also caused delayed events and repeated book resets. The universe-only deployment now accepts one-letter identities, supports its bounded 200-symbol/600-stream capacity, publishes universe failure consistently to status and owner consumers, and runs with 0.75 CPU/512 MiB. No strategy or freshness threshold changed. The first observation recovered 126 subscribed symbols, 82 fresh symbols and 125 sequenced books, with no malformed events or reconnects. The other six BINANA container identities remained unchanged. Sustained observation and trading-owner acceptance are separate checks.
 
 PR #31 had two unresolved image-reference review threads. Startup now checks retained local tags against separately recorded image IDs; recovery builds use the same preflight. No branch protections were disabled.
+
+## October 8: completed one- and four-position Testnet soaks
+
+Both actual Testnet soaks passed with 601.57 seconds of protected operation, fresh private-stream and REST evidence, stable canonical accounting, fresh-process restart, owned-position closure and a final flat restart. The one-position run reserved 250 USDT; the four-position run used LTC, LINK, ADA and NEAR with the unchanged 1,000-USDT allocation. All base balances returned to baseline and the quote-currency delta matched authenticated realized receipts. No original AWS trade, order, incident, configuration or container was changed by these isolated rehearsals. See ONE_SLOT_SOAK_20261008.json and FOUR_SLOT_SOAK_20261008.json.
+
+The paused rollout initially rolled back on strict full-database preservation checks. A GET-only diagnostic found the expected Freqtrade startup_time update; a second diagnostic found exactly the four intended StateStore identity constraints, with no extension row changes. The revised checker permits only those precisely defined changes in memory when comparing databases. It still rejects any accounting, order, identity, incident or unrelated schema change. The original failed receipts are retained.
+
+Downstream signal evidence and monitoring validators now support S/USDT and U/USDT in both repositories. Four reproduced failures are fixed, and the deployed signal-evidence source matches the reviewed repository bytes. Monitoring remains a packaged component; no AWS monitoring deployment is claimed.
+
+## October 8: verified owner deployed and trading resumed
+
+The final paused rollout at `/var/backups/binana-testnet/owner-rollout-20261008T133935Z` passed candidate boot, actual rollback to r17 and final candidate boot. It preserved all canonical accounting and extension rows, allowing only the verified startup_time field and four exact identity constraints. The other six BINANA containers and private trading configuration were unchanged.
+
+The existing release certificate was then created from actual completed evidence, bound to candidate code, effective configuration, Testnet epoch and account-key hash. The original economic-replay incident was closed transactionally after full preservation checks under both database locks. Certificate validity is seven days under the existing release policy; expiry continues to block new entries.
+
+The deployed Telegram broker reported no Resume blockers. Its normal `/start` request succeeded and the owner reported `running`, `dry_run=false`, `trading_mode=spot`, with its immutable exchange binding restricted to Binance Testnet. This does not claim strategy profitability, full Sharia-controller implementation, permanent error-free operation, or LIVE certification. See OWNER_DEPLOYMENT_AND_RESUME_20261008.json.
+
+The October 8 cleanup removed two unused BINANA validation images only, retaining the running r4 image, r17 rollback image and all recent recovery evidence. Docker reported about 7.5 MB more free space after shared-layer accounting; root free space was about 3.76 GB. No running container changed. The unwanted fork URL now returns GitHub 404, including its settings page while signed in as the owner; this run did not perform that deletion.
+
+
+## October 8: source parity and OCO rehearsal review
+
+A read-only comparison at 14:03 UTC found that all 70 tracked owner source/test files exactly match the running r4 image. The file-hash maps in its build-time PROVENANCE.json and the repository are identical. Their raw manifest hashes differ only because the repository later updated the historical validation note; the embedded build-time note remains unchanged. See SOURCE_PARITY_20261008.json.
+
+PR #32 review found that the controlled rehearsal guard did not compare standalone OCO child identities and protective geometry to the saved generation. The guard now validates fixed and trailing leg identities, types, prices, stop trigger, time-in-force and trailing delta, and rejects unexpected parameters before journaling or transmission. This follows the [Binance OCO request contract](https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-list-oco). The 34 newly reproduced negative cases now pass; the full guard suite has 61 passing cases.
+
+The completed lifecycle and one/four-slot soaks contain no standalone OCO submissions; they exercised OTOCO protection, restart and owned exit. Their original script hashes and receipts remain historical evidence and were not rewritten. This review fix does not change the running owner image or retrospectively certify unexercised replacement paths. In particular, the immutable owner's partial-fill-during-cancel trailing replacement writes a residual payload without a durable plan; the guard deliberately rejects that unsupported rehearsal path. Certification of that scenario requires persisting the exact residual plan and a separate controlled test.

@@ -1,0 +1,13 @@
+{
+  "verified_at_utc": "2026-10-08T14:03:36.192730+00:00",
+  "image": "sha256:a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523",
+  "checked_files": 70,
+  "mismatches": [],
+  "manifest_file_entries_identical": true,
+  "image_manifest_sha256": "25ecba09899c643a6f8507be4e6f322c035eb0a395c7bb96d194da56f7a030a9",
+  "repository_manifest_sha256": "30278a7c356730449e5bee53c5061dba5632e70109a6bc99166bb4996e149530",
+  "metadata_difference_keys": [
+    "validation.note"
+  ],
+  "note": "Only historical validation prose differs. Running source and test bytes match all 70 repository manifest entries; build-time labels do not describe current deployment status."
+}
