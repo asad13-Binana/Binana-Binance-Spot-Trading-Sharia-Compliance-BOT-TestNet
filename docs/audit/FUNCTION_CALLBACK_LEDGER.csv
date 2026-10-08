@@ -2802,18 +2802,19 @@ scripts/recovery/probe_controlled_owner_lifecycle.py,durable,function,top-level-
 scripts/recovery/probe_controlled_owner_lifecycle.py,sync_directory,function,top-level-or-method,37,42,-,release-script
 scripts/recovery/probe_controlled_owner_lifecycle.py,safe_error,function,top-level-or-method,45,49,-,release-script
 scripts/recovery/probe_controlled_owner_lifecycle.py,request_values,function,top-level-or-method,52,61,-,release-script
-scripts/recovery/probe_controlled_owner_lifecycle.py,TransportGuard.__init__,function,top-level-or-method,65,72,-,release-script
-scripts/recovery/probe_controlled_owner_lifecycle.py,TransportGuard.validate,function,top-level-or-method,74,165,-,release-script
-scripts/recovery/probe_controlled_owner_lifecycle.py,TransportGuard.install,function,top-level-or-method,167,224,-,release-script
-scripts/recovery/probe_controlled_owner_lifecycle.py,TransportGuard.install.send,function,nested,174,185,-,release-script
-scripts/recovery/probe_controlled_owner_lifecycle.py,TransportGuard.install.request,async-function,nested,188,208,-,release-script
-scripts/recovery/probe_controlled_owner_lifecycle.py,TransportGuard.install.NoRedirectConnect.process_redirect,function,nested,214,215,-,release-script
-scripts/recovery/probe_controlled_owner_lifecycle.py,TransportGuard.install.guarded_connect,function,nested,216,219,-,release-script
-scripts/recovery/probe_controlled_owner_lifecycle.py,TransportGuard.install.guarded_ws_send,async-function,nested,220,223,-,release-script
-scripts/recovery/probe_controlled_owner_lifecycle.py,snapshot,function,top-level-or-method,227,243,-,release-script
-scripts/recovery/probe_controlled_owner_lifecycle.py,account_totals,function,top-level-or-method,246,249,-,release-script
-scripts/recovery/probe_controlled_owner_lifecycle.py,canonical_signature,function,top-level-or-method,252,253,-,release-script
-scripts/recovery/probe_controlled_owner_lifecycle.py,main,function,top-level-or-method,256,399,-,release-script
+scripts/recovery/probe_controlled_owner_lifecycle.py,validate_oco_plan,function,top-level-or-method,64,96,-,release-script
+scripts/recovery/probe_controlled_owner_lifecycle.py,TransportGuard.__init__,function,top-level-or-method,100,107,-,release-script
+scripts/recovery/probe_controlled_owner_lifecycle.py,TransportGuard.validate,function,top-level-or-method,109,200,-,release-script
+scripts/recovery/probe_controlled_owner_lifecycle.py,TransportGuard.install,function,top-level-or-method,202,259,-,release-script
+scripts/recovery/probe_controlled_owner_lifecycle.py,TransportGuard.install.send,function,nested,209,220,-,release-script
+scripts/recovery/probe_controlled_owner_lifecycle.py,TransportGuard.install.request,async-function,nested,223,243,-,release-script
+scripts/recovery/probe_controlled_owner_lifecycle.py,TransportGuard.install.NoRedirectConnect.process_redirect,function,nested,249,250,-,release-script
+scripts/recovery/probe_controlled_owner_lifecycle.py,TransportGuard.install.guarded_connect,function,nested,251,254,-,release-script
+scripts/recovery/probe_controlled_owner_lifecycle.py,TransportGuard.install.guarded_ws_send,async-function,nested,255,258,-,release-script
+scripts/recovery/probe_controlled_owner_lifecycle.py,snapshot,function,top-level-or-method,262,278,-,release-script
+scripts/recovery/probe_controlled_owner_lifecycle.py,account_totals,function,top-level-or-method,281,284,-,release-script
+scripts/recovery/probe_controlled_owner_lifecycle.py,canonical_signature,function,top-level-or-method,287,288,-,release-script
+scripts/recovery/probe_controlled_owner_lifecycle.py,main,function,top-level-or-method,291,434,-,release-script
 scripts/recovery/probe_owner_slot_soak.py,SlotGuard.__init__,function,top-level-or-method,22,24,-,release-script
 scripts/recovery/probe_owner_slot_soak.py,SlotGuard.validate,function,top-level-or-method,26,36,-,release-script
 scripts/recovery/probe_owner_slot_soak.py,states,function,top-level-or-method,39,45,-,release-script
@@ -3875,6 +3876,15 @@ tests/test_controlled_lifecycle_guard.py,test_restart_signature_covers_economics
 tests/test_controlled_lifecycle_guard.py,test_other_pair_cannot_spend_ltc_receipts,function,top-level-or-method,172,179,-,test
 tests/test_controlled_lifecycle_guard.py,test_slot_router_denies_unassigned_pair,function,top-level-or-method,182,198,-,test
 tests/test_controlled_lifecycle_guard.py,test_soak_transport_budget_remains_bounded,function,top-level-or-method,201,205,-,test
+tests/test_controlled_lifecycle_guard.py,oco_guard,function,top-level-or-method,209,216,pytest.fixture,test
+tests/test_controlled_lifecycle_guard.py,oco_request,function,top-level-or-method,219,232,-,test
+tests/test_controlled_lifecycle_guard.py,submit_oco,function,top-level-or-method,235,237,-,test
+tests/test_controlled_lifecycle_guard.py,test_matching_oco_plan_is_admitted_once,function,top-level-or-method,241,247,"pytest.mark.parametrize('trailing', [False, True])",test
+tests/test_controlled_lifecycle_guard.py,test_fixed_oco_parameter_drift_is_denied_before_journal,function,top-level-or-method,257,262,"pytest.mark.parametrize('key,value', [('aboveClientOrderId', 'foreign'), ('belowClientOrderId', 'foreign'), ('aboveType', 'TAKE_PROFIT_LIMIT'), ('belowType', 'STOP_LOSS'), ('abovePrice', '103'), ('belowPrice', '1'), ('belowStopPrice', '1'), ('belowTimeInForce', 'IOC'), ('belowTrailingDelta', '75'), ('aboveTrailingDelta', '75'), ('aboveStopPrice', '103'), ('abovePegPriceType', 'MARKET_PEG'), ('belowIcebergQty', '1'), ('abovePrice', 'NaN'), ('belowPrice', 'Infinity')])",test
+tests/test_controlled_lifecycle_guard.py,test_trailing_oco_parameter_drift_is_denied,function,top-level-or-method,270,275,"pytest.mark.parametrize('key,value', [('belowTrailingDelta', '76'), ('belowTrailingDelta', '75.5'), ('belowStopPrice', '99'), ('belowPrice', '98'), ('belowTimeInForce', 'GTC'), ('belowType', 'STOP_LOSS_LIMIT'), ('aboveClientOrderId', 'foreign'), ('belowClientOrderId', 'foreign'), ('abovePrice', '103')])",test
+tests/test_controlled_lifecycle_guard.py,test_missing_fixed_oco_parameters_are_denied,function,top-level-or-method,280,285,"pytest.mark.parametrize('key', ['aboveClientOrderId', 'belowClientOrderId', 'aboveType', 'belowType', 'abovePrice', 'belowPrice', 'belowStopPrice', 'belowTimeInForce'])",test
+tests/test_controlled_lifecycle_guard.py,test_oco_generation_and_saved_plan_must_agree,function,top-level-or-method,289,297,"pytest.mark.parametrize('field,value', [('mode', 'TRAILING_OCO'), ('quantity', '3')])",test
+tests/test_controlled_lifecycle_guard.py,test_residual_promotion_without_durable_plan_is_not_certified,function,top-level-or-method,301,310,-,test
 tests/test_external_signals.py,FakeResponse.__init__,function,top-level-or-method,57,60,-,test
 tests/test_external_signals.py,FakeResponse.json,function,top-level-or-method,62,65,-,test
 tests/test_external_signals.py,FakeSession.__init__,function,top-level-or-method,71,73,-,test

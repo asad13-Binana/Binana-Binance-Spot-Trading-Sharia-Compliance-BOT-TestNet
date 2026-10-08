@@ -203,3 +203,108 @@ def test_soak_transport_budget_remains_bounded(guard):
         module.TransportGuard(guard.path.parent,guard.state,'test','entry',mutation_budget=1000)
     with pytest.raises(RuntimeError,match='REHEARSAL_SCOPE'):
         module.TransportGuard(guard.path.parent,guard.state,'test','entry',pair='BTC/USDT')
+
+
+@pytest.fixture
+def oco_guard(guard):
+    with sqlite3.connect(guard.state) as conn:
+        conn.execute("INSERT INTO fill_ledger VALUES('test','LTC/USDT','exchange_trade','BUY','2','USDT','0')")
+        plan = json.loads(conn.execute('SELECT payload_json FROM protection').fetchone()[0])
+        plan['plan']['mode'] = 'FIXED_OCO'
+        conn.execute('UPDATE protection SET payload_json=?', (json.dumps(plan),))
+    guard.phase = 'restart'
+    return guard
+
+
+def oco_request(guard, *, trailing=False):
+    params = {'symbol':'LTCUSDT','side':'SELL','quantity':'2','listClientOrderId':'list',
+        'aboveClientOrderId':'tp','belowClientOrderId':'sl','aboveType':'LIMIT_MAKER',
+        'abovePrice':'102','belowType':'STOP_LOSS_LIMIT','belowPrice':'98',
+        'belowStopPrice':'99','belowTimeInForce':'GTC','newOrderRespType':'FULL'}
+    if trailing:
+        with sqlite3.connect(guard.state) as conn:
+            payload = json.loads(conn.execute('SELECT payload_json FROM protection').fetchone()[0])
+            payload['plan'].update(mode='TRAILING_OCO',stop_limit=None,stop_trigger=None,trailing_delta_bips=75)
+            conn.execute("UPDATE protection SET mode='TRAILING_OCO',payload_json=?", (json.dumps(payload),))
+        for key in ('belowPrice','belowStopPrice','belowTimeInForce'):
+            params.pop(key)
+        params.update(belowType='STOP_LOSS',belowTrailingDelta='75')
+    return params
+
+
+def submit_oco(guard, params):
+    guard.validate('https://testnet.binance.vision/api/v3/orderList/oco','POST',
+        {'X-MBX-APIKEY':'test'},urlencode(params))
+
+
+@pytest.mark.parametrize('trailing', [False, True])
+def test_matching_oco_plan_is_admitted_once(oco_guard, trailing):
+    params = oco_request(oco_guard, trailing=trailing)
+    params.update(quantity='2.000',abovePrice='102.0',timestamp='123',recvWindow='5000',signature='test')
+    submit_oco(oco_guard, params)
+    assert len(oco_guard.journal['attempts']) == 1
+    with pytest.raises(RuntimeError,match='REPEATED_MUTATION'):
+        submit_oco(oco_guard, params)
+
+
+@pytest.mark.parametrize('key,value', [
+    ('aboveClientOrderId','foreign'),('belowClientOrderId','foreign'),
+    ('aboveType','TAKE_PROFIT_LIMIT'),('belowType','STOP_LOSS'),
+    ('abovePrice','103'),('belowPrice','1'),('belowStopPrice','1'),
+    ('belowTimeInForce','IOC'),('belowTrailingDelta','75'),
+    ('aboveTrailingDelta','75'),('aboveStopPrice','103'),('abovePegPriceType','MARKET_PEG'),
+    ('belowIcebergQty','1'),('abovePrice','NaN'),('belowPrice','Infinity')])
+def test_fixed_oco_parameter_drift_is_denied_before_journal(oco_guard, key, value):
+    params = oco_request(oco_guard)
+    params[key] = value
+    with pytest.raises(RuntimeError,match='OCO_'):
+        submit_oco(oco_guard, params)
+    assert not oco_guard.journal['attempts']
+
+
+@pytest.mark.parametrize('key,value', [
+    ('belowTrailingDelta','76'),('belowTrailingDelta','75.5'),
+    ('belowStopPrice','99'),('belowPrice','98'),('belowTimeInForce','GTC'),
+    ('belowType','STOP_LOSS_LIMIT'),('aboveClientOrderId','foreign'),
+    ('belowClientOrderId','foreign'),('abovePrice','103')])
+def test_trailing_oco_parameter_drift_is_denied(oco_guard, key, value):
+    params = oco_request(oco_guard, trailing=True)
+    params[key] = value
+    with pytest.raises(RuntimeError,match='OCO_'):
+        submit_oco(oco_guard, params)
+    assert not oco_guard.journal['attempts']
+
+
+@pytest.mark.parametrize('key', ['aboveClientOrderId','belowClientOrderId','aboveType',
+    'belowType','abovePrice','belowPrice','belowStopPrice','belowTimeInForce'])
+def test_missing_fixed_oco_parameters_are_denied(oco_guard, key):
+    params = oco_request(oco_guard)
+    params.pop(key)
+    with pytest.raises(RuntimeError,match='OCO_'):
+        submit_oco(oco_guard, params)
+    assert not oco_guard.journal['attempts']
+
+
+@pytest.mark.parametrize('field,value', [('mode','TRAILING_OCO'),('quantity','3')])
+def test_oco_generation_and_saved_plan_must_agree(oco_guard, field, value):
+    params = oco_request(oco_guard)
+    with sqlite3.connect(oco_guard.state) as conn:
+        payload = json.loads(conn.execute('SELECT payload_json FROM protection').fetchone()[0])
+        payload['plan'][field] = value
+        conn.execute('UPDATE protection SET payload_json=?', (json.dumps(payload),))
+    with pytest.raises(RuntimeError,match='OCO_'):
+        submit_oco(oco_guard, params)
+    assert not oco_guard.journal['attempts']
+
+
+
+def test_residual_promotion_without_durable_plan_is_not_certified(oco_guard):
+    params = oco_request(oco_guard, trailing=True)
+    # This is the immutable owner's cancel/fill-race payload shape. It cannot
+    # prove the intended replacement geometry, so rehearsal must stop closed.
+    with sqlite3.connect(oco_guard.state) as conn:
+        conn.execute('UPDATE protection SET payload_json=?',
+            (json.dumps({'market':{},'from_generation':1,'residual_after_old_fill':'2'}),))
+    with pytest.raises(RuntimeError,match='OCO_MALFORMED_PLAN_OR_REQUEST_DENIED'):
+        submit_oco(oco_guard, params)
+    assert not oco_guard.journal['attempts']

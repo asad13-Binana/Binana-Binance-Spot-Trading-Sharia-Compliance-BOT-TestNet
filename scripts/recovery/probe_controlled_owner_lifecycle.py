@@ -61,6 +61,41 @@ def request_values(url, body):
     return {key: rows[0] for key, rows in values.items()}
 
 
+def validate_oco_plan(params, generation):
+    """Bind every transmitted OCO leg field to the persisted protection plan."""
+    try:
+        plan = json.loads(generation['payload_json'])['plan']
+        mode = generation['mode']
+        if plan['mode'] != mode or mode not in {'FIXED_OCO', 'TRAILING_OCO'}:
+            raise RuntimeError('OCO_PLAN_MODE_DENIED')
+        expected = {'symbol':generation['pair'].replace('/', ''), 'side':'SELL',
+                    'listClientOrderId':generation['list_client_id'],
+                    'aboveClientOrderId':generation['tp_client_id'],
+                    'belowClientOrderId':generation['sl_client_id'],
+                    'aboveType':'LIMIT_MAKER', 'newOrderRespType':'FULL'}
+        numbers = {'quantity':plan['quantity'], 'abovePrice':plan['tp_price']}
+        if mode == 'FIXED_OCO':
+            expected.update(belowType='STOP_LOSS_LIMIT', belowTimeInForce='GTC')
+            numbers.update(belowPrice=plan['stop_limit'], belowStopPrice=plan['stop_trigger'])
+        else:
+            expected['belowType'] = 'STOP_LOSS'
+            delta = Decimal(str(plan['trailing_delta_bips']))
+            if not delta.is_finite() or delta <= 0 or delta != delta.to_integral_value():
+                raise RuntimeError('OCO_TRAILING_DELTA_DENIED')
+            expected['belowTrailingDelta'] = str(int(delta))
+        allowed = set(expected) | set(numbers) | {'timestamp','recvWindow','signature'}
+        if set(params) - allowed or any(params.get(k) != v for k,v in expected.items()):
+            raise RuntimeError('OCO_IDENTITY_TYPE_OR_FIELDS_DENIED')
+        for key,value in numbers.items():
+            actual, intended = Decimal(params[key]), Decimal(str(value))
+            if not actual.is_finite() or not intended.is_finite() or actual <= 0 or actual != intended:
+                raise RuntimeError('OCO_PROTECTION_PLAN_DENIED')
+        if Decimal(str(plan['quantity'])) != Decimal(generation['expected_qty']):
+            raise RuntimeError('OCO_GENERATION_QUANTITY_DENIED')
+    except (KeyError, TypeError, ValueError, ArithmeticError) as exc:
+        raise RuntimeError('OCO_MALFORMED_PLAN_OR_REQUEST_DENIED') from exc
+
+
 class TransportGuard:
     def __init__(self, root, state, intent, phase, *, pair=PAIR, mutation_budget=10):
         if pair not in {"LTC/USDT","LINK/USDT","ADA/USDT","NEAR/USDT"} or mutation_budget not in {10,20}:
@@ -151,8 +186,8 @@ class TransportGuard:
                 raise RuntimeError('SELL_OWNED_QUANTITY_DENIED')
             if target.path == '/api/v3/order' and (params.get('type') != 'MARKET' or match['mode'] not in {'OPERATOR_EXIT','TARGET_EXIT','STOP_EXIT'}):
                 raise RuntimeError('SELL_ORDER_TYPE_DENIED')
-            if target.path == '/api/v3/orderList/oco' and match['mode'] not in {'FIXED_OCO','TRAILING_OCO'}:
-                raise RuntimeError('SELL_PROTECTION_TYPE_DENIED')
+            if target.path == '/api/v3/orderList/oco':
+                validate_oco_plan(params, match)
             identity = client
         else:
             raise RuntimeError('LIFECYCLE_MUTATION_PATH_DENIED')

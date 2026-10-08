@@ -1,6 +1,6 @@
-# AWS recovery status — 7 October 2026
+# AWS recovery record — October 7–8, 2026
 
-The Testnet research service now runs the supplied v19.3 controller. The trading owner remains r17, paused with zero open trades and one recovery incident. This update does not certify trading readiness.
+Current status at October 8, 14:10 UTC: the verified r4 Testnet owner is running, with zero open trades, no Resume blockers and all seven BINANA containers healthy. The normal broker Resume succeeded at 13:44 UTC. LIVE PR #28 is merged, but no LIVE runtime was deployed or certified. The sections below preserve the chronological evidence, including earlier paused states; the final October 8 sections supersede those earlier status statements.
 
 ## Latest verification — October 8
 
@@ -105,3 +105,12 @@ The existing release certificate was then created from actual completed evidence
 The deployed Telegram broker reported no Resume blockers. Its normal `/start` request succeeded and the owner reported `running`, `dry_run=false`, `trading_mode=spot`, with its immutable exchange binding restricted to Binance Testnet. This does not claim strategy profitability, full Sharia-controller implementation, permanent error-free operation, or LIVE certification. See OWNER_DEPLOYMENT_AND_RESUME_20261008.json.
 
 The October 8 cleanup removed two unused BINANA validation images only, retaining the running r4 image, r17 rollback image and all recent recovery evidence. Docker reported about 7.5 MB more free space after shared-layer accounting; root free space was about 3.76 GB. No running container changed. The unwanted fork URL now returns GitHub 404, including its settings page while signed in as the owner; this run did not perform that deletion.
+
+
+## October 8: source parity and OCO rehearsal review
+
+A read-only comparison at 14:03 UTC found that all 70 tracked owner source/test files exactly match the running r4 image. The file-hash maps in its build-time PROVENANCE.json and the repository are identical. Their raw manifest hashes differ only because the repository later updated the historical validation note; the embedded build-time note remains unchanged. See SOURCE_PARITY_20261008.json.
+
+PR #32 review found that the controlled rehearsal guard did not compare standalone OCO child identities and protective geometry to the saved generation. The guard now validates fixed and trailing leg identities, types, prices, stop trigger, time-in-force and trailing delta, and rejects unexpected parameters before journaling or transmission. This follows the [Binance OCO request contract](https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-list-oco). The 34 newly reproduced negative cases now pass; the full guard suite has 61 passing cases.
+
+The completed lifecycle and one/four-slot soaks contain no standalone OCO submissions; they exercised OTOCO protection, restart and owned exit. Their original script hashes and receipts remain historical evidence and were not rewritten. This review fix does not change the running owner image or retrospectively certify unexercised replacement paths. In particular, the immutable owner's partial-fill-during-cancel trailing replacement writes a residual payload without a durable plan; the guard deliberately rejects that unsupported rehearsal path. Certification of that scenario requires persisting the exact residual plan and a separate controlled test.

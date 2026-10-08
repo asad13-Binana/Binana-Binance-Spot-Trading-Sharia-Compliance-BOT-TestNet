@@ -365,16 +365,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "8255b923353fab9ba783a7b3f83faf3a54cf278a117470542e58a3c300cbcfa7",
-      "size": 87827
+      "sha256": "3dfaa1fb9eea64bd19a999b0486872888548251b6a3d47621e81ab464b09e41c",
+      "size": 87988
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "1619713cf8613a6d908084496da76d480b68585f6c96a318cfe6d0f09098daf9",
-      "size": 653131
+      "sha256": "d8715a64533ac8d1fb09e07a1f67fd9b78e2f1d89bc80961b8a093b5c3fbb319",
+      "size": 655444
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -461,12 +461,16 @@
       "size": 7995
     },
     "docs/recovery/RECOVERY_STATUS_20261007.md": {
-      "sha256": "2e16d9bd0939b511dbec4c4c222f35e89a489bd93b766bc51fe5c713191931a5",
-      "size": 18372
+      "sha256": "a6a648c6d4be73607b43e86e359b53bd5f0488522503da8e2f1d1e060ccf12bf",
+      "size": 20323
     },
     "docs/recovery/REGISTRY_ADDITIONS_20260930.json": {
       "sha256": "32a8a6fb9f7dba0a15f566052f9cd6e49ba360be47f71e8f7cbb5e187c813432",
       "size": 3438
+    },
+    "docs/recovery/SOURCE_PARITY_20261008.json": {
+      "sha256": "7faf63de7e7c334a35ebc96dae8445f9dc5aa1ffdae80c25700d32060a0d8fbe",
+      "size": 674
     },
     "docs/testnet_validation_evidence.template.json": {
       "sha256": "bebb975c45d90f3478ff6b63802aa6baa28e7902d0f645fb81179df8d7b266e8",
@@ -1425,8 +1429,8 @@
       "size": 7442
     },
     "scripts/recovery/probe_controlled_owner_lifecycle.py": {
-      "sha256": "a83a86e11969d9497ce16e5c4f827932cf3b84c01837b77b2da47f39a3669656",
-      "size": 23942
+      "sha256": "ce768a16c142dc049a43b1ae1138007610ddde3bc67f7c95f065a3762428b276",
+      "size": 26047
     },
     "scripts/recovery/probe_owner_slot_soak.py": {
       "sha256": "6d05be5c67ce3e9b6a31ba64f26490baf9417fc8ff5912f1bd330147cf4c45f1",
@@ -1969,8 +1973,8 @@
       "size": 18836
     },
     "tests/test_controlled_lifecycle_guard.py": {
-      "sha256": "0f2eca4426402fe7e6b46105f94c1ad5ecbf875fde91942bda6d9a78e7921038",
-      "size": 10301
+      "sha256": "2f725182d7bba2907289e9d4c171a8bd8f781872d522cf41176cf992bdf1f17a",
+      "size": 15385
     },
     "tests/test_external_signals.py": {
       "sha256": "77d63c4702839303d168972bfe0f65a381c072e6f92ce1096188389726a8294a",
