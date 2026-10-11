@@ -132,6 +132,9 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
         runtime = Path(self.config['binana']['state_db_path']).parent / 'runtime'
         certificate = load_certificate(runtime / 'freqtrade_owner_patch_ready.json')
         blockers = certificate_blockers(certificate, bindings)
+        from .persistence_readiness import persistence_readiness
+        persistence = persistence_readiness(self.config['binana']['state_db_path'])
+        blockers.extend(persistence['blockers'])
         from .user_stream import health_is_fresh
         if self.user_stream is None or not health_is_fresh(self.user_stream.health()):
             blockers.append('PRIVATE_USER_STREAM_UNAVAILABLE')
@@ -158,10 +161,15 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
                 'order_owner':'FREQTRADE', 'scope_id':self.scope_id, 'execution_environment':'TESTNET',
                 'market_data_environment':'PRODUCTION_PUBLIC_SPOT',
                 'authenticated_reconciliation':dict(rest),
+                'persistence':persistence,
                 'retained_inventory':dict(retained),
                 'release_approved':not blockers, 'blockers':blockers}
 
     def assert_release_ready(self) -> None:
+        from .persistence_readiness import persistence_readiness
+        persistence = persistence_readiness(self.config['binana']['state_db_path'])
+        if not persistence['ok']:
+            raise AdmissionRejected('OWNER_RELEASE_BLOCKED:' + ','.join(persistence['blockers']))
         try:
             status = self.release_status()
         except Exception as exc:
@@ -566,7 +574,25 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
         try:
             # Binance accepts orderId by itself for /api/v3/myTrades. Do not combine
             # it with Freqtrade's since/startTime wrapper, which Testnet rejects.
-            trades=self.exchange._api.fetch_my_trades(pair, params={'orderId':int(order_id)})
+            trades=[]
+            cursor=0
+            for _page in range(20):
+                page=self.exchange._api.fetch_my_trades(pair,
+                    params={'orderId':int(order_id),'fromId':cursor,'limit':1000})
+                if not isinstance(page,list):
+                    raise AdmissionRejected('FILL_HISTORY_UNAVAILABLE')
+                ids=[int(row['id']) for row in page]
+                if ids and (ids != sorted(ids) or max(ids)<cursor):
+                    raise AdmissionRejected('FILL_HISTORY_CURSOR_STALLED')
+                trades.extend(page)
+                if len(page)<1000:
+                    break
+                next_cursor=max(ids)+1
+                if next_cursor<=cursor:
+                    raise AdmissionRejected('FILL_HISTORY_CURSOR_STALLED')
+                cursor=next_cursor
+            else:
+                raise AdmissionRejected('FILL_HISTORY_PAGE_BUDGET_EXHAUSTED')
             if hasattr(self.exchange, '_trades_contracts_to_amount'):
                 trades=self.exchange._trades_contracts_to_amount(trades)
         except Exception as exc:
@@ -659,6 +685,13 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
         from .protection_plan import trailing_plan
         try: newplan=trailing_plan(fixed,market_price=market,trailing_delta_bips=delta,min_bips=min_b,max_bips=max_b,generation=2)
         except Exception: return None
+        # Reject a presently invalid replacement while the original OCO still
+        # protects the position. Submission repeats preflight after cancellation
+        # and residual recalculation; this check cannot eliminate that race.
+        try:
+            self.order_lists.preflight(newplan,otoco=False)
+        except OrderListError:
+            return None
         ids={'list_client_id':_client('L',intent_id,2,'list'),'tp_client_id':_client('T',intent_id,2,'takeprofit'),'sl_client_id':_client('S',intent_id,2,'stop')}
         self.store.put_generation(intent_id=intent_id,generation=2,pair=trade.pair,mode='TRAILING_OCO',status='PROMOTION_INTENT',ids=ids,
             expected_qty=str(protected_qty),payload={'market':snap.to_dict(),'from_generation':1,'plan':json.loads(json.dumps(newplan.__dict__,default=str))})
@@ -733,7 +766,11 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
                     code='PROMOTION_RESIDUAL_PLAN_INVALID',detail=f'residual={residual}')
                 return None
             self.store.put_generation(intent_id=intent_id,generation=2,pair=trade.pair,mode='TRAILING_OCO',status='REPLACEMENT_PENDING',
-                ids=ids,expected_qty=str(residual),payload={'market':snap.to_dict(),'from_generation':1,'residual_after_old_fill':str(residual)})
+                plan_revision_reason='verified_partial_fill_after_cancel',
+                ids=ids,expected_qty=str(residual),payload={'market':snap.to_dict(),'from_generation':1,
+                    'residual_after_old_fill':str(residual),'old_sold':str(old_sold),
+                    'old_base_commission':str(old_base_commission),'verified_old_children':reports,
+                    'plan':json.loads(json.dumps(newplan.__dict__,default=str))})
         else:
             self.store.update_generation_status(intent_id,2,'REPLACEMENT_PENDING')
         try:
@@ -749,6 +786,10 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
                 self.store.incident(incident_id='promote-submit-'+intent_id,intent_id=intent_id,pair=trade.pair,
                     code='TRAILING_SUBMISSION_UNKNOWN',detail=f'{exc}; reconcile={type(rec).__name__}:{rec}')
                 return None
+        except OrderListError as exc:
+            self.store.update_generation_status(intent_id,2,'RESIDUAL_PLAN_INVALID')
+            self._recovery_block(intent_id,trade.pair,'PROMOTION_POST_CANCEL_PREFLIGHT_FAILED:'+str(exc))
+            return None
         final_qty=str(newplan.quantity)
         self.store.put_generation(intent_id=intent_id,generation=2,pair=trade.pair,mode='TRAILING_OCO',status='SUBMITTED_UNVERIFIED',
                                   ids=newids.as_dict(),expected_qty=final_qty,payload={'market':snap.to_dict(),'from_generation':1})

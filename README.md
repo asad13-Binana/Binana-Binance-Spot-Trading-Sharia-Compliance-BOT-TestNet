@@ -1,10 +1,10 @@
 # BINANA Binance Spot Testnet
 
-Latest update (October 8, 2026): **AWS Binance Spot Testnet trading is resumed.** The verified owner is running with no open recovery incident and no Resume blockers. Acceptance includes protected entry/exit, repeated restarts, flat database restore, ten runs of the 164-test owner suite, one/four-position ten-minute soaks and an actual deployment/rollback rehearsal. The manual registry contains **375 owner-listed symbols**; research loads the exact supplied Sharia v19.3 controller.
+October 12, 2026: **the recovered owner has a new repair candidate; it is not deployment-certified.** See [the current repair status](docs/recovery/AUDIT_REPAIR_20261012.md) for reproduced defects, tests and remaining gates. The October 8 acceptance record applies to its exact historical image and configuration, not to changed candidate bytes or the current trading state.
 
-The active AWS deployment uses Freqtrade 2026.8/NFI as its sole order owner, with a monitor-only sidecar. The root package below still represents the older deployment layout; it must not be used to overwrite AWS until runtime integration is complete. Recovered owner source is in `runtime_owner/`.
+AWS uses the recovered Freqtrade 2026.8/NFI owner with a monitor-only sidecar. Source is in `runtime_owner/`. The root Compose package below remains a legacy topology and must not overwrite that deployment. Candidate tests now run in a separate required CI job; the full retained-image validation is a separate check.
 
-See [current status and recent changes](docs/recovery/RECOVERY_STATUS_20261007.md) and [the additive registry record](docs/recovery/REGISTRY_ADDITIONS_20260930.json). Historical deployment and validation notes below do not certify the current candidate.
+Historical records: [October 8 deployment evidence](docs/recovery/RECOVERY_STATUS_20261007.md), [registry additions](docs/recovery/REGISTRY_ADDITIONS_20260930.json).
 
 ## Disclaimer and risk warning
 
@@ -37,7 +37,7 @@ access. See `ARCHITECTURE.md`.
 The universe scan can optionally enrich its output with free-tier CoinGecko
 and CoinMarketCap data (trending flags, market caps, an optional
 cross-verified market-cap floor). The feature is advisory-only, disabled by
-default, and hard-capped 4% under the documented free quotas — overrides
+default, and hard-capped 4% under the documented free quotas â€” overrides
 clamp to the 96% ceiling, throttle state survives restarts, corrupt quota
 ledgers fail closed, and any provider problem degrades to Binance-only
 scanning. See `docs/EXTERNAL_SIGNALS.md`.

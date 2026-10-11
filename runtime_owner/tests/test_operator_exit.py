@@ -50,7 +50,9 @@ class OperatorExitTests(unittest.TestCase):
             {'filterType':'MAX_NUM_ALGO_ORDERS','maxNumAlgoOrders':100}]
         api.publicGetExchangeInfo = lambda params: {'symbols':[{'symbol':'ADAUSDT','status':'TRADING',
             'ocoAllowed':True,'otoAllowed':True,'filters':self.filters}]}
-        api.publicGetTickerBookTicker = lambda params: {'bidPrice':'10.05','askPrice':'10.06'}
+        api.publicGetTickerBookTicker = lambda params: {'symbol':'ADAUSDT','bidPrice':'10.05','askPrice':'10.06'}
+        api.publicGetTickerPrice = lambda params: {'symbol':'ADAUSDT','price':'10.05'}
+        api.privateGetMyFilters = lambda params: {'symbolFilters':[], 'exchangeFilters':[], 'assetFilters':[]}
         api.publicGetAvgPrice = lambda params: {'price':'10.05','mins':0}
         api.fetch_open_orders = Mock(side_effect=lambda pair:[copy.deepcopy(row) for row in self.orders.values() if row['status']=='open'])
         api.fetch_balance = Mock(return_value={'ADA':{'free':10000,'used':0}})
@@ -107,6 +109,12 @@ class OperatorExitTests(unittest.TestCase):
         for oid, key in (('20','aboveClientOrderId'),('21','belowClientOrderId')):
             self.orders[oid] = dict(self.orders['2'], id=oid, clientOrderId=params[key],
                 amount=float(params['quantity']),filled=0,cost=0,remaining=float(params['quantity']),status='open')
+            role='above' if oid=='20' else 'below'
+            self.orders[oid]['info']={'clientOrderId':params[key],'orderListId':600,
+                'type':params[role+'Type'],'price':params.get(role+'Price','0'),
+                'stopPrice':params.get(role+'StopPrice','0'),
+                'timeInForce':params.get(role+'TimeInForce'),
+                'trailingDelta':params.get(role+'TrailingDelta')}
         return {'orderListId':600,'orders':[{'orderId':int(oid),'clientOrderId':self.orders[oid]['clientOrderId']}
                                            for oid in ('20','21')]}
 

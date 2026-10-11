@@ -68,9 +68,32 @@ def verify_child(order, *, order_id, client_id, pair, side="sell"):
         raise RecoveryBlocked("CHILD_QUANTITY_INVALID")
     return order
 
-def live_protection(tp, sl, quantity):
+def live_protection(tp, sl, quantity, *, plan=None, order_list_id=None):
     if tp.get("status") != "open" or sl.get("status") != "open":
         return False
+    above, below = tp.get('info') or {}, sl.get('info') or {}
+    if above.get('type') != 'LIMIT_MAKER' or below.get('type') not in {'STOP_LOSS','STOP_LOSS_LIMIT'}:
+        raise RecoveryBlocked('PROTECTION_CHILD_TYPE_MISMATCH')
+    if above.get('orderListId') is None or str(above['orderListId']) != str(below.get('orderListId')):
+        raise RecoveryBlocked('PROTECTION_CHILD_LIST_MISMATCH')
+    if order_list_id is not None and str(above['orderListId']) != str(order_list_id):
+        raise RecoveryBlocked('PROTECTION_PLAN_LIST_MISMATCH')
+    if not isinstance(plan, dict):
+        raise RecoveryBlocked('DURABLE_PROTECTION_PLAN_UNAVAILABLE')
+    if dec(above.get('price')) != dec(plan.get('tp_price')):
+        raise RecoveryBlocked('PROTECTION_TP_PRICE_MISMATCH')
+    if plan.get('mode') == 'FIXED_OCO':
+        if (below.get('type') != 'STOP_LOSS_LIMIT' or below.get('timeInForce') != 'GTC'
+                or dec(below.get('price')) != dec(plan.get('stop_limit'))
+                or dec(below.get('stopPrice')) != dec(plan.get('stop_trigger'))):
+            raise RecoveryBlocked('PROTECTION_STOP_GEOMETRY_MISMATCH')
+    elif plan.get('mode') == 'TRAILING_OCO':
+        if (below.get('type') != 'STOP_LOSS'
+                or int(below.get('trailingDelta',0)) != int(plan.get('trailing_delta_bips',0))
+                or dec(below.get('stopPrice',0)) != 0):
+            raise RecoveryBlocked('PROTECTION_TRAILING_GEOMETRY_MISMATCH')
+    else:
+        raise RecoveryBlocked('PROTECTION_PLAN_MODE_UNKNOWN')
     q = dec(quantity)
     # Fresh protection must be complete; any simultaneous fill is reconciled next.
     return (dec(tp.get("amount", 0)) - dec(tp.get("filled", 0)) == q

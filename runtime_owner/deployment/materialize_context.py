@@ -8,7 +8,10 @@ import shutil
 
 def materialize(source: Path, destination: Path):
     source = source.resolve()
-    manifest = json.loads((source / 'PROVENANCE.json').read_text())
+    manifest_path=source / 'CANDIDATE_MANIFEST.json'
+    if not manifest_path.exists():
+        manifest_path=source / 'PROVENANCE.json'
+    manifest = json.loads(manifest_path.read_text())
     verified = []
     for relative, expected in manifest['files'].items():
         relative_path = PurePosixPath(relative)
@@ -28,7 +31,7 @@ def materialize(source: Path, destination: Path):
         target = destination / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(content)
-    shutil.copyfile(source / 'PROVENANCE.json', destination / 'PROVENANCE.json')
+    shutil.copyfile(manifest_path, destination / 'PROVENANCE.json')
     for name in ['Dockerfile', 'validate_image.py']:
         shutil.copyfile(source / 'deployment' / name, destination / name)
     return {'source_files': len(verified), 'context': str(destination.resolve()),

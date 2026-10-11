@@ -1,12 +1,14 @@
-# Recovered AWS Testnet owner candidate
+# Recovered AWS Testnet owner
 
-This source snapshot preserves the newer Freqtrade 2026.8/NFI owner lineage that is absent from the older root deployment package. It includes the reviewed recovery changes and 164 isolated Linux test cases. It is NOT the currently deployed r17 image and is not wired into root Compose or CI deployment.
+The recovered Freqtrade 2026.8/NFI owner is separate from the legacy root deployment package. This branch contains the October 12 repair candidate. See [current findings and release blockers](../docs/recovery/AUDIT_REPAIR_20261012.md).
 
-Do not activate this snapshot or copy it into LIVE. Its runtime contract forbids real-money trading. Source/config/image reproducibility, retained-inventory disposal and authenticated lifecycle/soak acceptance remain release blockers.
+`PROVENANCE.json` is the historical recovery receipt and is preserved unchanged. `CANDIDATE_MANIFEST.json` binds the modified owner, canonical Telegram panel and current regression tests. Build-context materialization verifies every candidate hash. The new CI owner job runs the dependency-free selection; the complete suite must also pass in the pinned retained runtime with no network, credentials or production mounts.
 
-PROVENANCE.json binds every copied source file to its exact SHA256 and records the validation environment. The owner modules were recovered from the AWS working tree (base commit 4169c54) and modified during the September recovery. The NFI strategy bytes were preserved. The tests directory is the latest canonical test set; obsolete duplicate test copies and Python caches are excluded.
+The build still requires a retained AWS base image. This does not establish a clean-host rebuild, authenticated lifecycle acceptance or permission to use the owner in LIVE. Its runtime contract is Testnet-only. Root Compose is not its deployment manifest.
 
-Upstream components: Freqtrade https://github.com/freqtrade/freqtrade (GPL-3.0) and NostalgiaForInfinity by iterativ https://github.com/iterativv/NostalgiaForInfinity (GPL-3.0). Modified Freqtrade files retain their upstream notices. The separate Telegram fixture is retained only for the owner regression suite. No credentials, private databases, or account-state snapshots are included.
+The latest corrected panel source is `runtime-fixes/telegram/runtime_stable_panel.py`; historical fixture copies are not deployment proof. No private configuration, credentials or trading databases are included.
+
+Upstream components: [Freqtrade](https://github.com/freqtrade/freqtrade) and [NostalgiaForInfinity](https://github.com/iterativv/NostalgiaForInfinity), both GPL-3.0. Modified files retain their upstream notices, and the NFI strategy bytes remain unchanged.
 
 ## Preserved upstream diagnostics
 

@@ -296,18 +296,27 @@ def _binana_db_rows():
     from contextlib import closing
     path='/app/shared/freqtrade/binana-extension.sqlite'
     try:
-        with closing(sqlite3.connect(f'file:{path}?mode=ro', uri=True)) as con:
+        trades=_ft_data('GET','/status')
+        if not isinstance(trades,list):
+            raise RuntimeError('canonical trade RPC unavailable')
+        trade_ids=[int(t['trade_id']) for t in trades]
+        placeholders=','.join('?' for _ in trade_ids) or 'NULL'
+        with closing(sqlite3.connect(f'file:{path}?mode=ro',uri=True)) as con:
             con.row_factory=sqlite3.Row
-            prot=[dict(r) for r in con.execute("SELECT * FROM protection ORDER BY updated_ts DESC LIMIT 20")]
-            inc=[dict(r) for r in con.execute("SELECT * FROM incidents WHERE status='OPEN' ORDER BY updated_ts DESC LIMIT 20")]
-            intents=[dict(r) for r in con.execute("SELECT * FROM intents ORDER BY updated_ts DESC LIMIT 20")]
-        return {'available':True,'error_type':None,'protection':prot,'incidents':inc,'intents':intents}
+            intents=[dict(r) for r in con.execute(
+                "SELECT * FROM intents WHERE freqtrade_trade_id IN ("+placeholders+") "
+                "OR state IN ('HALAL_DECIDED','RESERVED','ENTRY_PENDING','ENTRY_PARTIAL','OPEN','EXIT_PENDING','UNKNOWN')",trade_ids)]
+            ids=[r['intent_id'] for r in intents]
+            marks=','.join('?' for _ in ids) or 'NULL'
+            prot=[dict(r) for r in con.execute(
+                'SELECT p.*,i.freqtrade_trade_id FROM protection p JOIN intents i USING(intent_id) '
+                'WHERE p.intent_id IN ('+marks+') ORDER BY p.intent_id,p.generation',ids)]
+            inc=[dict(r) for r in con.execute("SELECT * FROM incidents WHERE status='OPEN' ORDER BY updated_ts DESC")]
+        return {'available':True,'error_type':None,'protection':prot,'incidents':inc,
+                'intents':intents,'complete':True}
     except Exception as exc:
-        try:
-            base.audit('canonical_state_read_failed', severity='CRITICAL', details={'error_type':type(exc).__name__})
-        except Exception:
-            pass
-        return {'available':False,'error_type':type(exc).__name__,'protection':[],'incidents':[],'intents':[]}
+        return {'available':False,'error_type':type(exc).__name__,'protection':[],
+                'incidents':[],'intents':[],'complete':False}
 
 def _project_settlement(item):
     """Project verified retained inventory without changing the owner ledger."""
@@ -328,7 +337,9 @@ def _project_settlement(item):
                 and cost.is_finite() and cost >= 0 and dust.get('scope')):
             raise ValueError('Unverified retained inventory')
         kind = 'DUST_RETAINED'
-        settled_at = dust.get('settled_at') or item.get('close_date') or item.get('dust_created_at')
+        settled_at = dust.get('settled_at')
+        if not settled_at:
+            raise ValueError('Actual settlement timestamp is unavailable')
         profit = item.get('realized_profit')
     else:
         if item.get('is_open'):
@@ -476,15 +487,29 @@ def _pretty_balance():
         f"USDT total: {usdt.get('balance',usdt.get('total','n/a'))}",
         'Source: Freqtrade / Binance Spot Testnet'])
 
+
+def _current_protection(trade_id, ext):
+    mappings=[r for r in ext.get('intents',[]) if str(r.get('freqtrade_trade_id'))==str(trade_id)]
+    if len(mappings)!=1:
+        return None
+    rows=[r for r in ext.get('protection',[]) if r.get('intent_id')==mappings[0]['intent_id']]
+    return max(rows,key=lambda r:int(r['generation'])) if rows else None
+
 def _pretty_open_trades():
-    status=_ft_data('GET','/status'); trades=status if isinstance(status,list) else []
-    ext=_binana_db_rows(); prot=ext.get('protection') or []
-    lines=['📋 OPEN BINANA TESTNET TRADES','',f'Freqtrade open trades: {len(trades)}']
-    if not trades: lines += ['','No Freqtrade-owned open positions.']
+    trades=_ft_data('GET','/status')
+    if not isinstance(trades,list):
+        return 'OPEN TRADES: UNKNOWN\nFreqtrade trade evidence is unavailable.'
+    ext=_binana_db_rows()
+    lines=['OPEN BINANA TESTNET TRADES','',f'Freqtrade open trades: {len(trades)}']
+    if not trades:
+        lines+=['No Freqtrade-owned open positions in the successful local RPC read.',
+                'This is not an independent Binance account reconciliation.']
     for t in trades[:8]:
-        pair=t.get('pair','?'); tid=t.get('trade_id','?')
-        p=next((x for x in prot if str(x.get('freqtrade_trade_id',''))==str(tid) or x.get('pair')==pair),None)
-        lines += ['',f'• {pair}',f"  Trade ID: {tid}",f"  Amount: {t.get('amount','n/a')}",f"  Open rate: {t.get('open_rate','n/a')}",f"  Protection: {(p or {}).get('mode','pending/none')} / {(p or {}).get('status','unknown')}"]
+        tid=t.get('trade_id'); p=_current_protection(tid,ext)
+        lines += ['',str(t.get('pair','?')),f'Trade ID: {tid}',
+                  f"Amount: {t.get('amount','n/a')}",f"Open rate: {t.get('open_rate','n/a')}",
+                  f"Protection: {(p or {}).get('mode','UNKNOWN')} / {(p or {}).get('status','UNKNOWN')}"]
+    if len(trades)>8: lines.append(f'Showing 8 of {len(trades)} local positions.')
     return '\n'.join(lines)[:3900]
 
 def _pretty_history():
@@ -1096,7 +1121,7 @@ def _pretty_profit():
         f"Retained inventory cost: {sum(float(t['retained_cost_basis']) for t in settled):.8f} USDT",
         'Retained inventory is unsold; its cost is excluded from realized profit.',
         f"Refreshed UTC: {time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime())}",
-        'Source: canonical Freqtrade owner ledger + Freqtrade /profit.',
+        'Source: canonical Freqtrade owner ledger.',
     ])
 
 def _pretty_report():
@@ -1152,12 +1177,26 @@ def _pretty_universe():
 
 
 def _pretty_health():
-    ft=base.ft_call('GET','/ping'); cfg=_ft_data('GET','/show_config') or {}; tg=base.read_json(base.RUNTIME/'telegram_health.json',{}) or {}; ext=_binana_db_rows()
+    ft=base.ft_call('GET','/ping')
+    cfg=_ft_data('GET','/show_config') or {}
+    tg=base.read_json(base.RUNTIME/'telegram_health.json',{}) or {}
+    ext=_binana_db_rows(); owner=_owner_release_evidence()
+    api_ok=isinstance(ft,dict) and ft.get('ok') is True
+    communications_ok=tg.get('ok') is True
     canonical_ok=ext.get('available') is True
-    incidents=ext.get('incidents') or []
-    owner=_owner_release_evidence()
-    overall='BLOCKED' if (not canonical_ok) or incidents or owner.get('release_approved') is not True or str(cfg.get('state','stopped')).lower()!='running' else 'READY'
-    return '\n'.join(['🩺 SYSTEM HEALTH','',f"Overall trading readiness: {overall}",f"Freqtrade API: {'HEALTHY' if isinstance(ft,dict) and ft.get('ok') else 'UNHEALTHY'}",f"Freqtrade state: {str(cfg.get('state','unknown')).upper()}",f"Canonical DB: {'AVAILABLE' if canonical_ok else 'UNAVAILABLE'}",f"Canonical DB incidents: {len(incidents) if canonical_ok else 'unknown'}",f"Telegram poller: {'HEALTHY' if tg.get('ok') else 'UNHEALTHY'}",'Execution sidecar: MONITOR-ONLY (no order credentials)'])
+    state=str(cfg.get('state','unknown')).lower()
+    reasons=list(owner.get('blockers') or [])
+    if not api_ok: reasons.append('Freqtrade API unavailable')
+    if not communications_ok: reasons.append('Telegram poller unhealthy')
+    if not canonical_ok: reasons.append('canonical state unavailable')
+    if ext.get('incidents'): reasons.append('open reconciliation incidents')
+    if owner.get('release_approved') is not True and not reasons: reasons.append('owner release not approved')
+    overall='BLOCKED' if reasons else ('PAUSED' if state=='paused' else ('READY' if state=='running' else 'UNKNOWN'))
+    return '\n'.join(['SYSTEM HEALTH',f'Overall trading readiness: {overall}',
+        f"Freqtrade API: {'HEALTHY' if api_ok else 'UNHEALTHY'}",f'Freqtrade state: {state.upper()}',
+        f"Telegram poller: {'HEALTHY' if communications_ok else 'UNHEALTHY'}",
+        'Blockers: '+(', '.join(reasons) if reasons else 'none'),
+        'Execution sidecar: MONITOR-ONLY'])
 
 def _pretty_alerts():
     d = _decode(base._alert_status())
@@ -1167,30 +1206,16 @@ def _pretty_alerts():
 
 
 def _pretty_protection():
+    trades=_ft_data('GET','/status')
     ext=_binana_db_rows()
-    if ext.get('available') is not True:
-        return '🛡 PROTECTION STATUS\n\nStatus: UNKNOWN / BLOCKED\nCanonical BINANA state is unavailable. No absence-of-protection conclusion can be made.'
-    rows=ext.get('protection') or []; inc=ext.get('incidents') or []
-    status=_ft_data('GET','/status')
-    open_pairs=[]
-    if isinstance(status,list):
-        open_pairs=[str(t.get('pair') or '') for t in status if t.get('pair')]
-    current=[]
-    for pair in dict.fromkeys(open_pairs):
-        candidates=[r for r in rows if str(r.get('pair') or '')==pair]
-        active=[r for r in candidates if 'ACTIVE' in str(r.get('status') or '').upper()]
-        pool=active or candidates
-        if pool:
-            current.append(max(pool,key=lambda r:int(r.get('generation') or 0)))
-    lines=['🛡 PROTECTION STATUS','', 'Order/protection owner: FREQTRADE',
-           f'Open positions: {len(open_pairs)}',f'Current protection records: {len(current)}',
-           f'Open incidents: {len(inc)}']
-    for r in current:
-        lines += [f"• {r.get('pair','?')} | gen {r.get('generation','?')} | {r.get('mode','?')} | {r.get('status','?')}"]
-    if open_pairs and len(current) != len(open_pairs):
-        lines.append('WARNING: one or more open positions have no current protection record.')
-    elif not open_pairs:
-        lines.append('No Freqtrade-owned open positions.')
+    if not isinstance(trades,list) or ext.get('available') is not True:
+        return 'PROTECTION STATUS: UNKNOWN / BLOCKED\nCanonical trade or protection evidence is unavailable.'
+    lines=['PROTECTION STATUS','Order/protection owner: FREQTRADE',
+           f'Open positions: {len(trades)}',f"Open incidents: {len(ext.get('incidents',[]))}"]
+    for trade in trades:
+        row=_current_protection(trade.get('trade_id'),ext)
+        lines.append(f"{trade.get('pair','?')} | trade {trade.get('trade_id','?')} | gen {(row or {}).get('generation','?')} | {(row or {}).get('mode','UNKNOWN')} | {(row or {}).get('status','UNKNOWN')}")
+    if not trades: lines.append('No Freqtrade-owned open positions in the successful local RPC read.')
     return '\n'.join(lines)[:3900]
 
 def _pretty_selftest():
