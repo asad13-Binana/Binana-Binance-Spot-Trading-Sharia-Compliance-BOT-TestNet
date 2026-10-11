@@ -28,10 +28,12 @@ class Api:
             ]}]}
     def publicGetAvgPrice(self, params): return {'price':'1','mins':5}
     def publicGetReferencePrice(self, params): return {'symbol':params['symbol'],'referencePrice':None}
+    def privateGetMyFilters(self, params): return {'symbolFilters':[], 'exchangeFilters':[], 'assetFilters':[]}
+    def publicGetTickerPrice(self, params): return {'symbol':params['symbol'],'price':'1'}
     def privateGetOpenOrders(self, params): return []
     def privateGetOpenOrderList(self, params=None): return []
     def fetch_open_orders(self, pair): return []
-    def publicGetTickerBookTicker(self, params): return {'bidPrice':'1.01','askPrice':'1.02'}
+    def publicGetTickerBookTicker(self, params): return {'symbol':params['symbol'],'bidPrice':'1.01','askPrice':'1.02'}
     def fetch_balance(self): return {'ADA': {'free': 1000.0}}
     def fetch_my_trades(self, pair, params=None):
         oid=str((params or {}).get("orderId"))

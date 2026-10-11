@@ -12,6 +12,7 @@ from freqtrade.binana.state_store import StateStore
 from binana_tests.test_engine_core import FakeApi
 from freqtrade.binana.protection_plan import provisional_plan
 from freqtrade.binana.recovery_contract import live_protection, RecoveryBlocked
+from freqtrade.binana.persistence_readiness import persistence_readiness
 
 
 def plan():
@@ -83,6 +84,20 @@ class StorageAdmission(unittest.TestCase):
             with patch('shutil.disk_usage',return_value=SimpleNamespace(total=100*1024**3,free=2*1024**3,used=98*1024**3)):
                 with self.assertRaises(AdmissionRejected): manager.assert_release_ready()
 
+    def test_write_or_fsync_error_blocks_even_on_large_volume(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch('shutil.disk_usage',return_value=SimpleNamespace(total=100*1024**3,free=50*1024**3,used=50*1024**3)),patch('os.fsync',side_effect=OSError('I/O error')):
+                result=persistence_readiness(Path(tmp)/'state.db')
+                self.assertFalse(result['ok'])
+                self.assertIn('PERSISTENCE_UNAVAILABLE:OSError',result['blockers'])
+
+    def test_inode_exhaustion_blocks_even_with_bytes_available(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch('shutil.disk_usage',return_value=SimpleNamespace(total=100*1024**3,free=50*1024**3,used=50*1024**3)),patch('os.statvfs',return_value=SimpleNamespace(f_files=100000,f_favail=100),create=True):
+                result=persistence_readiness(Path(tmp)/'state.db')
+                self.assertFalse(result['ok'])
+                self.assertIn('PERSISTENCE_INODES_CRITICAL',result['blockers'])
+
 
 class ExchangeGeometry(unittest.TestCase):
     def children(self):
@@ -131,3 +146,50 @@ class FillPagination(unittest.TestCase):
         manager=self.manager(lambda *a,**k:rows)
         with self.assertRaises(AdmissionRejected):
             manager._record_order_trades(intent_id='i',pair='ADA/USDT',order_id='7',side='SELL')
+
+
+class AccountAndMarketAdmission(unittest.TestCase):
+    def api(self):
+        api=FakeApi()
+        api.privateGetMyFilters=lambda p:{'symbolFilters':[], 'exchangeFilters':[], 'assetFilters':[]}
+        api.publicGetTickerPrice=lambda p:{'symbol':'ADAUSDT','price':'1'}
+        api.publicGetTickerBookTicker=lambda p:{'symbol':'ADAUSDT','bidPrice':'1','askPrice':'1.001'}
+        return api
+
+    def test_account_asset_limit_blocks_before_submission(self):
+        api=self.api()
+        api.privateGetMyFilters=lambda p:{'symbolFilters':[],'exchangeFilters':[],
+            'assetFilters':[{'filterType':'MAX_ASSET','asset':'ADA','limit':'9'}]}
+        with self.assertRaises(OrderListError): BinanceOrderLists(api).preflight(plan())
+
+    def test_exchange_capacity_counts_other_symbols(self):
+        api=self.api()
+        api.privateGetMyFilters=lambda p:{'symbolFilters':[],'assetFilters':[],
+            'exchangeFilters':[{'filterType':'EXCHANGE_MAX_NUM_ORDERS','maxNumOrders':2}]}
+        api.privateGetOpenOrders=lambda p:[{'symbol':'DOTUSDT','type':'LIMIT','orderId':9}]
+        with self.assertRaises(OrderListError): BinanceOrderLists(api).preflight(plan())
+
+    def test_account_symbol_limit_is_enforced(self):
+        api=self.api()
+        api.privateGetMyFilters=lambda p:{'symbolFilters':[{'filterType':'MAX_NUM_ORDERS','maxNumOrders':1}],
+            'exchangeFilters':[], 'assetFilters':[]}
+        with self.assertRaises(OrderListError): BinanceOrderLists(api).preflight(plan())
+
+    def test_missing_account_filter_evidence_blocks(self):
+        api=self.api();api.privateGetMyFilters=lambda p:{}
+        with self.assertRaises(OrderListError): BinanceOrderLists(api).preflight(plan())
+
+    def test_crossed_take_profit_or_trigger_blocks(self):
+        for last in ('2','0.5'):
+            api=self.api();api.publicGetTickerPrice=lambda p:{'symbol':'ADAUSDT','price':last}
+            with self.subTest(last=last),self.assertRaises(OrderListError):
+                BinanceOrderLists(api).preflight(plan())
+
+    def test_maker_cross_blocks(self):
+        api=self.api();api.publicGetTickerBookTicker=lambda p:{'symbol':'ADAUSDT','bidPrice':'2','askPrice':'2.01'}
+        with self.assertRaises(OrderListError): BinanceOrderLists(api).preflight(plan())
+
+    def test_read_failure_blocks_and_valid_snapshot_passes(self):
+        api=self.api();BinanceOrderLists(api).preflight(plan())
+        api.publicGetTickerPrice=lambda p:None
+        with self.assertRaises(OrderListError): BinanceOrderLists(api).preflight(plan())

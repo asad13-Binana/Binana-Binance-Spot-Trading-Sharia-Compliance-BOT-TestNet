@@ -50,7 +50,9 @@ class OperatorExitTests(unittest.TestCase):
             {'filterType':'MAX_NUM_ALGO_ORDERS','maxNumAlgoOrders':100}]
         api.publicGetExchangeInfo = lambda params: {'symbols':[{'symbol':'ADAUSDT','status':'TRADING',
             'ocoAllowed':True,'otoAllowed':True,'filters':self.filters}]}
-        api.publicGetTickerBookTicker = lambda params: {'bidPrice':'10.05','askPrice':'10.06'}
+        api.publicGetTickerBookTicker = lambda params: {'symbol':'ADAUSDT','bidPrice':'10.05','askPrice':'10.06'}
+        api.publicGetTickerPrice = lambda params: {'symbol':'ADAUSDT','price':'10.05'}
+        api.privateGetMyFilters = lambda params: {'symbolFilters':[], 'exchangeFilters':[], 'assetFilters':[]}
         api.publicGetAvgPrice = lambda params: {'price':'10.05','mins':0}
         api.fetch_open_orders = Mock(side_effect=lambda pair:[copy.deepcopy(row) for row in self.orders.values() if row['status']=='open'])
         api.fetch_balance = Mock(return_value={'ADA':{'free':10000,'used':0}})

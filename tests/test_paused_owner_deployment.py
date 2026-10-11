@@ -128,6 +128,10 @@ def test_only_exact_identity_constraints_may_be_added(monkeypatch,tmp_path,chang
     if change=='expected_schema':
         assert m.preserved_databases(backup,{name:digest},0)[name]['added_identity_constraints']==m.EXPECTED_SCHEMA
         with sqlite3.connect(current/name) as c:
-            assert c.execute("SELECT count(*) FROM sqlite_master WHERE type='trigger'").fetchone()[0]==3
+            expected_triggers={name for name,spec in m.EXPECTED_SCHEMA.items() if spec['type']=='trigger'}
+            actual_triggers={row[0] for row in c.execute("SELECT name FROM sqlite_master WHERE type='trigger'")}
+            with sqlite3.connect(backup/name) as old:
+                original_triggers={row[0] for row in old.execute("SELECT name FROM sqlite_master WHERE type='trigger'")}
+            assert actual_triggers == original_triggers | expected_triggers
     else:
         with pytest.raises(RuntimeError):m.preserved_databases(backup,{name:digest},0)

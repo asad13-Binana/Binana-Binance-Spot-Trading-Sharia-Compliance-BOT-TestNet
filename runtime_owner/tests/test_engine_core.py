@@ -41,6 +41,9 @@ class FakeApi:
             ]}]}
     def publicGetAvgPrice(self, params): return {'price':'1','mins':5}
     def publicGetReferencePrice(self, params): return {'symbol':params['symbol'],'referencePrice':None}
+    def privateGetMyFilters(self, params): return {'symbolFilters':[], 'exchangeFilters':[], 'assetFilters':[]}
+    def publicGetTickerBookTicker(self, params): return {'symbol':params['symbol'],'bidPrice':'1','askPrice':'1.001'}
+    def publicGetTickerPrice(self, params): return {'symbol':params['symbol'],'price':'1'}
     def privateGetOpenOrders(self, params): return []
     def privateGetOpenOrderList(self, params=None): return []
     def privatePostOrderListOtoco(self, params):

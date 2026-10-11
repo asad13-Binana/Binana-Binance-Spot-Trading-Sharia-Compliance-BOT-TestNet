@@ -3,8 +3,15 @@
   "baseline_commit": "8b01c3c3c5a36d28aeabd2ff403bc9be4bfbe4bf",
   "base_image_id": "sha256:a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523",
   "validation": {
-    "tests": 192,
+    "tests": 201,
     "required_test_ids": [
+      "test_audit_20261012.AccountAndMarketAdmission.test_account_asset_limit_blocks_before_submission",
+      "test_audit_20261012.AccountAndMarketAdmission.test_account_symbol_limit_is_enforced",
+      "test_audit_20261012.AccountAndMarketAdmission.test_crossed_take_profit_or_trigger_blocks",
+      "test_audit_20261012.AccountAndMarketAdmission.test_exchange_capacity_counts_other_symbols",
+      "test_audit_20261012.AccountAndMarketAdmission.test_maker_cross_blocks",
+      "test_audit_20261012.AccountAndMarketAdmission.test_missing_account_filter_evidence_blocks",
+      "test_audit_20261012.AccountAndMarketAdmission.test_read_failure_blocks_and_valid_snapshot_passes",
       "test_audit_20261012.DurablePolicy.test_status_cannot_overwrite_protection_plan_or_profile",
       "test_audit_20261012.ExchangeGeometry.test_fixed_geometry_matches_approved_plan",
       "test_audit_20261012.ExchangeGeometry.test_two_makers_do_not_prove_protection",
@@ -17,6 +24,8 @@
       "test_audit_20261012.ReferenceContracts.test_reference_timeout_never_falls_back",
       "test_audit_20261012.ReferenceContracts.test_wrong_symbol_or_invalid_reference_is_not_absence",
       "test_audit_20261012.StorageAdmission.test_critical_persistence_volume_blocks_even_if_release_snapshot_is_green",
+      "test_audit_20261012.StorageAdmission.test_inode_exhaustion_blocks_even_with_bytes_available",
+      "test_audit_20261012.StorageAdmission.test_write_or_fsync_error_blocks_even_on_large_volume",
       "test_cache.TestCache.test_category_symlink_not_followed",
       "test_cache.TestCache.test_changed_file_skipped",
       "test_cache.TestCache.test_content_hash_detects_preserved_stat",
@@ -219,8 +228,8 @@
       "bytes": 2228
     },
     "owner/freqtrade/binana/binance_order_lists.py": {
-      "sha256": "b786ce045d02adc9771f81d079eca8ae766a1545bf3d3b91931bacb9bcaa4702",
-      "bytes": 18225
+      "sha256": "c4a8cb57effee640e0c713a76fc95bf75db16e7b6c95a132dad4aa19eb29ab00",
+      "bytes": 22859
     },
     "owner/freqtrade/binana/cache.py": {
       "sha256": "8a6b889e1fc1eaf3ae30f299aef46da80cee1c07cf17f48771ed07cb15fd94f6",
@@ -351,8 +360,8 @@
       "bytes": 307
     },
     "tests/test_audit_20261012.py": {
-      "sha256": "8cdced2af44c8cc4bca1cb1c3b40519792a36e97f65328b79eccdf1ec552e23a",
-      "bytes": 7166
+      "sha256": "69607c379d610beb1602dacbb8da8377562cc43b9c5812978594b6cb8734266b",
+      "bytes": 10807
     },
     "tests/test_cache.py": {
       "sha256": "93598f6d64fca12e11bbc8c523441f3056b76ebb8aaee4669308179f9b4e05e7",
@@ -371,8 +380,8 @@
       "bytes": 1150
     },
     "tests/test_engine_core.py": {
-      "sha256": "09e44df268b6b5c977226031ea48183e0dda93815acd5110e42da8ac4a83dffa",
-      "bytes": 6616
+      "sha256": "f4e21efe511a5e067d0a141e42d07ad1948abdf10ca008e4b9347d3cadb6cb30",
+      "bytes": 6940
     },
     "tests/test_entry_reconstruction.py": {
       "sha256": "48d126e7af08fb3be40d374a235e23bbec53ff8db1a602b473e1a068a5836213",
@@ -391,16 +400,16 @@
       "bytes": 3137
     },
     "tests/test_final_contracts.py": {
-      "sha256": "a9115970f3cdaf7203a7b32af21e977aee6889c623c5d26faf01e7d126c9983f",
-      "bytes": 10241
+      "sha256": "0187994831ebe817712f6010bfaf678a9a6b38f128512aab816d3eb20ea1cf73",
+      "bytes": 10565
     },
     "tests/test_identity_integrity.py": {
       "sha256": "3901d4b5a7cd39ddb011b175b5aac0cf627ab42cbefca9079a168cd3e2c82be2",
       "bytes": 4233
     },
     "tests/test_operator_exit.py": {
-      "sha256": "ac8d71c0e203e2e79e00886a795fab6cb8d7066bd6c0c5c1f62842d470971684",
-      "bytes": 16199
+      "sha256": "3917ae9630ffc0f5c79a5e7b5558fabe9710d113e586aa475117be6a736c77b1",
+      "bytes": 16416
     },
     "tests/test_owned_signal_replay.py": {
       "sha256": "4f8927ec56b09831e00970e8cc63488840c4098017efa73f850d5d92cb8d2a19",
@@ -427,8 +436,8 @@
       "bytes": 2502
     },
     "tests/test_partial_promotion_recovery.py": {
-      "sha256": "d09b80af95765e913cd702f0797b75cd6dfd1a65e9e31bcc5ecbb78daddb3c2c",
-      "bytes": 9465
+      "sha256": "e610e63f798e5a1fbe04d4d8855f01a4d38ccac0497aa1364dd903a0370cbafb",
+      "bytes": 9696
     },
     "tests/test_private_event_ordering.py": {
       "sha256": "66011036eae80e9fb5c5225a4c80bcae359e8eed4bb097328e6215d270414c39",
