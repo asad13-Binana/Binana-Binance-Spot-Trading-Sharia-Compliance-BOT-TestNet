@@ -19,14 +19,15 @@ class Api:
                 {'filterType':'PRICE_FILTER','minPrice':'0.0001','maxPrice':'1000','tickSize':'0.0001'},
                 {'filterType':'LOT_SIZE','minQty':'0.01','maxQty':'1000000','stepSize':'0.01'},
                 {'filterType':'NOTIONAL','minNotional':'0.1','maxNotional':'1000000000'},
-                {'filterType':'PERCENT_PRICE_BY_SIDE','bidMultiplierDown':'0.2','bidMultiplierUp':'5',
+                {'filterType':'PERCENT_PRICE_BY_SIDE','avgPriceMins':5,'bidMultiplierDown':'0.2','bidMultiplierUp':'5',
                  'askMultiplierDown':'0.2','askMultiplierUp':'5'},
                 {'filterType':'TRAILING_DELTA','minTrailingBelowDelta':10,'maxTrailingBelowDelta':2000},
                 {'filterType':'MAX_NUM_ORDERS','maxNumOrders':100},
                 {'filterType':'MAX_NUM_ORDER_LISTS','maxNumOrderLists':100},
                 {'filterType':'MAX_NUM_ALGO_ORDERS','maxNumAlgoOrders':100},
             ]}]}
-    def publicGetAvgPrice(self, params): return {'price':'1'}
+    def publicGetAvgPrice(self, params): return {'price':'1','mins':5}
+    def publicGetReferencePrice(self, params): return {'symbol':params['symbol'],'referencePrice':None}
     def privateGetOpenOrders(self, params): return []
     def privateGetOpenOrderList(self, params=None): return []
     def fetch_open_orders(self, pair): return []
@@ -82,7 +83,12 @@ class Exchange:
             return {'id':oid,'clientOrderId':client,'symbol':pair,'side':'sell','status':'open',
                     'amount':qty,'filled':0.0,'remaining':qty,
                     'price':float(params.get('abovePrice') or params.get('belowPrice') or 1),
-                    'cost':0.0,'info':{'clientOrderId':client}}
+                    'cost':0.0,'info':{'clientOrderId':client,'orderListId':22,
+                    'type':params['aboveType'] if oid=='23' else params['belowType'],
+                    'price':params['abovePrice'] if oid=='23' else params.get('belowPrice','0'),
+                    'stopPrice':params.get('belowStopPrice','0'),
+                    'trailingDelta':params.get('belowTrailingDelta'),
+                    'timeInForce':params.get('belowTimeInForce')}}
         report=next((r for r in self._api.cancel_response.get('orderReports',[])
                      if str(r.get('orderId'))==oid),None)
         status=str((report or {}).get('status') or 'CANCELED').lower()

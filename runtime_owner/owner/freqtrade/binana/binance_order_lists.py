@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from hashlib import sha256
 from typing import Any
+import json
 
 from .protection_plan import ProtectionPlan
 
@@ -102,6 +103,69 @@ class BinanceOrderLists:
         if not rule or rule.get(key) is None: return None
         return int(rule[key])
 
+    @staticmethod
+    def _error_code(exc):
+        code = getattr(exc, 'code', None)
+        if code is not None:
+            return code
+        # CCXT includes the structured Binance JSON in its exception string.
+        # Parse the JSON object, never a substring such as '-2043' in free text.
+        text = str(exc)
+        start = text.find('{')
+        if start >= 0:
+            try:
+                value, _ = json.JSONDecoder().raw_decode(text[start:])
+                return value.get('code') if isinstance(value, dict) else None
+            except ValueError:
+                pass
+        return None
+
+    def _reference_price(self, symbol):
+        method = getattr(self.public, 'publicGetReferencePrice', None)
+        try:
+            if callable(method):
+                response = method({'symbol':symbol})
+            else:
+                # CCXT 4.5.76 has no generated binding. Use its existing rate-
+                # limited transport and explicitly restrict this route to Testnet.
+                if self.public.urls['api']['public'] != 'https://testnet.binance.vision/api/v3':
+                    raise OrderListError('referencePrice transport is not Testnet')
+                response = self.public.request('referencePrice', 'public', 'GET',
+                    {'symbol':symbol}, config={'cost':2})
+        except Exception as exc:
+            if self._error_code(exc) == -2043:
+                return None
+            raise
+        if isinstance(response, dict) and response.get('code') == -2043:
+            return None
+        if not isinstance(response, dict) or response.get('symbol') != symbol or 'referencePrice' not in response:
+            raise OrderListError('referencePrice response invalid')
+        if response['referencePrice'] is None:
+            return None
+        value = self._decimal(response['referencePrice'])
+        if value <= 0:
+            raise OrderListError('referencePrice must be positive')
+        return value
+
+    def _percent_basis(self, symbol, rule, reference):
+        if reference is not None:
+            return reference
+        minutes = int(rule['avgPriceMins'])
+        if minutes < 0:
+            raise OrderListError('avgPriceMins invalid')
+        if minutes == 0:
+            response = self.public.publicGetTickerPrice({'symbol':symbol})
+            if response.get('symbol') != symbol:
+                raise OrderListError('last-price symbol mismatch')
+        else:
+            response = self.public.publicGetAvgPrice({'symbol':symbol})
+            if response.get('mins') != minutes:
+                raise OrderListError('average price window mismatch')
+        value = self._decimal(response.get('price'))
+        if value <= 0:
+            raise OrderListError('percent price basis invalid')
+        return value
+
     def preflight(self, plan: ProtectionPlan, *, pending_quantity=None, otoco: bool=False) -> dict[str,Any]:
         try:
             return self._preflight(plan,pending_quantity=pending_quantity,otoco=otoco)
@@ -122,7 +186,7 @@ class BinanceOrderLists:
         filters=info.get("filters") or []
         price_rule=self._filter(filters,"PRICE_FILTER"); qty_rule=self._filter(filters,"LOT_SIZE")
         notional_rule=self._filter(filters,"NOTIONAL") or self._filter(filters,"MIN_NOTIONAL")
-        pct_rule=self._filter(filters,"PERCENT_PRICE_BY_SIDE")
+        pct_rules=[r for r in filters if r.get('filterType') in {'PERCENT_PRICE','PERCENT_PRICE_BY_SIDE'}]
         trailing_rule=self._filter(filters,"TRAILING_DELTA")
         protected=self._decimal(pending_quantity if pending_quantity is not None else plan.quantity)
         self._validate_quantity(plan.quantity,qty_rule,"working")
@@ -141,12 +205,17 @@ class BinanceOrderLists:
             delta=int(plan.trailing_delta_bips or 0)
             low=int(trailing_rule.get("minTrailingBelowDelta",0)); high=int(trailing_rule.get("maxTrailingBelowDelta",0))
             if delta < low or (high and delta > high): raise OrderListError("TRAILING_DELTA outside SELL stop range")
-        avg=self._decimal((self.public.publicGetAvgPrice({"symbol":symbol}) or {}).get("price"))
-        if pct_rule:
+        reference = self._reference_price(symbol) if pct_rules else None
+        bases = {}
+        for pct_rule in pct_rules:
+            avg = self._percent_basis(symbol, pct_rule, reference)
+            kind = pct_rule['filterType']
+            bases[kind] = str(avg)
+            by_side = kind == 'PERCENT_PRICE_BY_SIDE'
             if otoco:
-                lo=avg*self._decimal(pct_rule.get("bidMultiplierDown")); hi=avg*self._decimal(pct_rule.get("bidMultiplierUp"))
+                lo=avg*self._decimal(pct_rule.get('bidMultiplierDown' if by_side else 'multiplierDown')); hi=avg*self._decimal(pct_rule.get('bidMultiplierUp' if by_side else 'multiplierUp'))
                 if not lo <= self._decimal(plan.reference_price) <= hi: raise OrderListError("PERCENT_PRICE_BY_SIDE working price outside BUY range")
-            slo=avg*self._decimal(pct_rule.get("askMultiplierDown")); shi=avg*self._decimal(pct_rule.get("askMultiplierUp"))
+            slo=avg*self._decimal(pct_rule.get('askMultiplierDown' if by_side else 'multiplierDown')); shi=avg*self._decimal(pct_rule.get('askMultiplierUp' if by_side else 'multiplierUp'))
             for label,value in [("take-profit",plan.tp_price)]+([("stop-limit",plan.stop_limit)] if plan.mode=="FIXED_OCO" else []):
                 if not slo <= self._decimal(value) <= shi: raise OrderListError(f"PERCENT_PRICE_BY_SIDE {label} outside SELL range")
         open_orders=self.api.privateGetOpenOrders({"symbol":symbol}) or []
@@ -160,7 +229,7 @@ class BinanceOrderLists:
         algo_open=sum(str(row.get("type") or "").upper() in algo_types for row in open_orders)
         max_algo=self._count_limit(self._filter(filters,"MAX_NUM_ALGO_ORDERS"),"maxNumAlgoOrders")
         if max_algo is not None and algo_open+1 > max_algo: raise OrderListError("MAX_NUM_ALGO_ORDERS capacity exceeded")
-        return {"symbol":symbol,"additional_orders":additional_orders,"open_orders":len(open_orders),"open_order_lists":len(open_lists),"open_algo_orders":algo_open,"average_price":str(avg)}
+        return {"symbol":symbol,"additional_orders":additional_orders,"open_orders":len(open_orders),"open_order_lists":len(open_lists),"open_algo_orders":algo_open,"percent_price_bases":bases,"reference_price":str(reference) if reference is not None else None}
 
     @staticmethod
     def _format(value) -> str:

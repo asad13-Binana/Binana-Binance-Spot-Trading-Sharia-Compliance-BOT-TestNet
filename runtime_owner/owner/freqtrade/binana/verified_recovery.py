@@ -107,7 +107,7 @@ class VerifiedRecovery:
                         # fail-closed and is never classified this way.
                         text=str(exc or "")
                         replacement_pending=(
-                            gen.get("status")=="SUBMISSION_PENDING"
+                            gen.get("status") in {"SUBMISSION_PENDING", "REPLACEMENT_PENDING"}
                             and not gen.get("working_client_id")
                             and explicit_absence(exc, order_list=True)
                         )
@@ -215,38 +215,13 @@ class VerifiedRecovery:
             gen,ch = active_histories[0]
             if gen["mode"] in {"TARGET_EXIT","STOP_EXIT","OPERATOR_EXIT"}:
                 raise RecoveryBlocked(gen["mode"]+"_NOT_TERMINAL")
-            if not live_protection(ch["tp"],ch["sl"],quantity):
-                # A single surviving OCO child is incomplete protection, not a
-                # quantity mismatch.  First prove both children still represent
-                # exactly the verified protectable quantity.  Then durably mark
-                # cancellation before mutating Binance.  The next reconciliation
-                # pass re-reads both children/fills and performs the existing
-                # STOP_EXIT, TARGET_EXIT, or replacement-OCO recovery path.
-                q=dec(quantity)
-                tp_remaining=dec(ch["tp"].get("amount",0))-dec(ch["tp"].get("filled",0))
-                sl_remaining=dec(ch["sl"].get("amount",0))-dec(ch["sl"].get("filled",0))
-                if tp_remaining != q or sl_remaining != q:
-                    raise RecoveryBlocked("PROTECTION_CHILD_QUANTITY_MISMATCH")
-                live_keys=[k for k in ("tp","sl") if ch[k].get("status")=="open"]
-                terminal_keys=[k for k in ("tp","sl") if ch[k].get("status") in TERMINAL]
-                if len(live_keys)!=1 or len(terminal_keys)!=1:
-                    raise RecoveryBlocked("INCOMPLETE_PROTECTION_STATE_UNSAFE")
-                generation=int(gen["generation"])
-                self.store.update_generation_status(iid,generation,"REPAIR_CANCEL_INTENT")
-                self._recovery_block(iid,pair,
-                    "INCOMPLETE_PROTECTION_CANCEL_PENDING:tp="+
-                    str(ch["tp"].get("status"))+",sl="+str(ch["sl"].get("status")))
-                try:
-                    self.order_lists.cancel_list(symbol=pair,
-                        order_list_id=gen.get("order_list_id"),
-                        list_client_id=gen.get("list_client_id"))
-                except Exception as exc:
-                    self.store.update_generation_status(iid,generation,"CANCEL_UNKNOWN")
-                    self._recovery_block(iid,pair,
-                        "INCOMPLETE_PROTECTION_CANCEL_UNKNOWN:"+type(exc).__name__)
-                    return None
-                self.store.update_generation_status(iid,generation,"REPAIR_CANCELLED")
-                return None
+            if not live_protection(ch["tp"],ch["sl"],quantity,
+                    plan=json.loads(gen.get('payload_json') or '{}').get('plan'),
+                    order_list_id=gen.get('order_list_id')):
+                # A native OCO trigger can legitimately cancel its sibling while
+                # the other child is working. Preserve the exchange obligation;
+                # require explicit lifecycle evidence instead of cancelling it.
+                raise RecoveryBlocked('SINGLE_CHILD_NATIVE_STATE_REQUIRES_RECONCILIATION')
             self.store.update_generation_status(iid,int(gen["generation"]),
                 "TRAILING_ACTIVE" if gen["mode"]=="TRAILING_OCO" else "FIXED_ACTIVE",
                 payload={"verified_at":time(),"verified_quantity":str(quantity)})
@@ -350,7 +325,8 @@ class VerifiedRecovery:
                 pair=pair,role=role,client_id=cid,order_id=oid)
         fresh = self.store.generation(iid,new_generation)
         tp,sl=self._owned_child(pair,fresh,"tp"),self._owned_child(pair,fresh,"sl")
-        if not live_protection(tp,sl,quantity):
+        if not live_protection(tp,sl,quantity,plan=json.loads(fresh['payload_json']).get('plan'),
+                order_list_id=fresh.get('order_list_id')):
             raise RecoveryBlocked("NEW_PROTECTION_NOT_LIVE")
         self.store.update_generation_status(iid,new_generation,
             "TRAILING_ACTIVE" if plan.mode=="TRAILING_OCO" else "FIXED_ACTIVE",

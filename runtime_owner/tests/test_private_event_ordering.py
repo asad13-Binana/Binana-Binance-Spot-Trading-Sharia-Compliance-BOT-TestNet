@@ -1,4 +1,5 @@
 import json
+from contextlib import closing
 from pathlib import Path
 import sqlite3
 from tempfile import TemporaryDirectory
@@ -16,7 +17,7 @@ class PrivateEventOrdering(unittest.TestCase):
             duplicate=stream._record_event({'subscriptionId':1,'event':{**event,'E':2001}},1)
             older=stream._record_event({'subscriptionId':1,'event':{**event,'I':101,'E':1000,'z':'0','x':'NEW'}},1)
             self.assertTrue(first['_new_event']);self.assertFalse(duplicate['_new_event']);self.assertTrue(older['_new_event'])
-            with sqlite3.connect(str(Path(directory)/'freqtrade_lifecycle_events.sqlite')) as connection:
+            with closing(sqlite3.connect(str(Path(directory)/'freqtrade_lifecycle_events.sqlite'))) as connection:
                 rows=[json.loads(row[0]) for row in connection.execute('SELECT payload FROM lifecycle_events ORDER BY seq')]
                 tables={row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
             self.assertEqual([row['execution_id'] for row in rows],[102,101])

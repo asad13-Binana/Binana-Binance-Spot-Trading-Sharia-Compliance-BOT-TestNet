@@ -80,6 +80,18 @@ CREATE TABLE IF NOT EXISTS incidents (
  updated_ts REAL NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_protection_pair ON protection(pair, status);
+CREATE TABLE IF NOT EXISTS protection_plan_revisions (
+ intent_id TEXT NOT NULL, generation INTEGER NOT NULL, revision INTEGER NOT NULL,
+ plan_json TEXT NOT NULL, plan_sha256 TEXT NOT NULL, reason TEXT NOT NULL,
+ created_ts REAL NOT NULL, PRIMARY KEY(intent_id,generation,revision),
+ FOREIGN KEY(intent_id,generation) REFERENCES protection(intent_id,generation)
+);
+CREATE TRIGGER IF NOT EXISTS immutable_plan_revision_update
+BEFORE UPDATE ON protection_plan_revisions
+BEGIN SELECT RAISE(ABORT, 'immutable plan revision'); END;
+CREATE TRIGGER IF NOT EXISTS immutable_plan_revision_delete
+BEFORE DELETE ON protection_plan_revisions
+BEGIN SELECT RAISE(ABORT, 'immutable plan revision'); END;
 CREATE TRIGGER IF NOT EXISTS immutable_protection_identity
 BEFORE UPDATE ON protection
 WHEN OLD.intent_id IS NOT NEW.intent_id OR OLD.generation IS NOT NEW.generation
@@ -375,7 +387,8 @@ class StateStore:
 
     def put_generation(self, *, intent_id: str, generation: int, pair: str, mode: str,
                        status: str, ids: dict[str, Any] | None = None,
-                       expected_qty: str | None = None, payload: dict[str, Any] | None = None) -> None:
+                       expected_qty: str | None = None, payload: dict[str, Any] | None = None,
+                       plan_revision_reason: str | None = None) -> None:
         ids = ids or {}; payload = payload or {}; now = time()
         fields = (
             intent_id,generation,pair,mode,status,
@@ -384,6 +397,20 @@ class StateStore:
             expected_qty,None,None,"[]",json.dumps(payload,sort_keys=True,separators=(",",":")),now,
         )
         with self.tx() as c:
+            # Status/receipt updates must not erase the durable protection plan.
+            # Read and merge in the same write transaction as the upsert.
+            previous = c.execute("SELECT payload_json,status FROM protection WHERE intent_id=? AND generation=?",
+                                 (intent_id, generation)).fetchone()
+            if previous is not None:
+                merged = json.loads(previous['payload_json'])
+                if 'profile' in payload and 'profile' in merged and payload['profile'] != merged['profile']:
+                    raise ValueError('immutable protection profile')
+                if 'plan' in payload and 'plan' in merged and payload['plan'] != merged['plan']:
+                    if (plan_revision_reason != 'verified_partial_fill_after_cancel'
+                            or previous['status'] not in {'PROMOTION_INTENT','REPLACEMENT_PENDING'}):
+                        raise ValueError('explicit pre-submission plan revision required')
+                merged.update(payload)
+                fields = (*fields[:-2], json.dumps(merged,sort_keys=True,separators=(",",":")), now)
             c.execute("""INSERT INTO protection(intent_id,generation,pair,mode,status,order_list_id,list_client_id,
               working_order_id,working_client_id,tp_order_id,tp_client_id,sl_order_id,sl_client_id,expected_qty,
               filled_qty,avg_fill,fees_json,payload_json,updated_ts) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
@@ -398,6 +425,17 @@ class StateStore:
               sl_client_id=COALESCE(excluded.sl_client_id,protection.sl_client_id),
               expected_qty=COALESCE(excluded.expected_qty,protection.expected_qty),payload_json=excluded.payload_json,
               updated_ts=excluded.updated_ts""", fields)
+            if 'plan' in payload:
+                canonical=json.dumps({'plan':payload['plan'],'profile':json.loads(fields[-2]).get('profile')},
+                                     sort_keys=True,separators=(',',':'))
+                digest=sha256(canonical.encode()).hexdigest()
+                revision=c.execute('SELECT revision,plan_sha256 FROM protection_plan_revisions '
+                    'WHERE intent_id=? AND generation=? ORDER BY revision DESC LIMIT 1',
+                    (intent_id,generation)).fetchone()
+                if revision is None or revision['plan_sha256'] != digest:
+                    c.execute('INSERT INTO protection_plan_revisions VALUES(?,?,?,?,?,?,?)',
+                        (intent_id,generation,1 if revision is None else revision['revision']+1,
+                         canonical,digest,plan_revision_reason or 'initial_plan',now))
 
     def update_generation_status(self, intent_id: str, generation: int, status: str, *, payload: dict[str, Any] | None = None) -> None:
         with self.tx() as c:
@@ -405,8 +443,15 @@ class StateStore:
                 c.execute("UPDATE protection SET status=?,updated_ts=? WHERE intent_id=? AND generation=?",
                           (status,time(),intent_id,generation))
             else:
+                previous = c.execute("SELECT payload_json FROM protection WHERE intent_id=? AND generation=?",
+                                     (intent_id, generation)).fetchone()
+                merged = json.loads(previous['payload_json']) if previous is not None else {}
+                for key in ('plan','profile'):
+                    if key in payload and payload[key] != merged.get(key):
+                        raise ValueError('status update cannot change protection '+key)
+                merged.update(payload)
                 c.execute("UPDATE protection SET status=?,payload_json=?,updated_ts=? WHERE intent_id=? AND generation=?",
-                          (status,json.dumps(payload,sort_keys=True,separators=(",",":"),default=str),time(),intent_id,generation))
+                          (status,json.dumps(merged,sort_keys=True,separators=(",",":"),default=str),time(),intent_id,generation))
 
     def close_incident(self, incident_id: str) -> None:
         with self.tx() as c:
