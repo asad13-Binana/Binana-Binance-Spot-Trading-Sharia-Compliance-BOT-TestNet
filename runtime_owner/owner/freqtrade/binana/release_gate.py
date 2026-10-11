@@ -51,8 +51,40 @@ def certificate_blockers(certificate, bindings, *, now=None):
     return blockers
 
 
-def load_certificate(path):
+def _unique_object(pairs):
+    result={}
+    for key,value in pairs:
+        if key in result:
+            raise ValueError('duplicate certificate member')
+        result[key]=value
+    return result
+
+
+def load_certificate(path, *, authority_path='/freqtrade/binana-config/release-authority.ed25519.pub'):
+    """Authenticate issuer bytes before considering any acceptance claims.
+
+    The raw 32-byte public key is supplied through the owner-read-only config
+    mount. It is never selected by the certificate itself. The private issuer
+    key must remain outside the trading container. Missing/legacy certificates
+    fail closed; this verifier does not issue or renew release evidence.
+    """
     try:
-        return json.loads(Path(path).read_text())
-    except (OSError, ValueError):
+        envelope=json.loads(Path(path).read_text(),object_pairs_hook=_unique_object)
+        if (not isinstance(envelope,dict) or set(envelope)!={'schema','payload','signature'}
+                or envelope['schema']!='binana-release-ed25519-v1'
+                or not isinstance(envelope['payload'],dict)):
+            return None
+        import base64
+        from cryptography.exceptions import InvalidSignature
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+        signature=base64.b64decode(envelope['signature'],validate=True)
+        if len(signature)!=64: return None
+        canonical=json.dumps(envelope['payload'],sort_keys=True,separators=(',',':'),allow_nan=False).encode()
+        authority=Ed25519PublicKey.from_public_bytes(Path(authority_path).read_bytes())
+        try:
+            authority.verify(signature,canonical)
+        except InvalidSignature:
+            return None
+        return envelope['payload']
+    except (OSError, ValueError, TypeError, ImportError):
         return None

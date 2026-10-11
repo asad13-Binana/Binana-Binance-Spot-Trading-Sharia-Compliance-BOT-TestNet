@@ -24,6 +24,8 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: '3.14'
+      - name: Install the existing hash-locked cryptography closure
+        run: python -m pip install --require-hashes -r monitoring/requirements-monitoring.lock
       - name: Run credential-free owner regressions with network and subprocesses denied
         run: python -X utf8 scripts/validate_owner_offline.py
   # The V8.1 release was blocked by an interpreter-dependent strategy-hash
