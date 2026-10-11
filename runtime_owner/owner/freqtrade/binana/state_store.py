@@ -409,6 +409,11 @@ class StateStore:
                     if (plan_revision_reason != 'verified_partial_fill_after_cancel'
                             or previous['status'] not in {'PROMOTION_INTENT','REPLACEMENT_PENDING'}):
                         raise ValueError('explicit pre-submission plan revision required')
+                    old_plan,new_plan=merged['plan'],payload['plan']
+                    if ({k:v for k,v in old_plan.items() if k!='quantity'} !=
+                            {k:v for k,v in new_plan.items() if k!='quantity'}
+                            or not Decimal(0)<Decimal(str(new_plan['quantity']))<Decimal(str(old_plan['quantity']))):
+                        raise ValueError('residual revision must only reduce protection quantity')
                 merged.update(payload)
                 fields = (*fields[:-2], json.dumps(merged,sort_keys=True,separators=(",",":")), now)
             c.execute("""INSERT INTO protection(intent_id,generation,pair,mode,status,order_list_id,list_client_id,

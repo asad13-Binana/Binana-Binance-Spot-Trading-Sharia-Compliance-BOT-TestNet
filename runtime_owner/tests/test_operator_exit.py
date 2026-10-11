@@ -107,6 +107,12 @@ class OperatorExitTests(unittest.TestCase):
         for oid, key in (('20','aboveClientOrderId'),('21','belowClientOrderId')):
             self.orders[oid] = dict(self.orders['2'], id=oid, clientOrderId=params[key],
                 amount=float(params['quantity']),filled=0,cost=0,remaining=float(params['quantity']),status='open')
+            role='above' if oid=='20' else 'below'
+            self.orders[oid]['info']={'clientOrderId':params[key],'orderListId':600,
+                'type':params[role+'Type'],'price':params.get(role+'Price','0'),
+                'stopPrice':params.get(role+'StopPrice','0'),
+                'timeInForce':params.get(role+'TimeInForce'),
+                'trailingDelta':params.get(role+'TrailingDelta')}
         return {'orderListId':600,'orders':[{'orderId':int(oid),'clientOrderId':self.orders[oid]['clientOrderId']}
                                            for oid in ('20','21')]}
 

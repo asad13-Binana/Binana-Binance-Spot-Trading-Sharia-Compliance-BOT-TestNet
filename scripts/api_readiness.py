@@ -181,7 +181,7 @@ def check_telegram(config: Mapping[str, Any], transport: Transport) -> Result:
 def check_coingecko(config: Mapping[str, Any], transport: Transport) -> Result:
     key = str(config.get("COINGECKO_API_KEY") or "").strip()
     required = _bool(config.get("ENABLE_COINGECKO_SIGNALS")) or _bool(
-        config.get("SHARIA_AUTO_SOURCE_DISCOVERY_ENABLED"), default=True
+        config.get("SHARIA_AUTO_SOURCE_DISCOVERY_ENABLED"), default=False
     )
     if not _configured(key):
         return _fail(required, "key_not_configured") if required else _skip("key_not_configured")
@@ -204,7 +204,7 @@ def check_coingecko(config: Mapping[str, Any], transport: Transport) -> Result:
 def check_coinmarketcap(config: Mapping[str, Any], transport: Transport) -> Result:
     key = str(config.get("COINMARKETCAP_API_KEY") or config.get("CMC_API_KEY") or "").strip()
     required = _bool(config.get("ENABLE_CMC_TRENDING")) or _bool(
-        config.get("SHARIA_AUTO_SOURCE_DISCOVERY_ENABLED"), default=True
+        config.get("SHARIA_AUTO_SOURCE_DISCOVERY_ENABLED"), default=False
     )
     if not _configured(key):
         return _fail(required, "key_not_configured") if required else _skip("key_not_configured")

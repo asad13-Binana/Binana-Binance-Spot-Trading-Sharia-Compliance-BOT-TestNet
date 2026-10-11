@@ -16,6 +16,16 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  owner-unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.14'
+      - name: Run credential-free owner regressions with network and subprocesses denied
+        run: python -X utf8 scripts/validate_owner_offline.py
   # The V8.1 release was blocked by an interpreter-dependent strategy-hash
   # test that failed on the Python 3.12 its own Docker/CI selected. V10.1
   # therefore verifies the complete offline suite on every supported
@@ -133,7 +143,7 @@ jobs:
             bash /source/tests/clean_host/run.sh
 
   artifact:
-    needs: [verify, sast, quality-evidence, clean-host-installer]
+    needs: [verify, sast, quality-evidence, clean-host-installer, owner-unit]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
