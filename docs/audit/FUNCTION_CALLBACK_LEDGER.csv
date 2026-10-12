@@ -2888,6 +2888,7 @@ scripts/generate_evidence_status.py,main,function,top-level-or-method,134,136,-,
 scripts/recovery/authorize_verified_owner_20261008.py,certificate_from_status,function,top-level-or-method,22,36,-,release-script
 scripts/recovery/authorize_verified_owner_20261008.py,verified_boot,function,top-level-or-method,39,49,-,release-script
 scripts/recovery/authorize_verified_owner_20261008.py,main,function,top-level-or-method,52,148,-,release-script
+scripts/recovery/compact_daily_backups.py,main,function,top-level-or-method,15,24,-,release-script
 scripts/recovery/compact_old_binana_backups_20261007.py,require,function,top-level-or-method,16,18,-,release-script
 scripts/recovery/compact_old_binana_backups_20261007.py,digest,function,top-level-or-method,21,23,-,release-script
 scripts/recovery/compact_old_binana_backups_20261007.py,inventory,function,top-level-or-method,26,31,-,release-script
@@ -2903,6 +2904,8 @@ scripts/recovery/deploy_candidate_owner.py,preserve_accounting,function,top-leve
 scripts/recovery/deploy_candidate_owner.py,attest,function,top-level-or-method,118,131,-,release-script
 scripts/recovery/deploy_candidate_owner.py,wait,function,top-level-or-method,134,164,-,release-script
 scripts/recovery/deploy_candidate_owner.py,main,function,top-level-or-method,167,231,-,release-script
+scripts/recovery/deploy_candidate_panel.py,main,function,top-level-or-method,10,62,-,release-script
+scripts/recovery/deploy_candidate_panel.py,main.healthy,function,nested,37,43,-,release-script
 scripts/recovery/deploy_market_recovery_20261007.py,command,function,top-level-or-method,16,17,-,release-script
 scripts/recovery/deploy_market_recovery_20261007.py,identity,function,top-level-or-method,20,22,-,release-script
 scripts/recovery/deploy_market_recovery_20261007.py,atomic_write,function,top-level-or-method,25,39,-,release-script
