@@ -2927,7 +2927,9 @@ scripts/recovery/deploy_paused_owner_20261008.py,wait_owner,function,top-level-o
 scripts/recovery/deploy_paused_owner_20261008.py,main,function,top-level-or-method,237,335,-,release-script
 scripts/recovery/deploy_paused_owner_20261008.py,main.install,function,nested,278,287,-,release-script
 scripts/recovery/deploy_research_security_20261007.py,run,function,top-level-or-method,4,7,-,release-script
-scripts/recovery/issue_candidate_release.py,main,function,top-level-or-method,15,60,-,release-script
+scripts/recovery/issue_candidate_release.py,previous_authority,function,top-level-or-method,17,29,-,release-script
+scripts/recovery/issue_candidate_release.py,refresh_offline,function,top-level-or-method,32,52,-,release-script
+scripts/recovery/issue_candidate_release.py,main,function,top-level-or-method,55,112,-,release-script
 scripts/recovery/probe_controlled_owner_lifecycle.py,durable,function,top-level-or-method,27,34,-,release-script
 scripts/recovery/probe_controlled_owner_lifecycle.py,sync_directory,function,top-level-or-method,37,42,-,release-script
 scripts/recovery/probe_controlled_owner_lifecycle.py,safe_error,function,top-level-or-method,45,49,-,release-script
@@ -2945,14 +2947,14 @@ scripts/recovery/probe_controlled_owner_lifecycle.py,snapshot,function,top-level
 scripts/recovery/probe_controlled_owner_lifecycle.py,account_totals,function,top-level-or-method,281,284,-,release-script
 scripts/recovery/probe_controlled_owner_lifecycle.py,canonical_signature,function,top-level-or-method,287,288,-,release-script
 scripts/recovery/probe_controlled_owner_lifecycle.py,main,function,top-level-or-method,291,434,-,release-script
-scripts/recovery/probe_owner_slot_soak.py,SlotGuard.__init__,function,top-level-or-method,22,24,-,release-script
-scripts/recovery/probe_owner_slot_soak.py,SlotGuard.validate,function,top-level-or-method,26,36,-,release-script
-scripts/recovery/probe_owner_slot_soak.py,states,function,top-level-or-method,39,45,-,release-script
-scripts/recovery/probe_owner_slot_soak.py,normalized,function,top-level-or-method,48,49,-,release-script
-scripts/recovery/probe_owner_slot_soak.py,unexpected,function,top-level-or-method,52,54,-,release-script
-scripts/recovery/probe_owner_slot_soak.py,protected,function,top-level-or-method,57,65,-,release-script
-scripts/recovery/probe_owner_slot_soak.py,settle,function,top-level-or-method,68,85,-,release-script
-scripts/recovery/probe_owner_slot_soak.py,main,function,top-level-or-method,88,256,-,release-script
+scripts/recovery/probe_owner_slot_soak.py,SlotGuard.__init__,function,top-level-or-method,24,26,-,release-script
+scripts/recovery/probe_owner_slot_soak.py,SlotGuard.validate,function,top-level-or-method,28,38,-,release-script
+scripts/recovery/probe_owner_slot_soak.py,states,function,top-level-or-method,41,47,-,release-script
+scripts/recovery/probe_owner_slot_soak.py,normalized,function,top-level-or-method,50,51,-,release-script
+scripts/recovery/probe_owner_slot_soak.py,unexpected,function,top-level-or-method,54,56,-,release-script
+scripts/recovery/probe_owner_slot_soak.py,protected,function,top-level-or-method,59,67,-,release-script
+scripts/recovery/probe_owner_slot_soak.py,settle,function,top-level-or-method,70,87,-,release-script
+scripts/recovery/probe_owner_slot_soak.py,main,function,top-level-or-method,90,258,-,release-script
 scripts/recovery/probe_testnet_order_validation.py,check_transport,function,top-level-or-method,20,28,-,release-script
 scripts/recovery/probe_testnet_order_validation.py,restrict_session,function,top-level-or-method,31,43,-,release-script
 scripts/recovery/probe_testnet_order_validation.py,restrict_session.send,function,nested,34,41,-,release-script
@@ -4466,6 +4468,13 @@ tests/test_provider_budget_contract.py,ProviderBudgetContractTests.test_disabled
 tests/test_provider_budget_contract.py,ProviderBudgetContractTests.test_keyless_sharia_is_clamped_and_shared_keyless_use_blocks,function,top-level-or-method,61,70,-,test
 tests/test_provider_budget_contract.py,ProviderBudgetContractTests.test_malformed_boolean_or_budget_is_rejected,function,top-level-or-method,72,78,-,test
 tests/test_provider_budget_contract.py,ProviderBudgetContractTests.test_compose_wires_manual_projector_and_exact_package_execution_contract,function,top-level-or-method,80,101,-,test
+tests/test_release_renewal_host.py,RenewalTests.setUp,function,top-level-or-method,19,28,-,test
+tests/test_release_renewal_host.py,RenewalTests.tearDown,function,top-level-or-method,29,30,-,test
+tests/test_release_renewal_host.py,RenewalTests.signed,function,top-level-or-method,31,31,-,test
+tests/test_release_renewal_host.py,RenewalTests.test_same_accepted_bindings_can_renew,function,top-level-or-method,32,33,-,test
+tests/test_release_renewal_host.py,RenewalTests.test_every_changed_binding_is_rejected,function,top-level-or-method,34,37,-,test
+tests/test_release_renewal_host.py,RenewalTests.test_tampered_payload_cannot_renew,function,top-level-or-method,38,41,-,test
+tests/test_release_renewal_host.py,RenewalTests.test_signed_but_incomplete_acceptance_is_rejected,function,top-level-or-method,42,45,-,test
 tests/test_runtime_recovery_20260830.py,scenario,function,top-level-or-method,19,38,pytest.fixture,test
 tests/test_runtime_recovery_20260830.py,trade,function,top-level-or-method,41,43,-,test
 tests/test_runtime_recovery_20260830.py,test_submission_ack_cannot_regress_protection,function,top-level-or-method,47,52,"pytest.mark.parametrize('fault', ['none', 'partial_fill'])",test
