@@ -2893,6 +2893,16 @@ scripts/recovery/compact_old_binana_backups_20261007.py,digest,function,top-leve
 scripts/recovery/compact_old_binana_backups_20261007.py,inventory,function,top-level-or-method,26,31,-,release-script
 scripts/recovery/compact_old_binana_backups_20261007.py,unmounted,function,top-level-or-method,34,40,-,release-script
 scripts/recovery/compact_old_binana_backups_20261007.py,compact,function,top-level-or-method,43,94,-,release-script
+scripts/recovery/deploy_candidate_owner.py,run,function,top-level-or-method,30,33,-,release-script
+scripts/recovery/deploy_candidate_owner.py,inspect,function,top-level-or-method,36,36,-,release-script
+scripts/recovery/deploy_candidate_owner.py,verify_flat_testnet,function,top-level-or-method,39,62,-,release-script
+scripts/recovery/deploy_candidate_owner.py,compose,function,top-level-or-method,65,71,-,release-script
+scripts/recovery/deploy_candidate_owner.py,api_state,function,top-level-or-method,74,82,-,release-script
+scripts/recovery/deploy_candidate_owner.py,backup,function,top-level-or-method,85,89,-,release-script
+scripts/recovery/deploy_candidate_owner.py,preserve_accounting,function,top-level-or-method,92,115,-,release-script
+scripts/recovery/deploy_candidate_owner.py,attest,function,top-level-or-method,118,131,-,release-script
+scripts/recovery/deploy_candidate_owner.py,wait,function,top-level-or-method,134,164,-,release-script
+scripts/recovery/deploy_candidate_owner.py,main,function,top-level-or-method,167,231,-,release-script
 scripts/recovery/deploy_market_recovery_20261007.py,command,function,top-level-or-method,16,17,-,release-script
 scripts/recovery/deploy_market_recovery_20261007.py,identity,function,top-level-or-method,20,22,-,release-script
 scripts/recovery/deploy_market_recovery_20261007.py,atomic_write,function,top-level-or-method,25,39,-,release-script
@@ -2914,6 +2924,7 @@ scripts/recovery/deploy_paused_owner_20261008.py,wait_owner,function,top-level-o
 scripts/recovery/deploy_paused_owner_20261008.py,main,function,top-level-or-method,237,335,-,release-script
 scripts/recovery/deploy_paused_owner_20261008.py,main.install,function,nested,278,287,-,release-script
 scripts/recovery/deploy_research_security_20261007.py,run,function,top-level-or-method,4,7,-,release-script
+scripts/recovery/issue_candidate_release.py,main,function,top-level-or-method,15,60,-,release-script
 scripts/recovery/probe_controlled_owner_lifecycle.py,durable,function,top-level-or-method,27,34,-,release-script
 scripts/recovery/probe_controlled_owner_lifecycle.py,sync_directory,function,top-level-or-method,37,42,-,release-script
 scripts/recovery/probe_controlled_owner_lifecycle.py,safe_error,function,top-level-or-method,45,49,-,release-script
@@ -2992,6 +3003,8 @@ scripts/recovery/run_testnet_otoco_no_fill.py,owner_state,function,top-level-or-
 scripts/recovery/run_testnet_otoco_no_fill.py,database_summary,function,top-level-or-method,38,49,-,release-script
 scripts/recovery/run_testnet_otoco_no_fill.py,verified_result,function,top-level-or-method,52,56,-,release-script
 scripts/recovery/run_testnet_otoco_no_fill.py,main,function,top-level-or-method,59,143,-,release-script
+scripts/recovery/verify_candidate_restore.py,logical,function,top-level-or-method,18,19,-,release-script
+scripts/recovery/verify_candidate_restore.py,main,function,top-level-or-method,22,124,-,release-script
 scripts/recovery/verify_owner_backup_restore.py,logical,function,top-level-or-method,16,17,-,release-script
 scripts/recovery/verify_owner_backup_restore.py,main,function,top-level-or-method,20,114,-,release-script
 scripts/run_validation_venv.py,classify_returncode,function,top-level-or-method,21,28,-,release-script
