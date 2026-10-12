@@ -365,16 +365,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "204f04a6317aa27306b31e62f3f2186d39e6eaf6afd2bbd51746d956ae183ff2",
-      "size": 91097
+      "sha256": "2631516ea608e90fb7e21812dbe400a2ee8aa52f3b7d88e2b91da3dd35764bac",
+      "size": 91427
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "a18f8ae5acbe580ba701154003ac2a0c31aefb2351baab28a74e720972e37c6c",
-      "size": 674299
+      "sha256": "549a395905f9dc08d9f1b66b6c5556a98d579ef185cfa481a97984e025ae9123",
+      "size": 674593
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -1464,6 +1464,10 @@
       "sha256": "2e18a970a07b06551df751f77027b5a0852cb341ca041b24ed4547ae66d72af0",
       "size": 9700
     },
+    "scripts/recovery/compact_daily_backups.py": {
+      "sha256": "61dc13ef273341c93998ebaf82b3f3427b7349fd157294f98b545ecbd1cbd296",
+      "size": 959
+    },
     "scripts/recovery/compact_old_binana_backups_20261007.py": {
       "sha256": "176791c8622c50e8244e7640d8beebfc0bd816a93f2385a2b0f6be3637ba18b8",
       "size": 4237
@@ -1471,6 +1475,10 @@
     "scripts/recovery/deploy_candidate_owner.py": {
       "sha256": "af8fb4856f61810a24bf493ba6cb09d71ece47a9a7f670415dc558e7ff932836",
       "size": 14284
+    },
+    "scripts/recovery/deploy_candidate_panel.py": {
+      "sha256": "a9f6002f86f658201c5db7a43e2cfe7b7d3408c79ce9ceff870b737b0c5e86e0",
+      "size": 3773
     },
     "scripts/recovery/deploy_market_recovery_20261007.py": {
       "sha256": "ce560767fbc7cd5a65da903fa5baa50bf111c4fb6ec6131026a4b9b98b099e1f",
