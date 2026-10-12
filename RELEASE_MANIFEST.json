@@ -365,7 +365,7 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "76e596b4dc43597f8df17056a498d66f58fc2d4d35eb4a2555ccde21cf322607",
+      "sha256": "5db46e96062ce8413a19d7077c878748757630dd8ee3020b337f6c5c2251a0e5",
       "size": 90595
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
@@ -373,7 +373,7 @@
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "a00953b4c85526495ae66065158d6505f5107ca5e53a7c372a5dbc4b76ddfd41",
+      "sha256": "2251fdc4d91ff9b63feb538c37f9c8410073e68ef3ed96d1c19e9989fc188673",
       "size": 672939
     },
     "docs/audit/ISSUE_LEDGER.csv": {
@@ -1513,8 +1513,8 @@
       "size": 6657
     },
     "scripts/recovery/run_candidate_acceptance.py": {
-      "sha256": "badbc50115532ef782b4169958019fc607e8a87d3ddae4c75e2025501cabaece",
-      "size": 12204
+      "sha256": "937393c89d988321d9321c0cc362a101f46cd2af217f686cd53b6481db407a41",
+      "size": 12826
     },
     "scripts/recovery/run_controlled_owner_lifecycle.py": {
       "sha256": "2fdcf7a3defca90b3e310c38e6cd37ba861bf9b167adc8668e24fda109422d56",

@@ -10,6 +10,7 @@ import time
 
 
 IMAGE = None
+MAINTENANCE_STOPPED = False
 SOURCE = Path('/var/lib/binana-testnet/shared')
 OWNER = 'binana-testnet-freqtrade-1'
 CONFIG = Path('/home/ubuntu/binana-repair-20260912T130255Z/release-config/config.json')
@@ -21,6 +22,13 @@ def inspect_owner():
 
 
 def owner_state():
+    if MAINTENANCE_STOPPED:
+        if inspect_owner()['State']['Running'] is not False:
+            raise RuntimeError('MAINTENANCE_OWNER_RESTARTED')
+        config=json.loads(CONFIG.read_text())
+        if config.get('dry_run') is not False or config.get('binana',{}).get('environment')!='testnet':
+            raise RuntimeError('MAINTENANCE_TESTNET_CONFIG_REQUIRED')
+        return {'state':'maintenance_stopped','dry_run':False,'trading_mode':'spot'}
     # Execute locally inside the owner; do not serialize its API credentials.
     code = """import os,json,base64,urllib.request
 v=os.environ
@@ -77,13 +85,15 @@ def container_command(data, credentials, container):
 
 
 def main():
-    global IMAGE
+    global IMAGE, MAINTENANCE_STOPPED
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--image', required=True)
+    parser.add_argument('--owner-stopped', action='store_true')
     parser.add_argument('--slot-soak', type=int, choices=[1,4])
     args = parser.parse_args()
     IMAGE=args.image
+    MAINTENANCE_STOPPED=args.owner_stopped
     import re
     if not re.fullmatch(r'sha256:[0-9a-f]{64}',IMAGE): raise RuntimeError('IMMUTABLE_IMAGE_REQUIRED')
     if json.loads(subprocess.check_output(['docker','image','inspect',IMAGE]))[0]['Id']!=IMAGE: raise RuntimeError('IMAGE_MISMATCH')
