@@ -22,7 +22,7 @@ class OwnerBuildContext(unittest.TestCase):
                                         'bytes': path.stat().st_size}}}
         (source / 'PROVENANCE.json').write_text(json.dumps(document))
         (source / 'deployment').mkdir()
-        for name in ['Dockerfile', 'validate_image.py']:
+        for name in ['Dockerfile', 'validate_image.py','release_authority.py']:
             (source / 'deployment' / name).write_text('placeholder')
         return source, path
 

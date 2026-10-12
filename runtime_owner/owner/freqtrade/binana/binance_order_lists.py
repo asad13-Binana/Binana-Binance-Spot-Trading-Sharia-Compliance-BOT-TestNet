@@ -277,6 +277,18 @@ class BinanceOrderLists:
             raise OrderListError('account open-order evidence unavailable')
         open_orders=[row for row in all_orders if row.get('symbol')==symbol]
         open_lists=[row for row in all_lists if row.get('symbol')==symbol]
+        position=self._filter(filters,'MAX_POSITION')
+        if position and otoco:
+            balances=self.api.privateGetAccount({}).get('balances')
+            if not isinstance(balances,list): raise OrderListError('MAX_POSITION balances unavailable')
+            matches=[row for row in balances if row.get('asset')==base_asset]
+            if len(matches)!=1: raise OrderListError('MAX_POSITION base balance unavailable')
+            held=self._decimal(matches[0]['free'])+self._decimal(matches[0]['locked'])
+            pending=sum((self._decimal(row['origQty'])-self._decimal(row['executedQty'])
+                for row in open_orders if row.get('side')=='BUY'),Decimal(0))
+            maximum=self._decimal(position['maxPosition'])
+            if min(held,pending)<0 or maximum<=0 or held+pending+self._decimal(plan.quantity)>maximum:
+                raise OrderListError('MAX_POSITION capacity exceeded')
         additional_orders=3 if otoco else 2
         max_orders=self._count_limit(self._filter(filters,"MAX_NUM_ORDERS"),"maxNumOrders")
         if max_orders is not None and len(open_orders)+additional_orders > max_orders: raise OrderListError("MAX_NUM_ORDERS capacity exceeded")

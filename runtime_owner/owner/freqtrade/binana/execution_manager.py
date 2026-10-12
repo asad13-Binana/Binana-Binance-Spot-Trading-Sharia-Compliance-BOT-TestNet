@@ -85,7 +85,7 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
             latest = self.store.latest_generation(intent_id)
             if latest and (intent['state']=='DUST_RETAINED' or (
                     intent['state']=='OPEN' and latest['mode'] in {'FIXED_OCO','TRAILING_OCO'}
-                    and latest['status'] in {'FIXED_ACTIVE','TRAILING_ACTIVE'})):
+                    and latest['status'] in {'FIXED_ACTIVE','TRAILING_ACTIVE','NATIVE_EXIT_WORKING'})):
                 self.store.close_incident('operator-exit-'+intent_id)
 
     def refresh_runtime_evidence(self):
@@ -130,7 +130,7 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
         bindings = runtime_bindings(self.config)
         bindings['account_key_sha256'] = sha256(str(self.exchange._api.apiKey).encode()).hexdigest()
         runtime = Path(self.config['binana']['state_db_path']).parent / 'runtime'
-        certificate = load_certificate(runtime / 'freqtrade_owner_patch_ready.json')
+        certificate = load_certificate('/freqtrade/binana-release/certificate.json')
         blockers = certificate_blockers(certificate, bindings)
         from .persistence_readiness import persistence_readiness
         persistence = persistence_readiness(self.config['binana']['state_db_path'])
@@ -158,6 +158,9 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
         if self.store.has_blockers():
             blockers.append('RECONCILIATION_BLOCKER_OPEN')
         return {**bindings, 'generated_at':time(), 'valid_until':time()+30,
+                'sizing_policy':{'allocation_usdt':str(self.config['binana']['allocation_usdt']),
+                    'nominal_usdt':str(self.config['stake_amount']),
+                    'max_open_trades':self.config['max_open_trades']},
                 'order_owner':'FREQTRADE', 'scope_id':self.scope_id, 'execution_environment':'TESTNET',
                 'market_data_environment':'PRODUCTION_PUBLIC_SPOT',
                 'authenticated_reconciliation':dict(rest),

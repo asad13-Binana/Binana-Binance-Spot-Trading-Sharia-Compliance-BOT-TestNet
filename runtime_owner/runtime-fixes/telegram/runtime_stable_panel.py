@@ -24,13 +24,17 @@ def _tg_request(method, endpoint, *, data=None, timeout=15, attempts=4):
     last = None
     for attempt in range(max(1, int(attempts))):
         try:
+            if endpoint in {'/sendMessage','/editMessageText'} and isinstance(data,dict) and data.get('chat_id'):
+                time.sleep(_notification_outbox().reserve_chat(data['chat_id']))
             r = base.requests.request(method, base.BASE + endpoint, data=data, timeout=timeout)
             if r.status_code == 429:
                 try:
                     retry_after = float((r.json().get('parameters') or {}).get('retry_after', 1))
                 except Exception:
                     retry_after = 1.0
-                time.sleep(min(8.0, max(0.5, retry_after)))
+                if isinstance(data,dict) and data.get('chat_id'):
+                    _notification_outbox().defer_chat(data['chat_id'],retry_after)
+                time.sleep(max(0.5,retry_after))
                 last = RuntimeError('Telegram rate limited')
                 continue
             if r.status_code in {500, 502, 503, 504}:
@@ -45,6 +49,8 @@ def _tg_request(method, endpoint, *, data=None, timeout=15, attempts=4):
                     description = str(r.text or 'client error')
                 raise RuntimeError(f'Telegram HTTP {r.status_code}: {description[:300]}')
             r.raise_for_status()
+            if r.json().get('ok') is not True:
+                raise RuntimeError('Telegram acknowledgement unavailable')
             return r
         except Exception as exc:
             last = exc
@@ -419,13 +425,22 @@ def _effective_trade_size():
         if not isinstance(raw,dict) or isinstance(raw.get('usdt'),bool):
             return 'INVALID (entries blocked)'
         value=float(raw.get('usdt'))
-        if math.isfinite(value) and value > 0:
+        if _valid_trade_size(value):
             return value
     except FileNotFoundError:
         return fallback
     except (OSError,ValueError,TypeError):
         return 'INVALID (entries blocked)'
     return 'INVALID (entries blocked)'
+
+
+def _valid_trade_size(value):
+    try:
+        policy=_owner_release_evidence().get('sizing_policy') or {}
+        limit=float(policy['allocation_usdt'])
+        return math.isfinite(value) and math.isfinite(limit) and 0<value<=limit
+    except (TypeError,KeyError,ValueError):
+        return False
 
 
 def _owner_release_evidence():
@@ -558,22 +573,41 @@ def _notification_key(record):
     import hashlib
     return hashlib.sha256(raw.encode('utf-8')).hexdigest()
 
-def _claim_notification(record):
-    key=_notification_key(record)
-    NOTIFICATION_DB.parent.mkdir(parents=True, exist_ok=True)
-    import sqlite3
-    conn=sqlite3.connect(str(NOTIFICATION_DB), timeout=5)
-    try:
-        conn.execute('PRAGMA journal_mode=WAL')
-        conn.execute('CREATE TABLE IF NOT EXISTS telegram_notification_delivery (event_key TEXT PRIMARY KEY, delivered_at REAL NOT NULL)')
-        conn.execute('BEGIN IMMEDIATE')
-        row=conn.execute('SELECT 1 FROM telegram_notification_delivery WHERE event_key=?',(key,)).fetchone()
-        if row:
-            conn.rollback(); return False
-        conn.execute('INSERT INTO telegram_notification_delivery(event_key,delivered_at) VALUES (?,?)',(key,time.time()))
-        conn.commit(); return True
-    finally:
-        conn.close()
+
+
+_OUTBOX=None
+_OUTBOX_LOCK=threading.Lock()
+
+def _notification_outbox():
+    global _OUTBOX
+    from durable_outbox import Outbox
+    with _OUTBOX_LOCK:
+        if _OUTBOX is None: _OUTBOX=Outbox(NOTIFICATION_DB)
+    return _OUTBOX
+
+
+def _queue_notification(record,text):
+    from datetime import datetime,timezone
+    box=_notification_outbox()
+    stamp=record.get('event_time') or record.get('ts')
+    if stamp:
+        try:
+            if isinstance(stamp,(int,float)): observed=float(stamp)
+            else:
+                parsed=datetime.fromisoformat(str(stamp).replace('Z','+00:00'))
+                observed=(parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)).timestamp()
+            if observed<box.cutover: return False
+        except (ValueError,TypeError,OverflowError):
+            pass
+    return box.enqueue(_notification_key(record),text,base.OWNER)
+
+
+def _notification_delivery_loop():
+    while True:
+        try: _notification_outbox().deliver_one(base.send)
+        except Exception as exc:
+            base.audit('notification_outbox_error',severity='ERROR',details={'type':type(exc).__name__})
+        time.sleep(1)
 
 
 def _parse_freqtrade_log_event(line):
@@ -667,21 +701,17 @@ def _freqtrade_log_monitor_loop():
                 if not event: continue
                 event['ts']=time.time()
                 saved=_append_normalized_lifecycle(event)
-                if isinstance(saved,dict) and saved.get('_new_event') is False:
-                    continue
                 if not first:
                     reason=str(saved.get('reason') or '').upper()
                     if saved.get('type')=='TRADE_REJECTED' and reason in NOISY_ADMISSION_REASONS:
-                        continue
-                    if not _claim_notification(saved):
                         continue
                     key=f"{saved.get('type')}|{saved.get('pair')}|{saved.get('reason')}"
                     now=time.time(); last=float(_LOG_NOTICE_LAST.get(key,0) or 0)
                     if now-last >= 60:
                         title='❌ TRADE REJECTED' if saved['type']=='TRADE_REJECTED' else '⚠️ ENTRY TIMEOUT'
-                        base.send(f"{title}\n\nPair: {saved.get('pair','n/a')}\nReason: {saved.get('reason','n/a')}\nSource: Freqtrade execution lifecycle", base.OWNER)
+                        _queue_notification(saved,f"{title}\n\nPair: {saved.get('pair','n/a')}\nReason: {saved.get('reason','n/a')}\nSource: Freqtrade execution lifecycle")
                         _LOG_NOTICE_LAST[key]=now
-                        base.audit('telegram_execution_rejection_notice_delivered',details={'type':saved.get('type'),'pair':saved.get('pair')})
+                        base.audit('telegram_execution_rejection_notice_queued',details={'type':saved.get('type'),'pair':saved.get('pair')})
             base.atomic_write_json(LOG_MONITOR_STATE,{'offset':offset,'ts':time.time()})
             first=False
         except Exception as exc:
@@ -721,16 +751,14 @@ def _strategy_journal_notice_loop():
                     reason=str(row.get('reason') or '').upper()
                     if reason in NOISY_ADMISSION_REASONS:
                         continue
-                    if not _claim_notification(row):
-                        continue
-                    base.send('\n'.join([
+                    _queue_notification(row,'\n'.join([
                         '❌ TRADE REJECTED','',
                         f"Pair: {row.get('pair','n/a')}",
                         f"Tag: {row.get('entry_tag','n/a')}",
                         f"Reason: {row.get('reason','n/a')}",
                         'Source: BinanaNfiSpot confirmation lifecycle'
-                    ]), base.OWNER)
-                    base.audit('telegram_trade_rejected_notice_delivered',details={'pair':row.get('pair'),'reason':row.get('reason')})
+                    ]))
+                    base.audit('telegram_trade_rejected_notice_queued',details={'pair':row.get('pair'),'reason':row.get('reason')})
             base.atomic_write_json(STRATEGY_NOTICE_STATE,{'offset':offset,'ts':time.time()})
         except Exception as exc:
             base.audit('strategy_notice_monitor_error',severity='WARNING',details={'error_type':type(exc).__name__})
@@ -935,16 +963,12 @@ def _rpc_lifecycle_loop():
                 typ=str(msg.get('type') or '').lower() if isinstance(msg,dict) else ''
                 if typ not in RPC_EVENT_TYPES: continue
                 record=_record_lifecycle_event(msg)
-                if isinstance(record,dict) and record.get('_new_event') is False:
-                    continue
                 if str((record or {}).get('type') or '').upper() in {'ENTRY_FILL','EXIT_FILL'}:
                     continue
                 notice=_format_rpc_notice(record or {})
                 if notice:
-                    if not _claim_notification(record):
-                        continue
-                    base.send(notice, base.OWNER)
-                    base.audit('telegram_freqtrade_rpc_notice_delivered',details={'type':record.get('type'),'pair':record.get('pair'),'trade_id':record.get('trade_id')})
+                    _queue_notification(record,notice)
+                    base.audit('telegram_freqtrade_rpc_notice_queued',details={'type':record.get('type'),'pair':record.get('pair'),'trade_id':record.get('trade_id')})
         except Exception as exc:
             now=time.time()
             delay=_rpc_retry_delay(attempt)
@@ -1020,12 +1044,11 @@ def _seed_current_trade_history(notify=False):
             'open_rate':row.get('open_rate'),'close_rate':(row.get('average') or row.get('price')) if typ=='EXIT_FILL' else None,
             'cost':row.get('cost'),'fee_open':row.get('fee_open'),'fee_close':row.get('fee_close'),
             'event_time':row.get('order_filled_date') or row.get('order_date')})
+        if notify and isinstance(record,dict):
+            notice=_format_rpc_notice(record)
+            if notice: _queue_notification(record,notice)
         if isinstance(record,dict):
             seen.add(order_key)
-        if notify and isinstance(record,dict) and record.get('_new_event'):
-            notice=_format_rpc_notice(record)
-            if notice and _claim_notification(record):
-                base.send(notice,base.OWNER)
 
 
 def _canonical_lifecycle_loop():
@@ -1226,7 +1249,8 @@ def _pretty_selftest():
     spot=str(cfg.get('trading_mode','')).lower()=='spot'
     short_off=cfg.get('short_allowed') is False
     nfi=str(cfg.get('strategy',''))=='BinanaNfiSpot'
-    stake=str(cfg.get('stake_amount','')) in {'250','250.0'}
+    try: effective=float(_effective_trade_size());stake=_valid_trade_size(effective)
+    except (TypeError,ValueError): effective='UNAVAILABLE';stake=False
     max4=float(cfg.get('max_open_trades',0) or 0)==4.0
     canonical_ok=ext.get('available') is True
     incidents=ext.get('incidents') or []
@@ -1236,12 +1260,12 @@ def _pretty_selftest():
         f"Freqtrade API: {'PASS' if isinstance(ping,dict) and ping.get('ok') else 'FAIL'}",
         f"Strategy: {'PASS' if nfi else 'FAIL'} ({cfg.get('strategy','n/a')})",
         f"Spot only: {'PASS' if spot and short_off else 'FAIL'}",
-        f"Stake / slots: {'PASS' if stake and max4 else 'FAIL'} ({cfg.get('stake_amount','n/a')} USDT / {cfg.get('max_open_trades','n/a')})",
+        f"Stake / slots: {'PASS' if stake and max4 else 'FAIL'} ({effective} USDT / {cfg.get('max_open_trades','n/a')})",
         f"Telegram poller: {'PASS' if telegram.get('ok') else 'FAIL'}",
         f"Canonical state: {'AVAILABLE' if canonical_ok else 'UNAVAILABLE'}",
         f"Canonical incidents: {len(incidents) if canonical_ok else 'unknown'}",
         f"Core runtime checks: {'PASS' if core_ok else 'FAIL'}", '',
-        'Acceptance certification: INCOMPLETE',
+        'Acceptance certification: '+('VERIFIED' if _owner_release_evidence().get('release_approved') is True else 'INCOMPLETE'),
         'Authenticated Testnet OTOCO/OCO lifecycle, restart recovery and soak evidence are separate acceptance tests and are not implied by this screen.',
     ])
 
@@ -1808,7 +1832,7 @@ def _resume_blockers_from_state(cfg, ext, market, sidecar, telegram, code_marker
         try: gen=int(row.get('generation') or 0)
         except Exception: gen=0
         if iid and (iid not in latest or gen>latest[iid][0]): latest[iid]=(gen,str(row.get('status') or '').upper())
-    unprotected=sorted(iid for iid in open_ids if latest.get(iid,(0,''))[1] not in {'FIXED_ACTIVE','TRAILING_ACTIVE'})
+    unprotected=sorted(iid for iid in open_ids if latest.get(iid,(0,''))[1] not in {'FIXED_ACTIVE','TRAILING_ACTIVE','NATIVE_EXIT_WORKING'})
     if unprotected: blockers.append(f'unprotected_open_intents={len(unprotected)}')
     stream=(market or {}).get('stream') or {}
     if (market or {}).get('status')!='fresh' or stream.get('connected') is not True or stream.get('probation_complete') is not True:
@@ -1816,10 +1840,14 @@ def _resume_blockers_from_state(cfg, ext, market, sidecar, telegram, code_marker
     if (sidecar or {}).get('order_authority') is not False or (sidecar or {}).get('exchange_credentials_present') is not False:
         blockers.append('sidecar_authority_not_retired')
     if (telegram or {}).get('ok') is not True: blockers.append('telegram_unhealthy')
-    if not isinstance(code_marker,dict) or code_marker.get('verified') is not True:
-        blockers.append('freqtrade_owner_patch_not_loaded')
-    if not isinstance(code_marker,dict) or code_marker.get('controlled_lifecycle_verified') is not True:
-        blockers.append('controlled_lifecycle_unverified')
+    # Signed envelopes are interpreted only by the authenticated owner. The
+    # panel must not require or independently trust old unsigned marker flags.
+    signed=isinstance(code_marker,dict) and code_marker.get('schema')=='binana-release-ed25519-v1'
+    if not signed:
+        if not isinstance(code_marker,dict) or code_marker.get('verified') is not True:
+            blockers.append('freqtrade_owner_patch_not_loaded')
+        if not isinstance(code_marker,dict) or code_marker.get('controlled_lifecycle_verified') is not True:
+            blockers.append('controlled_lifecycle_unverified')
     try:
         owner=owner_readiness or {}
         now=time.time()
@@ -1838,7 +1866,7 @@ def _resume_blockers():
     market=base.read_json(base.RUNTIME/'market_context'/'health.json',{}) or {}
     sidecar=base.read_json(base.RUNTIME/'sidecar_health.json',{}) or {}
     telegram=base.read_json(base.RUNTIME/'telegram_health.json',{}) or {}
-    marker=base.read_json(OWNER_RUNTIME/'freqtrade_owner_patch_ready.json',{}) or {}
+    marker=base.read_json(base.Path('/app/binana-release/certificate.json'),{}) or {}
     owner=base.read_json(OWNER_RUNTIME/'owner_readiness.json',{}) or {}
     return _resume_blockers_from_state(cfg,ext,market,sidecar,telegram,marker,owner)
 
@@ -1871,8 +1899,8 @@ def _custom_confirm_action(action, args, chat):
             value=float(args.get('usdt'))
         except (TypeError, ValueError):
             base.send('Invalid USDT amount.', chat); return
-        if not math.isfinite(value) or value <= 0:
-            base.send('USDT amount must be a positive finite number.', chat); return
+        if not _valid_trade_size(value):
+            base.send('Amount must be positive and within the current owner allocation; owner policy must be available.', chat); return
         cfg_path=base.Path('/freqtrade/binana-config/config.json')
         # Telegram container cannot write the Freqtrade read-only config mount.
         # Persist requested size in the shared runtime override consumed by the strategy.
@@ -2002,8 +2030,8 @@ def handle_message(message):
             try: value=float(parts[1])
             except ValueError:
                 base.send('Invalid USDT amount.', chat); return
-            if not math.isfinite(value) or value <= 0:
-                base.send('USDT amount must be a positive finite number.', chat); return
+            if not _valid_trade_size(value):
+                base.send('Amount must be positive and within the current owner allocation; owner policy must be available.', chat); return
             button=base.confirm_button(f'CONFIRM {value:g} USDT per trade','set_size',{'usdt':value})
             base.send(f'Confirm new BINANA Spot trade size: {value:g} USDT. Maximum concurrent positions stays 4.', chat, [[button]])
             return
@@ -2114,7 +2142,9 @@ def main():
             severity='WARNING',
             details={'error': base._redact_secrets(exc)},
         )
-    _seed_current_trade_history()
+    _notification_outbox()
+    _seed_current_trade_history(notify=True)
+    threading.Thread(target=_notification_delivery_loop,name='notification-outbox',daemon=True).start()
     threading.Thread(target=_rpc_lifecycle_loop, name='freqtrade-rpc-bridge', daemon=True).start()
     threading.Thread(target=_canonical_lifecycle_loop, name='canonical-lifecycle-monitor', daemon=True).start()
     threading.Thread(target=_protection_monitor_loop, name='binana-protection-monitor', daemon=True).start()
