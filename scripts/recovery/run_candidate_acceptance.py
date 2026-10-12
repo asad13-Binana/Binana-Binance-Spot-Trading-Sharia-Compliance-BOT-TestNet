@@ -151,7 +151,7 @@ def main():
     credentials = ROOT/'credentials.env'
     container = 'binana-testnet-controlled-' + ROOT.name.rsplit('-',1)[-1].lower()
     receipt = {'root': str(ROOT), 'image': IMAGE, 'probe_sha256':hashlib.sha256(script.read_bytes()).hexdigest(),
-               'source_config_sha256':config_sha256, 'source_databases':databases_before, 'phases': [], 'live_writable_mounts':False, 'release_certificate_created':False,
+               'source_config_sha256':config_sha256, 'source_container_id':before['Id'], 'account_key_sha256':hashlib.sha256(env[names[0]].encode()).hexdigest(), 'source_databases':databases_before, 'phases': [], 'live_writable_mounts':False, 'release_certificate_created':False,
                'strategy_admission_verified':False, 'slot_soak':args.slot_soak, 'passed':False}
     if args.slot_soak:
         receipt['base_probe_sha256'] = hashlib.sha256((data/'probe_base.py').read_bytes()).hexdigest()
