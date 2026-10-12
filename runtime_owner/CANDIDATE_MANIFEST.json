@@ -3,7 +3,7 @@
   "baseline_commit": "8b01c3c3c5a36d28aeabd2ff403bc9be4bfbe4bf",
   "base_image_id": "sha256:a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523",
   "validation": {
-    "tests": 201,
+    "tests": 207,
     "required_test_ids": [
       "test_audit_20261012.AccountAndMarketAdmission.test_account_asset_limit_blocks_before_submission",
       "test_audit_20261012.AccountAndMarketAdmission.test_account_symbol_limit_is_enforced",
@@ -169,6 +169,12 @@
       "test_registry_schema.RegistrySchema.test_empty_registry_is_valid_deny_all",
       "test_registry_schema.RegistrySchema.test_exact_owner_schema_includes_eth_without_ticker_rewriting",
       "test_release_evidence.ReleaseEvidence.test_expired_unverified_or_changed_release_never_authorizes_resume",
+      "test_release_signature.ReleaseSignature.test_duplicate_json_members_are_rejected",
+      "test_release_signature.ReleaseSignature.test_other_issuer_and_missing_anchor_are_rejected",
+      "test_release_signature.ReleaseSignature.test_payload_tampering_is_rejected",
+      "test_release_signature.ReleaseSignature.test_unsigned_flags_are_rejected",
+      "test_release_signature.ReleaseSignature.test_unsupported_schema_or_malformed_signature_is_rejected",
+      "test_release_signature.ReleaseSignature.test_valid_signature_returns_payload_for_policy_validation",
       "test_restart_partial_recovery.RestartPartialRecovery.test_fee_reserve_does_not_block_residual_reprotection",
       "test_restart_partial_recovery.RestartPartialRecovery.test_historical_absence_allows_new_owned_oco_but_blocks_unowned_orders",
       "test_restart_partial_recovery.RestartPartialRecovery.test_latest_generation_partial_exit_reprotects_after_freqtrade_applies_fill",
@@ -300,8 +306,8 @@
       "bytes": 4087
     },
     "owner/freqtrade/binana/release_gate.py": {
-      "sha256": "9f5a6101db86f8c167f752476bcb1b120977dd9e842e82edc677975739a6b1ea",
-      "bytes": 2729
+      "sha256": "ed748b93ecdbad159ca2449b38af8a65f06b07c3ad932a49a6b9b06916055c1b",
+      "bytes": 4343
     },
     "owner/freqtrade/binana/retained_inventory.py": {
       "sha256": "abbc7edc5690d0e4156d642094fb7b6ae029a94b14fe01a0e5c77a99a39e1342",
@@ -458,6 +464,10 @@
     "tests/test_release_evidence.py": {
       "sha256": "3d5036b81905b41be2bdc7cb27008acd85d945474de4aab583c6ead5403c06e5",
       "bytes": 1296
+    },
+    "tests/test_release_signature.py": {
+      "sha256": "fd170c08aef8cd64cf20d40f84109595854f2761ff96ebe97ec95ca6b5c03810",
+      "bytes": 2844
     },
     "tests/test_restart_partial_recovery.py": {
       "sha256": "ae009bc0260c149e33781b59046d6b89545f87bccc7e49d7b0b80c1691ec5071",

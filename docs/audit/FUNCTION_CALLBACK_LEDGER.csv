@@ -1954,7 +1954,8 @@ runtime_owner/owner/freqtrade/binana/registry.py,OwnerRegistry._snapshot,functio
 runtime_owner/owner/freqtrade/binana/registry.py,OwnerRegistry.decide,function,top-level-or-method,80,94,-,other
 runtime_owner/owner/freqtrade/binana/release_gate.py,runtime_bindings,function,top-level-or-method,9,26,-,other
 runtime_owner/owner/freqtrade/binana/release_gate.py,certificate_blockers,function,top-level-or-method,29,51,-,other
-runtime_owner/owner/freqtrade/binana/release_gate.py,load_certificate,function,top-level-or-method,54,58,-,other
+runtime_owner/owner/freqtrade/binana/release_gate.py,_unique_object,function,top-level-or-method,54,60,-,other
+runtime_owner/owner/freqtrade/binana/release_gate.py,load_certificate,function,top-level-or-method,63,90,-,other
 runtime_owner/owner/freqtrade/binana/retained_inventory.py,verified_slot_exemption,function,top-level-or-method,14,50,-,other
 runtime_owner/owner/freqtrade/binana/retained_inventory.py,retained_quantities,function,top-level-or-method,53,78,-,other
 runtime_owner/owner/freqtrade/binana/retained_inventory.py,RetainedInventory.refresh_retained_inventory,function,top-level-or-method,82,133,-,other
@@ -2730,6 +2731,14 @@ runtime_owner/tests/test_registry_schema.py,RegistrySchema.test_exact_owner_sche
 runtime_owner/tests/test_registry_schema.py,RegistrySchema.test_ambiguous_boolean_object_legacy_and_expired_records_fail_closed,function,top-level-or-method,19,26,-,test
 runtime_owner/tests/test_registry_schema.py,RegistrySchema.test_empty_registry_is_valid_deny_all,function,top-level-or-method,28,29,-,test
 runtime_owner/tests/test_release_evidence.py,ReleaseEvidence.test_expired_unverified_or_changed_release_never_authorizes_resume,function,top-level-or-method,6,19,-,test
+runtime_owner/tests/test_release_signature.py,ReleaseSignature.setUp,function,top-level-or-method,12,18,-,test
+runtime_owner/tests/test_release_signature.py,ReleaseSignature.write,function,top-level-or-method,20,25,-,test
+runtime_owner/tests/test_release_signature.py,ReleaseSignature.test_unsigned_flags_are_rejected,function,top-level-or-method,27,29,-,test
+runtime_owner/tests/test_release_signature.py,ReleaseSignature.test_valid_signature_returns_payload_for_policy_validation,function,top-level-or-method,31,33,-,test
+runtime_owner/tests/test_release_signature.py,ReleaseSignature.test_payload_tampering_is_rejected,function,top-level-or-method,35,38,-,test
+runtime_owner/tests/test_release_signature.py,ReleaseSignature.test_other_issuer_and_missing_anchor_are_rejected,function,top-level-or-method,40,44,-,test
+runtime_owner/tests/test_release_signature.py,ReleaseSignature.test_unsupported_schema_or_malformed_signature_is_rejected,function,top-level-or-method,46,50,-,test
+runtime_owner/tests/test_release_signature.py,ReleaseSignature.test_duplicate_json_members_are_rejected,function,top-level-or-method,52,55,-,test
 runtime_owner/tests/test_restart_partial_recovery.py,owned,function,top-level-or-method,13,20,-,test
 runtime_owner/tests/test_restart_partial_recovery.py,RestartPartialRecovery.test_historical_absence_allows_new_owned_oco_but_blocks_unowned_orders,function,top-level-or-method,24,60,-,test
 runtime_owner/tests/test_restart_partial_recovery.py,RestartPartialRecovery.test_historical_absence_allows_new_owned_oco_but_blocks_unowned_orders.missing_list,function,nested,32,34,-,test

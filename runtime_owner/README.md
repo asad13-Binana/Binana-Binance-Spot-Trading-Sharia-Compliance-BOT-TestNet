@@ -2,7 +2,7 @@
 
 The recovered Freqtrade 2026.8/NFI owner is separate from the legacy root deployment package. This branch contains the October 12 repair candidate. See [current findings and release blockers](../docs/recovery/AUDIT_REPAIR_20261012.md).
 
-`PROVENANCE.json` is the historical recovery receipt and is preserved unchanged. `CANDIDATE_MANIFEST.json` binds the modified owner, canonical Telegram panel and current regression tests. Build-context materialization verifies every candidate hash. The new CI owner job runs the dependency-free selection; the complete suite must also pass in the pinned retained runtime with no network, credentials or production mounts.
+`PROVENANCE.json` is the historical recovery receipt and is preserved unchanged. `CANDIDATE_MANIFEST.json` binds the modified owner, canonical Telegram panel and current regression tests. Build-context materialization verifies every candidate hash. The new CI owner job runs the isolated selection with hash-locked cryptography; the complete suite must also pass in the pinned retained runtime with no network, credentials or production mounts.
 
 The build still requires a retained AWS base image. This does not establish a clean-host rebuild, authenticated lifecycle acceptance or permission to use the owner in LIVE. Its runtime contract is Testnet-only. Root Compose is not its deployment manifest.
 

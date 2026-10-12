@@ -1,4 +1,4 @@
-"""Dependency-free owner regressions; full exact-image validation is separate."""
+"""Isolated owner regressions; full exact-image validation is separate."""
 import importlib.util
 import json
 import os
@@ -15,7 +15,7 @@ test_engine_core test_final_contracts test_execution_venue test_r18_regressions
 test_partial_exit_reconciliation test_fill_identity test_commission_reserve
 test_identity_integrity test_private_event_ordering test_registry_schema
 test_pair_exclusions test_user_stream_health test_telegram_settlements
-test_telegram_release test_zero_fill_entry_cleanup'''.split()
+test_telegram_release test_zero_fill_entry_cleanup test_release_signature'''.split()
 
 
 def main():
