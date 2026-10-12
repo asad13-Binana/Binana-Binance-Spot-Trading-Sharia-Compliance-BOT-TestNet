@@ -68,9 +68,7 @@ def verify_child(order, *, order_id, client_id, pair, side="sell"):
         raise RecoveryBlocked("CHILD_QUANTITY_INVALID")
     return order
 
-def live_protection(tp, sl, quantity, *, plan=None, order_list_id=None):
-    if tp.get("status") != "open" or sl.get("status") != "open":
-        return False
+def _protection_geometry(tp, sl, plan, order_list_id):
     above, below = tp.get('info') or {}, sl.get('info') or {}
     if above.get('type') != 'LIMIT_MAKER' or below.get('type') not in {'STOP_LOSS','STOP_LOSS_LIMIT'}:
         raise RecoveryBlocked('PROTECTION_CHILD_TYPE_MISMATCH')
@@ -94,6 +92,37 @@ def live_protection(tp, sl, quantity, *, plan=None, order_list_id=None):
             raise RecoveryBlocked('PROTECTION_TRAILING_GEOMETRY_MISMATCH')
     else:
         raise RecoveryBlocked('PROTECTION_PLAN_MODE_UNKNOWN')
+
+
+def native_exit_working(tp, sl, quantity, *, plan=None, order_list_id=None):
+    """Recognize only an authenticated working exit after native OCO activation.
+
+    A canceled sibling alone is not evidence of activation. Require raw working
+    state plus a stop trigger or an actual TP fill, exact geometry and remaining
+    ownership. Never cancel the surviving child to repair an ambiguous snapshot.
+    """
+    rows=[('tp',tp,sl),('sl',sl,tp)]
+    matches=[(role,active,other) for role,active,other in rows
+             if active.get('status')=='open' and other.get('status') in {'canceled','cancelled'}]
+    if len(matches)!=1:
+        return False
+    role,active,other=matches[0]
+    _protection_geometry(tp,sl,plan,order_list_id)
+    raw=active.get('info') or {}; inactive=other.get('info') or {}
+    if (raw.get('status') not in {'NEW','PARTIALLY_FILLED'} or inactive.get('status')!='CANCELED'
+            or raw.get('isWorking') is not True or int(raw.get('workingTime',-1))<0
+            or dec(other.get('filled',0))!=0):
+        return False
+    if role=='tp' and dec(active.get('filled',0))<=0:
+        return False
+    q=dec(quantity)
+    return q>0 and dec(active.get('amount',0))-dec(active.get('filled',0))==q
+
+
+def live_protection(tp, sl, quantity, *, plan=None, order_list_id=None):
+    if tp.get("status") != "open" or sl.get("status") != "open":
+        return False
+    _protection_geometry(tp,sl,plan,order_list_id)
     q = dec(quantity)
     # Fresh protection must be complete; any simultaneous fill is reconciled next.
     return (dec(tp.get("amount", 0)) - dec(tp.get("filled", 0)) == q

@@ -2,28 +2,58 @@
 from hashlib import sha256
 import json
 import math
+import os
 from pathlib import Path
 from time import time
 
 
+def _public_policy(value):
+    """Hash effective policy, excluding credentials and transient parser state."""
+    private={'key','secret','password','apikey','api_key','jwt_secret_key','ws_token','token'}
+    if isinstance(value,dict):
+        return {str(k):_public_policy(v) for k,v in value.items()
+                if str(k).lower() not in private and not str(k).startswith('_')}
+    if isinstance(value,(list,tuple)):
+        return [_public_policy(v) for v in value]
+    return value
+
+
+def deployment_binding(path=Path('/freqtrade/binana-release/deployment.json')):
+    """Bind independently captured Docker identity through a read-only mount."""
+    try:
+        raw=path.read_bytes(); record=json.loads(raw)
+        if (record.get('schema')!='binana-deployment-v1' or record.get('read_only') is not True
+                or record.get('init') is not True or record.get('cap_drop')!=['ALL']
+                or not str(record.get('image','')).startswith('sha256:')
+                or not record.get('mounts') or not record.get('environment_sha256')):
+            return ''
+        if not os.statvfs(path).f_flag & os.ST_RDONLY:
+            return ''
+        return sha256(raw).hexdigest()
+    except (OSError,ValueError,TypeError,AttributeError):
+        return ''
+
+
+def dependency_binding():
+    from importlib.metadata import distributions
+    rows=sorted((d.metadata.get('Name','').lower(),d.version,
+                 sha256((d.read_text('RECORD') or '').encode()).hexdigest()) for d in distributions())
+    return sha256(json.dumps(rows,separators=(',',':')).encode()).hexdigest()
+
+
 def runtime_bindings(config):
     root = Path(__file__).resolve().parents[1]
-    paths = sorted((root / 'binana').glob('*.py'))
-    paths += [root / name for name in ['freqtradebot.py', 'exchange/binance.py',
-                                      'rpc/rpc.py', 'rpc/api_server/deps.py',
-                                      'resolvers/exchange_resolver.py', 'persistence/trade_model.py']]
-    paths += [root.parent / 'binana-strategies/BinanaNfiSpot.py']
-    paths += [root.parent / 'binana-strategies/binana_vendor/NostalgiaForInfinityX8.py']
+    paths = sorted(root.rglob('*.py'))
+    paths += sorted((root.parent / 'binana-strategies').rglob('*.py'))
     digest = sha256()
     for path in paths:
         digest.update(str(path.relative_to(root.parent)).encode() + b'\0' + path.read_bytes())
-    keys = ['binana', 'stake_amount', 'stake_currency', 'max_open_trades', 'timeframe',
-            'trading_mode', 'margin_mode', 'dry_run', 'force_entry_enable',
-            'position_adjustment_enable', 'order_types', 'order_time_in_force']
-    policy = {key:config.get(key) for key in keys}
+    policy = _public_policy(config)
     return {'code_sha256':digest.hexdigest(),
             'config_sha256':sha256(json.dumps(policy, sort_keys=True, default=str).encode()).hexdigest(),
-            'exchange_epoch_id':config['binana']['testnet_epoch_id']}
+            'exchange_epoch_id':config['binana']['testnet_epoch_id'],
+            'deployment_sha256':deployment_binding(),
+            'dependency_sha256':dependency_binding()}
 
 
 def certificate_blockers(certificate, bindings, *, now=None):

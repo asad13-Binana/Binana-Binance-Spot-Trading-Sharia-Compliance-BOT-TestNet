@@ -32,7 +32,7 @@ def materialize(source: Path, destination: Path):
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(content)
     shutil.copyfile(manifest_path, destination / 'PROVENANCE.json')
-    for name in ['Dockerfile', 'validate_image.py']:
+    for name in ['Dockerfile', 'validate_image.py','release_authority.py']:
         shutil.copyfile(source / 'deployment' / name, destination / name)
     return {'source_files': len(verified), 'context': str(destination.resolve()),
             'authenticated_exchange_acceptance': False}

@@ -8,6 +8,7 @@ from .binance_order_lists import _client
 from .protection_plan import provisional_plan, trailing_plan
 from .operator_exit import OPERATOR_PRE_SUBMISSION
 from .submission_absence import verify_absent_replacement, explicit_absence
+from .recovery_contract import native_exit_working
 
 RESOLVED_PREFIXES = ("alldone-", "partial-exit-", "promotion-qty-", "promotion-old-fill-", "promote-cancel-", "promote-submit-", "recovery-", "partial-")
 
@@ -49,7 +50,7 @@ class VerifiedRecovery:
             explicit = str(exc) if isinstance(exc,RecoveryBlocked) else ""
             if latest and explicit == "ORDER_HISTORY_UNAVAILABLE":
                 self.store.update_generation_status(iid, int(latest["generation"]), "ORDER_HISTORY_UNAVAILABLE")
-            elif latest and latest["status"] in {"TRAILING_ACTIVE","FIXED_ACTIVE"}:
+            elif latest and latest["status"] in {"TRAILING_ACTIVE","FIXED_ACTIVE","NATIVE_EXIT_WORKING"}:
                 self.store.update_generation_status(iid, int(latest["generation"]), "VERIFICATION_UNKNOWN")
             self._recovery_block(iid, trade.pair, type(exc).__name__+(":"+explicit if explicit else ""))
             return None
@@ -218,6 +219,17 @@ class VerifiedRecovery:
             if not live_protection(ch["tp"],ch["sl"],quantity,
                     plan=json.loads(gen.get('payload_json') or '{}').get('plan'),
                     order_list_id=gen.get('order_list_id')):
+                if native_exit_working(ch['tp'],ch['sl'],quantity,
+                        plan=json.loads(gen.get('payload_json') or '{}').get('plan'),
+                        order_list_id=gen.get('order_list_id')):
+                    active_ids={str(o['id']) for o in ch.values() if o.get('status')=='open'}
+                    if {str(o.get('id')) for o in open_orders}!=active_ids:
+                        raise RecoveryBlocked('NATIVE_EXIT_OPEN_SNAPSHOT_CONFLICT')
+                    self.store.update_generation_status(iid,int(gen['generation']),
+                        'NATIVE_EXIT_WORKING',payload={'verified_at':time(),'verified_quantity':str(quantity)})
+                    self.store.set_intent_state(iid,'OPEN')
+                    self._recovery_clear(iid)
+                    return None
                 # A native OCO trigger can legitimately cancel its sibling while
                 # the other child is working. Preserve the exchange obligation;
                 # require explicit lifecycle evidence instead of cancelling it.
