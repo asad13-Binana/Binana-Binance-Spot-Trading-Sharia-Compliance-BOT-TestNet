@@ -365,7 +365,7 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "ad8a8d57911a4625441034e9cc114f16237b68079ce7a1f17d8dff66afd9db49",
+      "sha256": "34c8936c437b07b3bbdc8d4d23b7f40dfa81591de0d5f9944167d34ef0abbcb9",
       "size": 89608
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
@@ -417,8 +417,8 @@
       "size": 7025
     },
     "docs/recovery/AUDIT_REPAIR_20261012.md": {
-      "sha256": "7a840e72dfad1d4246f721d33fdd41ddf36e52df543cd389a44767a7c8a0dde6",
-      "size": 5753
+      "sha256": "08d8c6ba23cec9caf30685a3fde3a10ea402eda493b8625b8e67c41c63c2bc83",
+      "size": 6019
     },
     "docs/recovery/AWS_VERIFICATION_20261007.json": {
       "sha256": "a6414d8389363f4e60a5ef5d92179f16a1df6e288119e33873d114e69b392a64",
