@@ -1,0 +1,147 @@
+{
+  "observed_at_utc": "2026-10-13T20:03:45.884238+00:00",
+  "observed_at_pkt": "2026-10-14T01:03:45.884238+05:00",
+  "image": "sha256:7b12004b889ad49384c310735bde26c93721300c936c94576f685ff079984a12",
+  "api_state": {
+    "state": "running",
+    "dry_run": false,
+    "trading_mode": "spot"
+  },
+  "read_only": true,
+  "init": true,
+  "cap_drop": [
+    "ALL"
+  ],
+  "security_opt": [
+    "no-new-privileges:true"
+  ],
+  "release_approved": true,
+  "blockers": [],
+  "readiness_age_seconds": 3.743772506713867,
+  "authenticated_reconciliation": {
+    "checked_at": 1791921818.024363,
+    "ok": true,
+    "open_lists": 0,
+    "open_orders": 0
+  },
+  "retained_inventory_ok": true,
+  "persistence": {
+    "blockers": [],
+    "checked_at": 1791921822.1311724,
+    "free_bytes": 6438465536,
+    "free_inodes": 3402444,
+    "ok": true,
+    "total_bytes": 30083776512,
+    "total_inodes": 3801088
+  },
+  "canonical_counts": {
+    "trades": 85,
+    "orders": 176,
+    "open_trades": 0
+  },
+  "certificate_valid_until_utc": "2026-10-20T20:00:54.645105+00:00",
+  "certificate_sha256": "f568e6548e1466f0cf97cc1c8140aead8462406562ee74c1782327d1f6a8d2ff",
+  "issuer_mounted_in_running_container": false,
+  "issuer_mode": "0o600",
+  "rollout_passed": true,
+  "rollout_stages": [
+    "candidate",
+    "rollback",
+    "candidate_final"
+  ],
+  "containers": [
+    {
+      "name": "binana-testnet-freqtrade-1",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "binana-testnet-universe-1",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "binana-testnet-telegram-broker-1",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "binana-testnet-sharia-research-1",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "binana-testnet-execution-sidecar-1",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "binana-testnet-sharia-screener-1",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "binana-testnet-sharia-egress-proxy-1",
+      "state": "running",
+      "health": "healthy"
+    }
+  ],
+  "providers": {
+    "generated_at": 1791921447.2613912,
+    "coingecko": {
+      "ambiguous_symbols_excluded": 6,
+      "breaker": {
+        "failures": 0,
+        "name": "CoinGecko",
+        "open": false,
+        "retry_in_seconds": 0
+      },
+      "budget": {
+        "day_cap": 154,
+        "day_used": 120,
+        "minute_cap": 84,
+        "minute_used": 3,
+        "month_cap": 4800,
+        "month_used": 1755,
+        "name": "CoinGecko",
+        "quarantined": false
+      },
+      "cache_age_seconds": 1.5,
+      "configured_monthly": 4800,
+      "configured_per_minute": 84,
+      "enabled": true,
+      "keyless": false,
+      "markets_cache_age_seconds": 1.5,
+      "trending_cache_age_seconds": 1.5
+    },
+    "cmc": {
+      "ambiguous_symbols_excluded": 0,
+      "breaker": {
+        "failures": 0,
+        "name": "CMC",
+        "open": false,
+        "retry_in_seconds": 0
+      },
+      "budget": {
+        "day_cap": 367,
+        "day_used": 3,
+        "minute_cap": 42,
+        "minute_used": 1,
+        "month_cap": 11400,
+        "month_used": 2,
+        "name": "CMC",
+        "quarantined": false
+      },
+      "cache_age_seconds": 1.2,
+      "configured_monthly": 11400,
+      "configured_per_minute": 42,
+      "enabled": true,
+      "last_reconcile_epoch": 1791918737.7059896,
+      "provider_month_credits_used": 0,
+      "requested_but_missing_key": false
+    }
+  },
+  "owner_warnings_errors_since_resume": 1,
+  "renewal_timer": "NextElapseUSecRealtime=Wed 2026-10-14 03:54:52 UTC\nActiveState=active",
+  "source_config_sha256": "eabd0e6b44b2fe9d74dd054e3a22077c96ce4bc37c5fefc2016c9d194b002123"
+}

@@ -352,6 +352,14 @@
       "sha256": "0ac33892dfe46689ede51e45b91828b6efdb8a44273573ed5751758567abd1cf",
       "size": 2939
     },
+    "docs/audit/AWS_DEPLOYMENT_OBSERVATION_2026-10-14.json": {
+      "sha256": "328d6d8ba9e6025c75e5fb7c11f540a3d5d185719c5cbe7e0815007bcee55716",
+      "size": 3925
+    },
+    "docs/audit/AWS_DEPLOYMENT_RESULT_2026-10-14.md": {
+      "sha256": "6200aab7ae6f7eb9b3d87833989a5beb538a1db134efa8bb34f12b156ed6e966",
+      "size": 21120
+    },
     "docs/audit/BLOCKER_REPORT.md": {
       "sha256": "351cad7e0d5d2c16e4187afc311aa671c1fe176ec9d98349f5336496d5850617",
       "size": 3339
@@ -369,8 +377,8 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "0d0b35e53ff0b776a2af425e2805f3ef190c8da1102f4b9d4bc17ba8513264b4",
-      "size": 92361
+      "sha256": "00fe860279b26d6a89103b65b25d9078be0a5ae27b72439c6473d65028f9a45d",
+      "size": 92707
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
