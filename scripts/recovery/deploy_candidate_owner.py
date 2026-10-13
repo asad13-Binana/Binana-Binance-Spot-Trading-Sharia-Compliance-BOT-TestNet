@@ -29,7 +29,14 @@ IMAGES=HOST/'local-images-20261007.json'
 
 def run(args,timeout=180):
     result=subprocess.run(args,capture_output=True,timeout=timeout)
-    if result.returncode: raise RuntimeError('COMMAND_FAILED:'+args[0]+':'+str(result.returncode))
+    if result.returncode:
+        # Keep diagnostics root-private; exception/public receipts contain only
+        # executable and exit status, never environment or raw command output.
+        diagnostic=Path('/var/backups/binana-testnet')/('rollout-command-failure-'+str(time.time_ns())+'.json')
+        if os.geteuid()==0 and diagnostic.parent.exists():
+            authority.atomic(diagnostic,json.dumps({'command':args,'exit_code':result.returncode,
+                'stdout':result.stdout.decode(errors='replace'),'stderr':result.stderr.decode(errors='replace')}).encode(),mode=0o600)
+        raise RuntimeError('COMMAND_FAILED:'+args[0]+':'+str(result.returncode))
     return result.stdout
 
 
