@@ -14,9 +14,9 @@ from decimal import Decimal, ROUND_DOWN, ROUND_UP
 import probe_base as base
 
 ROOT = Path('/probe')
-# NEAR's native stop filled in two retained October 12 attempts. ETH is still
+# NEAR's native stop filled in two retained October 12 attempts. DOT is still
 # subject to the unchanged registry, filter, allocation and protection checks.
-PAIRS = ('LTC/USDT','LINK/USDT','ADA/USDT','ETH/USDT')
+PAIRS = ('LTC/USDT','LINK/USDT','ADA/USDT','DOT/USDT')
 SOAK_SECONDS = 600
 
 
