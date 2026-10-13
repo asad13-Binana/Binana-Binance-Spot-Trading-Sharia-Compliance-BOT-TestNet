@@ -369,16 +369,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "3d4e2cb91840448bb80054455c8600f7bc4350f2de6af00956b905712cce9d62",
-      "size": 91896
+      "sha256": "b2ffca8f44d22821e9c4f2eae6e78d4390f27bfd51e8377a7d877220ecac99ed",
+      "size": 92059
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "5a38ee212af5c36ec07035ae1f2877257f663dc355c492f25953821a974b384c",
-      "size": 676012
+      "sha256": "de2f86094920d4d9dc56491c635b2282cdc4233e0e3048230897968561b4d6b5",
+      "size": 677495
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -789,8 +789,8 @@
       "size": 483
     },
     "runtime_owner/CANDIDATE_MANIFEST.json": {
-      "sha256": "569dff2c5cfdd5b4ca1a2303ae05d57a3c029546b429d7d91a3f7cb415269b1d",
-      "size": 35538
+      "sha256": "e6c9a5c1e9c1f4a5b4a6615ebba0d8092f797666e2a86b4db77a445f8ef060f3",
+      "size": 36168
     },
     "runtime_owner/LICENSE": {
       "sha256": "53927bd0b739d38c87a0a82236fd9b070c2dfff11c0c119be50372005d5047ad",
@@ -1177,8 +1177,8 @@
       "size": 4292
     },
     "runtime_owner/owner/freqtrade/binana/execution_manager.py": {
-      "sha256": "6035e080e6f5f60a492b5bb081c1268a082cb18d852b5cd3e13326e147ff0442",
-      "size": 50827
+      "sha256": "df0c6e8d8c98f0898470a0f8e86e2e9a362101158b0528bb7287019bd60f9da9",
+      "size": 51395
     },
     "runtime_owner/owner/freqtrade/binana/market_data.py": {
       "sha256": "69f70fb102d298d9f104daae74b848ec809b9bda02f070c09d2fc19949be2769",
@@ -1229,8 +1229,8 @@
       "size": 6769
     },
     "runtime_owner/owner/freqtrade/binana/verified_recovery.py": {
-      "sha256": "22bbb4e85f7569dbad85b0d6083568c237b91ea2ebbc1900c679316348a3bc42",
-      "size": 25562
+      "sha256": "2518bcaa239b1e32f5f4f7682a1d39eaacfede783ede38d6552ed3b5877da19b",
+      "size": 26208
     },
     "runtime_owner/owner/freqtrade/exchange/binance.py": {
       "sha256": "1bec7efb0dbe87adec22ddf7599dce17dd81277986931baffd98625849570b85",
@@ -1363,6 +1363,10 @@
     "runtime_owner/tests/test_private_event_ordering.py": {
       "sha256": "66011036eae80e9fb5c5225a4c80bcae359e8eed4bb097328e6215d270414c39",
       "size": 1992
+    },
+    "runtime_owner/tests/test_promotion_visibility.py": {
+      "sha256": "81cf2743609a4e611c8c1ca0d0550ca2fb4c6c6f6adf843b3eb05a42e503bc15",
+      "size": 6066
     },
     "runtime_owner/tests/test_protection_plan_durability.py": {
       "sha256": "c79f11f0fc6d1a827cbdde88bf2f56dfb88717b2d5d904a5d593defc1eb350c6",

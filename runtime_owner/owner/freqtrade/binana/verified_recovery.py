@@ -241,6 +241,15 @@ class VerifiedRecovery:
             self._recovery_clear(iid)
             if int(gen["generation"])==int(latest["generation"]) and sell_total==0:
                 self.maybe_promote(trade,iid,self.store.generation(iid,int(gen["generation"])))
+                submitted=self.store.latest_generation(iid)
+                if (submitted['generation'] > gen['generation']
+                        and submitted['mode']=='TRAILING_OCO'
+                        and submitted['status']=='SUBMITTED_UNVERIFIED'):
+                    # Complete authenticated child/geometry/open-order checks in
+                    # this cycle. The POST response alone never proves protection.
+                    # A trailing generation cannot promote again, bounding this
+                    # follow-up to one pass; read failures remain fail-closed.
+                    return self._reconcile_verified(trade,iid)
             return None
         if open_orders:
             raise RecoveryBlocked("OPEN_ORDER_SNAPSHOT_CONFLICT")
