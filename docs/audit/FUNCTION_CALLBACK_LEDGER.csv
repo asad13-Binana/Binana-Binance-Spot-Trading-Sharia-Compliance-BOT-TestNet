@@ -2912,9 +2912,9 @@ scripts/recovery/deploy_candidate_owner.py,compose,function,top-level-or-method,
 scripts/recovery/deploy_candidate_owner.py,api_state,function,top-level-or-method,81,89,-,release-script
 scripts/recovery/deploy_candidate_owner.py,backup,function,top-level-or-method,92,96,-,release-script
 scripts/recovery/deploy_candidate_owner.py,preserve_accounting,function,top-level-or-method,99,122,-,release-script
-scripts/recovery/deploy_candidate_owner.py,attest,function,top-level-or-method,125,138,-,release-script
-scripts/recovery/deploy_candidate_owner.py,wait,function,top-level-or-method,141,171,-,release-script
-scripts/recovery/deploy_candidate_owner.py,main,function,top-level-or-method,174,238,-,release-script
+scripts/recovery/deploy_candidate_owner.py,attest,function,top-level-or-method,125,140,-,release-script
+scripts/recovery/deploy_candidate_owner.py,wait,function,top-level-or-method,143,173,-,release-script
+scripts/recovery/deploy_candidate_owner.py,main,function,top-level-or-method,176,244,-,release-script
 scripts/recovery/deploy_candidate_panel.py,main,function,top-level-or-method,10,62,-,release-script
 scripts/recovery/deploy_candidate_panel.py,main.healthy,function,nested,37,43,-,release-script
 scripts/recovery/deploy_market_recovery_20261007.py,command,function,top-level-or-method,16,17,-,release-script
@@ -2941,7 +2941,7 @@ scripts/recovery/deploy_research_security_20261007.py,run,function,top-level-or-
 scripts/recovery/install_release_renewal.py,main,function,top-level-or-method,11,69,-,release-script
 scripts/recovery/issue_candidate_release.py,previous_authority,function,top-level-or-method,17,29,-,release-script
 scripts/recovery/issue_candidate_release.py,refresh_offline,function,top-level-or-method,32,52,-,release-script
-scripts/recovery/issue_candidate_release.py,main,function,top-level-or-method,55,112,-,release-script
+scripts/recovery/issue_candidate_release.py,main,function,top-level-or-method,55,113,-,release-script
 scripts/recovery/probe_controlled_owner_lifecycle.py,durable,function,top-level-or-method,27,34,-,release-script
 scripts/recovery/probe_controlled_owner_lifecycle.py,sync_directory,function,top-level-or-method,37,42,-,release-script
 scripts/recovery/probe_controlled_owner_lifecycle.py,safe_error,function,top-level-or-method,45,49,-,release-script

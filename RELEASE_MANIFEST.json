@@ -369,7 +369,7 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "1af02e52b9a45629b0b7d144a0f29d5fd42ff5654d5d4b6958e0197bc06c38ac",
+      "sha256": "fa213d81e70cbc48148d88a2d3b353217eb823119ace72c62a2d2e4b22450d6b",
       "size": 92215
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
@@ -377,7 +377,7 @@
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "2cedef078376e4f53ec5361964e06510a2792c23e96ccb176236f4f0b5541d3c",
+      "sha256": "a7d6593a2d6df64c4f723bfcae709db15919924b4b73af7dd01c332514271bc5",
       "size": 678740
     },
     "docs/audit/ISSUE_LEDGER.csv": {
@@ -1481,8 +1481,8 @@
       "size": 4355
     },
     "scripts/recovery/deploy_candidate_owner.py": {
-      "sha256": "a91070b76a465b77912824418036fcd780f7d9734354a94d3579a2e6e406f380",
-      "size": 14855
+      "sha256": "7411349a5dcc556a356a0f9705cdeb8e732c0e9389654fa2927f5711a6d2c9a7",
+      "size": 15218
     },
     "scripts/recovery/deploy_candidate_panel.py": {
       "sha256": "a9f6002f86f658201c5db7a43e2cfe7b7d3408c79ce9ceff870b737b0c5e86e0",
@@ -1505,8 +1505,8 @@
       "size": 3262
     },
     "scripts/recovery/issue_candidate_release.py": {
-      "sha256": "822401089ed2c6ba0bf00db8ea8d68ca823f1d8c80420ea5df0fdede7dad6ba0",
-      "size": 6933
+      "sha256": "1033b6cf1652199b14cc5dbba2c7cad3baba2ebf107aae6317b09a2fdea70d41",
+      "size": 7019
     },
     "scripts/recovery/probe_controlled_owner_lifecycle.py": {
       "sha256": "9474fd4c60faa6f27381f7d9f0e57e421895d237b9a4a33f91637457863b9692",

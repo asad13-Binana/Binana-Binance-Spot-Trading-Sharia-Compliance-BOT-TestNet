@@ -73,6 +73,7 @@ def main():
     env_sha=hashlib.sha256(json.dumps(sorted(container['Config']['Env'])).encode()).hexdigest()
     mounts=sorted([{k:m[k] for k in ('Type','Source','Destination','RW')} for m in container['Mounts']],key=lambda m:m['Destination'])
     if (record.get('image')!=image or record.get('environment_sha256')!=env_sha
+            or record.get('security_opt')!=container['HostConfig'].get('SecurityOpt')
             or record.get('mounts')!=mounts or record.get('command')!=container['Config']['Cmd']
             or record.get('entrypoint')!=container['Config']['Entrypoint']):
         raise RuntimeError('DEPLOYMENT_DRIFT')

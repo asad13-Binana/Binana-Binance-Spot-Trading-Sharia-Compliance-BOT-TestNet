@@ -124,7 +124,8 @@ def preserve_accounting(root):
 
 def attest(image):
     d=inspect();h=d['HostConfig']
-    if d['Image']!=image or not h['ReadonlyRootfs'] or not h.get('Init') or h.get('CapDrop')!=['ALL']:
+    if (d['Image']!=image or not h['ReadonlyRootfs'] or not h.get('Init') or h.get('CapDrop')!=['ALL']
+            or not set(h.get('SecurityOpt') or []) & {'no-new-privileges','no-new-privileges:true','no-new-privileges=true'}):
         raise RuntimeError('IMMUTABLE_OWNER_CONTRACT_FAILED')
     mounts=[{k:m[k] for k in ('Type','Source','Destination','RW')} for m in d['Mounts']]
     for target in ('/freqtrade/binana-config','/freqtrade/binana-release','/freqtrade/shared'):
@@ -133,7 +134,8 @@ def attest(image):
     record={'schema':'binana-deployment-v1','image':image,'read_only':True,'init':True,'cap_drop':['ALL'],
         'mounts':sorted(mounts,key=lambda m:m['Destination']),
         'environment_sha256':hashlib.sha256(json.dumps(sorted(d['Config']['Env'])).encode()).hexdigest(),
-        'entrypoint':d['Config']['Entrypoint'],'command':d['Config']['Cmd'],'user':d['Config']['User']}
+        'entrypoint':d['Config']['Entrypoint'],'command':d['Config']['Cmd'],'user':d['Config']['User'],
+        'security_opt':h['SecurityOpt']}
     authority.atomic(RELEASE/'deployment.json',(json.dumps(record,sort_keys=True)+'\n').encode())
     return record
 
@@ -202,7 +204,10 @@ def main():
     key=Ed25519PrivateKey.from_private_bytes(ISSUER.read_bytes())
     authority.atomic(CONFIG.parent/'release-authority.ed25519.pub',key.public_key().public_bytes(serialization.Encoding.Raw,serialization.PublicFormat.Raw))
     overlay=json.loads(originals[OVERLAY]);owner=overlay['services']['freqtrade']
-    owner.update(image=args.tag,read_only=True,init=True,cap_drop=['ALL'],security_opt=['no-new-privileges:true'],
+    # The base Compose already enforces no-new-privileges. Repeating it in
+    # this JSON overlay produces a normalized duplicate rejected by Compose.
+    owner.pop('security_opt',None)
+    owner.update(image=args.tag,read_only=True,init=True,cap_drop=['ALL'],
         volumes=[str(SHARED)+':/freqtrade/shared:ro',str(DB)+':/freqtrade/shared/freqtrade:rw',str(RELEASE)+':/freqtrade/binana-release:ro'])
     images=json.loads(originals[IMAGES]);images['freqtrade']={'reference':args.tag,'image_id':args.image}
     report={'image':args.image,'rollback_image':old,'root':str(root),'passed':False,'stages':[],
@@ -212,6 +217,7 @@ def main():
         for label,candidate in [('candidate',True),('rollback',False),('candidate_final',True)]:
             for path,value in ((OVERLAY,overlay),(IMAGES,images)):
                 authority.atomic(path,(json.dumps(value,indent=2)+'\n').encode() if candidate else originals[path])
+            run(compose()+['config','--quiet'])
             run(compose()+['up','--no-start','--no-deps','--no-build','--pull','never','freqtrade'])
             if candidate:attest(args.image)
             run(['docker','start',OWNER])
