@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import math
 import re
 import time
@@ -868,6 +869,20 @@ def _lifecycle_rows(limit=200):
     return rows
 
 
+def _signal_runtime_summary():
+    cfg = _ft_data('GET', '/show_config')
+    cfg = cfg if isinstance(cfg, dict) else {}
+    whitelist = _ft_data('GET', '/whitelist')
+    pairs = whitelist.get('whitelist') if isinstance(whitelist, dict) else None
+    return '\n'.join([
+        'Owner state: ' + str(cfg.get('state', 'UNKNOWN')).upper(),
+        f"Strategy: {cfg.get('strategy', 'UNKNOWN')} | timeframe: {cfg.get('timeframe', 'UNKNOWN')}",
+        f"Eligible active pairs: {len(pairs) if isinstance(pairs, list) else 'UNKNOWN'}",
+        'Analyzing eligible pairs does not guarantee an entry signal.',
+        'New entries require a native strategy signal and all owner admission checks.',
+    ])
+
+
 def _current_signal_history(limit=10, rejected_only=False):
     rows=_lifecycle_rows(500)
     scope=str((base.read_json(OWNER_RUNTIME/'owner_readiness.json',{}) or {}).get('scope_id') or '')
@@ -887,7 +902,7 @@ def _current_signal_history(limit=10, rejected_only=False):
     rows=dedup
     lines=['🚫 REJECTED SIGNALS' if rejected_only else '🗂 RECENT NFI CANDIDATES','',f'Count in the last hour: {len(rows)}']
     if not rows:
-        lines += ['', 'No current BinanaNfiSpot lifecycle evidence recorded yet.']
+        lines += ['', 'No current BinanaNfiSpot lifecycle evidence recorded yet.', '', _signal_runtime_summary()]
     for row in rows:
         typ=str(row.get('type') or '?').upper()
         pair=row.get('pair') or '?'
@@ -1072,7 +1087,8 @@ def _pretty_last_signal():
     if not rows:
         rows=[r for r in all_rows if str(r.get('type','')).upper() in {'ENTRY','ENTRY_FILL'}]
     if not rows:
-        return '📈 LAST STRATEGY SIGNAL\n\nNo current BinanaNfiSpot lifecycle evidence available yet.'
+        return ('📈 LAST STRATEGY SIGNAL\n\nNo current BinanaNfiSpot lifecycle evidence available yet.\n\n'
+                + _signal_runtime_summary())
     row=rows[-1]
     lines=['📈 LAST STRATEGY SIGNAL','',
            f"Pair: {row.get('pair','n/a')}",
@@ -1649,7 +1665,52 @@ def _r6_data_readiness():
     ])[:3800]
 
 def _r6_deploy():
-    return json.dumps(base.read_json(base.RUNTIME / 'deployment_status.json', {}) or {}, indent=2)[:3800]
+    """Describe the current owner; an old rollout receipt is not runtime state."""
+    cfg = _ft_data('GET', '/show_config')
+    trades = _ft_data('GET', '/status')
+    owner = _owner_release_evidence()
+    state = str(cfg.get('state', '')).upper() if isinstance(cfg, dict) else 'UNKNOWN'
+    if state not in {'RUNNING', 'STOPPED', 'PAUSED', 'RELOAD_CONFIG'}:
+        state = 'UNKNOWN'
+    approved = owner.get('release_approved') is True
+    approval = 'UNKNOWN'
+    if 'generated_at' in owner and isinstance(owner.get('release_approved'), bool):
+        approval = 'YES' if approved else 'NO'
+    image = 'UNKNOWN'
+    try:
+        # The owner authenticates its release and hashes this read-only Docker
+        # deployment record. Bind displayed identity to that fresh observation;
+        # an arbitrary certificate payload is not an identity source.
+        raw = base.Path('/app/binana-release/deployment.json').read_bytes()
+        deployment = json.loads(raw)
+        candidate = deployment.get('image', '')
+        if (approved and hashlib.sha256(raw).hexdigest() == owner.get('deployment_sha256')
+                and isinstance(candidate, str) and re.fullmatch(r'sha256:[0-9a-f]{64}', candidate)):
+            image = candidate
+    except (OSError, ValueError, TypeError, AttributeError):
+        pass
+    publication = base.read_json(base.RUNTIME / 'source_publication.json', {})
+    publication = publication if isinstance(publication, dict) else {}
+    commit = str(publication.get('commit', ''))
+    if (image == 'UNKNOWN' or publication.get('owner_image') != image
+            or re.fullmatch(r'[0-9a-f]{40}', commit) is None):
+        commit = 'UNVERIFIED'
+    blockers = owner.get('blockers')
+    blockers = blockers if isinstance(blockers, list) else ['owner_evidence_unavailable']
+    lines = [
+        'DEPLOYMENT — CURRENT OWNER', '',
+        f'State: {state}',
+        f"Execution environment: {owner.get('execution_environment', 'UNKNOWN')}",
+        'Order owner: FREQTRADE; sidecar: MONITOR-ONLY',
+        f"Open positions: {len(trades) if isinstance(trades, list) else 'UNKNOWN'}",
+        f'Release approved: {approval}',
+        'Release blockers: ' + (', '.join(str(x) for x in blockers) if blockers else 'none'),
+        f'Qualified owner image: {image}',
+        f'Published source commit (host record): {commit}',
+        'Updated UTC: ' + time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime()),
+        '', 'Historical rollout receipts do not determine current trading state.',
+    ]
+    return '\n'.join(lines)[:3800]
 
 def _r6_scan_help():
     return ('SCAN ONE COIN\n\nSend /scan TICKER, for example /scan ETH. '

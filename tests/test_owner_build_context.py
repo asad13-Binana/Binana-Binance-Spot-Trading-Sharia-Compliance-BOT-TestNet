@@ -1,4 +1,5 @@
 import hashlib
+import ast
 import importlib.util
 import json
 from pathlib import Path
@@ -13,6 +14,14 @@ spec.loader.exec_module(module)
 
 
 class OwnerBuildContext(unittest.TestCase):
+    def test_fresh_source_exports_the_custom_exchange_used_by_the_resolver(self):
+        path = MODULE.parents[1] / 'owner/freqtrade/exchange/__init__.py'
+        self.assertTrue(path.is_file(), 'clean build would lose the deployed BinanaBinance export')
+        tree = ast.parse(path.read_text())
+        names = {alias.name for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)
+                 and node.module == 'freqtrade.exchange.binance' for alias in node.names}
+        self.assertIn('BinanaBinance', names)
+
     def fixture(self, root, relative='owner/freqtrade/example.py'):
         source = root / 'source'
         path = source / relative

@@ -1,0 +1,24 @@
+# Independent of every retained AWS image. Build only the allowlisted context
+# emitted by materialize_clean_context.py, never the repository root.
+FROM python:3.14.7-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
+ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 PYTHONDONTWRITEBYTECODE=1 PYTHONFAULTHANDLER=1 \
+    OPENBLAS_NUM_THREADS=1 HOME=/home/ftuser FT_APP_ENV=docker
+RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /home/ftuser /freqtrade/user_data \
+    && chown -R 999:987 /home/ftuser /freqtrade
+WORKDIR /freqtrade
+COPY requirements.build.lock requirements.owner.lock /tmp/
+RUN python -m pip install --no-cache-dir --require-hashes --only-binary=:all: -r /tmp/requirements.build.lock \
+    && python -m pip install --no-cache-dir --require-hashes --no-build-isolation -r /tmp/requirements.owner.lock
+COPY upstream/ /freqtrade/
+COPY owner/freqtrade/ /freqtrade/freqtrade/
+COPY owner/binana-strategies/ /freqtrade/binana-strategies/
+RUN python -m pip install --no-cache-dir --no-deps --no-build-isolation ./ft_client . \
+    && python -m pip check
+COPY tests/ /freqtrade/binana_tests/
+COPY runtime-fixes/ /freqtrade/runtime-fixes/
+COPY PROVENANCE.json validate_image.py release_authority.py CLEAN_SOURCE.json /freqtrade/recovery_validation/
+USER 999:987
+ENTRYPOINT ["python", "/freqtrade/recovery_validation/validate_image.py"]
+CMD []

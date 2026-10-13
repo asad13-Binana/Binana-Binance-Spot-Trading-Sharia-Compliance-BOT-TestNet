@@ -1,4 +1,23 @@
-# Isolated AWS owner recovery build
+# Owner builds and deployment records
+
+## Independent public-source build
+
+This procedure needs Docker and Python 3.10+ on a fresh build host. It does not need any AWS image, database, credential or private configuration. The default image command only runs offline validation.
+
+```sh
+python3 runtime_owner/deployment/materialize_clean_context.py /absolute/new-owner-context
+docker build --pull -f /absolute/new-owner-context/Dockerfile.clean \
+  -t binana-owner-clean:reviewed /absolute/new-owner-context
+docker run --rm --network=none --read-only --cap-drop=ALL \
+  --security-opt=no-new-privileges --memory=2g --cpus=2 --pids-limit=256 \
+  --tmpfs /tmp:rw,nosuid,nodev,size=256m,mode=1777 binana-owner-clean:reviewed
+```
+
+The upstream commit is `9f10e357a93c1dcf10c2a2b367659214d89c073e` (Freqtrade 2026.8), archive SHA256 `1b30c3c758f38a880e67b7660dbca3f7a37c90244d6571218a7264efeed7a7d7`. Only its application/client source and packaging metadata are materialized. The one upstream license symlink becomes regular verified license bytes. The manifest-verified BINANA patches include the custom exchange export required by the resolver. Python 3.14.7 is pinned by an official OCI digest. The dependency closure preserves observed versions except the reviewed multidict, urllib3 and PyJWT security patches plus compatible CCXT 4.5.87.
+
+A clean image build is not a complete live deployment: supply private configuration and keys separately, restore or initialize account-scoped durable state, use the current owner topology, and qualify/sign the new image before enabling entries. Never copy an old image-bound certificate to a new image. The supported execution contract remains Binance Spot Testnet.
+
+## Historical retained-image recovery build
 
 This package builds the reviewed owner candidate from the retained AWS r17 image and the exact files in `../PROVENANCE.json`. The default entry point verifies source hashes and runs the offline owner suite. It cannot start Freqtrade or place orders. No credentials, runtime databases or effective private configuration belong in its build context.
 
@@ -15,7 +34,7 @@ docker run --rm --network=none --read-only --cap-drop=ALL \
   binana-testnet-freqtrade:recovery-validation-20261007
 ```
 
-The retained r17 tag must already exist on the AWS host and match its separately recorded image ID. The build wrapper checks that identity before and after building; the Dockerfile alone is not the verified build procedure. No clean-host reconstruction of that base is claimed. A successful offline run is not authenticated exchange acceptance, deployment approval, a lifecycle certificate or permission to clear incidents. Keep the running owner paused until the remaining recovery and execution cases have been demonstrated. The root Compose package still describes the older execution architecture and must not replace the current AWS owner.
+The retained base tag selected by `local-images-20261007.json` must already exist on the AWS host and match its separately recorded image ID. The build wrapper checks that identity before and after building; the Dockerfile alone is not the verified build procedure. No clean-host reconstruction of that base is claimed. A successful offline run is not authenticated exchange acceptance, deployment approval, a lifecycle certificate or permission to clear incidents. That recovery acceptance was subsequently completed for image `7b12004b…`; this historical paragraph is not an instruction to pause the accepted running owner. The root Compose package still describes the older execution architecture and must not replace the current AWS owner.
 
 ## Preserving the existing AWS startup
 
