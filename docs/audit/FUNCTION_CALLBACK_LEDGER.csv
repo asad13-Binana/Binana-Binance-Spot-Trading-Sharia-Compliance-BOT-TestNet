@@ -2927,6 +2927,7 @@ scripts/recovery/deploy_paused_owner_20261008.py,wait_owner,function,top-level-o
 scripts/recovery/deploy_paused_owner_20261008.py,main,function,top-level-or-method,237,335,-,release-script
 scripts/recovery/deploy_paused_owner_20261008.py,main.install,function,nested,278,287,-,release-script
 scripts/recovery/deploy_research_security_20261007.py,run,function,top-level-or-method,4,7,-,release-script
+scripts/recovery/install_release_renewal.py,main,function,top-level-or-method,11,69,-,release-script
 scripts/recovery/issue_candidate_release.py,previous_authority,function,top-level-or-method,17,29,-,release-script
 scripts/recovery/issue_candidate_release.py,refresh_offline,function,top-level-or-method,32,52,-,release-script
 scripts/recovery/issue_candidate_release.py,main,function,top-level-or-method,55,112,-,release-script
@@ -2951,10 +2952,10 @@ scripts/recovery/probe_owner_slot_soak.py,SlotGuard.__init__,function,top-level-
 scripts/recovery/probe_owner_slot_soak.py,SlotGuard.validate,function,top-level-or-method,31,41,-,release-script
 scripts/recovery/probe_owner_slot_soak.py,states,function,top-level-or-method,44,50,-,release-script
 scripts/recovery/probe_owner_slot_soak.py,normalized,function,top-level-or-method,53,54,-,release-script
-scripts/recovery/probe_owner_slot_soak.py,unexpected,function,top-level-or-method,57,59,-,release-script
-scripts/recovery/probe_owner_slot_soak.py,protected,function,top-level-or-method,62,70,-,release-script
-scripts/recovery/probe_owner_slot_soak.py,settle,function,top-level-or-method,73,90,-,release-script
-scripts/recovery/probe_owner_slot_soak.py,main,function,top-level-or-method,93,261,-,release-script
+scripts/recovery/probe_owner_slot_soak.py,unexpected,function,top-level-or-method,57,61,-,release-script
+scripts/recovery/probe_owner_slot_soak.py,protected,function,top-level-or-method,64,72,-,release-script
+scripts/recovery/probe_owner_slot_soak.py,settle,function,top-level-or-method,75,92,-,release-script
+scripts/recovery/probe_owner_slot_soak.py,main,function,top-level-or-method,95,263,-,release-script
 scripts/recovery/probe_testnet_order_validation.py,check_transport,function,top-level-or-method,20,28,-,release-script
 scripts/recovery/probe_testnet_order_validation.py,restrict_session,function,top-level-or-method,31,43,-,release-script
 scripts/recovery/probe_testnet_order_validation.py,restrict_session.send,function,nested,34,41,-,release-script

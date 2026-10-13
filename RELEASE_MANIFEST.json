@@ -236,6 +236,10 @@
       "sha256": "3dd49850e7e5f65469aa6a892d5b98a01ce05452203f6d89e0245ae52da225d7",
       "size": 2704
     },
+    "docs/AWS_OWNER_MAINTENANCE.md": {
+      "sha256": "dc5850d2656e50066636e634d9fccc8b794c3882210e43def11815d6b9457676",
+      "size": 4784
+    },
     "docs/BINANA_TESTNET_LOCAL_ORACLE_FIX_REPORT_2026-08-28.txt": {
       "sha256": "e45d29bb168dee229cd183896e89c818c52400bf26c56d23c0f404ce92dcf547",
       "size": 10360
@@ -365,16 +369,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "55605b9d856fd15081860d9e171b31608f2954e313dfa890621d21301d40743a",
-      "size": 91575
+      "sha256": "3d4e2cb91840448bb80054455c8600f7bc4350f2de6af00956b905712cce9d62",
+      "size": 91896
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "20368c37bc7b73af226a57b931bb87b8ce0c53b2f7dc922b50755c88a28cd13b",
-      "size": 675911
+      "sha256": "5a38ee212af5c36ec07035ae1f2877257f663dc355c492f25953821a974b384c",
+      "size": 676012
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -1492,6 +1496,10 @@
       "sha256": "9a010704654c889d8bb1e9dec5a73d4a7607627896a873da58a687fb4eb8d462",
       "size": 7442
     },
+    "scripts/recovery/install_release_renewal.py": {
+      "sha256": "c2c8666127b8af21de4168d08f4123fb4550680b63c1d96b5b3e19fb7f25fa57",
+      "size": 3262
+    },
     "scripts/recovery/issue_candidate_release.py": {
       "sha256": "822401089ed2c6ba0bf00db8ea8d68ca823f1d8c80420ea5df0fdede7dad6ba0",
       "size": 6933
@@ -1501,8 +1509,8 @@
       "size": 26058
     },
     "scripts/recovery/probe_owner_slot_soak.py": {
-      "sha256": "5fc80be6745495a0f9c7540cf5b97975a0d32f1b526e7be149a73795447a7215",
-      "size": 15390
+      "sha256": "b45ab1557e316b2d293c7a9b112019127b1bd4d46a46f3a3d355f667e3594f3e",
+      "size": 15568
     },
     "scripts/recovery/probe_testnet_order_validation.py": {
       "sha256": "96cf24e39bcbfd7d0b4699a522a962eb8b9ba6bbe6185fd9890818f0cddfaed2",
