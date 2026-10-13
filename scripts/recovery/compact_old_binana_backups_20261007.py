@@ -18,9 +18,16 @@ def require(condition, reason):
         raise RuntimeError(reason)
 
 
+def stream_digest(stream):
+    result=hashlib.sha256()
+    for chunk in iter(lambda:stream.read(1024*1024),b''):
+        result.update(chunk)
+    return result.hexdigest()
+
+
 def digest(path):
     with path.open('rb') as stream:
-        return hashlib.file_digest(stream, 'sha256').hexdigest()
+        return stream_digest(stream)
 
 
 def inventory(source):
@@ -66,7 +73,7 @@ def compact(name):
                 require(entry.name in before and entry.name not in seen, 'Unexpected duplicate/file')
                 require(entry.size == before[entry.name][0], 'Size mismatch')
                 with tar.extractfile(entry) as stream:
-                    require(hashlib.file_digest(stream, 'sha256').hexdigest() == before[entry.name][1],
+                    require(stream_digest(stream) == before[entry.name][1],
                             'Archive content mismatch')
                 seen.add(entry.name)
     require(seen == set(before) and inventory(source) == before, 'Source changed or archive incomplete')

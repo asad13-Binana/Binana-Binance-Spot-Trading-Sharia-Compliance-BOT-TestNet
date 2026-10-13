@@ -2900,10 +2900,11 @@ scripts/recovery/authorize_verified_owner_20261008.py,main,function,top-level-or
 scripts/recovery/compact_daily_backups.py,prune_archives,function,top-level-or-method,16,53,-,release-script
 scripts/recovery/compact_daily_backups.py,main,function,top-level-or-method,56,67,-,release-script
 scripts/recovery/compact_old_binana_backups_20261007.py,require,function,top-level-or-method,16,18,-,release-script
-scripts/recovery/compact_old_binana_backups_20261007.py,digest,function,top-level-or-method,21,23,-,release-script
-scripts/recovery/compact_old_binana_backups_20261007.py,inventory,function,top-level-or-method,26,31,-,release-script
-scripts/recovery/compact_old_binana_backups_20261007.py,unmounted,function,top-level-or-method,34,40,-,release-script
-scripts/recovery/compact_old_binana_backups_20261007.py,compact,function,top-level-or-method,43,94,-,release-script
+scripts/recovery/compact_old_binana_backups_20261007.py,stream_digest,function,top-level-or-method,21,25,-,release-script
+scripts/recovery/compact_old_binana_backups_20261007.py,digest,function,top-level-or-method,28,30,-,release-script
+scripts/recovery/compact_old_binana_backups_20261007.py,inventory,function,top-level-or-method,33,38,-,release-script
+scripts/recovery/compact_old_binana_backups_20261007.py,unmounted,function,top-level-or-method,41,47,-,release-script
+scripts/recovery/compact_old_binana_backups_20261007.py,compact,function,top-level-or-method,50,101,-,release-script
 scripts/recovery/deploy_candidate_owner.py,run,function,top-level-or-method,30,33,-,release-script
 scripts/recovery/deploy_candidate_owner.py,inspect,function,top-level-or-method,36,36,-,release-script
 scripts/recovery/deploy_candidate_owner.py,verify_flat_testnet,function,top-level-or-method,39,62,-,release-script
