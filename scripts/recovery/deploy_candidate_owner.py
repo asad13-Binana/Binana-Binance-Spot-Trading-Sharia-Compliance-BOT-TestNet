@@ -3,6 +3,7 @@
 No certificate is issued and no trading is started by this command.
 """
 import argparse
+from contextlib import closing
 from datetime import datetime,timezone
 import hashlib
 import importlib.util
@@ -99,7 +100,7 @@ def backup(root):
 def preserve_accounting(root):
     changes={}
     for name in ('binana-owner.sqlite','binana-extension.sqlite'):
-        with sqlite3.connect(root/name) as before,sqlite3.connect('file:'+str(DB/name)+'?mode=ro',uri=True) as after:
+        with closing(sqlite3.connect(root/name)) as before,closing(sqlite3.connect('file:'+str(DB/name)+'?mode=ro',uri=True)) as after:
             tables=[r[0] for r in before.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")]
             for table in tables:
                 old=before.execute('SELECT * FROM "'+table+'" ORDER BY rowid').fetchall()
@@ -115,6 +116,14 @@ def preserve_accounting(root):
                             raise RuntimeError('NON_STARTUP_METADATA_CHANGED')
                 elif table=='wallet_history' and len(new)>=len(old) and new[:len(old)]==old:
                     pass  # New telemetry snapshots never change existing trade economics.
+                elif table=='incidents' and len(old)==len(new):
+                    columns=[c[1] for c in before.execute('PRAGMA table_info(incidents)')]
+                    stamp=columns.index('updated_ts');status=columns.index('status')
+                    for a,b in zip(old,new):
+                        if a==b:continue
+                        if (a[status]!='CLOSED' or b[status]!='CLOSED' or b[stamp]<a[stamp]
+                                or any(x!=y for i,(x,y) in enumerate(zip(a,b)) if i!=stamp)):
+                            raise RuntimeError('INCIDENT_CONTENT_CHANGED')
                 else: raise RuntimeError('ACCOUNTING_CHANGED:'+name+':'+table)
                 changes[name+':'+table]={'before_rows':len(old),'after_rows':len(new)}
             added={r[0] for r in after.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")}-set(tables)

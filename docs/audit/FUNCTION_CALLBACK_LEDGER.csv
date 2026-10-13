@@ -2905,16 +2905,16 @@ scripts/recovery/compact_old_binana_backups_20261007.py,digest,function,top-leve
 scripts/recovery/compact_old_binana_backups_20261007.py,inventory,function,top-level-or-method,33,38,-,release-script
 scripts/recovery/compact_old_binana_backups_20261007.py,unmounted,function,top-level-or-method,41,47,-,release-script
 scripts/recovery/compact_old_binana_backups_20261007.py,compact,function,top-level-or-method,50,101,-,release-script
-scripts/recovery/deploy_candidate_owner.py,run,function,top-level-or-method,30,40,-,release-script
-scripts/recovery/deploy_candidate_owner.py,inspect,function,top-level-or-method,43,43,-,release-script
-scripts/recovery/deploy_candidate_owner.py,verify_flat_testnet,function,top-level-or-method,46,69,-,release-script
-scripts/recovery/deploy_candidate_owner.py,compose,function,top-level-or-method,72,78,-,release-script
-scripts/recovery/deploy_candidate_owner.py,api_state,function,top-level-or-method,81,89,-,release-script
-scripts/recovery/deploy_candidate_owner.py,backup,function,top-level-or-method,92,96,-,release-script
-scripts/recovery/deploy_candidate_owner.py,preserve_accounting,function,top-level-or-method,99,122,-,release-script
-scripts/recovery/deploy_candidate_owner.py,attest,function,top-level-or-method,125,140,-,release-script
-scripts/recovery/deploy_candidate_owner.py,wait,function,top-level-or-method,143,173,-,release-script
-scripts/recovery/deploy_candidate_owner.py,main,function,top-level-or-method,176,244,-,release-script
+scripts/recovery/deploy_candidate_owner.py,run,function,top-level-or-method,31,41,-,release-script
+scripts/recovery/deploy_candidate_owner.py,inspect,function,top-level-or-method,44,44,-,release-script
+scripts/recovery/deploy_candidate_owner.py,verify_flat_testnet,function,top-level-or-method,47,70,-,release-script
+scripts/recovery/deploy_candidate_owner.py,compose,function,top-level-or-method,73,79,-,release-script
+scripts/recovery/deploy_candidate_owner.py,api_state,function,top-level-or-method,82,90,-,release-script
+scripts/recovery/deploy_candidate_owner.py,backup,function,top-level-or-method,93,97,-,release-script
+scripts/recovery/deploy_candidate_owner.py,preserve_accounting,function,top-level-or-method,100,131,-,release-script
+scripts/recovery/deploy_candidate_owner.py,attest,function,top-level-or-method,134,149,-,release-script
+scripts/recovery/deploy_candidate_owner.py,wait,function,top-level-or-method,152,182,-,release-script
+scripts/recovery/deploy_candidate_owner.py,main,function,top-level-or-method,185,253,-,release-script
 scripts/recovery/deploy_candidate_panel.py,main,function,top-level-or-method,10,62,-,release-script
 scripts/recovery/deploy_candidate_panel.py,main.healthy,function,nested,37,43,-,release-script
 scripts/recovery/deploy_market_recovery_20261007.py,command,function,top-level-or-method,16,17,-,release-script
@@ -4496,6 +4496,9 @@ tests/test_release_renewal_host.py,RenewalTests.test_same_accepted_bindings_can_
 tests/test_release_renewal_host.py,RenewalTests.test_every_changed_binding_is_rejected,function,top-level-or-method,34,37,-,test
 tests/test_release_renewal_host.py,RenewalTests.test_tampered_payload_cannot_renew,function,top-level-or-method,38,41,-,test
 tests/test_release_renewal_host.py,RenewalTests.test_signed_but_incomplete_acceptance_is_rejected,function,top-level-or-method,42,45,-,test
+tests/test_rollout_accounting.py,RolloutAccounting.setup_pair,function,top-level-or-method,13,24,-,test
+tests/test_rollout_accounting.py,RolloutAccounting.test_rechecking_already_closed_incident_does_not_change_accounting,function,top-level-or-method,26,31,-,test
+tests/test_rollout_accounting.py,RolloutAccounting.test_economic_or_incident_content_change_is_still_blocked,function,top-level-or-method,33,41,-,test
 tests/test_runtime_recovery_20260830.py,scenario,function,top-level-or-method,19,38,pytest.fixture,test
 tests/test_runtime_recovery_20260830.py,trade,function,top-level-or-method,41,43,-,test
 tests/test_runtime_recovery_20260830.py,test_submission_ack_cannot_regress_protection,function,top-level-or-method,47,52,"pytest.mark.parametrize('fault', ['none', 'partial_fill'])",test
