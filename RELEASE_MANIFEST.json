@@ -237,8 +237,8 @@
       "size": 2704
     },
     "docs/AWS_OWNER_MAINTENANCE.md": {
-      "sha256": "dc5850d2656e50066636e634d9fccc8b794c3882210e43def11815d6b9457676",
-      "size": 4784
+      "sha256": "1611635fb223108cb58647eba65cdfa6e6752da05a64b8ad5ec9303f0e76047d",
+      "size": 5056
     },
     "docs/BINANA_TESTNET_LOCAL_ORACLE_FIX_REPORT_2026-08-28.txt": {
       "sha256": "e45d29bb168dee229cd183896e89c818c52400bf26c56d23c0f404ce92dcf547",
@@ -369,16 +369,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "b2ffca8f44d22821e9c4f2eae6e78d4390f27bfd51e8377a7d877220ecac99ed",
-      "size": 92059
+      "sha256": "6376b3f127533d62483992d27be4d32c3f632978a6598d64c6d4e7ecbbd5b3ce",
+      "size": 92215
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "de2f86094920d4d9dc56491c635b2282cdc4233e0e3048230897968561b4d6b5",
-      "size": 677495
+      "sha256": "b5e06953d81ea6b3213eb444685dc58f126f8d41d29d54f4d014c2569211c73e",
+      "size": 678449
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -1473,8 +1473,8 @@
       "size": 9700
     },
     "scripts/recovery/compact_daily_backups.py": {
-      "sha256": "61dc13ef273341c93998ebaf82b3f3427b7349fd157294f98b545ecbd1cbd296",
-      "size": 959
+      "sha256": "de3fcfad93ee5835f6bec4d11e0b46547787aa86d0c6ea84f65a3b530fc0e5ab",
+      "size": 3402
     },
     "scripts/recovery/compact_old_binana_backups_20261007.py": {
       "sha256": "176791c8622c50e8244e7640d8beebfc0bd816a93f2385a2b0f6be3637ba18b8",
@@ -1589,8 +1589,8 @@
       "size": 30119
     },
     "scripts/validate_owner_offline.py": {
-      "sha256": "5d82b9a2243977919b289e3408ef78b7a9921207e666053c4cf8c68000a3ea6a",
-      "size": 2295
+      "sha256": "855e350cd8806748e0598e9ac1d19a7a5ccce6fdcbf1f857d37d9fc7958ba884",
+      "size": 2321
     },
     "scripts/verify_coverage_ratchet.py": {
       "sha256": "2ba42d2b8800518ba0bd744d87fdae0be507e8ef4abac1dea4d79a9087d8d643",
@@ -2063,6 +2063,10 @@
     "tests/test_codex_revision_j_hardening.py": {
       "sha256": "119d4cbf7b1b60db1b81a53dd9f561dc1bf9ef6c59c4ded09c5d37e2d669745f",
       "size": 18836
+    },
+    "tests/test_compressed_backup_retention.py": {
+      "sha256": "00c8baf8af3316ac44b3f405ad5a7a0dbd995f788d664859f59b08fec13c277c",
+      "size": 3194
     },
     "tests/test_controlled_lifecycle_guard.py": {
       "sha256": "71c91b223ae0b012ecf9101327e7df63a829ce10eeb887d737f7d054656ba949",

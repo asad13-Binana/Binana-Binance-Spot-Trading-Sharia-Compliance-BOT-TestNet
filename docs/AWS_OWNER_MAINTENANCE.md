@@ -73,7 +73,11 @@ compression receipt and extract into a separate private directory; then use
 the existing restore validator. An archived directory is not directly usable
 by tools that require an uncompressed backup directory. Off-host backup is a
 separate configuration and must not be reported as working from local backup
-success alone. Archive retention and disk headroom still require monitoring.
+success alone. Compressed daily copies honor `BACKUP_RETAIN` (default 14,
+minimum 2). Before removing an older daily archive, the compactor verifies the
+hash, size and receipt of every retained archive. Named repair, rollout and
+rehearsal evidence is excluded. Compression receipts remain as an audit trail.
+Disk headroom still requires monitoring.
 
 Never prune a container merely because it is stopped: the two historical
 validation containers contain unique database-repair evidence. Retain the

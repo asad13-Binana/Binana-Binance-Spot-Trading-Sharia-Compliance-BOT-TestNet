@@ -2897,7 +2897,8 @@ scripts/generate_evidence_status.py,main,function,top-level-or-method,134,136,-,
 scripts/recovery/authorize_verified_owner_20261008.py,certificate_from_status,function,top-level-or-method,22,36,-,release-script
 scripts/recovery/authorize_verified_owner_20261008.py,verified_boot,function,top-level-or-method,39,49,-,release-script
 scripts/recovery/authorize_verified_owner_20261008.py,main,function,top-level-or-method,52,148,-,release-script
-scripts/recovery/compact_daily_backups.py,main,function,top-level-or-method,15,24,-,release-script
+scripts/recovery/compact_daily_backups.py,prune_archives,function,top-level-or-method,16,48,-,release-script
+scripts/recovery/compact_daily_backups.py,main,function,top-level-or-method,51,62,-,release-script
 scripts/recovery/compact_old_binana_backups_20261007.py,require,function,top-level-or-method,16,18,-,release-script
 scripts/recovery/compact_old_binana_backups_20261007.py,digest,function,top-level-or-method,21,23,-,release-script
 scripts/recovery/compact_old_binana_backups_20261007.py,inventory,function,top-level-or-method,26,31,-,release-script
@@ -4008,6 +4009,12 @@ tests/test_codex_revision_j_hardening.py,StreamAndExactPayloadTests.test_unsafe_
 tests/test_codex_revision_j_hardening.py,StreamAndExactPayloadTests.test_journal_failure_also_disarms_without_killing_callback,function,top-level-or-method,341,355,-,test
 tests/test_codex_revision_j_hardening.py,StreamAndExactPayloadTests.test_exact_trailing_payload_is_validated_before_the_only_send,function,top-level-or-method,357,379,-,test
 tests/test_codex_revision_j_hardening.py,ComposeOwnershipTests.test_every_universe_consumer_has_a_read_only_overlay,function,top-level-or-method,383,387,-,test
+tests/test_compressed_backup_retention.py,CompressedBackupRetention.run_main,function,top-level-or-method,15,17,-,test
+tests/test_compressed_backup_retention.py,CompressedBackupRetention.module,function,top-level-or-method,19,26,-,test
+tests/test_compressed_backup_retention.py,CompressedBackupRetention.archive,function,top-level-or-method,28,34,-,test
+tests/test_compressed_backup_retention.py,CompressedBackupRetention.test_retains_newest_and_never_deletes_named_repair_evidence,function,top-level-or-method,36,46,-,test
+tests/test_compressed_backup_retention.py,CompressedBackupRetention.test_corrupt_retained_copy_prevents_any_deletion,function,top-level-or-method,48,55,-,test
+tests/test_compressed_backup_retention.py,CompressedBackupRetention.test_missing_verification_receipt_prevents_deletion,function,top-level-or-method,57,64,-,test
 tests/test_controlled_lifecycle_guard.py,guard,function,top-level-or-method,16,27,pytest.fixture,test
 tests/test_controlled_lifecycle_guard.py,entry,function,top-level-or-method,30,35,-,test
 tests/test_controlled_lifecycle_guard.py,submit,function,top-level-or-method,38,39,-,test
