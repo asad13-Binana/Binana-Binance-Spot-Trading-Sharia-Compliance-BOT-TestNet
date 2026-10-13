@@ -98,7 +98,7 @@ def validate_oco_plan(params, generation):
 
 class TransportGuard:
     def __init__(self, root, state, intent, phase, *, pair=PAIR, mutation_budget=10):
-        if pair not in {"LTC/USDT","LINK/USDT","ADA/USDT","NEAR/USDT"} or mutation_budget not in {10,20}:
+        if pair not in {"LTC/USDT","LINK/USDT","ADA/USDT","NEAR/USDT","DOT/USDT"} or mutation_budget not in {10,20}:
             raise RuntimeError("REHEARSAL_SCOPE_DENIED")
         self.pair, self.symbol, self.mutation_budget = pair, pair.replace("/", ""), mutation_budget
         self.path, self.state, self.intent, self.phase = root/'transport.json', state, intent, phase

@@ -205,6 +205,22 @@ def test_soak_transport_budget_remains_bounded(guard):
         module.TransportGuard(guard.path.parent,guard.state,'test','entry',pair='BTC/USDT')
 
 
+def test_dot_rehearsal_uses_same_bounded_guard(guard):
+    dot=module.TransportGuard(guard.path.parent,guard.state,'dot-test','entry',pair='DOT/USDT',mutation_budget=20)
+    assert dot.symbol=='DOTUSDT' and dot.mutation_budget==20
+    with pytest.raises(RuntimeError,match='LIFECYCLE_ENDPOINT_DENIED'):
+        dot.validate('https://api.binance.com/api/v3/order','POST',{'X-MBX-APIKEY':'test'},'symbol=DOTUSDT')
+
+
+def test_slot_router_preflights_all_pair_scopes_before_first_order(guard,monkeypatch):
+    import sys
+    monkeypatch.setitem(sys.modules,'probe_base',module)
+    spec=importlib.util.spec_from_file_location('slot_scope_preflight',Path(__file__).parents[1]/'scripts/recovery/probe_owner_slot_soak.py')
+    soak=importlib.util.module_from_spec(spec);spec.loader.exec_module(soak)
+    with pytest.raises(RuntimeError,match='REHEARSAL_SCOPE_DENIED'):
+        soak.SlotGuard(guard.path.parent,guard.state,{'LTC/USDT':'test','ETH/USDT':'excluded'},'entry')
+
+
 @pytest.fixture
 def oco_guard(guard):
     with sqlite3.connect(guard.state) as conn:

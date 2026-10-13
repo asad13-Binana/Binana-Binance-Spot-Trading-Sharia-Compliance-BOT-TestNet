@@ -24,6 +24,9 @@ class SlotGuard(base.TransportGuard):
     def __init__(self, root, state, intents, phase):
         super().__init__(root, state, 'read-only-default', phase, mutation_budget=20)
         self.intents = intents
+        # Validate the complete scope before permitting even the first entry.
+        for pair,intent in intents.items():
+            base.TransportGuard(root,state,intent,phase,pair=pair,mutation_budget=20)
 
     def validate(self, url, method, headers=None, body=None):
         if method == 'GET':
