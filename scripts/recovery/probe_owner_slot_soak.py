@@ -14,9 +14,9 @@ from decimal import Decimal, ROUND_DOWN, ROUND_UP
 import probe_base as base
 
 ROOT = Path('/probe')
-# NEAR's native stop filled in two retained October 12 attempts. ETH is still
+# NEAR's native stop filled in two retained October 12 attempts. DOT is still
 # subject to the unchanged registry, filter, allocation and protection checks.
-PAIRS = ('LTC/USDT','LINK/USDT','ADA/USDT','ETH/USDT')
+PAIRS = ('LTC/USDT','LINK/USDT','ADA/USDT','DOT/USDT')
 SOAK_SECONDS = 600
 
 
@@ -24,6 +24,9 @@ class SlotGuard(base.TransportGuard):
     def __init__(self, root, state, intents, phase):
         super().__init__(root, state, 'read-only-default', phase, mutation_budget=20)
         self.intents = intents
+        # Validate the complete scope before permitting even the first entry.
+        for pair,intent in intents.items():
+            base.TransportGuard(root,state,intent,phase,pair=pair,mutation_budget=20)
 
     def validate(self, url, method, headers=None, body=None):
         if method == 'GET':
