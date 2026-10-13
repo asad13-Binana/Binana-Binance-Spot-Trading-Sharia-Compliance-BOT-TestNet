@@ -30,10 +30,15 @@ def prune_archives(root, *, keep):
         archive.require(receipt_path.is_file() and not receipt_path.is_symlink(), 'Archive receipt missing')
         try:receipt=json.loads(receipt_path.read_text())
         except (ValueError,OSError):raise RuntimeError('Archive receipt unreadable') from None
-        archive.require(receipt.get('verified') is True and receipt.get('duplicate_removed') is True
-            and receipt.get('archive')==str(path) and receipt.get('files',0)>0
+        source=root/path.name.removesuffix('.verified.tar.gz')
+        # Two historical receipt schemas predate duplicate_removed and use
+        # different field names. Original-tree absence is verified directly.
+        archive.require((receipt.get('verified') is True or receipt.get('all_file_content_and_modes_verified') is True)
+            and receipt.get('duplicate_removed',True) is True
+            and receipt.get('source')==str(source) and not source.exists() and not source.is_symlink()
+            and receipt.get('archive')==str(path) and receipt.get('files',receipt.get('verified_files',0))>0
             and receipt.get('archive_bytes')==path.stat().st_size
-            and receipt.get('archive_sha256')==archive.digest(path), 'Archive verification failed')
+            and receipt.get('archive_sha256',receipt.get('sha256'))==archive.digest(path), 'Archive verification failed')
         verified.append((path,path.stat(),receipt_path,receipt))
     for path,before,receipt_path,receipt in verified[keep:]:
         archive.unmounted(path)

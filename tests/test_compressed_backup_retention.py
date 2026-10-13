@@ -27,11 +27,28 @@ class CompressedBackupRetention(unittest.TestCase):
 
     def archive(self, root, name):
         path=root/(name+'.verified.tar.gz');path.write_bytes(b'verified archive fixture')
-        receipt={'archive':str(path),'archive_bytes':path.stat().st_size,
+        receipt={'source':str(root/name),'archive':str(path),'archive_bytes':path.stat().st_size,
             'archive_sha256':hashlib.sha256(path.read_bytes()).hexdigest(),
             'verified':True,'duplicate_removed':True,'files':1}
         (root/(name+'.compression-receipt.json')).write_text(json.dumps(receipt))
         return path
+
+    def test_historical_receipt_requires_hash_and_absent_original(self):
+        module=self.module()
+        for source_exists in (False,True):
+            with self.subTest(source_exists=source_exists), tempfile.TemporaryDirectory() as tmp:
+                root=Path(tmp);old=self.archive(root,'20261001T000000Z')
+                self.archive(root,'20261002T000000Z');self.archive(root,'20261003T000000Z')
+                p=root/'20261001T000000Z.compression-receipt.json';d=json.loads(p.read_text())
+                d['all_file_content_and_modes_verified']=d.pop('verified')
+                d['sha256']=d.pop('archive_sha256');d['verified_files']=d.pop('files');d.pop('duplicate_removed')
+                p.write_text(json.dumps(d))
+                if source_exists:
+                    Path(d['source']).write_text('unexpected original path')
+                    with self.assertRaises(RuntimeError):self.run_main(module,root)
+                    self.assertTrue(old.exists())
+                else:
+                    self.run_main(module,root);self.assertFalse(old.exists())
 
     def test_retains_newest_and_never_deletes_named_repair_evidence(self):
         module=self.module()
