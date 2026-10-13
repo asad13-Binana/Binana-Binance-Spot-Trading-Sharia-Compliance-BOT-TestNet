@@ -3,6 +3,7 @@
 No certificate is issued and no trading is started by this command.
 """
 import argparse
+from contextlib import closing
 from datetime import datetime,timezone
 import hashlib
 import importlib.util
@@ -29,7 +30,14 @@ IMAGES=HOST/'local-images-20261007.json'
 
 def run(args,timeout=180):
     result=subprocess.run(args,capture_output=True,timeout=timeout)
-    if result.returncode: raise RuntimeError('COMMAND_FAILED:'+args[0]+':'+str(result.returncode))
+    if result.returncode:
+        # Keep diagnostics root-private; exception/public receipts contain only
+        # executable and exit status, never environment or raw command output.
+        diagnostic=Path('/var/backups/binana-testnet')/('rollout-command-failure-'+str(time.time_ns())+'.json')
+        if os.geteuid()==0 and diagnostic.parent.exists():
+            authority.atomic(diagnostic,json.dumps({'command':args,'exit_code':result.returncode,
+                'stdout':result.stdout.decode(errors='replace'),'stderr':result.stderr.decode(errors='replace')}).encode(),mode=0o600)
+        raise RuntimeError('COMMAND_FAILED:'+args[0]+':'+str(result.returncode))
     return result.stdout
 
 
@@ -92,7 +100,7 @@ def backup(root):
 def preserve_accounting(root):
     changes={}
     for name in ('binana-owner.sqlite','binana-extension.sqlite'):
-        with sqlite3.connect(root/name) as before,sqlite3.connect('file:'+str(DB/name)+'?mode=ro',uri=True) as after:
+        with closing(sqlite3.connect(root/name)) as before,closing(sqlite3.connect('file:'+str(DB/name)+'?mode=ro',uri=True)) as after:
             tables=[r[0] for r in before.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")]
             for table in tables:
                 old=before.execute('SELECT * FROM "'+table+'" ORDER BY rowid').fetchall()
@@ -108,6 +116,14 @@ def preserve_accounting(root):
                             raise RuntimeError('NON_STARTUP_METADATA_CHANGED')
                 elif table=='wallet_history' and len(new)>=len(old) and new[:len(old)]==old:
                     pass  # New telemetry snapshots never change existing trade economics.
+                elif table=='incidents' and len(old)==len(new):
+                    columns=[c[1] for c in before.execute('PRAGMA table_info(incidents)')]
+                    stamp=columns.index('updated_ts');status=columns.index('status')
+                    for a,b in zip(old,new):
+                        if a==b:continue
+                        if (a[status]!='CLOSED' or b[status]!='CLOSED' or b[stamp]<a[stamp]
+                                or any(x!=y for i,(x,y) in enumerate(zip(a,b)) if i!=stamp)):
+                            raise RuntimeError('INCIDENT_CONTENT_CHANGED')
                 else: raise RuntimeError('ACCOUNTING_CHANGED:'+name+':'+table)
                 changes[name+':'+table]={'before_rows':len(old),'after_rows':len(new)}
             added={r[0] for r in after.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")}-set(tables)
@@ -117,7 +133,8 @@ def preserve_accounting(root):
 
 def attest(image):
     d=inspect();h=d['HostConfig']
-    if d['Image']!=image or not h['ReadonlyRootfs'] or not h.get('Init') or h.get('CapDrop')!=['ALL']:
+    if (d['Image']!=image or not h['ReadonlyRootfs'] or not h.get('Init') or h.get('CapDrop')!=['ALL']
+            or not set(h.get('SecurityOpt') or []) & {'no-new-privileges','no-new-privileges:true','no-new-privileges=true'}):
         raise RuntimeError('IMMUTABLE_OWNER_CONTRACT_FAILED')
     mounts=[{k:m[k] for k in ('Type','Source','Destination','RW')} for m in d['Mounts']]
     for target in ('/freqtrade/binana-config','/freqtrade/binana-release','/freqtrade/shared'):
@@ -126,7 +143,8 @@ def attest(image):
     record={'schema':'binana-deployment-v1','image':image,'read_only':True,'init':True,'cap_drop':['ALL'],
         'mounts':sorted(mounts,key=lambda m:m['Destination']),
         'environment_sha256':hashlib.sha256(json.dumps(sorted(d['Config']['Env'])).encode()).hexdigest(),
-        'entrypoint':d['Config']['Entrypoint'],'command':d['Config']['Cmd'],'user':d['Config']['User']}
+        'entrypoint':d['Config']['Entrypoint'],'command':d['Config']['Cmd'],'user':d['Config']['User'],
+        'security_opt':h['SecurityOpt']}
     authority.atomic(RELEASE/'deployment.json',(json.dumps(record,sort_keys=True)+'\n').encode())
     return record
 
@@ -195,7 +213,10 @@ def main():
     key=Ed25519PrivateKey.from_private_bytes(ISSUER.read_bytes())
     authority.atomic(CONFIG.parent/'release-authority.ed25519.pub',key.public_key().public_bytes(serialization.Encoding.Raw,serialization.PublicFormat.Raw))
     overlay=json.loads(originals[OVERLAY]);owner=overlay['services']['freqtrade']
-    owner.update(image=args.tag,read_only=True,init=True,cap_drop=['ALL'],security_opt=['no-new-privileges:true'],
+    # The base Compose already enforces no-new-privileges. Repeating it in
+    # this JSON overlay produces a normalized duplicate rejected by Compose.
+    owner.pop('security_opt',None)
+    owner.update(image=args.tag,read_only=True,init=True,cap_drop=['ALL'],
         volumes=[str(SHARED)+':/freqtrade/shared:ro',str(DB)+':/freqtrade/shared/freqtrade:rw',str(RELEASE)+':/freqtrade/binana-release:ro'])
     images=json.loads(originals[IMAGES]);images['freqtrade']={'reference':args.tag,'image_id':args.image}
     report={'image':args.image,'rollback_image':old,'root':str(root),'passed':False,'stages':[],
@@ -205,6 +226,7 @@ def main():
         for label,candidate in [('candidate',True),('rollback',False),('candidate_final',True)]:
             for path,value in ((OVERLAY,overlay),(IMAGES,images)):
                 authority.atomic(path,(json.dumps(value,indent=2)+'\n').encode() if candidate else originals[path])
+            run(compose()+['config','--quiet'])
             run(compose()+['up','--no-start','--no-deps','--no-build','--pull','never','freqtrade'])
             if candidate:attest(args.image)
             run(['docker','start',OWNER])

@@ -713,15 +713,24 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
         # the cancellation response. No new SELL may overlap an unresolved child.
         reports=[]
         try:
-            for key in ('tp','sl'):
-                child=self._owned_child(trade.pair,gen,key)
-                if child['status'] not in {'closed','canceled','cancelled','expired','rejected'}:
+            # Binance's query endpoint can briefly lag the cancel acknowledgement.
+            # Re-read both authenticated identities; never infer terminal state
+            # from the DELETE response or retry the cancellation/order mutation.
+            for attempt, delay in enumerate((0, 0.25, 0.5, 1.0)):
+                if delay:
+                    _time.sleep(delay)
+                children=[self._owned_child(trade.pair,gen,key) for key in ('tp','sl')]
+                if all(child['status'] in {'closed','canceled','cancelled','expired','rejected'} for child in children):
+                    break
+                if attempt == 3:
                     raise AdmissionRejected('OLD_CHILD_STILL_LIVE')
+            for child in children:
                 reports.append({'orderId':child['id'],'clientOrderId':child['clientOrderId'],
                     'executedQty':str(child.get('filled') or 0),'status':'FILLED' if child['status']=='closed' else child['status'].upper()})
         except Exception as exc:
             self.store.update_generation_status(intent_id,2,'CANCEL_UNKNOWN')
-            self._recovery_block(intent_id,trade.pair,'CANCEL_CHILD_VERIFICATION_FAILED:'+type(exc).__name__)
+            reason=':'+str(exc) if isinstance(exc,AdmissionRejected) else ''
+            self._recovery_block(intent_id,trade.pair,'CANCEL_CHILD_VERIFICATION_FAILED:'+type(exc).__name__+reason)
             return None
         old_sold=Decimal('0')
         old_base_commission=Decimal('0')

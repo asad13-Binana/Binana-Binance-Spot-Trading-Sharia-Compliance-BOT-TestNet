@@ -236,6 +236,10 @@
       "sha256": "3dd49850e7e5f65469aa6a892d5b98a01ce05452203f6d89e0245ae52da225d7",
       "size": 2704
     },
+    "docs/AWS_OWNER_MAINTENANCE.md": {
+      "sha256": "1611635fb223108cb58647eba65cdfa6e6752da05a64b8ad5ec9303f0e76047d",
+      "size": 5056
+    },
     "docs/BINANA_TESTNET_LOCAL_ORACLE_FIX_REPORT_2026-08-28.txt": {
       "sha256": "e45d29bb168dee229cd183896e89c818c52400bf26c56d23c0f404ce92dcf547",
       "size": 10360
@@ -348,6 +352,14 @@
       "sha256": "0ac33892dfe46689ede51e45b91828b6efdb8a44273573ed5751758567abd1cf",
       "size": 2939
     },
+    "docs/audit/AWS_DEPLOYMENT_OBSERVATION_2026-10-14.json": {
+      "sha256": "328d6d8ba9e6025c75e5fb7c11f540a3d5d185719c5cbe7e0815007bcee55716",
+      "size": 3925
+    },
+    "docs/audit/AWS_DEPLOYMENT_RESULT_2026-10-14.md": {
+      "sha256": "6200aab7ae6f7eb9b3d87833989a5beb538a1db134efa8bb34f12b156ed6e966",
+      "size": 21120
+    },
     "docs/audit/BLOCKER_REPORT.md": {
       "sha256": "351cad7e0d5d2c16e4187afc311aa671c1fe176ec9d98349f5336496d5850617",
       "size": 3339
@@ -365,16 +377,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "55605b9d856fd15081860d9e171b31608f2954e313dfa890621d21301d40743a",
-      "size": 91575
+      "sha256": "00fe860279b26d6a89103b65b25d9078be0a5ae27b72439c6473d65028f9a45d",
+      "size": 92707
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "20368c37bc7b73af226a57b931bb87b8ce0c53b2f7dc922b50755c88a28cd13b",
-      "size": 675911
+      "sha256": "0f57b39fa38cff05d97e5fd5a1e7cf20109ef811ec22b2b0daefc5e42a1b3563",
+      "size": 679156
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -785,8 +797,8 @@
       "size": 483
     },
     "runtime_owner/CANDIDATE_MANIFEST.json": {
-      "sha256": "569dff2c5cfdd5b4ca1a2303ae05d57a3c029546b429d7d91a3f7cb415269b1d",
-      "size": 35538
+      "sha256": "e6c9a5c1e9c1f4a5b4a6615ebba0d8092f797666e2a86b4db77a445f8ef060f3",
+      "size": 36168
     },
     "runtime_owner/LICENSE": {
       "sha256": "53927bd0b739d38c87a0a82236fd9b070c2dfff11c0c119be50372005d5047ad",
@@ -1173,8 +1185,8 @@
       "size": 4292
     },
     "runtime_owner/owner/freqtrade/binana/execution_manager.py": {
-      "sha256": "6035e080e6f5f60a492b5bb081c1268a082cb18d852b5cd3e13326e147ff0442",
-      "size": 50827
+      "sha256": "df0c6e8d8c98f0898470a0f8e86e2e9a362101158b0528bb7287019bd60f9da9",
+      "size": 51395
     },
     "runtime_owner/owner/freqtrade/binana/market_data.py": {
       "sha256": "69f70fb102d298d9f104daae74b848ec809b9bda02f070c09d2fc19949be2769",
@@ -1225,8 +1237,8 @@
       "size": 6769
     },
     "runtime_owner/owner/freqtrade/binana/verified_recovery.py": {
-      "sha256": "22bbb4e85f7569dbad85b0d6083568c237b91ea2ebbc1900c679316348a3bc42",
-      "size": 25562
+      "sha256": "2518bcaa239b1e32f5f4f7682a1d39eaacfede783ede38d6552ed3b5877da19b",
+      "size": 26208
     },
     "runtime_owner/owner/freqtrade/exchange/binance.py": {
       "sha256": "1bec7efb0dbe87adec22ddf7599dce17dd81277986931baffd98625849570b85",
@@ -1360,6 +1372,10 @@
       "sha256": "66011036eae80e9fb5c5225a4c80bcae359e8eed4bb097328e6215d270414c39",
       "size": 1992
     },
+    "runtime_owner/tests/test_promotion_visibility.py": {
+      "sha256": "81cf2743609a4e611c8c1ca0d0550ca2fb4c6c6f6adf843b3eb05a42e503bc15",
+      "size": 6066
+    },
     "runtime_owner/tests/test_protection_plan_durability.py": {
       "sha256": "c79f11f0fc6d1a827cbdde88bf2f56dfb88717b2d5d904a5d593defc1eb350c6",
       "size": 11898
@@ -1465,16 +1481,16 @@
       "size": 9700
     },
     "scripts/recovery/compact_daily_backups.py": {
-      "sha256": "61dc13ef273341c93998ebaf82b3f3427b7349fd157294f98b545ecbd1cbd296",
-      "size": 959
+      "sha256": "baf1ed97455b4a16c84b50ceee42b2bcf7fe0207476827f1ea6202e2c4d2e744",
+      "size": 3853
     },
     "scripts/recovery/compact_old_binana_backups_20261007.py": {
-      "sha256": "176791c8622c50e8244e7640d8beebfc0bd816a93f2385a2b0f6be3637ba18b8",
-      "size": 4237
+      "sha256": "2873489b2e4527c672c6d7b62f9254c82ded21e91f9089ab4c77b73649c5c83e",
+      "size": 4355
     },
     "scripts/recovery/deploy_candidate_owner.py": {
-      "sha256": "af8fb4856f61810a24bf493ba6cb09d71ece47a9a7f670415dc558e7ff932836",
-      "size": 14284
+      "sha256": "05f99c170e78bb88d010ca895a9262d1358979931c28989f4796eb80fd862805",
+      "size": 15854
     },
     "scripts/recovery/deploy_candidate_panel.py": {
       "sha256": "a9f6002f86f658201c5db7a43e2cfe7b7d3408c79ce9ceff870b737b0c5e86e0",
@@ -1492,17 +1508,21 @@
       "sha256": "9a010704654c889d8bb1e9dec5a73d4a7607627896a873da58a687fb4eb8d462",
       "size": 7442
     },
+    "scripts/recovery/install_release_renewal.py": {
+      "sha256": "c2c8666127b8af21de4168d08f4123fb4550680b63c1d96b5b3e19fb7f25fa57",
+      "size": 3262
+    },
     "scripts/recovery/issue_candidate_release.py": {
-      "sha256": "822401089ed2c6ba0bf00db8ea8d68ca823f1d8c80420ea5df0fdede7dad6ba0",
-      "size": 6933
+      "sha256": "1033b6cf1652199b14cc5dbba2c7cad3baba2ebf107aae6317b09a2fdea70d41",
+      "size": 7019
     },
     "scripts/recovery/probe_controlled_owner_lifecycle.py": {
       "sha256": "9474fd4c60faa6f27381f7d9f0e57e421895d237b9a4a33f91637457863b9692",
       "size": 26058
     },
     "scripts/recovery/probe_owner_slot_soak.py": {
-      "sha256": "5fc80be6745495a0f9c7540cf5b97975a0d32f1b526e7be149a73795447a7215",
-      "size": 15390
+      "sha256": "b45ab1557e316b2d293c7a9b112019127b1bd4d46a46f3a3d355f667e3594f3e",
+      "size": 15568
     },
     "scripts/recovery/probe_testnet_order_validation.py": {
       "sha256": "96cf24e39bcbfd7d0b4699a522a962eb8b9ba6bbe6185fd9890818f0cddfaed2",
@@ -1577,8 +1597,8 @@
       "size": 30119
     },
     "scripts/validate_owner_offline.py": {
-      "sha256": "5d82b9a2243977919b289e3408ef78b7a9921207e666053c4cf8c68000a3ea6a",
-      "size": 2295
+      "sha256": "855e350cd8806748e0598e9ac1d19a7a5ccce6fdcbf1f857d37d9fc7958ba884",
+      "size": 2321
     },
     "scripts/verify_coverage_ratchet.py": {
       "sha256": "2ba42d2b8800518ba0bd744d87fdae0be507e8ef4abac1dea4d79a9087d8d643",
@@ -2052,6 +2072,10 @@
       "sha256": "119d4cbf7b1b60db1b81a53dd9f561dc1bf9ef6c59c4ded09c5d37e2d669745f",
       "size": 18836
     },
+    "tests/test_compressed_backup_retention.py": {
+      "sha256": "ef134d0be156d9731a1ed2e072835029c4e6acb1059390df48669831d874ed36",
+      "size": 4300
+    },
     "tests/test_controlled_lifecycle_guard.py": {
       "sha256": "71c91b223ae0b012ecf9101327e7df63a829ce10eeb887d737f7d054656ba949",
       "size": 16352
@@ -2155,6 +2179,10 @@
     "tests/test_release_renewal_host.py": {
       "sha256": "4384b7fa2cada21a6cf3df69c2363793695afcab98fa590a5a8eb3e90c9e8be6",
       "size": 2559
+    },
+    "tests/test_rollout_accounting.py": {
+      "sha256": "6d6c20c5634fc5894fe4fb3ab15fdb29d496f9f3c4aed22aba33da4d6bafb58d",
+      "size": 2407
     },
     "tests/test_runtime_recovery_20260830.py": {
       "sha256": "330a302ff4690750956d8e8285755b61da06d67e985f489c39efbb18ba09066d",

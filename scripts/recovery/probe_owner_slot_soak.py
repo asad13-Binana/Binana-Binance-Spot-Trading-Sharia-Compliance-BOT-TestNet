@@ -55,7 +55,9 @@ def normalized(records):
 
 
 def unexpected(bot):
-    return [{'id':row['incident_id'],'code':row['code']} for row in bot.binana.store.unresolved()
+    # Private rehearsal receipts retain the first cause before later recovery
+    # updates the same incident. Public summaries expose only typed reasons.
+    return [{'id':row['incident_id'],'code':row['code'],'detail':row['detail']} for row in bot.binana.store.unresolved()
             if row['incident_id'] != 'repair-economic-settlement-replay-20260920']
 
 

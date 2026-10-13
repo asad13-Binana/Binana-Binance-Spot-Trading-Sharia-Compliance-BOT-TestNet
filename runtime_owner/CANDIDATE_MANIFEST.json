@@ -3,7 +3,7 @@
   "baseline_commit": "8b01c3c3c5a36d28aeabd2ff403bc9be4bfbe4bf",
   "base_image_id": "sha256:a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523",
   "validation": {
-    "tests": 218,
+    "tests": 222,
     "required_test_ids": [
       "test_audit_20261012.AccountAndMarketAdmission.test_account_asset_limit_blocks_before_submission",
       "test_audit_20261012.AccountAndMarketAdmission.test_account_symbol_limit_is_enforced",
@@ -156,6 +156,10 @@
       "test_partial_promotion_recovery.PartialPromotionRecovery.test_partial_old_tp_fill_is_recorded_and_only_residual_is_reprotected",
       "test_private_event_ordering.PrivateEventOrdering.test_duplicate_and_out_of_order_events_are_recorded_once_without_economic_writes",
       "test_private_event_ordering.PrivateEventOrdering.test_wrong_subscription_or_missing_execution_identity_is_rejected",
+      "test_promotion_visibility.PromotionVisibility.test_delayed_cancel_visibility_rechecks_both_children_before_one_replacement",
+      "test_promotion_visibility.PromotionVisibility.test_identity_mismatch_never_retries_or_submits",
+      "test_promotion_visibility.PromotionVisibility.test_persistently_live_child_exhausts_bound_without_replacement",
+      "test_promotion_visibility.PromotionVisibility.test_reconciliation_verifies_new_protection_in_same_cycle",
       "test_protection_plan_durability.Durability.test_status_evidence_preserves_plan",
       "test_protection_plan_durability.Durability.test_status_only_upsert_retains_plan_after_reopen",
       "test_protection_plan_durability.FreshnessAndCertificate.test_context_expiry_future_and_warmup_fail_closed",
@@ -285,8 +289,8 @@
       "bytes": 4292
     },
     "owner/freqtrade/binana/execution_manager.py": {
-      "sha256": "6035e080e6f5f60a492b5bb081c1268a082cb18d852b5cd3e13326e147ff0442",
-      "bytes": 50827
+      "sha256": "df0c6e8d8c98f0898470a0f8e86e2e9a362101158b0528bb7287019bd60f9da9",
+      "bytes": 51395
     },
     "owner/freqtrade/binana/market_data.py": {
       "sha256": "69f70fb102d298d9f104daae74b848ec809b9bda02f070c09d2fc19949be2769",
@@ -337,8 +341,8 @@
       "bytes": 6769
     },
     "owner/freqtrade/binana/verified_recovery.py": {
-      "sha256": "22bbb4e85f7569dbad85b0d6083568c237b91ea2ebbc1900c679316348a3bc42",
-      "bytes": 25562
+      "sha256": "2518bcaa239b1e32f5f4f7682a1d39eaacfede783ede38d6552ed3b5877da19b",
+      "bytes": 26208
     },
     "owner/freqtrade/exchange/binance.py": {
       "sha256": "1bec7efb0dbe87adec22ddf7599dce17dd81277986931baffd98625849570b85",
@@ -471,6 +475,10 @@
     "tests/test_private_event_ordering.py": {
       "sha256": "66011036eae80e9fb5c5225a4c80bcae359e8eed4bb097328e6215d270414c39",
       "bytes": 1992
+    },
+    "tests/test_promotion_visibility.py": {
+      "sha256": "81cf2743609a4e611c8c1ca0d0550ca2fb4c6c6f6adf843b3eb05a42e503bc15",
+      "bytes": 6066
     },
     "tests/test_protection_plan_durability.py": {
       "sha256": "c79f11f0fc6d1a827cbdde88bf2f56dfb88717b2d5d904a5d593defc1eb350c6",
