@@ -1950,6 +1950,43 @@ def _settings():
     }, indent=2)
 
 
+def _current_deployment():
+    """Observe this installation; a historical rollout is not current health."""
+    def details(value):
+        rendered = json.dumps(value, separators=(',', ':'))
+        if len(rendered) <= 500:
+            return value
+        return {'count': len(value) if isinstance(value, (dict, list)) else None,
+                'preview': rendered[:180], 'truncated': True}
+
+    response = ft_call('GET', '/show_config')
+    cfg = response.get('data') if isinstance(response, dict) and response.get('ok') is True else None
+    cfg = cfg if isinstance(cfg, dict) else {}
+    health = read_json(RUNTIME / 'sidecar_health.json', {})
+    health = health if isinstance(health, dict) else {}
+    try:
+        fresh = 0 <= time.time() - float(health['ts']) < 180
+    except (KeyError, ValueError, TypeError, OverflowError):
+        fresh = False
+    payload = {
+        'observation': 'current runtime; not release certification',
+        'environment': str(BOT_ENVIRONMENT)[:32],
+        'release': str(_release_label())[:64],
+        'installed_release_hash': str(envelope.installed_release_hash())[:64],
+        'freqtrade_state': str(cfg.get('state', 'UNKNOWN')).upper()[:32],
+        'strategy': str(cfg.get('strategy', 'UNKNOWN'))[:64],
+        'execution_mode': str(health.get('execution_mode', 'UNKNOWN'))[:16] if fresh else 'UNKNOWN',
+        'entries_enabled': health.get('entries_enabled') if fresh and isinstance(health.get('entries_enabled'), bool) else None,
+        'trading_ready': health.get('trading_ready') if fresh and isinstance(health.get('trading_ready'), bool) else None,
+        'safety_halts': details(health.get('safety_halts', {})) if fresh else None,
+        'runtime_safety_faults': details(health.get('runtime_safety_faults', {})) if fresh else None,
+        'readiness_blockers': details(health.get('readiness_blockers', [])) if fresh else ['sidecar_health_stale_or_unavailable'],
+        'observed_at_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+    }
+    rendered = json.dumps(payload, indent=2)
+    return rendered if len(rendered) <= 3800 else json.dumps(payload, separators=(',', ':'))
+
+
 def _validation_status():
     candidates = [RUNTIME / 'validation_status.json', Path('/app/VALIDATION_STATUS.json')]
     for path in candidates:
@@ -2179,7 +2216,7 @@ def route(action, chat, message_id=None):
             [[{'text': '⬅️ Sharia menu', 'callback_data': 'do|menu_sharia'},
               {'text': '🏠 Home', 'callback_data': 'do|home'}]])
     elif action == 'deploy':
-        send(json.dumps(read_json(RUNTIME / 'deployment_status.json', {}), indent=2), chat)
+        send(_current_deployment(), chat)
     elif action == 'last_signal':
         send(_latest_signal(), chat)
     elif action == 'signal_history':

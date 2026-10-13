@@ -1,8 +1,8 @@
 # BINANA Binance Spot Testnet
 
-October 12, 2026: **the recovered owner has a new repair candidate; it is not deployment-certified.** See [the current repair status](docs/recovery/AUDIT_REPAIR_20261012.md) for reproduced defects, tests and remaining gates. The October 8 acceptance record applies to its exact historical image and configuration, not to changed candidate bytes or the current trading state.
+October 14, 2026: the accepted AWS Testnet owner is RUNNING on image `7b12004b…`; its release acceptance and daily certificate renewal were verified. The Telegram Deployment view now reads current owner evidence. See [the current AWS/repository comparison](docs/recovery/RUNTIME_PARITY_20261014.md) and [the accepted deployment receipt](docs/audit/AWS_DEPLOYMENT_RESULT_2026-10-14.md).
 
-AWS uses the recovered Freqtrade 2026.8/NFI owner with a monitor-only sidecar. Source is in `runtime_owner/`. The root Compose package below remains a legacy topology and must not overwrite that deployment. Candidate tests now run in a separate required CI job; the full retained-image validation is a separate check.
+AWS uses the recovered Freqtrade 2026.8/NFI owner with a monitor-only sidecar. Source is in `runtime_owner/`. The root Compose package below remains a legacy topology and must not overwrite that deployment. An independent public-source image build now removes the retained AWS base-image dependency; it passes all 222 owner regressions offline. Its source, dependency locks and build are verified in CI. A new image still needs its own exchange acceptance before trading.
 
 Historical records: [October 8 deployment evidence](docs/recovery/RECOVERY_STATUS_20261007.md), [registry additions](docs/recovery/REGISTRY_ADDITIONS_20260930.json).
 

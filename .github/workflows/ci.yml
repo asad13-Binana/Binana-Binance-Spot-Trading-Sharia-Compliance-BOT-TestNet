@@ -16,6 +16,23 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  owner-clean-build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.14'
+      - name: Materialize pinned public source without retained AWS images
+        run: python runtime_owner/deployment/materialize_clean_context.py /tmp/owner-clean-context
+      - name: Build the independent owner image
+        run: docker build --pull -f /tmp/owner-clean-context/Dockerfile.clean -t binana-owner-clean:ci /tmp/owner-clean-context
+      - name: Run complete owner regressions without network or credentials
+        run: >-
+          docker run --rm --network=none --read-only --cap-drop=ALL
+          --security-opt=no-new-privileges --memory=2g --cpus=2 --pids-limit=256
+          --tmpfs /tmp:rw,nosuid,nodev,size=256m,mode=1777 binana-owner-clean:ci
   owner-unit:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -75,6 +92,8 @@ jobs:
         run: python -m pip_audit -r requirements.services.lock --strict --no-deps --disable-pip
       - name: Monitoring dependency vulnerability audit
         run: python -m pip_audit -r monitoring/requirements-monitoring.lock --strict --no-deps --disable-pip
+      - name: Independent owner dependency vulnerability audit
+        run: python -m pip_audit -r runtime_owner/deployment/requirements.owner.lock --strict --no-deps --disable-pip
 
   sast:
     runs-on: ubuntu-latest
@@ -145,7 +164,7 @@ jobs:
             bash /source/tests/clean_host/run.sh
 
   artifact:
-    needs: [verify, sast, quality-evidence, clean-host-installer, owner-unit]
+    needs: [verify, sast, quality-evidence, clean-host-installer, owner-unit, owner-clean-build]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:

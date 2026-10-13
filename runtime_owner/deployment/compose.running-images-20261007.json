@@ -1,10 +1,29 @@
 {
   "services": {
     "freqtrade": {
-      "image": "binana-testnet-freqtrade:recovery-validation-20261007-r4"
+      "image": "binana-testnet-freqtrade:completion-20261013-r2",
+      "read_only": true,
+      "init": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "volumes": [
+        "/var/lib/binana-testnet/shared:/freqtrade/shared:ro",
+        "/var/lib/binana-testnet/shared/freqtrade:/freqtrade/shared/freqtrade:rw",
+        "/etc/binana-testnet/release:/freqtrade/binana-release:ro"
+      ]
     },
     "telegram-broker": {
-      "image": "binana-testnet-services:telegram-repair-20260912-r15"
+      "image": "binana-testnet-services:telegram-repair-20260912-r15",
+      "read_only": true,
+      "init": true,
+      "environment": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "volumes": [
+        "/home/ubuntu/binana-runtime-fixes/telegram/durable_outbox.py:/app/durable_outbox.py:ro",
+        "/etc/binana-testnet/release:/app/binana-release:ro"
+      ]
     },
     "universe": {
       "image": "binana-testnet-services:universe-repair-20260912-r10"
