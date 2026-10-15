@@ -276,6 +276,27 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
         if ratio>=normal: return 'NORMAL'
         return 'DEFENSIVE'
 
+    @staticmethod
+    def _assert_current_signal(candle_date, candles) -> None:
+        """Only an unsubmitted, still-current closed 5m signal may retry flow."""
+        from time import time
+        now = time()
+        try:
+            candle = datetime.fromisoformat(str(candle_date).replace('Z', '+00:00'))
+            if candle.tzinfo is None:
+                raise ValueError('timezone required')
+            stamp = candle.timestamp()
+            if stamp % 300 or not 0 <= now - (stamp + 300) < 300:
+                raise ValueError('signal is no longer current')
+        except (ValueError, TypeError, OverflowError) as exc:
+            raise AdmissionRejected('SIGNAL_REASSESSMENT_EXPIRED') from exc
+        try:
+            observed = datetime.fromisoformat(str(candles.iloc[-1]['date']).replace('Z', '+00:00'))
+            if observed.tzinfo is None or observed.timestamp() != stamp:
+                raise ValueError('different signal candle')
+        except (AttributeError, KeyError, IndexError, ValueError, TypeError, OverflowError) as exc:
+            raise AdmissionRejected('SIGNAL_CANDLE_MISMATCH') from exc
+
     def prepare_candidate(self, *, pair: str, enter_tag: str | None, candle_date, side: str='long', candles=None) -> PreparedAdmission:
         from .durable_journal import append_event
         event={'scope':self.scope_id,'pair':pair,'entry_tag':enter_tag,
@@ -293,6 +314,11 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
         append_event(journal,event)
         return prepared
 
+    def _reject_admission(self, existing: dict, state: str, *, admission: dict) -> None:
+        changed = self.store.reject_admission(existing, state=state, admission=admission)
+        if changed:
+            raise AdmissionRejected(changed)
+
     def _prepare_candidate(self, *, pair: str, enter_tag: str | None, candle_date, side: str='long', candles=None) -> PreparedAdmission:
         if not enter_tag: raise AdmissionRejected('MISSING_ENTRY_TAG')
         assert_spot_pair(pair,side=side,leverage=1)
@@ -301,9 +327,20 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
         intent_id=self._intent_id(pair,enter_tag,candle_date)
         requested_nominal=self._requested_nominal_usdt()
         existing=self.store.get_intent(intent_id)
+        rechecking_flow = False
         if existing is not None:
             if not bool(existing['halal_allowed']): raise AdmissionRejected('HALAL_NOT_ALLOWED')
             state=str(existing.get('state') or '')
+            if state in self.TERMINAL_INTENT_STATES:
+                raise AdmissionRejected('SIGNAL_ALREADY_TERMINAL')
+            # Any persisted order identity or fill requires reconciliation, even
+            # when an inconsistent state label says this signal was rejected.
+            if existing.get('freqtrade_trade_id') is not None or self.store.has_order_evidence(intent_id):
+                raise AdmissionRejected('SIGNAL_ALREADY_OWNED')
+            if state == 'RESERVED':
+                raise AdmissionRejected('SIGNAL_ALREADY_PREPARED')
+            if state == 'PAIR_NOT_READY':
+                self._assert_current_signal(candle_date, candles)
             if state.startswith('REJECTED'):
                 try:
                     replay=json.loads(existing.get('admission_json') or '{}')
@@ -311,12 +348,16 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
                     reason=code if code and code!='HALAL_ALLOWED' else state
                 except Exception:
                     reason=state
-                raise AdmissionRejected(reason)
-            if state in self.TERMINAL_INTENT_STATES:
-                raise AdmissionRejected('SIGNAL_ALREADY_TERMINAL')
-            # A repeated signal must not overwrite an existing trade or order lifecycle.
-            if existing.get('freqtrade_trade_id') is not None or self.store.latest_generation(intent_id) is not None:
-                raise AdmissionRejected('SIGNAL_ALREADY_OWNED')
+                if state == 'REJECTED_FLOW' and reason == 'BULLISH_FLOW_NOT_CONFIRMED':
+                    from time import time
+                    self._assert_current_signal(candle_date, candles)
+                    if time() - float(existing['updated_ts']) < 5:
+                        raise AdmissionRejected(reason)
+                    rechecking_flow = True
+                else:
+                    raise AdmissionRejected(reason)
+            if state not in {'HALAL_DECIDED', 'PAIR_NOT_READY', 'REJECTED_FLOW'}:
+                raise AdmissionRejected('SIGNAL_STATE_REQUIRES_RECONCILIATION')
             nominal=Decimal(str(existing['nominal_usdt']))
             if not nominal.is_finite() or nominal <= 0:
                 raise AdmissionRejected('CANONICAL_NOMINAL_INVALID')
@@ -359,24 +400,32 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
         try:
             self._capability_check(pair)
         except AdmissionRejected as exc:
-            self.store.set_intent_state(intent_id,'REJECTED_CAPABILITY',admission={'code':str(exc).split(':')[0]})
+            self._reject_admission(existing,'REJECTED_CAPABILITY',admission={'code':str(exc).split(':')[0]})
             raise
         snapshot=self.market_data.refresh(pair, quote_budget=nominal)  # bind liquidity evidence to admitted notional
         liquidity_policy=self.config['binana'].get('liquidity',{})
         flow_policy=self.config['binana'].get('flow_policy',{})
+        if rechecking_flow:
+            from .durable_journal import append_event
+            from time import time
+            append_event(Path(self.config['binana']['state_db_path']).parent/'runtime/freqtrade_lifecycle_events.jsonl',
+                {'scope':self.scope_id,'type':'FLOW_REASSESSMENT','pair':pair,'intent_id':intent_id,
+                 'entry_tag':enter_tag,'candle_time':str(candle_date),
+                 'observation_bucket':int(time()//5),'previous_admission':json.loads(existing['admission_json']),
+                 'market':snapshot.to_dict()})
         if snapshot.reason == 'PAIR_NOT_READY':
-            self.store.set_intent_state(
-                intent_id,'PAIR_NOT_READY',
+            self._reject_admission(
+                existing,'PAIR_NOT_READY',
                 admission=self._flow_rejection_evidence(snapshot,flow_policy,'PAIR_NOT_READY')
             )
             raise AdmissionRejected('PAIR_NOT_READY')
         if snapshot.state in {'DANGEROUS','UNKNOWN'}:
-            self.store.set_intent_state(intent_id,'REJECTED_EXECUTION',admission=self._execution_rejection_evidence(snapshot,liquidity_policy))
+            self._reject_admission(existing,'REJECTED_EXECUTION',admission=self._execution_rejection_evidence(snapshot,liquidity_policy))
             raise AdmissionRejected(snapshot.reason)
         from .quality_gate import bullish_flow_reason
         flow_reason=bullish_flow_reason(snapshot,flow_policy)
         if flow_reason:
-            self.store.set_intent_state(intent_id,'REJECTED_FLOW',admission=self._flow_rejection_evidence(snapshot,flow_policy,flow_reason))
+            self._reject_admission(existing,'REJECTED_FLOW',admission=self._flow_rejection_evidence(snapshot,flow_policy,flow_reason))
             raise AdmissionRejected(flow_reason)
         quality_policy=self.config['binana'].get('confluence_policy',{})
         if quality_policy.get('enabled') is True:
@@ -391,19 +440,28 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
                     'volume_votes':quality.get('volume_votes'),'minimum_volume_votes':quality_policy.get('minimum_volume_votes',2),
                     'momentum_votes':quality.get('momentum_votes'),'minimum_momentum_votes':quality_policy.get('minimum_momentum_votes',2),
                     'votes':quality.get('votes'),'values':quality.get('values')}
-                self.store.set_intent_state(intent_id,'REJECTED_CONFLUENCE',admission=admission);raise AdmissionRejected(quality['reason'])
+                self._reject_admission(existing,'REJECTED_CONFLUENCE',admission=admission);raise AdmissionRejected(quality['reason'])
         if self.config['binana'].get('liquidity',{}).get('require_sequence_book') is True:
             try:
                 imbalance=Decimal(str(snapshot.book_imbalance_20))
                 book_ok=snapshot.sequence_book_status=='fresh' and imbalance.is_finite() and Decimal('0')<imbalance<=Decimal('1')
             except Exception:book_ok=False
             if not book_ok:
-                self.store.set_intent_state(intent_id,'REJECTED_SEQUENCE_BOOK',admission=self._sequence_rejection_evidence(snapshot));raise AdmissionRejected('SEQUENCE_BOOK_BULLISH_NOT_CONFIRMED')
+                self._reject_admission(existing,'REJECTED_SEQUENCE_BOOK',admission=self._sequence_rejection_evidence(snapshot));raise AdmissionRejected('SEQUENCE_BOOK_BULLISH_NOT_CONFIRMED')
         profile=self._profile(snapshot,self.config['binana'].get('flow_policy',{}))
         registry_sha=existing['registry_sha256'] if existing is not None else registry_sha
         accepted_admission={'code':'ADMISSION_ACCEPTED','profile':profile,'market':snapshot.to_dict(),
                             'nominal_usdt':str(nominal)}
-        self.store.set_intent_state(intent_id,'RESERVED',admission=accepted_admission)
+        expires_at = None
+        if rechecking_flow or existing['state'] == 'PAIR_NOT_READY':
+            # Read-only exchange calls may cross the signal's expiry boundary.
+            self._assert_current_signal(candle_date, candles)
+            expires_at = datetime.fromisoformat(str(candle_date).replace('Z', '+00:00')).timestamp() + 600
+        reservation_reason = self.store.reserve_admission(existing, admission=accepted_admission,
+            max_slots=int(self.config.get('max_open_trades',4)),
+            allocation=Decimal(str(self.config['binana'].get('allocation_usdt',0))), expires_at=expires_at)
+        if reservation_reason:
+            raise AdmissionRejected(reservation_reason)
         prepared=PreparedAdmission(intent_id,pair,enter_tag,profile,snapshot,registry_sha,nominal)
         self.prepared[pair]=prepared
         return prepared

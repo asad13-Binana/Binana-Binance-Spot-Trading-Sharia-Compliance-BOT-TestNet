@@ -75,7 +75,7 @@ class DeployGateGraphTests(unittest.TestCase):
     def test_strategy_probe_job_fails_on_skip(self):
         """The probe job is only meaningful if a SKIP is treated as failure."""
         text = WORKFLOW.read_text(encoding='utf-8')
-        self.assertIn('freqtradeorg/freqtrade:2026.6', text)
+        self.assertIn('freqtradeorg/freqtrade:2026.9', text)
         self.assertIn("grep -qi 'skipped' probe.log", text)
 
     def test_deployment_is_never_triggered_without_an_explicit_opt_in(self):

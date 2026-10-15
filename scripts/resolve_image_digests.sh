@@ -6,7 +6,7 @@ set -euo pipefail
 
 images=(
   "python:3.12-slim"
-  "freqtradeorg/freqtrade:2026.6"
+  "freqtradeorg/freqtrade:2026.9"
 )
 
 if ! command -v docker >/dev/null 2>&1; then
