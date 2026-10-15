@@ -95,7 +95,7 @@ class CleanHostDeploymentTests(unittest.TestCase):
             'compose_for "$NEW" "$NEW_TAG" build universe freqtrade', installer)
         self.assertRegex(
             wrapper.splitlines()[0],
-            r'^FROM freqtradeorg/freqtrade:2026\.6@sha256:[0-9a-f]{64}$')
+            r'^FROM freqtradeorg/freqtrade:2026\.9@sha256:[0-9a-f]{64}$')
         self.assertIn('ARG BOT_UID=1000', wrapper)
         self.assertIn('ARG BOT_GID=1000', wrapper)
         self.assertTrue(wrapper.rstrip().endswith('USER ftuser'))

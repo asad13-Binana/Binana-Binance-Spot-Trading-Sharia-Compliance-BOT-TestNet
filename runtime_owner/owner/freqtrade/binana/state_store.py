@@ -245,6 +245,75 @@ class StateStore:
             row=c.execute("SELECT * FROM intents WHERE intent_id=?",(intent_id,)).fetchone()
             return dict(row) if row else None
 
+    @staticmethod
+    def _has_order_evidence(connection, intent_id: str) -> bool:
+        return any(connection.execute(
+            f'SELECT 1 FROM {table} WHERE intent_id=? LIMIT 1', (intent_id,)
+        ).fetchone() for table in ('protection', 'order_identity', 'fill_ledger'))
+
+    def has_order_evidence(self, intent_id: str) -> bool:
+        with self._connect() as connection:
+            return self._has_order_evidence(connection, intent_id)
+
+    def reject_admission(self, expected: dict, *, state: str, admission: dict) -> str:
+        """A stale market read must never overwrite a concurrent order lifecycle."""
+        with self.tx() as connection:
+            intent_id = expected['intent_id']
+            row = connection.execute('SELECT * FROM intents WHERE intent_id=?', (intent_id,)).fetchone()
+            if row is None or dict(row) != expected:
+                return 'SIGNAL_STATE_CHANGED'
+            if row['state'] not in {'HALAL_DECIDED', 'PAIR_NOT_READY', 'REJECTED_FLOW'}:
+                return 'SIGNAL_STATE_REQUIRES_RECONCILIATION'
+            if row['freqtrade_trade_id'] is not None or self._has_order_evidence(connection, intent_id):
+                return 'SIGNAL_ALREADY_OWNED'
+            connection.execute('UPDATE intents SET state=?,admission_json=?,updated_ts=? WHERE intent_id=?',
+                (state, json.dumps(admission, sort_keys=True, separators=(',', ':')), time(), intent_id))
+            return ''
+
+    def reserve_admission(self, expected: dict, *, admission: dict,
+                          max_slots: int, allocation: Decimal, expires_at: float | None = None) -> str:
+        """Reserve once against current exposure, after slow market reads finish."""
+        with self.tx() as connection:
+            if expires_at is not None and time() >= expires_at:
+                return 'SIGNAL_REASSESSMENT_EXPIRED'
+            intent_id = expected['intent_id']
+            row = connection.execute('SELECT * FROM intents WHERE intent_id=?', (intent_id,)).fetchone()
+            if row is None or dict(row) != expected:
+                return 'SIGNAL_STATE_CHANGED'
+            if not row['halal_allowed']:
+                return 'HALAL_NOT_ALLOWED'
+            if row['state'] not in {'HALAL_DECIDED', 'PAIR_NOT_READY', 'REJECTED_FLOW'}:
+                return 'SIGNAL_STATE_REQUIRES_RECONCILIATION'
+            if row['freqtrade_trade_id'] is not None or self._has_order_evidence(connection, intent_id):
+                return 'SIGNAL_ALREADY_OWNED'
+            if connection.execute("SELECT 1 FROM incidents WHERE status='OPEN' LIMIT 1").fetchone():
+                return 'RECONCILIATION_BLOCKER_OPEN'
+            if connection.execute("SELECT 1 FROM intents WHERE state IN ('UNKNOWN','ENTRY_PARTIAL') "
+                "OR (freqtrade_trade_id IS NULL AND state IN ('ENTRY_PENDING','OPEN','EXIT_PENDING')) "
+                'LIMIT 1').fetchone():
+                return 'RECONCILIATION_BLOCKER_OPEN'
+            marks = ','.join('?' for _ in self.OCCUPYING_STATES)
+            others = connection.execute(
+                f'SELECT nominal_usdt FROM intents WHERE state IN ({marks}) AND intent_id<>?',
+                (*self.OCCUPYING_STATES, intent_id)).fetchall()
+            nominal = Decimal(row['nominal_usdt'])
+            values = [Decimal(other['nominal_usdt']) for other in others]
+            if (not allocation.is_finite() or allocation <= 0 or not nominal.is_finite()
+                    or nominal <= 0 or any(not value.is_finite() or value < 0 for value in values)):
+                return 'ALLOCATION_CONFIG_INVALID'
+            reason = ('MAX_SLOTS_REACHED' if len(others) >= max_slots else
+                      'ALLOCATION_LIMIT_EXCEEDED' if sum(values, nominal) > allocation else '')
+            if reason:
+                state = 'REJECTED_MAX_SLOTS' if reason == 'MAX_SLOTS_REACHED' else 'REJECTED_ALLOCATION'
+                detail = {'code': reason, 'max_slots': max_slots, 'allocation_usdt': str(allocation),
+                          'occupied_nominal_usdt': str(sum(values, Decimal(0))),
+                          'requested_nominal_usdt': str(nominal)}
+            else:
+                state, detail = 'RESERVED', admission
+            connection.execute('UPDATE intents SET state=?,admission_json=?,updated_ts=? WHERE intent_id=?',
+                (state, json.dumps(detail, sort_keys=True, separators=(',', ':')), time(), intent_id))
+            return reason
+
     OCCUPYING_STATES=("HALAL_DECIDED","RESERVED","ENTRY_PENDING","ENTRY_PARTIAL","OPEN","EXIT_PENDING","UNKNOWN")
 
     def occupied_count(self) -> int:

@@ -22,7 +22,7 @@ def _write_tree(root: Path, *, pinned: bool) -> None:
         f'RUN pip install{require_hashes} -r requirements.services.lock\n')
     (root / 'docker-compose.yml').write_text(
         'services:\n  freqtrade:\n'
-        f'    image: freqtradeorg/freqtrade:2026.6{image_suffix}\n')
+        f'    image: freqtradeorg/freqtrade:2026.9{image_suffix}\n')
     (root / 'requirements.services.lock').write_text(
         f'requests==2.34.2{hash_suffix}\n')
     (root / 'requirements.host.lock').write_text(
@@ -74,11 +74,11 @@ class DeploymentSupplyChainGateTests(unittest.TestCase):
                 '    image: binana-testnet-freqtrade:test\n', encoding='utf-8')
             wrapper = root / 'Dockerfile.freqtrade'
             wrapper.write_text(
-                f'FROM freqtradeorg/freqtrade:2026.6@sha256:{DIGEST}\n',
+                f'FROM freqtradeorg/freqtrade:2026.9@sha256:{DIGEST}\n',
                 encoding='utf-8')
             self.assertEqual(deployment_supply_chain_errors(root), [])
             wrapper.write_text(
-                'FROM freqtradeorg/freqtrade:2026.6\n', encoding='utf-8')
+                'FROM freqtradeorg/freqtrade:2026.9\n', encoding='utf-8')
             self.assertTrue(any(
                 'Freqtrade' in error
                 for error in deployment_supply_chain_errors(root)))
