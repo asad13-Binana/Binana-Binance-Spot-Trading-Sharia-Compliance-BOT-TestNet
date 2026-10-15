@@ -377,16 +377,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "dc1f1b6e25e0aa83b427d17adc1a4518e8285cc8912d191ad0e0822d99903f32",
-      "size": 94308
+      "sha256": "e8819aa66976cc4bef6bdf5349c982c86ed8d4e38c9e2cf853426e4376e8b02c",
+      "size": 94469
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "9f68e1500a47944ff503eeae3d8ced59054918120de0c8fbcd6045e2c0e8c95c",
-      "size": 683772
+      "sha256": "aabe444d0bc7cd11714e507213daf33d84188ccd714bb08b23f6610803ed5552",
+      "size": 684427
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -433,8 +433,8 @@
       "size": 6019
     },
     "docs/recovery/AWS_CLEAN_RELEASE_20261015.md": {
-      "sha256": "0769f91b126a31402830b5d95705efb1500998046da9395f2fede1e441ec8c9a",
-      "size": 12879
+      "sha256": "205ee000755426518c8d3b8927d71a0c20268e08a7b9c7c44a5c21a2e6516977",
+      "size": 13241
     },
     "docs/recovery/AWS_VERIFICATION_20261007.json": {
       "sha256": "a6414d8389363f4e60a5ef5d92179f16a1df6e288119e33873d114e69b392a64",
@@ -1061,16 +1061,16 @@
       "size": 20524
     },
     "runtime_owner/deployment/Dockerfile": {
-      "sha256": "fc9ae0bb086088f01d5a44c4ff9a69c7ae522e62591ff3860b57dd4f0abda040",
-      "size": 747
+      "sha256": "3e27ce58c6b707bc7f7c1f1b8522fbe4caa2d36169621e18ba254b2a6ab8d6a3",
+      "size": 767
     },
     "runtime_owner/deployment/Dockerfile.clean": {
       "sha256": "47d15c8f9e11bf48f0b15158ea3891d608a262832b423acba9061f406b5a7114",
       "size": 1676
     },
     "runtime_owner/deployment/README.md": {
-      "sha256": "99eb80a8c1f27c1d816c8a9517b45042097d408257e42167d950199e4c9f1f2b",
-      "size": 6842
+      "sha256": "7e9f15744f6df35fbc23930e803005dbf24e9198f96a32dc77d83e00e3b8e26d",
+      "size": 6960
     },
     "runtime_owner/deployment/RELEASE_AUTHORITY_CONTRACT.md": {
       "sha256": "6a97e11c617fb8b66fec802ac5f0e965eb143c1a2a3a25048e68a86df59bf537",
@@ -1081,8 +1081,8 @@
       "size": 2032
     },
     "runtime_owner/deployment/build_verified_owner.py": {
-      "sha256": "99bd84249cfe4336a04f15638eba68c037d133d664e8cddd896976e3addacca9",
-      "size": 830
+      "sha256": "68e0997111c1ddba83b52eaff4d4d51a0fbad349e01fdeb2aaf6291992af9881",
+      "size": 844
     },
     "runtime_owner/deployment/compose.market-recovery-20261007.json": {
       "sha256": "1b7a7ea670573bbde4259070143541041cbcc955ca2b8a668f65397f80d88e7c",
@@ -1119,6 +1119,10 @@
     "runtime_owner/deployment/requirements.owner.lock": {
       "sha256": "03c1392880d4273e3e32503cd641eae9978a6112226c471bdcbb2968e5b957b5",
       "size": 202719
+    },
+    "runtime_owner/deployment/retained-owner-base.json": {
+      "sha256": "9251574093efc3f4268ff068c8076b179e4598f2873ae9879860aff8d52250e2",
+      "size": 180
     },
     "runtime_owner/deployment/validate_image.py": {
       "sha256": "15efdd95c313b75f035557ff4e7b682fe3e446a00346ded6c2179bd7b8f3bae4",
@@ -2173,8 +2177,8 @@
       "size": 6365
     },
     "tests/test_owner_build_context.py": {
-      "sha256": "d3b11f177f93fea62b4aff3e955f5fd4feb669b0b82f0d395ee083531bad74c6",
-      "size": 3789
+      "sha256": "97fb98f717a172e27909b25cd6a545026fd04b878e4c2a3b85fddc905ae4fa1e",
+      "size": 6434
     },
     "tests/test_owner_release_authorization.py": {
       "sha256": "bbb645f882ba26029c07acc73b7f01bc4da492f7146564227977b7955615ae5d",

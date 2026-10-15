@@ -38,7 +38,7 @@ docker run --rm --network=none --read-only --cap-drop=ALL \
   binana-testnet-freqtrade:recovery-validation-20261007
 ```
 
-The retained base tag selected by `local-images-20261007.json` must already exist on the AWS host and match its separately recorded image ID. The build wrapper checks that identity before and after building; the Dockerfile alone is not the verified build procedure. No clean-host reconstruction of that base is claimed. A successful offline run is not authenticated exchange acceptance, deployment approval, a lifecycle certificate or permission to clear incidents. That recovery acceptance was subsequently completed for image `7b12004b…`; this historical paragraph is not an instruction to pause the accepted running owner. The root Compose package still describes the older execution architecture and must not replace the current AWS owner.
+The retained r17 base is pinned separately in `retained-owner-base.json` and must already exist on the AWS host with that exact image ID. `local-images-20261007.json` describes currently deployed services and cannot select or change the historical build base. The build wrapper checks that identity before and after building; the Dockerfile alone is not the verified build procedure. No clean-host reconstruction of that base is claimed. A successful offline run is not authenticated exchange acceptance, deployment approval, a lifecycle certificate or permission to clear incidents. That recovery acceptance was subsequently completed for image `7b12004b…`; this historical paragraph is not an instruction to pause the accepted running owner. The root Compose package still describes the older execution architecture and must not replace the current AWS owner.
 
 ## Preserving the existing AWS startup
 

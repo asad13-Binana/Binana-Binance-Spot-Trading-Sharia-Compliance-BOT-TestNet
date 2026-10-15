@@ -12,7 +12,7 @@ def main():
     parser.add_argument('context', type=Path)
     parser.add_argument('--tag', required=True)
     args = parser.parse_args()
-    manifest = json.loads(Path(__file__).with_name('local-images-20261007.json').read_text())
+    manifest = json.loads(Path(__file__).with_name('retained-owner-base.json').read_text(encoding='utf-8'))
     base = {'freqtrade': manifest['freqtrade']}
     verify(base)
     subprocess.run([
