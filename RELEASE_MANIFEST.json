@@ -21,8 +21,8 @@
       "size": 1499
     },
     ".github/workflows/ci.yml": {
-      "sha256": "91d103674b0c2681b8f07484266cb45cb92ca19347c3e2eaacf4abcbd4238c15",
-      "size": 27080
+      "sha256": "5093b16828c31a948ccd50d6c808c53610c43a27513b53d9b8e57e5eecb67f2d",
+      "size": 27385
     },
     ".gitignore": {
       "sha256": "4f9fd03b96ad4cad58801e464808e7969aa331801b1cb30ee06f44fde36db136",
@@ -377,7 +377,7 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "ee29549340a751d24011cde0f2fb84662c1d138e78975ce842d5f4017111d406",
+      "sha256": "edca472217e47596d80314314d3435d36aca0fa578a5282e64a432b54507acce",
       "size": 94139
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
@@ -385,8 +385,8 @@
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "fe5b60ef2b75a217687c14f92d2cfdc0d806c5d62e85baa47bf7efae96e83379",
-      "size": 682750
+      "sha256": "9f68e1500a47944ff503eeae3d8ced59054918120de0c8fbcd6045e2c0e8c95c",
+      "size": 683772
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -801,7 +801,7 @@
       "size": 483
     },
     "runtime_owner/CANDIDATE_MANIFEST.json": {
-      "sha256": "a105020177e33468c9d9921f5f565c60dcdb4c019268b27d93384c6e99e31ab8",
+      "sha256": "2645667d165fe012bb5d7e295e55225e78fae4a5051e4c61361579ffd142b5fa",
       "size": 36357
     },
     "runtime_owner/LICENSE": {
@@ -1061,8 +1061,8 @@
       "size": 747
     },
     "runtime_owner/deployment/Dockerfile.clean": {
-      "sha256": "3f2c1cfed42f7a80836e723933915a4123810b468e7f679a957cb1c758041f0a",
-      "size": 1445
+      "sha256": "47d15c8f9e11bf48f0b15158ea3891d608a262832b423acba9061f406b5a7114",
+      "size": 1676
     },
     "runtime_owner/deployment/README.md": {
       "sha256": "9a69819105020049b1ffb07dcdeb22bf176086d54cb24c255de98a7a331c1d13",
@@ -1293,8 +1293,8 @@
       "size": 4276
     },
     "runtime_owner/runtime-fixes/telegram/runtime_stable_panel.py": {
-      "sha256": "5e24840e9d2391dc81757554a724ae878e5ee10d951bf37d7f419bd725b1a406",
-      "size": 111019
+      "sha256": "89cc66b7e7b99f900dc5e66a8bc68552fa562e5aa470f7e6db7c6abbb30d10c2",
+      "size": 112956
     },
     "runtime_owner/tests/fixtures/runtime_stable_panel.py": {
       "sha256": "e71f5d070deb57b5427d177614e66d8d987c12558c2ebac8c162f51ce8a9308a",
@@ -2181,8 +2181,8 @@
       "size": 15645
     },
     "tests/test_panel_deployment_current.py": {
-      "sha256": "00e907470ed1f53cd0861004dbc3cbba8eefadefcc2da05664b4c32e0caa252e",
-      "size": 5892
+      "sha256": "5945c3ce11d5b1dcddcf49456de2abf58de6df16c6192cf227287afce61fb59c",
+      "size": 9224
     },
     "tests/test_paused_owner_deployment.py": {
       "sha256": "68ae550da5051344336e97665db6e11a2c2e86cb330417460976d235bdbfc4b1",

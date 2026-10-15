@@ -833,16 +833,24 @@ def _record_lifecycle_event(message):
     return record
 
 
-def _lifecycle_rows(limit=200):
+def _lifecycle_rows(limit=200, *, scope=None, event_types=None):
     import sqlite3
     from contextlib import closing
     from collections import deque
     n=max(1,min(int(limit),500))
+    types=tuple(str(t).upper() for t in (event_types or ()))
     db=LIFECYCLE_JOURNAL.with_suffix('.sqlite')
     if db.exists():
         try:
             with closing(sqlite3.connect(f'file:{db}?mode=ro',uri=True,timeout=5)) as con:
-                raw=con.execute('SELECT payload FROM lifecycle_events ORDER BY seq DESC LIMIT ?',(n,)).fetchall()
+                clauses=['json_valid(payload)']; parameters=[]
+                if scope is not None:
+                    clauses.append("json_extract(payload,'$.scope')=?");parameters.append(scope)
+                if types:
+                    clauses.append("upper(json_extract(payload,'$.type')) IN ("+','.join('?' for _ in types)+')')
+                    parameters.extend(types)
+                raw=con.execute('SELECT payload FROM lifecycle_events WHERE '+' AND '.join(clauses)
+                    +' ORDER BY seq DESC LIMIT ?',(*parameters,n)).fetchall()
             rows=[]
             for (payload,) in reversed(raw):
                 try:
@@ -854,19 +862,18 @@ def _lifecycle_rows(limit=200):
         except Exception as exc:
             try: base.audit('lifecycle_sqlite_read_failed',severity='WARNING',details={'error_type':type(exc).__name__})
             except Exception: pass
+    rows=deque(maxlen=n)
     try:
         with LIFECYCLE_JOURNAL.open('r',encoding='utf-8',errors='replace') as fh:
-            lines=deque(fh,maxlen=n)
-    except Exception:
-        return []
-    rows=[]
-    for line in lines:
-        try:
-            row=json.loads(line)
-            if isinstance(row,dict): rows.append(row)
-        except Exception:
-            continue
-    return rows
+            for line in fh:
+                try: row=json.loads(line)
+                except Exception: continue
+                if not isinstance(row,dict): continue
+                if scope is not None and row.get('scope')!=scope: continue
+                if types and str(row.get('type','')).upper() not in types: continue
+                rows.append(row)
+    except Exception: return []
+    return list(rows)
 
 
 def _signal_runtime_summary():
@@ -883,24 +890,46 @@ def _signal_runtime_summary():
     ])
 
 
-def _current_signal_history(limit=10, rejected_only=False):
-    rows=_lifecycle_rows(500)
+def _current_scope_lifecycle_rows():
     scope=str((base.read_json(OWNER_RUNTIME/'owner_readiness.json',{}) or {}).get('scope_id') or '')
+    if not scope: return []
+    rows=_lifecycle_rows(20,scope=scope,event_types=('STRATEGY_SIGNAL',))
+    rows+=_lifecycle_rows(20,scope=scope,event_types=('ENTRY','ENTRY_FILL'))
+    rows+=_lifecycle_rows(500,scope=scope,event_types=('ADMISSION_REJECTED','ADMISSION_ACCEPTED','TRADE_REJECTED','ENTRY_CANCEL','ENTRY_TIMEOUT'))
     now=time.time()
-    rows=[r for r in rows if scope and r.get('scope')==scope and isinstance(r.get('ts'),(float,int)) and 0 <= now-r['ts'] <= 3600]
-    allowed={'TRADE_REJECTED','ENTRY_CANCEL','ENTRY_TIMEOUT'} if rejected_only else {'STRATEGY_SIGNAL'}
+    return sorted([r for r in rows if scope and r.get('scope')==scope
+            and isinstance(r.get('ts'),(float,int)) and not isinstance(r.get('ts'),bool)
+            and 0 <= now-r['ts']],key=lambda r:r['ts'])
+
+
+def _signal_decision(signal, rows):
+    def identity(row):
+        candle=str(row.get('candle_time') or '').replace('T',' ').replace('Z','+00:00')
+        return row.get('pair'),str(row.get('entry_tag') or '').strip(),candle
+    key=identity(signal)
+    if not key[2]: return 'No matching admission decision recorded'
+    for row in reversed(rows):
+        if (str(row.get('type','')).upper() in {'ADMISSION_REJECTED','ADMISSION_ACCEPTED','TRADE_REJECTED'}
+                and identity(row)==key and row['ts']>=signal['ts']):
+            return str(row.get('reason') or row['type'])
+    return 'No matching admission decision recorded'
+
+
+def _current_signal_history(limit=10, rejected_only=False):
+    all_rows=_current_scope_lifecycle_rows()
+    now=time.time()
+    rows=[r for r in all_rows if now-r['ts'] <= 86400]
+    allowed={'ADMISSION_REJECTED','TRADE_REJECTED','ENTRY_CANCEL','ENTRY_TIMEOUT'} if rejected_only else {'STRATEGY_SIGNAL'}
     rows=[r for r in rows if str(r.get('type','')).upper() in allowed]
     rows=[r for r in rows if not str(r.get('entry_tag') or '').startswith('binana_')]
-    if rejected_only:
-        rows=[r for r in rows if str(r.get('reason') or '').upper() not in NOISY_ADMISSION_REASONS]
     dedup=[]; seen=set()
     for row in reversed(rows):
-        key=(str(row.get('type','')).upper(),row.get('pair'),row.get('entry_tag'),row.get('reason'))
+        key=(str(row.get('type','')).upper(),row.get('pair'),row.get('entry_tag'),row.get('candle_time'),row.get('reason'))
         if key in seen: continue
         seen.add(key); dedup.append(row)
         if len(dedup) >= max(1,min(int(limit),20)): break
     rows=dedup
-    lines=['🚫 REJECTED SIGNALS' if rejected_only else '🗂 RECENT NFI CANDIDATES','',f'Count in the last hour: {len(rows)}']
+    lines=['🚫 REJECTED SIGNALS' if rejected_only else '🗂 RECENT NFI CANDIDATES','',f'Shown from the last 24 hours: {len(rows)}']
     if not rows:
         lines += ['', 'No current BinanaNfiSpot lifecycle evidence recorded yet.', '', _signal_runtime_summary()]
     for row in rows:
@@ -910,7 +939,7 @@ def _current_signal_history(limit=10, rejected_only=False):
         reason=row.get('reason') or row.get('exit_reason') or ''
         stamp=row.get('candle_time') or row.get('event_time') or 'time unavailable'
         lines.extend([f'• {pair} | NFI tag: {str(tag).strip()}', f'  Candle UTC: {stamp}'])
-        if reason: lines.append(f'  Decision: {reason}')
+        lines.append(f'  Decision: {reason or _signal_decision(row,all_rows)}')
     if not rejected_only:
         lines.extend(['', 'Candidates are observations; they do not confirm an order.',
                       f'Configured stake: {_effective_trade_size()} USDT'])
@@ -1082,7 +1111,7 @@ def _canonical_lifecycle_loop():
 
 
 def _pretty_last_signal():
-    all_rows=_lifecycle_rows(500)
+    all_rows=_current_scope_lifecycle_rows()
     rows=[r for r in all_rows if str(r.get('type','')).upper()=='STRATEGY_SIGNAL']
     if not rows:
         rows=[r for r in all_rows if str(r.get('type','')).upper() in {'ENTRY','ENTRY_FILL'}]
@@ -1095,6 +1124,7 @@ def _pretty_last_signal():
            f"Event: {str(row.get('type','n/a')).upper()}",
            f"Tag: {row.get('entry_tag') or 'n/a'}",
            f"Candle: {row.get('candle_time') or 'n/a'}"]
+    lines.append('Decision: ' + _signal_decision(row,all_rows))
     for label,key in [('Price','close'),('RSI','rsi'),('MFI','mfi'),('CMF','cmf')]:
         if row.get(key) is not None: lines.append(f"{label}: {row.get(key)}")
     lines.append(f"Source: {row.get('source','current lifecycle')}")
