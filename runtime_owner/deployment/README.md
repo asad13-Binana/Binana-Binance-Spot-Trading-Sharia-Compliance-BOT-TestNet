@@ -1,5 +1,7 @@
 # Owner builds and deployment records
 
+The current accepted AWS owner is `clean-20261015-r2` (`b38bdf55...`), resumed October 15 at 18:29:12 Asia/Karachi. The image map and Compose image overlay in this directory are byte-identical to the deployed host records. See [acceptance and runtime evidence](../../docs/recovery/AWS_CLEAN_RELEASE_20261015.md).
+
 ## Independent public-source build
 
 This procedure needs Docker and Python 3.10+ on a fresh build host. It does not need any AWS image, database, credential or private configuration. The default image command only runs offline validation.
@@ -12,6 +14,8 @@ docker run --rm --network=none --read-only --cap-drop=ALL \
   --security-opt=no-new-privileges --memory=2g --cpus=2 --pids-limit=256 \
   --tmpfs /tmp:rw,nosuid,nodev,size=256m,mode=1777 binana-owner-clean:reviewed
 ```
+
+For ARM64 builders, use `docker buildx build --platform linux/arm64 --load` with the same Dockerfile/context and `docker run --platform linux/arm64` with the same validation limits. This path built and passed all 222 offline tests plus the AWS named-user/executable startup contract under Docker Desktop emulation on October 15. Actual Oracle-host installation and account-bound acceptance remain separate.
 
 The upstream commit is `9f10e357a93c1dcf10c2a2b367659214d89c073e` (Freqtrade 2026.8), archive SHA256 `1b30c3c758f38a880e67b7660dbca3f7a37c90244d6571218a7264efeed7a7d7`. Only its application/client source and packaging metadata are materialized. The one upstream license symlink becomes regular verified license bytes. The manifest-verified BINANA patches include the custom exchange export required by the resolver. Python 3.14.7 is pinned by an official OCI digest. The dependency closure preserves observed versions except the reviewed multidict, urllib3 and PyJWT security patches plus compatible CCXT 4.5.87.
 
@@ -50,4 +54,4 @@ The October 7 market recovery overlay changes only universe CPU (0.07 to 0.75), 
 
 ## October 8 accepted AWS owner
 
-The running image overlay and local-image manifest now pin recovery-validation-20261007-r4 (a90b7f66…). The actual stopped rollout and r17 rollback rehearsal passed before the existing acceptance certificate was issued and the broker Resume path enabled entries. All accounting and order data remained unchanged; only startup_time and the four exact StateStore identity constraints were accepted as startup changes. Retain r17 and the verified backups for recovery. The candidate image defaults to an offline validator; the existing AWS Compose owner overlay explicitly selects the real Freqtrade entrypoint and command.
+At that historical rollout, the running image overlay and local-image manifest pinned recovery-validation-20261007-r4 (a90b7f66...). The October 15 records above supersede those image references. The actual stopped rollout and r17 rollback rehearsal passed before the existing acceptance certificate was issued and the broker Resume path enabled entries. All accounting and order data remained unchanged; only startup_time and the four exact StateStore identity constraints were accepted as startup changes. Retain r17 and the verified backups for recovery. The candidate image defaults to an offline validator; the existing AWS Compose owner overlay explicitly selects the real Freqtrade entrypoint and command.

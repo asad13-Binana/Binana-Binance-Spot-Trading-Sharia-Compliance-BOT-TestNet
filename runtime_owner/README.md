@@ -1,6 +1,6 @@
 # Recovered AWS Testnet owner
 
-The recovered Freqtrade 2026.8/NFI owner is separate from the legacy root deployment package. The accepted owner was deployed and resumed on October 14, 2026 (Asia/Karachi), image `7b12004b…`. See [deployment evidence](../docs/audit/AWS_DEPLOYMENT_RESULT_2026-10-14.md). Earlier audit findings remain historical evidence; current readiness must be queried from the owner.
+The recovered Freqtrade 2026.8/NFI owner is separate from the legacy root deployment package. The clean public-source owner was deployed and resumed on October 15, 2026 at 18:29:12 (Asia/Karachi), image `b38bdf55...`. See [deployment and acceptance evidence](../docs/recovery/AWS_CLEAN_RELEASE_20261015.md). Earlier audit findings remain historical evidence; current readiness must be queried from the owner.
 
 `PROVENANCE.json` is the historical recovery receipt and is preserved unchanged. `CANDIDATE_MANIFEST.json` binds the modified owner, canonical Telegram panel and current regression tests. Build-context materialization verifies every candidate hash. The new CI owner job runs the isolated selection with hash-locked cryptography; the complete suite must also pass in the pinned retained runtime with no network, credentials or production mounts.
 

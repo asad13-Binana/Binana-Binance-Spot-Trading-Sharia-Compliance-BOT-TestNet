@@ -1,7 +1,7 @@
 {
   "services": {
     "freqtrade": {
-      "image": "binana-testnet-freqtrade:completion-20261013-r2",
+      "image": "binana-testnet-freqtrade:clean-20261015-r2",
       "read_only": true,
       "init": true,
       "cap_drop": [
