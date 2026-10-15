@@ -5,7 +5,9 @@ ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 PYTHONDONTWRITEBYTECODE=1 PYTHONFAULTHANDLER=1 \
     OPENBLAS_NUM_THREADS=1 HOME=/home/ftuser FT_APP_ENV=docker
 RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
     && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /home/ftuser /freqtrade/user_data \
+    && groupadd --gid 987 binana \
+    && useradd --uid 999 --gid 987 --home-dir /home/ftuser --no-create-home --shell /usr/sbin/nologin binana \
+    && mkdir -p /home/ftuser/.local/bin /freqtrade/user_data \
     && chown -R 999:987 /home/ftuser /freqtrade
 WORKDIR /freqtrade
 COPY requirements.build.lock requirements.owner.lock /tmp/
@@ -15,7 +17,8 @@ COPY upstream/ /freqtrade/
 COPY owner/freqtrade/ /freqtrade/freqtrade/
 COPY owner/binana-strategies/ /freqtrade/binana-strategies/
 RUN python -m pip install --no-cache-dir --no-deps --no-build-isolation ./ft_client . \
-    && python -m pip check
+    && python -m pip check \
+    && ln -s /usr/local/bin/freqtrade /home/ftuser/.local/bin/freqtrade
 COPY tests/ /freqtrade/binana_tests/
 COPY runtime-fixes/ /freqtrade/runtime-fixes/
 COPY PROVENANCE.json validate_image.py release_authority.py CLEAN_SOURCE.json /freqtrade/recovery_validation/
