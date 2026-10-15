@@ -1,0 +1,6 @@
+{
+  "freqtrade": {
+    "reference": "binana-testnet-freqtrade:repair-20260919-r17",
+    "image_id": "sha256:87c25dfc5b3058891491b6fd0647c86fe9a71f96d8ba41a2693b42797fcada83"
+  }
+}

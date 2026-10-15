@@ -1,5 +1,5 @@
 # This recovery build deliberately depends on the retained AWS r17 image.
-# A clean-host rebuild of that base is a separate, still-open release blocker.
+# Independent public-source builds use Dockerfile.clean; this file preserves the retained lineage.
 ARG BASE_IMAGE=binana-testnet-freqtrade:repair-20260919-r17
 FROM ${BASE_IMAGE}
 USER root
