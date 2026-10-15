@@ -1,7 +1,7 @@
 {
   "freqtrade": {
-    "reference": "binana-testnet-freqtrade:completion-20261013-r2",
-    "image_id": "sha256:7b12004b889ad49384c310735bde26c93721300c936c94576f685ff079984a12"
+    "reference": "binana-testnet-freqtrade:clean-20261015-r2",
+    "image_id": "sha256:b38bdf557b1b6af0408cc13402d64ea232e201940eca663b41128bdda0403206"
   },
   "telegram-broker": {
     "reference": "binana-testnet-services:telegram-repair-20260912-r15",
