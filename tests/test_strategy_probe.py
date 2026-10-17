@@ -34,7 +34,7 @@ def _require_strategy_stack():
         except ImportError as exc:
             raise unittest.SkipTest(
                 f'optional strategy stack missing ({module}): {exc}. '
-                'The probe runs fully in the pinned Freqtrade 2026.6 container '
+                'The probe runs fully in the pinned Freqtrade 2026.9 container '
                 '(see the strategy-probe CI job).') from exc
 
 

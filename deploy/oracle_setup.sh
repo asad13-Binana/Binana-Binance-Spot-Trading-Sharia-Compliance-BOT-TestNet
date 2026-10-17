@@ -36,7 +36,7 @@ valid_positive_integer "$SWAP_SIZE_GIB" || fail 'SWAP_SIZE_GIB must be a positiv
 (( SWAP_SIZE_GIB >= 1 && SWAP_SIZE_GIB <= 8 )) || fail 'SWAP_SIZE_GIB must be between 1 and 8'
 [[ -r "$MEMINFO_PATH" ]] || fail "cannot read $MEMINFO_PATH"
 physical_mib=$(awk '/MemTotal/{print int($2/1024)}' "$MEMINFO_PATH")
-swap_mib=$(awk '/SwapTotal/{print int($2/1024)}' "$MEMINFO_PATH")
+swap_kib=$(awk '/SwapTotal/{print $2}' "$MEMINFO_PATH")
 if (( physical_mib < MIN_PHYSICAL_MEMORY_MIB )); then
   fail "unsupported shared host: ${physical_mib} MiB RAM; require at least ${MIN_PHYSICAL_MEMORY_MIB} MiB for the four-bot Oracle topology"
 fi
@@ -240,8 +240,10 @@ EOF
 chmod 0644 /etc/default/binana-testnet-deploy
 
 # Four GiB swap headroom for the 12-GiB four-bot A1 target. Existing larger
-# swap is kept.
-if (( swap_mib < SWAP_SIZE_GIB * 1024 )); then
+# swap is kept. SwapTotal excludes the swap header's one system page; compare
+# usable KiB without rounding a correctly sized area down by a whole MiB.
+page_size_bytes=$(getconf PAGESIZE)
+if (( swap_kib < SWAP_SIZE_GIB * 1024 * 1024 - page_size_bytes / 1024 )); then
   swap_path=/swapfile-oracle-trading-bots
   if [[ ! -e "$swap_path" ]]; then
     fallocate -l "${SWAP_SIZE_GIB}G" "$swap_path" || dd if=/dev/zero of="$swap_path" bs=1M count=$((SWAP_SIZE_GIB * 1024)) status=progress

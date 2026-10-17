@@ -10,8 +10,8 @@ import urllib.request
 
 from materialize_context import materialize
 
-UPSTREAM_COMMIT = '9f10e357a93c1dcf10c2a2b367659214d89c073e'
-UPSTREAM_SHA256 = '1b30c3c758f38a880e67b7660dbca3f7a37c90244d6571218a7264efeed7a7d7'
+UPSTREAM_COMMIT = '1f394eaebc2f46a83d26971388628707802f8602'
+UPSTREAM_SHA256 = 'a453638c8ad59f8655036eaabd0858cb432331e70caa259976299e5c59108c89'
 UPSTREAM_URL = 'https://codeload.github.com/freqtrade/freqtrade/tar.gz/' + UPSTREAM_COMMIT
 ROOT_FILES = {'pyproject.toml', 'README.md', 'LICENSE', 'MANIFEST.in',
               'requirements.txt', 'requirements-hyperopt.txt'}
