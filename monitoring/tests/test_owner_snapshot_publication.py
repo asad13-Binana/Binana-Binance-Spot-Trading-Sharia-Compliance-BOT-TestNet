@@ -11,6 +11,22 @@ from monitoring import snapshot
 pytestmark = pytest.mark.skipif(os.name != 'posix', reason='Linux publication contract')
 
 
+@pytest.fixture(autouse=True)
+def ownership_syscall_for_unprivileged_runner(monkeypatch):
+    # Production and the root integration run must perform real root chown.
+    # Ordinary CI cannot grant uid 0: assert that exact requested identity,
+    # then exercise the remaining real filesystem operations as the runner.
+    if os.geteuid() != 0:
+        real_fchown = os.fchown
+
+        def checked_fchown(descriptor, uid, gid):
+            assert uid == 0
+            assert gid == os.fstat(descriptor).st_gid
+            real_fchown(descriptor, os.geteuid(), gid)
+
+        monkeypatch.setattr(snapshot.os, 'fchown', checked_fchown)
+
+
 @pytest.fixture
 def source(tmp_path):
     root = tmp_path / 'shared'
@@ -42,6 +58,7 @@ def test_publishes_only_allowed_fields_without_relaxing_source(source):
     assert path.stat().st_mode & 0o777 == 0o600
     assert path.read_bytes() == original
     assert (root / 'runtime/owner_monitor_readiness.json').stat().st_mode & 0o777 == 0o640
+    assert (root / 'runtime/owner_monitor_readiness.json').stat().st_uid == os.geteuid()
 
 
 def test_publication_never_renews_the_source_validity(source):

@@ -35,11 +35,14 @@ order-quality collectors explicitly return `unsupported_for_execution_owner`
 until owner-specific adapters are implemented. They never substitute archived
 sidecar records or present signal-only results as owner execution.
 
-For the AWS owner, install the optional inana-owner-monitor-snapshot.service
-and .timer templates using the same instance path/name substitution as the
-existing Docker snapshot unit. They call the root-owned snapshot helper with
---owner-readiness-only every five seconds, with no Docker or permission-update
-operation. This is faster than the owner's 30-second validity interval. The
-legacy 30-second Docker status timer remains unchanged. Enable this additional
-timer only on a Freqtrade-owner deployment, after installing the updated helper.
-The monitor itself remains unprivileged and receives no exchange credentials.
+The monitoring installer renders and installs the instance-specific
+`owner-monitor-snapshot.service` and `.timer` units. It starts the five-second
+owner-readiness timer only when the private monitoring environment explicitly
+selects `MONITOR_EXECUTION_OWNER=FREQTRADE` and `MONITOR_ENABLED=true`. Rerun the
+installer after changing either selection; SIDECAR or disabled monitoring stops
+and disables the owner timer and stops any active publication service.
+
+These units call the root-owned snapshot helper with `--owner-readiness-only`,
+without Docker or permission-update operations, and preserve the source expiry.
+The legacy 30-second Docker status timer remains unchanged. The monitor remains
+unprivileged and receives no exchange credentials.
