@@ -4,14 +4,18 @@ from pathlib import Path
 from typing import Any
 
 
-def atomic_write_json(path: str | Path, payload: Any) -> None:
+def atomic_write_json(path: str | Path, payload: Any, *, group_readable: bool = False) -> None:
+    """Publish private JSON by default; opt in only for derived health snapshots."""
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(prefix=target.name + '.', suffix='.tmp', dir=target.parent)
     try:
         with os.fdopen(fd, 'w', encoding='utf-8') as f:
             json.dump(payload, f, indent=2, sort_keys=True, default=str)
-            f.flush(); os.fsync(f.fileno())
+            f.flush()
+            if group_readable:
+                os.fchmod(f.fileno(), 0o640)
+            os.fsync(f.fileno())
         os.replace(tmp, target)
         # Persist the directory entry as well as the file contents. This reduces
         # the chance of losing a just-replaced state file during a host crash.

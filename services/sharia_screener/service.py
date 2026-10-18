@@ -570,7 +570,7 @@ class ShariaScreenerService:
             'source_discovery': (
                 self.source_discovery.stats() if self.source_discovery is not None
                 else {'enabled': False, 'trade_permission_from_discovery': False}),
-        })
+        }, group_readable=True)
 
     def run_forever(self):
         requeued = self.queue.requeue_running()

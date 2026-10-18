@@ -1,7 +1,7 @@
 {
   "services": {
     "freqtrade": {
-      "image": "binana-testnet-freqtrade:clean-20261015-r2",
+      "image": "binana-testnet-freqtrade:clean-20261016-20269",
       "read_only": true,
       "init": true,
       "cap_drop": [
@@ -22,17 +22,26 @@
       },
       "volumes": [
         "/home/ubuntu/binana-runtime-fixes/telegram/durable_outbox.py:/app/durable_outbox.py:ro",
-        "/etc/binana-testnet/release:/app/binana-release:ro"
+        "/etc/binana-testnet/release:/app/binana-release:ro",
+        "/home/ubuntu/binana-runtime-fixes/service-health-20261018/common_atomic.py:/app/services/common/atomic.py:ro",
+        "/home/ubuntu/binana-runtime-fixes/service-health-20261018/broker_base.py:/app/services/telegram_broker/bot.py:ro"
       ]
     },
     "universe": {
-      "image": "binana-testnet-services:universe-repair-20260912-r10"
+      "image": "binana-testnet-services:universe-repair-20260912-r10",
+      "volumes": [
+        "/home/ubuntu/binana-runtime-fixes/service-health-20261018/common_atomic.py:/app/services/common/atomic.py:ro"
+      ]
     },
     "execution-sidecar": {
       "image": "binana-testnet-services:v101-4dd60e295d145e62"
     },
     "sharia-screener": {
-      "image": "binana-testnet-services:halal-registry-repair-20260912-r2"
+      "image": "binana-testnet-services:halal-registry-repair-20260912-r2",
+      "volumes": [
+        "/home/ubuntu/binana-runtime-fixes/service-health-20261018/common_atomic.py:/app/services/common/atomic.py:ro",
+        "/home/ubuntu/binana-runtime-fixes/service-health-20261018/manual_registry_service.py:/app/services/sharia_screener/manual_registry_service.py:ro"
+      ]
     },
     "sharia-research": {
       "image": "binana-testnet-services:sharia-security-0c4a9d8"

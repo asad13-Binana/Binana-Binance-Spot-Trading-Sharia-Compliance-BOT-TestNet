@@ -1,4 +1,4 @@
-"""Failure-safe, read-only metric collectors for the V10.1 deployment."""
+"""Failure-safe, read-only collectors for explicit execution architectures."""
 from __future__ import annotations
 
 import datetime as dt
@@ -103,6 +103,38 @@ def _health(path: Path, max_age: int) -> dict:
     }
 
 
+def owner_readiness_status() -> dict:
+    """Read only the root-published, bounded-lifetime owner readiness summary."""
+    result = {'available': False, 'fresh': False, 'ready': False,
+              'path': str(CONFIG.owner_readiness_path)}
+    data, error = _safe_json(CONFIG.owner_readiness_path)
+    if error:
+        return {**result, 'reason': error}
+    if (not isinstance(data, dict) or data.get('order_owner') != 'FREQTRADE'
+            or data.get('execution_environment') != CONFIG.bot_environment
+            or type(data.get('release_approved')) is not bool
+            or not isinstance(data.get('blockers'), list)
+            or not all(isinstance(item, str) for item in data['blockers'])):
+        return {**result, 'reason': 'invalid_owner_readiness_contract'}
+    generated = _parse_time(data.get('generated_at'))
+    valid_until = _parse_time(data.get('valid_until'))
+    if (generated is None or valid_until is None
+            or not math.isfinite(generated) or not math.isfinite(valid_until)
+            or not 0 < valid_until - generated <= 60):
+        return {**result, 'reason': 'invalid_owner_readiness_contract'}
+    now = time.time()
+    fresh = generated <= now < valid_until
+    approved = data['release_approved']
+    blockers = redact_obj(data['blockers'])
+    return {**result, 'available': True, 'fresh': fresh,
+            'ready': fresh and approved and not blockers,
+            'order_owner': 'FREQTRADE', 'execution_environment': data['execution_environment'],
+            'generated_at': generated, 'valid_until': valid_until,
+            'age_seconds': round(max(0.0, now - generated), 3),
+            'release_approved': approved, 'blockers': blockers,
+            'reason': None if fresh else 'owner_readiness_expired_or_future'}
+
+
 def runtime_health() -> dict:
     components = {
         "execution_sidecar": _health(CONFIG.sidecar_health_path, 30),
@@ -111,10 +143,20 @@ def runtime_health() -> dict:
         "universe": _health(CONFIG.universe_health_path, 1800),
         "spot_market_context": _health(CONFIG.market_context_health_path, 45),
     }
-    available = [value for value in components.values() if value["available"]]
+    if CONFIG.execution_owner == 'FREQTRADE':
+        components['execution_sidecar']['role'] = 'advisory_only'
+        components['freqtrade_owner'] = owner_readiness_status()
+    available = [value for key, value in components.items() if value["available"]
+                 and not (CONFIG.execution_owner == 'FREQTRADE' and key == 'execution_sidecar')]
     overall = "healthy" if available and all(value["fresh"] for value in available) else "degraded"
     if not available:
         overall = "unavailable"
+    if CONFIG.execution_owner == 'FREQTRADE':
+        owner = components['freqtrade_owner']
+        if not owner['available'] or not owner['fresh']:
+            overall = 'unavailable'
+        elif not owner['ready']:
+            overall = 'degraded'
     return {"status": overall, "components": components}
 
 
@@ -373,6 +415,16 @@ def crash_blocks(hours: int = 24) -> dict:
 
 
 def databases() -> dict:
+    if CONFIG.execution_owner == 'FREQTRADE':
+        out = {'execution_owner': 'FREQTRADE', 'owner_readiness': owner_readiness_status()}
+        for key, path, role in (
+            ('execution', CONFIG.owner_db_path, 'authoritative_freqtrade_owner'),
+            ('extension', CONFIG.owner_extension_db_path, 'canonical_order_protection_and_fill_state'),
+        ):
+            value = database_status(path)
+            value.update(path=str(path), role=role, freshness=file_freshness(path))
+            out[key] = value
+        return out
     execution = database_status(CONFIG.execution_db_path)
     signal = database_status(CONFIG.signal_db_path)
     execution["role"] = "authoritative_execution_state"
@@ -382,7 +434,15 @@ def databases() -> dict:
     return {"execution": execution, "signal_engine": signal}
 
 
+def _unsupported_owner_metric(metric: str) -> dict:
+    return {'supported': False, 'available': False, 'execution_owner': 'FREQTRADE',
+            'source': 'freqtrade_owner_adapter_unavailable', 'metric': metric,
+            'reason': 'unsupported_for_execution_owner'}
+
+
 def execution_state(limit: int = 50) -> dict:
+    if CONFIG.execution_owner == 'FREQTRADE':
+        return _unsupported_owner_metric('execution_state')
     limit = max(1, min(int(limit), CONFIG.MAX_TRADES))
     active, error = query(
         CONFIG.execution_db_path,
@@ -426,6 +486,8 @@ def _read_jsonl_tail(path: Path, max_bytes: int):
 
 
 def performance(days: int = 1) -> dict:
+    if CONFIG.execution_owner == 'FREQTRADE':
+        return _unsupported_owner_metric('performance')
     days = max(1, min(int(days), CONFIG.MAX_REPORT_DAYS))
     records, truncated, error = _read_jsonl_tail(
         CONFIG.pnl_ledger_path, CONFIG.MAX_LEDGER_SCAN_BYTES
@@ -471,6 +533,8 @@ def performance(days: int = 1) -> dict:
 
 
 def recent_trades(limit: int = 20) -> dict:
+    if CONFIG.execution_owner == 'FREQTRADE':
+        return _unsupported_owner_metric('recent_trades')
     limit = max(1, min(int(limit), CONFIG.MAX_TRADES))
     records, truncated, error = _read_jsonl_tail(
         CONFIG.pnl_ledger_path, CONFIG.MAX_LEDGER_SCAN_BYTES
@@ -487,6 +551,8 @@ def recent_trades(limit: int = 20) -> dict:
 
 def signal_performance(days: int = 1) -> dict:
     """Freqtrade signal-engine results, explicitly not real execution P/L."""
+    if CONFIG.execution_owner == 'FREQTRADE':
+        return _unsupported_owner_metric('signal_performance')
     days = max(1, min(int(days), CONFIG.MAX_REPORT_DAYS))
     since = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=days)).strftime(
         "%Y-%m-%d %H:%M:%S"
@@ -512,6 +578,8 @@ def signal_performance(days: int = 1) -> dict:
 
 
 def order_quality(days: int = 1) -> dict:
+    if CONFIG.execution_owner == 'FREQTRADE':
+        return _unsupported_owner_metric('order_quality')
     days = max(1, min(int(days), CONFIG.MAX_REPORT_DAYS))
     cutoff_epoch = time.time() - days * 86400
     since = dt.datetime.fromtimestamp(cutoff_epoch, tz=dt.timezone.utc).isoformat()

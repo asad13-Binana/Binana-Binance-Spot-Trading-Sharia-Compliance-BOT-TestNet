@@ -1,6 +1,6 @@
 # Owner builds and deployment records
 
-The current accepted AWS owner is `clean-20261015-r2` (`b38bdf55...`), resumed October 15 at 18:29:12 Asia/Karachi. The image map and Compose image overlay in this directory are byte-identical to the deployed host records. See [acceptance and runtime evidence](../../docs/recovery/AWS_CLEAN_RELEASE_20261015.md).
+The current accepted AWS owner is `clean-20261016-20269` (`960d789f...`), Freqtrade 2026.9, resumed October 18 at 04:22:10 Asia/Karachi. The image map and both Compose overlays in this directory are byte-identical to the deployed host records. See [acceptance and runtime evidence](../../docs/recovery/AWS_2026_9_RELEASE_20261018.md).
 
 ## Independent public-source build
 
@@ -17,9 +17,22 @@ docker run --rm --network=none --read-only --cap-drop=ALL \
 
 For ARM64 builders, use `docker buildx build --platform linux/arm64 --load` with the same Dockerfile/context and `docker run --platform linux/arm64` with the same validation limits. The 2026.9 ARM64 image passed all 244 offline tests with zero skips under Docker Desktop emulation on October 18. Actual Oracle-host installation and account-bound acceptance remain separate.
 
-The source builder now selects upstream commit `1f394eaebc2f46a83d26971388628707802f8602` (Freqtrade 2026.9), archive SHA256 `a453638c8ad59f8655036eaabd0858cb432331e70caa259976299e5c59108c89`. Only its application/client source and packaging metadata are materialized. The one upstream license symlink becomes regular verified license bytes. The manifest-verified BINANA patches include the custom exchange export required by the resolver. Python 3.14.7 is pinned by an official OCI digest. The dependency closure preserves the reviewed security updates and CCXT 4.5.87, adding upstream-required cloudpickle 3.1.2. The new AMD64 image passes 244 offline tests with zero skips. See [2026.9 repair evidence](../../docs/FREQTRADE_2026_9_ADMISSION_REPAIR_2026-10-16.md); source preparation alone does not change the accepted AWS deployment above.
+The source builder now selects upstream commit `1f394eaebc2f46a83d26971388628707802f8602` (Freqtrade 2026.9), archive SHA256 `a453638c8ad59f8655036eaabd0858cb432331e70caa259976299e5c59108c89`. Only its application/client source and packaging metadata are materialized. The one upstream license symlink becomes regular verified license bytes. The manifest-verified BINANA patches include the custom exchange export required by the resolver. Python 3.14.7 is pinned by an official OCI digest. The dependency closure preserves the reviewed security updates and CCXT 4.5.87, adding upstream-required cloudpickle 3.1.2. The new AMD64 image passes 244 offline tests with zero skips. See [2026.9 repair evidence](../../docs/FREQTRADE_2026_9_ADMISSION_REPAIR_2026-10-16.md); exact-image acceptance and activation are recorded separately in the current AWS report linked above.
 
 A clean image build is not a complete live deployment: supply private configuration and keys separately, restore or initialize account-scoped durable state, use the current owner topology, and qualify/sign the new image before enabling entries. Never copy an old image-bound certificate to a new image. The supported execution contract remains Binance Spot Testnet.
+
+## Service health overlays
+
+`python3 runtime_owner/deployment/materialize_service_health.py /absolute/new-health-context`
+produces the four public files referenced by the deployed service overlays.
+The builder verifies the retained broker, market collector and manual Sharia source hashes,
+allows exactly six derived-health publication call changes, and copies the shared atomic
+writer. Private queues, offsets, credentials and accounting keep their existing
+permissions. Install these files read-only at the paths recorded in the Compose
+overlays; this procedure does not rebuild or restart the order owner.
+
+The separate read-only monitor must explicitly select the owner architecture;
+see [monitor setup](../../monitoring/OWNER_ARCHITECTURE.md).
 
 ## Historical retained-image recovery build
 

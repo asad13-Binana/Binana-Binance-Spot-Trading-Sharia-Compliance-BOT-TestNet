@@ -1,8 +1,8 @@
 # BINANA Binance Spot Testnet
 
-October 15, 2026: the clean AWS Testnet owner resumed at 18:29:12 Asia/Karachi on image `b38bdf55...`. Exact-image acceptance, restoration, rollback and daily certificate renewal passed. Telegram Deployment and signal history use current owner evidence. See [the current deployment, test evidence and remaining limits](docs/recovery/AWS_CLEAN_RELEASE_20261015.md).
+October 18, 2026: AWS Spot Testnet resumed at 04:22:10 Asia/Karachi on Freqtrade 2026.9, image `960d789f...`. Exact-image offline tests, one/four-slot acceptance, lifecycle, restoration, rollback and daily certificate renewal passed. See [the deployment evidence and remaining limits](docs/recovery/AWS_2026_9_RELEASE_20261018.md).
 
-AWS uses the recovered Freqtrade 2026.8/NFI owner with a monitor-only sidecar. Source is in `runtime_owner/`. The root Compose package below remains a legacy topology and must not overwrite that deployment. An independent public-source image build now removes the retained AWS base-image dependency; it passes all 222 owner regressions offline. Its source, dependency locks and build are verified in CI. A new image still needs its own exchange acceptance before trading.
+AWS uses the recovered Freqtrade 2026.9/NFI owner with a monitor-only sidecar. Source is in `runtime_owner/`. The root Compose package below remains a legacy topology and must not overwrite that deployment. The independent public-source image build passes all 244 owner regressions offline on AMD64 and ARM64. A new image still needs its own exchange acceptance before trading.
 
 Historical records: [October 8 deployment evidence](docs/recovery/RECOVERY_STATUS_20261007.md), [registry additions](docs/recovery/REGISTRY_ADDITIONS_20260930.json).
 

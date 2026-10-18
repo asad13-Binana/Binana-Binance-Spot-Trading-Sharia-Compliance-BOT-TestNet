@@ -7,12 +7,12 @@ resolved bytes without a source change.
 
 ## Current reviewed pins
 
-Resolved directly from Docker Registry v2 and independently re-fetched by
-digest on 2026-08-09:
+The Python index was reviewed on 2026-08-09. The Freqtrade index was
+updated from the official 2026.9 release and verified on 2026-10-16:
 
 ```text
 python:3.12-slim@sha256:229a2c5bfa27522db7815ea81f9bed70af17ccb9de9fc7ad142b1877b5830d36
-freqtradeorg/freqtrade:2026.6@sha256:d451af021d5e08b70580c0eea5848534e9846b57391b34821c0a5814416397e6
+freqtradeorg/freqtrade:2026.9@sha256:989aff5636d8f0213ed44fe334c3314a194a51c0c755d16866960247aafd2eae
 ```
 
 Both indexes were verified to contain `linux/amd64` and `linux/arm64`

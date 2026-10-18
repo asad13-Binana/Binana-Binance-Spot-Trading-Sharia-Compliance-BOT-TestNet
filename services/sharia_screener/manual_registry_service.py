@@ -225,7 +225,7 @@ class ManualRegistryProjector:
             'degraded_reason': str(error)[:500] if error else '',
             'automatic_research_enabled': False,
             'ts': time.time(),
-        })
+        }, group_readable=True)
 
     def process_owner_commands(self) -> int:
         return process_registry_commands(
