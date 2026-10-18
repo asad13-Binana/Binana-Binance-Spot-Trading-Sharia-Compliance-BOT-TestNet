@@ -115,7 +115,7 @@ class RuntimeHealthPermissionTests(unittest.TestCase):
                 atomic_write_json(path, {'private': True})
             self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o600)
 
-    @unittest.skipUnless(hasattr(os, 'fork') and getattr(os, 'geteuid', lambda: -1)() == 0,
+    @unittest.skipUnless(hasattr(os, 'fork') and hasattr(os, 'geteuid') and os.geteuid() == 0,
                          'different-UID access requires a root Linux test container')
     def test_monitor_user_reads_republished_health_but_cannot_read_offset(self):
         self.root.chmod(0o755)

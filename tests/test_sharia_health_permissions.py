@@ -75,7 +75,7 @@ class ShariaHealthPermissionTests(unittest.TestCase):
             self.publish(available=True)
             self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o600)
 
-    @unittest.skipUnless(hasattr(os, 'fork') and getattr(os, 'geteuid', lambda: -1)() == 0,
+    @unittest.skipUnless(hasattr(os, 'fork') and hasattr(os, 'geteuid') and os.geteuid() == 0,
                          'different-UID check requires a root Linux test container')
     def test_monitor_uid_reads_rewritten_health_but_not_private_registry(self):
         self.root.chmod(0o755)

@@ -77,7 +77,7 @@ class TelegramHealthPermissionTests(unittest.TestCase):
         self.assertEqual(stat.S_IMODE(self.health.stat().st_mode), 0o600)
         self.assertEqual(list(self.root.glob(self.health.name + '.*.tmp')), [])
 
-    @unittest.skipUnless(hasattr(os, 'fork') and getattr(os, 'geteuid', lambda: -1)() == 0,
+    @unittest.skipUnless(hasattr(os, 'fork') and hasattr(os, 'geteuid') and os.geteuid() == 0,
                          'different-UID access check requires a root Linux test container')
     def test_monitor_group_can_read_rewritten_health_but_not_private_files(self):
         self.root.chmod(0o755)
