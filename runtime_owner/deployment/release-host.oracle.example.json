@@ -1,0 +1,10 @@
+{
+  "schema": "binana-release-host-v1",
+  "project": "binana-oracle-testnet",
+  "service": "freqtrade",
+  "config": "/etc/binana-oracle-testnet/config/config.json",
+  "shared": "/var/lib/binana-oracle-testnet/shared",
+  "release": "/etc/binana-oracle-testnet/release",
+  "issuer": "/etc/binana-oracle-testnet/authority/issuer.ed25519",
+  "evidence_root": "/var/backups/binana-oracle-testnet"
+}

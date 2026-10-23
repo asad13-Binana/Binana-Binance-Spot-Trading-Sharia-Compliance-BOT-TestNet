@@ -135,7 +135,7 @@ class MarketContextService:
         snapshot = self.analytics.snapshot()
         snapshot["package_mode"] = self.mode
         snapshot["universe_snapshot_hash"] = self._universe_snapshot_hash
-        atomic_write_json(self.snapshot_path, snapshot)
+        atomic_write_json(self.snapshot_path, snapshot, group_readable=True)
         stream = self.stream.status()
         ready = bool(
             stream["subscription_ready"] and snapshot["fresh_symbol_count"] > 0
@@ -158,6 +158,7 @@ class MarketContextService:
                 "stream": stream,
                 "statistics": snapshot["statistics"],
             },
+            group_readable=True,
         )
 
     def run(self) -> None:

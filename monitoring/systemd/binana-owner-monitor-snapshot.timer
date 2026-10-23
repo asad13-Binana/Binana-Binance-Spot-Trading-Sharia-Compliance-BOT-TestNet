@@ -1,0 +1,11 @@
+[Unit]
+Description=Refresh derived owner readiness without extending its source expiry
+
+[Timer]
+OnBootSec=5s
+OnUnitActiveSec=5s
+AccuracySec=1s
+Unit=binana-owner-monitor-snapshot.service
+
+[Install]
+WantedBy=timers.target

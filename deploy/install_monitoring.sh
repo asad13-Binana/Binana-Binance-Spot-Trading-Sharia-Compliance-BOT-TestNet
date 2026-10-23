@@ -87,6 +87,26 @@ fi
 chown "root:$MONITOR_USER" "$ENV_FILE"
 chmod 0640 "$ENV_FILE"
 
+# Read only the explicit private-file selection; never evaluate shell content or
+# inherit an owner selection from the installer's environment.
+EXECUTION_OWNER=$(python3 -I - "$ENV_FILE" <<'PY_OWNER'
+from pathlib import Path
+import sys
+
+owner = "SIDECAR"
+for line in Path(sys.argv[1]).read_text(encoding="utf-8").splitlines():
+    key, separator, value = line.partition("=")
+    if separator and key.strip() == "MONITOR_EXECUTION_OWNER":
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+            value = value[1:-1]
+        owner = value.strip().upper()
+if owner not in {"SIDECAR", "FREQTRADE"}:
+    raise SystemExit("MONITOR_EXECUTION_OWNER must be SIDECAR or FREQTRADE")
+print(owner)
+PY_OWNER
+)
+
 UNIT_DIR="$RELEASE_DIR/monitoring/systemd"
 RENDERED=$(mktemp -d "/run/${INSTANCE_SLUG}-units.XXXXXX")
 trap 'rm -rf -- "$RENDERED"' EXIT
@@ -100,6 +120,7 @@ render_unit(){
     -e "s#/var/lib/binana-freqtrade-v101/shared#$PERSIST#g" \
     -e "s#/var/log/binana-freqtrade-v101/monitor#$MONITOR_LOG_DIR#g" \
     -e "s#binana-monitor#${SYSTEMD_PREFIX}-monitor#g" \
+    -e "s#binana-owner-monitor#${SYSTEMD_PREFIX}-owner-monitor#g" \
     -e "s#binana-disk#${SYSTEMD_PREFIX}-disk#g" \
     -e "s#binana-state#${SYSTEMD_PREFIX}-state#g" \
     -e "s#binana-offhost#${SYSTEMD_PREFIX}-offhost#g" \
@@ -119,6 +140,7 @@ for unit in \
   "binana-monitor-report-${MODE}.service" \
   "binana-monitor-report-${MODE}.timer" \
   binana-monitor-snapshot.service binana-monitor-snapshot.timer \
+  binana-owner-monitor-snapshot.service binana-owner-monitor-snapshot.timer \
   binana-disk-guard.service binana-disk-guard.timer \
   binana-state-backup.service binana-state-backup.timer \
   binana-offhost-backup.service binana-offhost-backup.timer \
@@ -133,13 +155,23 @@ configured_port=$(awk -F= '$1 == "MONITOR_PORT" {print $2; exit}' "$ENV_FILE")
 MONITOR_SERVICE="${SYSTEMD_PREFIX}-monitor-${MODE}.service"
 REPORT_TIMER="${SYSTEMD_PREFIX}-monitor-report-${MODE}.timer"
 SNAPSHOT_TIMER="${SYSTEMD_PREFIX}-monitor-snapshot.timer"
+OWNER_SNAPSHOT_TIMER="${SYSTEMD_PREFIX}-owner-monitor-snapshot.timer"
+OWNER_SNAPSHOT_SERVICE="${SYSTEMD_PREFIX}-owner-monitor-snapshot.service"
 systemctl daemon-reload
+# Stop the previous selection before applying this one, including reinstalls and
+# switches back to SIDECAR or disabled monitoring.
+systemctl disable --now "$OWNER_SNAPSHOT_TIMER"
+systemctl stop "$OWNER_SNAPSHOT_SERVICE"
 systemctl enable --now "${SYSTEMD_PREFIX}-disk-guard.timer" \
   "${SYSTEMD_PREFIX}-state-backup.timer" "${SYSTEMD_PREFIX}-api-readiness.timer"
 
 if grep -Eq '^MONITOR_ENABLED=true$' "$ENV_FILE"; then
   systemctl enable --now "$SNAPSHOT_TIMER"
   systemctl start "${SYSTEMD_PREFIX}-monitor-snapshot.service"
+  if [[ "$EXECUTION_OWNER" == FREQTRADE ]]; then
+    systemctl start "$OWNER_SNAPSHOT_SERVICE"
+    systemctl enable --now "$OWNER_SNAPSHOT_TIMER"
+  fi
   systemctl enable "$MONITOR_SERVICE"
   systemctl restart "$MONITOR_SERVICE"
   systemctl is-active --quiet "$MONITOR_SERVICE" || fail 'monitor API did not become active'

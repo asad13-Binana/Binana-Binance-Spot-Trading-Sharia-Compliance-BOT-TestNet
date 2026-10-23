@@ -73,29 +73,43 @@ install_monitoring_for(){
     "$release_dir" "$mode" "$release_hash"
 }
 
+disable_monitoring_units(){
+  local unit enabled_state
+  for unit in "$@"; do
+    as_root systemctl disable --now "$unit" >/dev/null 2>&1 || true
+  done
+  as_root systemctl daemon-reload || return 1
+  for unit in "$@"; do
+    systemctl is-active --quiet "$unit" && return 1
+    enabled_state=$(systemctl is-enabled "$unit" 2>/dev/null) || true
+    # Static oneshots cannot be enabled; absent or masked units are inert.
+    # A failed disable must not pass just because the timer is inactive now.
+    case "$enabled_state" in
+      disabled|static|masked|masked-runtime|not-found) ;;
+      *) return 1 ;;
+    esac
+  done
+  return 0
+}
+
 disable_monitoring_after_failed_first_install(){
   # No previous release exists to reinstall. Stop every release-specific unit,
   # verify none remains active, and remove only the monitoring-current link.
   # Root-owned unit files and immutable venvs may remain inert for diagnosis.
-  local unit
   local units=(
     ${SYSTEMD_PREFIX}-monitor-testnet.service
     ${SYSTEMD_PREFIX}-monitor-report-testnet.timer
     ${SYSTEMD_PREFIX}-monitor-snapshot.timer
     ${SYSTEMD_PREFIX}-monitor-snapshot.service
+    ${SYSTEMD_PREFIX}-owner-monitor-snapshot.timer
+    ${SYSTEMD_PREFIX}-owner-monitor-snapshot.service
     ${SYSTEMD_PREFIX}-monitor-report-${INSTANCE_MODE}.service
     ${SYSTEMD_PREFIX}-disk-guard.timer ${SYSTEMD_PREFIX}-disk-guard.service
     ${SYSTEMD_PREFIX}-state-backup.timer ${SYSTEMD_PREFIX}-state-backup.service
     ${SYSTEMD_PREFIX}-offhost-backup.timer ${SYSTEMD_PREFIX}-offhost-backup.service
     ${SYSTEMD_PREFIX}-api-readiness.timer ${SYSTEMD_PREFIX}-api-readiness.service
   )
-  for unit in "${units[@]}"; do
-    as_root systemctl disable --now "$unit" >/dev/null 2>&1 || true
-  done
-  as_root systemctl daemon-reload || return 1
-  for unit in "${units[@]}"; do
-    systemctl is-active --quiet "$unit" && return 1
-  done
+  disable_monitoring_units "${units[@]}" || return 1
   as_root rm -f "$APP_ROOT/monitoring-current"
 }
 
@@ -326,6 +340,10 @@ fi
 restore_monitoring(){
   [[ ${stop_result:-0} -eq 0 ]] || return 1
   if [[ -n "$OLD" && -d "$OLD" ]]; then
+    # Older installers cannot know about units added by the failed release.
+    # Quiesce the root publisher before the old installer replaces its helper.
+    disable_monitoring_units "${SYSTEMD_PREFIX}-owner-monitor-snapshot.timer" \
+      "${SYSTEMD_PREFIX}-owner-monitor-snapshot.service" || return 1
     [[ "$OLD_MODE" == testnet || "$OLD_MODE" == live ]] || {
       echo 'CRITICAL: rollback target has invalid monitoring mode metadata.' >&2
       return 1

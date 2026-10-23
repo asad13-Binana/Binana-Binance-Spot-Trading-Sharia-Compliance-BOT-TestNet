@@ -12,6 +12,7 @@ import time
 import base64
 import subprocess
 import deploy_candidate_owner as deploy
+from release_host import HostContext, checked_path
 
 
 def previous_authority(raw,status,image):
@@ -52,13 +53,18 @@ def refresh_offline(evidence,image):
     return report
 
 
-def main():
+def main(argv=None):
     parser=argparse.ArgumentParser()
+    parser.add_argument('--host',type=Path,required=True)
     parser.add_argument('--evidence',type=Path,required=True)
     parser.add_argument('--rollout',type=Path,required=True)
     parser.add_argument('--renew',action='store_true')
     parser.add_argument('--force-renewal',action='store_true')
-    args=parser.parse_args();os.umask(0o077)
+    args=parser.parse_args(argv);os.umask(0o077)
+    if os.geteuid()!=0:raise RuntimeError('ROOT_REQUIRED')
+    context=HostContext(args.host,deploy).activate()
+    args.evidence,args.rollout=context.evidence_paths(args.evidence,args.rollout)
+    checked_path(deploy.RELEASE/'deployment.json',trusted=True)
     receipts={name:json.loads((args.evidence/(name+'.json')).read_text())
               for name in ('lifecycle','one_slot','four_slot','restore','offline')}
     receipts['rollout']=json.loads(args.rollout.read_text())
@@ -68,14 +74,17 @@ def main():
         raise RuntimeError('CONFIGURATION_CHANGED')
     record=json.loads((deploy.RELEASE/'deployment.json').read_text())
     actual={k:container['HostConfig'].get(k) for k in ('ReadonlyRootfs','Init','CapDrop')}
-    if actual!={'ReadonlyRootfs':True,'Init':True,'CapDrop':['ALL']}:
+    if (actual!={'ReadonlyRootfs':True,'Init':True,'CapDrop':['ALL']} or not
+            set(container['HostConfig'].get('SecurityOpt') or []) &
+            {'no-new-privileges','no-new-privileges:true','no-new-privileges=true'}):
         raise RuntimeError('IMMUTABLE_RUNTIME_REQUIRED')
     env_sha=hashlib.sha256(json.dumps(sorted(container['Config']['Env'])).encode()).hexdigest()
     mounts=sorted([{k:m[k] for k in ('Type','Source','Destination','RW')} for m in container['Mounts']],key=lambda m:m['Destination'])
     if (record.get('image')!=image or record.get('environment_sha256')!=env_sha
             or record.get('security_opt')!=container['HostConfig'].get('SecurityOpt')
             or record.get('mounts')!=mounts or record.get('command')!=container['Config']['Cmd']
-            or record.get('entrypoint')!=container['Config']['Entrypoint']):
+            or record.get('entrypoint')!=container['Config']['Entrypoint']
+            or record.get('user')!=container['Config']['User']):
         raise RuntimeError('DEPLOYMENT_DRIFT')
     destination=deploy.RELEASE/'certificate.json'
     previous=destination.read_bytes() if destination.exists() else None
@@ -100,10 +109,12 @@ def main():
     current=deploy.inspect()
     if (current['Id'],current['State']['StartedAt'])!=(container['Id'],container['State']['StartedAt']):
         raise RuntimeError('OWNER_CHANGED_DURING_ISSUANCE')
-    archive=args.evidence/('issuance-'+str(int(time.time())))
+    archive=args.evidence/('issuance-'+str(time.time_ns()))
     archive.mkdir(mode=0o700,exist_ok=False)
     if previous:deploy.authority.atomic(archive/'previous-certificate.json',previous,mode=0o600)
     signed=deploy.authority.sign(payload,deploy.ISSUER)
+    try:previous_authority(signed,status,image)
+    except Exception as exc:raise RuntimeError('ISSUER_VERIFIER_MISMATCH') from None
     deploy.authority.atomic(destination,signed)
     result={'image':image,'passed':True,'certificate_sha256':hashlib.sha256(signed).hexdigest(),
         'generated_at':payload['generated_at'],'valid_until':payload['valid_until'],

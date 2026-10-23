@@ -88,6 +88,19 @@ class Config:
         ))
         self.shared_root = shared
 
+        # Deployment architecture is explicit; Testnet alone does not imply
+        # that Freqtrade owns orders, and retained files cannot select an owner.
+        self.execution_owner = os.getenv('MONITOR_EXECUTION_OWNER', 'SIDECAR').strip().upper()
+        self.owner_db_path = Path(os.getenv(
+            'OWNER_DATABASE_PATH', str(shared / 'freqtrade/binana-owner.sqlite')
+        ))
+        self.owner_extension_db_path = Path(os.getenv(
+            'OWNER_EXTENSION_DATABASE_PATH', str(shared / 'freqtrade/binana-extension.sqlite')
+        ))
+        self.owner_readiness_path = Path(os.getenv(
+            'OWNER_READINESS_PATH', str(runtime / 'owner_monitor_readiness.json')
+        ))
+
         # Authoritative execution state and realised-PnL sources.
         self.execution_db_path = Path(os.getenv(
             "EXECUTION_DATABASE_PATH", str(runtime / "execution_state.sqlite")
@@ -97,7 +110,7 @@ class Config:
             str(shared / "legacy_runtime/logs/pnl_ledger.jsonl"),
         ))
 
-        # Freqtrade is deliberately signal-only; it is reported separately.
+        # In the legacy SIDECAR architecture, Freqtrade is signal-only.
         self.signal_db_path = Path(os.getenv(
             "SIGNAL_DATABASE_PATH",
             str(shared / "freqtrade/tradesv3.signal-only.sqlite"),
@@ -195,6 +208,8 @@ class Config:
             errors.append("BOT_INSTANCE_ID is invalid")
         if self.bot_mode not in {"simulation", "testnet", "live"}:
             errors.append("invalid BOT_MODE")
+        if self.execution_owner not in {'SIDECAR', 'FREQTRADE'}:
+            errors.append('MONITOR_EXECUTION_OWNER must be SIDECAR or FREQTRADE')
         if self.bind_host not in {"127.0.0.1", "::1", "localhost"}:
             errors.append("MONITOR_BIND_HOST must be loopback")
         if not secret_is_configured(self.token):

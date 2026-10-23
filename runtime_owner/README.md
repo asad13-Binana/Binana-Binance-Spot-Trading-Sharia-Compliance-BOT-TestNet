@@ -1,10 +1,10 @@
 # Recovered AWS Testnet owner
 
-The recovered Freqtrade 2026.8/NFI owner is separate from the legacy root deployment package. The clean public-source owner was deployed and resumed on October 15, 2026 at 18:29:12 (Asia/Karachi), image `b38bdf55...`. See [deployment and acceptance evidence](../docs/recovery/AWS_CLEAN_RELEASE_20261015.md). Earlier audit findings remain historical evidence; current readiness must be queried from the owner.
+The recovered Freqtrade 2026.9/NFI owner is separate from the legacy root deployment package. The clean public-source owner was deployed and resumed on October 18, 2026 at 04:22:10 (Asia/Karachi), image `960d789f...`. See [deployment and acceptance evidence](../docs/recovery/AWS_2026_9_RELEASE_20261018.md). Earlier audit findings remain historical evidence; current readiness must be queried from the owner.
 
 `PROVENANCE.json` is the historical recovery receipt and is preserved unchanged. `CANDIDATE_MANIFEST.json` binds the modified owner, canonical Telegram panel and current regression tests. Build-context materialization verifies every candidate hash. The new CI owner job runs the isolated selection with hash-locked cryptography; the complete suite must also pass in the pinned retained runtime with no network, credentials or production mounts.
 
-The retained-image recovery build and the independent public-source build are separate procedures; see [build instructions](deployment/README.md). The public-source procedure pins official Freqtrade 2026.8, verifies the archive, restores all seven patched upstream modules, and installs a hash-locked dependency closure. Each new image still requires its own runtime acceptance. The owner contract is Testnet-only. Root Compose describes the legacy sidecar-owned architecture and must not replace this AWS owner.
+The retained-image recovery build and the independent public-source build are separate procedures; see [build instructions](deployment/README.md). The public-source procedure pins official Freqtrade 2026.9, verifies the archive, restores all seven patched upstream modules, and installs a hash-locked dependency closure. Each new image still requires its own runtime acceptance. The owner contract is Testnet-only. Root Compose describes the legacy sidecar-owned architecture and must not replace this AWS owner.
 
 The latest corrected panel source is `runtime-fixes/telegram/runtime_stable_panel.py`; historical fixture copies are not deployment proof. No private configuration, credentials or trading databases are included.
 

@@ -75,6 +75,7 @@ elif name == 'systemctl':
     for unit in units:
         assert unit.startswith(state['slug'] + '-'), (name, args)
     active = set(state.get('units', []))
+    enabled = set(state.get('enabled_units', []))
     if args[0] == 'daemon-reload':
         for unit in Path('/etc/systemd/system').glob(state['slug'] + '-*'):
             text = unit.read_text()
@@ -84,7 +85,10 @@ elif name == 'systemctl':
             state['failure'] = ''
             save()
             sys.exit(43)
-        active.update(units)
+        if args[0] == 'enable':
+            enabled.update(units)
+        if args[0] != 'enable' or '--now' in args:
+            active.update(units)
         if args[0] == 'start' and units[0].endswith('monitor-snapshot.service'):
             unit_text = Path('/etc/systemd/system', units[0]).read_text()
             for line in unit_text.splitlines():
@@ -97,10 +101,33 @@ elif name == 'systemctl':
             subprocess.run([f"/usr/local/libexec/{state['slug']}-monitor-snapshot"],
                            env=env, check=True)
     elif args[0] == 'disable':
+        enabled.difference_update(units)
+        if '--now' in args:
+            active.difference_update(units)
+    elif args[0] == 'stop':
         active.difference_update(units)
     elif args[0] == 'is-active':
         sys.exit(0 if all(u in active for u in units) else 3)
+    elif args[0] == 'is-enabled':
+        assert len(units) == 1, args
+        unit = units[0]
+        unit_file = Path('/etc/systemd/system') / unit
+        if not unit_file.exists():
+            print('not-found')
+            sys.exit(4)
+        if unit in enabled:
+            print('enabled')
+            sys.exit(0)
+        # Installed oneshots without [Install] are static, not disabled.
+        if '[Install]' not in unit_file.read_text():
+            print('static')
+            sys.exit(0)
+        print('disabled')
+        sys.exit(1)
+    else:
+        raise AssertionError((name, args))
     state['units'] = sorted(active)
+    state['enabled_units'] = sorted(enabled)
     save()
 elif name == 'awk' and '/proc/meminfo' in args:
     print(16384 if 'MemTotal' in args[0] else 8192)

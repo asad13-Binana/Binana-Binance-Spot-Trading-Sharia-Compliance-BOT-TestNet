@@ -243,7 +243,7 @@ def _alert_outbox_health(*, blocked_reason: str = '') -> dict:
         'dead_letter_count': len(dead_letters),
         'blocked_reason': str(blocked_reason)[:300] or None,
     }
-    atomic_write_json(ALERT_OUTBOX_HEALTH, payload)
+    atomic_write_json(ALERT_OUTBOX_HEALTH, payload, group_readable=True)
     return payload
 
 
@@ -2611,7 +2611,7 @@ def main():
                 raise RuntimeError('Telegram getUpdates returned an error: ' + str(response)[:500])
             atomic_write_json(RUNTIME / 'telegram_health.json', {
                 'ok': True, 'ts': time.time(), 'offset': offset,
-            })
+            }, group_readable=True)
             for update in response.get('result', []):
                 # Claim and fsync each update before dispatch. Assignment occurs
                 # before a handler can fail, and the persisted offset survives
@@ -2632,7 +2632,7 @@ def main():
             atomic_write_json(RUNTIME / 'telegram_health.json', {
                 'ok': False, 'ts': time.time(), 'error': safe,
                 'error_type': type(exc).__name__,
-            })
+            }, group_readable=True)
             log.warning('poll failed: %s', safe)
             time.sleep(3)
 

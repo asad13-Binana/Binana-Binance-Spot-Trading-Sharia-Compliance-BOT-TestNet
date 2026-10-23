@@ -13,14 +13,18 @@ def monitor_port_available() -> tuple[bool, str]:
     host = "::1" if CONFIG.bind_host == "localhost" and family == socket.AF_INET6 else CONFIG.bind_host
     if host == "localhost":
         host = "127.0.0.1"
-    probe = socket.socket(family, socket.SOCK_STREAM)
+    probe = None
     try:
-        probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 0)
+        probe = socket.socket(family, socket.SOCK_STREAM)
+        # Match Uvicorn's reusable bind after a clean close leaves TIME_WAIT.
+        # An active listener still prevents binding; SO_REUSEPORT is not used.
+        probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         probe.bind((host, CONFIG.port))
     except OSError:
         return False, f"monitor port already occupied: {CONFIG.bind_host}:{CONFIG.port}"
     finally:
-        probe.close()
+        if probe is not None:
+            probe.close()
     return True, "ok"
 
 

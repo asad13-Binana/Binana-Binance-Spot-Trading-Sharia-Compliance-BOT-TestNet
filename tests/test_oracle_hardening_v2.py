@@ -50,7 +50,7 @@ PROTECTED = {
     "services/sharia_screener/local_runner.py": "23ad93a18835d548db6d53ab26593b3e7792d590c6ed2b5e2bb89418fe98689e",
     "services/sharia_screener/queue_store.py": "377c83943a6518965b58b5e6f6aa027c173eeaea1590fb8930cffefd6c8b6021",
     "services/sharia_screener/runner.py": "7298f5ebad396b7d45849d3344d7218f6be92e70de930dfe19f92973656d4f66",
-    "services/sharia_screener/service.py": "b940f64b03c3bf7f5fc9be5062c2d23cfe19a4736292b9c42d8d3170b6aef914",
+    "services/sharia_screener/service.py": "2b3e94ac3a990b19915e85e89b5b74a6714ac2c5d01bc605e3bc34e8422d4dcc",
     "services/sharia_screener/source_discovery.py": "cf54c90bba66e586da5e161c5b9d1fe5406a9b993018ed72e2b48a53384a8459",
     "services/sharia_screener/source_registry.py": "72de23c10a37c8db27e31cc6bfb58bdfb41b27efb2f2fc57edb43c76f13baffe",
     "services/sharia_screener/verdict_policy.py": "afde5fc2733d6e5a4aea50e436adf3cf55ff83e5d1e32428214f57f8dc6f55e2",
@@ -79,6 +79,15 @@ AUTHORIZED_MANUAL_REGISTRY_TRANSITIONS = {
 
 
 class ProtectedCoreTests(unittest.TestCase):
+    def test_sharia_health_permission_fix_preserves_every_other_byte(self):
+        raw = (ROOT / 'services/sharia_screener/service.py').read_bytes()
+        revised = b"else {'enabled': False, 'trade_permission_from_discovery': False}),\n        }, group_readable=True)"
+        original = b"else {'enabled': False, 'trade_permission_from_discovery': False}),\n        })"
+        self.assertEqual(raw.count(revised), 1)
+        self.assertEqual(
+            hashlib.sha256(raw.replace(revised, original, 1)).hexdigest(),
+            'b940f64b03c3bf7f5fc9be5062c2d23cfe19a4736292b9c42d8d3170b6aef914')
+
     def test_every_protected_file_matches_reviewed_baseline(self):
         for relative, expected in PROTECTED.items():
             with self.subTest(relative=relative):

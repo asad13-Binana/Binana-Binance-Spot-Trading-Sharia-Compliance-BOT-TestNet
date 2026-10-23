@@ -1,0 +1,27 @@
+[Unit]
+Description=Publish sanitized Freqtrade owner readiness for the BINANA monitor
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/local/libexec/binana-monitor-snapshot --owner-readiness-only
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadOnlyPaths=/var/lib/binana-freqtrade-v101/shared/freqtrade/runtime
+ReadWritePaths=/var/lib/binana-freqtrade-v101/shared/runtime
+InaccessiblePaths=-/var/run/docker.sock
+

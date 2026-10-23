@@ -7,8 +7,11 @@ root-owned helper has no order or container-mutation subcommands.
 from __future__ import annotations
 
 import argparse
+from contextlib import ExitStack
 import json
+import math
 import os
+import re
 import stat
 import subprocess
 import tempfile
@@ -51,6 +54,102 @@ READONLY_MONITOR_SOURCES = (
     "legacy_runtime/logs/pnl_ledger.jsonl",
     "audit/events.jsonl",
 )
+_OWNER_SOURCE = "freqtrade/runtime/owner_readiness.json"
+_OWNER_OUTPUT = "runtime/owner_monitor_readiness.json"
+_OWNER_READ_LIMIT = 128 * 1024
+
+
+def _open_directory_nofollow(path: Path) -> int:
+    """Anchor every absolute path component without resolving a symlink."""
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC
+    absolute = path.absolute()
+    descriptor = os.open(absolute.anchor, flags)
+    try:
+        for name in absolute.parts[1:]:
+            child = os.open(name, flags, dir_fd=descriptor)
+            os.close(descriptor)
+            descriptor = child
+        return descriptor
+    except BaseException:
+        os.close(descriptor)
+        raise
+
+
+def _owner_readiness_fields(root_descriptor: int) -> dict:
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC
+    with ExitStack() as stack:
+        directory = root_descriptor
+        for name in ("freqtrade", "runtime"):
+            directory = os.open(name, flags, dir_fd=directory)
+            stack.callback(os.close, directory)
+        descriptor = os.open(
+            "owner_readiness.json",
+            os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC,
+            dir_fd=directory,
+        )
+        with os.fdopen(descriptor, "rb") as handle:
+            source = os.fstat(handle.fileno())
+            if (not stat.S_ISREG(source.st_mode) or source.st_nlink != 1
+                    or source.st_uid not in {0, os.fstat(root_descriptor).st_uid}
+                    or source.st_size > _OWNER_READ_LIMIT):
+                raise ValueError("invalid owner readiness source")
+            raw = handle.read(_OWNER_READ_LIMIT + 1)
+            if len(raw) > _OWNER_READ_LIMIT:
+                raise ValueError("oversized owner readiness source")
+    value = json.loads(raw)
+    if not isinstance(value, dict):
+        raise ValueError("invalid owner readiness object")
+    if (value.get("order_owner") != "FREQTRADE"
+            or value.get("execution_environment") not in ("TESTNET", "LIVE")
+            or type(value.get("release_approved")) is not bool):
+        raise ValueError("invalid owner readiness identity")
+    generated, valid = value.get("generated_at"), value.get("valid_until")
+    if (type(generated) not in (int, float) or type(valid) not in (int, float)
+            or not math.isfinite(generated) or not math.isfinite(valid)
+            or not 0 < valid - generated <= 60):
+        raise ValueError("invalid owner readiness validity")
+    blockers = value.get("blockers")
+    if (not isinstance(blockers, list) or len(blockers) > 100
+            or any(not isinstance(item, str)
+                   or re.fullmatch(r"[A-Za-z0-9_:-]{1,160}", item) is None
+                   for item in blockers)):
+        raise ValueError("invalid owner readiness blockers")
+    return {key: value[key] for key in (
+        "order_owner", "execution_environment", "generated_at", "valid_until",
+        "release_approved", "blockers",
+    )}
+
+
+def publish_owner_readiness(root: Path = SHARED_ROOT) -> None:
+    """Copy only bounded public readiness; leave the private source untouched."""
+    root_descriptor = _open_directory_nofollow(Path(root))
+    try:
+        try:
+            value = _owner_readiness_fields(root_descriptor)
+        except (OSError, ValueError, TypeError, ArithmeticError, RecursionError):
+            value = {"available": False, "reason": "owner_readiness_unavailable"}
+        flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC
+        created = False
+        try:
+            directory = os.open("runtime", flags, dir_fd=root_descriptor)
+        except FileNotFoundError:
+            os.mkdir("runtime", mode=0o750, dir_fd=root_descriptor)
+            directory = os.open("runtime", flags, dir_fd=root_descriptor)
+            created = True
+        try:
+            if created:
+                os.fchown(directory, 0, os.fstat(root_descriptor).st_gid)
+                os.fchmod(directory, 0o750)
+            # The checked directory remains pinned across path renames. Reuse
+            # the existing root-owned 0640 atomic writer through this open fd;
+            # no untrusted filesystem symlink is followed for publication.
+            atomic_write(
+                Path(f"/proc/self/fd/{directory}") / "owner_monitor_readiness.json", value,
+            )
+        finally:
+            os.close(directory)
+    finally:
+        os.close(root_descriptor)
 
 
 def collect() -> dict:
@@ -149,12 +248,19 @@ def atomic_write(path: Path, value: dict) -> None:
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--owner-readiness-only", action="store_true")
     args = parser.parse_args(argv)
+    if args.owner_readiness_only:
+        publish_owner_readiness(SHARED_ROOT)
+        return 0
     resolved = args.output.resolve()
     allowed = DEFAULT_OUTPUT.parent.resolve()
     if resolved.parent != allowed:
         raise SystemExit(f"output must be directly inside {allowed}")
     published = publish_monitor_permissions()
+    if (os.path.lexists(SHARED_ROOT / _OWNER_SOURCE)
+            or os.path.lexists(SHARED_ROOT / _OWNER_OUTPUT)):
+        publish_owner_readiness(SHARED_ROOT)
     value = collect()
     value["readonly_sources_published"] = published
     atomic_write(resolved, value)

@@ -26,6 +26,8 @@ RELEASE=Path('/etc/binana-testnet/release')
 ISSUER=Path('/etc/binana-testnet/release-authority/issuer.ed25519')
 OVERLAY=HOST/'compose.running-images-20261007.json'
 IMAGES=HOST/'local-images-20261007.json'
+EVIDENCE_ROOT=Path('/var/backups/binana-testnet')
+HOST_CONTEXT=None
 
 
 def run(args,timeout=180):
@@ -33,7 +35,7 @@ def run(args,timeout=180):
     if result.returncode:
         # Keep diagnostics root-private; exception/public receipts contain only
         # executable and exit status, never environment or raw command output.
-        diagnostic=Path('/var/backups/binana-testnet')/('rollout-command-failure-'+str(time.time_ns())+'.json')
+        diagnostic=EVIDENCE_ROOT/('rollout-command-failure-'+str(time.time_ns())+'.json')
         if os.geteuid()==0 and diagnostic.parent.exists():
             authority.atomic(diagnostic,json.dumps({'command':args,'exit_code':result.returncode,
                 'stdout':result.stdout.decode(errors='replace'),'stderr':result.stderr.decode(errors='replace')}).encode(),mode=0o600)
@@ -41,7 +43,10 @@ def run(args,timeout=180):
     return result.stdout
 
 
-def inspect(name=OWNER): return json.loads(run(['docker','inspect',name]))[0]
+def inspect(name=None):
+    if name is None and HOST_CONTEXT is not None:
+        return HOST_CONTEXT.inspect()
+    return json.loads(run(['docker','inspect',name or OWNER]))[0]
 
 
 def verify_flat_testnet():
