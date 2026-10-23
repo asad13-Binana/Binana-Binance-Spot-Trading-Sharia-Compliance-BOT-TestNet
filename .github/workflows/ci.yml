@@ -84,6 +84,7 @@ jobs:
       - name: Privileged monitor publication and installer regressions
         run: |
           sudo env PYTHONDONTWRITEBYTECODE=1 "$(command -v python)" -m unittest tests.test_owner_monitor_installer -v
+          sudo "$(command -v python)" -B -m unittest discover -s tests -p test_release_host_portability.py -v
           sudo env PYTHONDONTWRITEBYTECODE=1 "$(command -v python)" -m pytest -q -p no:cacheprovider monitoring/tests/test_owner_snapshot_publication.py
       # V102-REM-004: audits run against the exact resolved lock files the
       # Docker image and CI install — never the unlocked requirements.

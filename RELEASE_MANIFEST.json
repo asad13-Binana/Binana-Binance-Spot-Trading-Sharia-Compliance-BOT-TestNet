@@ -21,8 +21,8 @@
       "size": 1499
     },
     ".github/workflows/ci.yml": {
-      "sha256": "19b87584776211e72d35bccd4d07fa435fec03074e832b9588b09d3537881518",
-      "size": 27742
+      "sha256": "210f2b958bcf670750930bfae1311c33dc8c7f6d181f7d430f486acfac5ffeb4",
+      "size": 27852
     },
     ".gitignore": {
       "sha256": "4f9fd03b96ad4cad58801e464808e7969aa331801b1cb30ee06f44fde36db136",
@@ -381,16 +381,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "aec016a5198fdb383d8b99c8f8236eddffdd0f9f4240630d7011aee6fd079d20",
-      "size": 97564
+      "sha256": "edb958e6aad646590c66b37e544128932b9ae48c0558dc4788a0e4814085a4af",
+      "size": 98205
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "c642851c2f2f3c445f033eff0fcf6d9592ceb41b993db8ea1e72b361ff071ab6",
-      "size": 710476
+      "sha256": "b9338372d7e3eaae818cd541f3f13bfd8ed4292dcf81a98575b9e45d535bdcd2",
+      "size": 714555
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -495,6 +495,10 @@
     "docs/recovery/REGISTRY_ADDITIONS_20260930.json": {
       "sha256": "32a8a6fb9f7dba0a15f566052f9cd6e49ba360be47f71e8f7cbb5e187c813432",
       "size": 3438
+    },
+    "docs/recovery/RELEASE_RENEWAL_HOST.md": {
+      "sha256": "ac96f7064d7dd2c35209b7f9aa4a76b39b58b9c9eec4e721ed46b09489ea7fdf",
+      "size": 2842
     },
     "docs/recovery/RUNTIME_PARITY_20261014.md": {
       "sha256": "8a067d746e382c5ea274838fc66e8e307447bb6087411fd464b7ef8bf3ce271c",
@@ -705,8 +709,8 @@
       "size": 157
     },
     "monitoring/requirements-monitoring.lock": {
-      "sha256": "deb387ad7ed828e99fa71c3af392978801b3e6252ab2e198c1786bcc394c6fa8",
-      "size": 52218
+      "sha256": "c3cc4348dfbc2726885193caf19ecd94ac8ecfbb62571c22dd61dfea3741f3a3",
+      "size": 52219
     },
     "monitoring/requirements-monitoring.txt": {
       "sha256": "91802ba0cf049964eefeaa56387631981284a6bca122a17e17614744ac548637",
@@ -829,8 +833,8 @@
       "size": 3649
     },
     "requirements.services.lock": {
-      "sha256": "b75b92b47f17d8e8c7899f64352a857a054118b41fe74ca43121786c60f54c07",
-      "size": 97342
+      "sha256": "18d4c6ad20fdb34a7adbcec932abe16a2dc4cd90d18547c73373bf0ac181e4ee",
+      "size": 103803
     },
     "requirements.services.txt": {
       "sha256": "bfe636cea6a4fb28567178a733608a0a4a8b849fcd36896b1379b30d4d36a0aa",
@@ -1148,6 +1152,10 @@
       "sha256": "0dc7beded0b7cf2f936210cddce05086ab0e0ef1a1b056868221812c325e93dc",
       "size": 4100
     },
+    "runtime_owner/deployment/release-host.oracle.example.json": {
+      "sha256": "041213b9e5efb3cb0196d0ba96225d1720398ab88e040a344d71f75d1c8e9a00",
+      "size": 394
+    },
     "runtime_owner/deployment/release_authority.py": {
       "sha256": "9aa0b773d383608d48aa7d27991ac7c02177cd5e887fbc12bae293e87fe35398",
       "size": 5245
@@ -1157,8 +1165,8 @@
       "size": 647
     },
     "runtime_owner/deployment/requirements.owner.lock": {
-      "sha256": "3d76529270d580faeaa126c0121dbd2af85e733ce2b4b5b39a2696c6ebb9d8b8",
-      "size": 202911
+      "sha256": "9f062f7a53f7ce0a10c94e1346b13bccc23d138b2eacffd3b7c30b59a94bb265",
+      "size": 209448
     },
     "runtime_owner/deployment/retained-owner-base.json": {
       "sha256": "9251574093efc3f4268ff068c8076b179e4598f2873ae9879860aff8d52250e2",
@@ -1569,8 +1577,8 @@
       "size": 4355
     },
     "scripts/recovery/deploy_candidate_owner.py": {
-      "sha256": "05f99c170e78bb88d010ca895a9262d1358979931c28989f4796eb80fd862805",
-      "size": 15854
+      "sha256": "61fd9976301646f0dc74d7ca2c599bf78f29ed26bc499daacabf34b18221010b",
+      "size": 16000
     },
     "scripts/recovery/deploy_candidate_panel.py": {
       "sha256": "a9f6002f86f658201c5db7a43e2cfe7b7d3408c79ce9ceff870b737b0c5e86e0",
@@ -1589,12 +1597,12 @@
       "size": 7442
     },
     "scripts/recovery/install_release_renewal.py": {
-      "sha256": "c2c8666127b8af21de4168d08f4123fb4550680b63c1d96b5b3e19fb7f25fa57",
-      "size": 3262
+      "sha256": "d227e835a48dccc423351b3bc2739bd03d63ae5da7da13f900e94e58abb21fb6",
+      "size": 7188
     },
     "scripts/recovery/issue_candidate_release.py": {
-      "sha256": "1033b6cf1652199b14cc5dbba2c7cad3baba2ebf107aae6317b09a2fdea70d41",
-      "size": 7019
+      "sha256": "6559c3ebb4103f9bfcd977d57b87d2f9f8811b7389028dbd228b6630050cfafc",
+      "size": 7754
     },
     "scripts/recovery/probe_controlled_owner_lifecycle.py": {
       "sha256": "9474fd4c60faa6f27381f7d9f0e57e421895d237b9a4a33f91637457863b9692",
@@ -1611,6 +1619,10 @@
     "scripts/recovery/probe_testnet_otoco_no_fill.py": {
       "sha256": "ce19a83f87706e91ac979cfd7ca10aab2a0d06aa51211f57231c2269f4468c68",
       "size": 10979
+    },
+    "scripts/recovery/release_host.py": {
+      "sha256": "b54c33eb0e3c6ed79dbd8eb6ea69e7c8ff63d27fe5661816497a25ac3132707a",
+      "size": 5478
     },
     "scripts/recovery/repair_mina_identity_20260930.py": {
       "sha256": "d8db7bd987f268d51ba10f7fee475e61f06d743ffc8cdc1d1062f688292132a1",
@@ -2097,8 +2109,8 @@
       "size": 12713
     },
     "tests/clean_host/fake_host.py": {
-      "sha256": "ad1fd29dedeae34c5cd4db3e1e093cd2ea8149ebbaf4eb7a25c38ce2f935a4e8",
-      "size": 4829
+      "sha256": "0982c9c9a74d79efc9104b9cd0e6be11fd39e87f5649ec1fda7d6af9ad08e0c9",
+      "size": 5784
     },
     "tests/clean_host/run.sh": {
       "sha256": "c42fb99094f29346ddbe5d5a172695829b98d514385c915457693eb56c2d7744",
@@ -2279,6 +2291,10 @@
     "tests/test_provider_budget_contract.py": {
       "sha256": "d6e4f89078efe767047b5ce39fd931de2d24d9389097af670fdfe894340226dc",
       "size": 4441
+    },
+    "tests/test_release_host_portability.py": {
+      "sha256": "a6fb752b88ea5d786f76ef2f9541f4827c09b231784ba7094c7e096ac8f6c006",
+      "size": 16868
     },
     "tests/test_release_renewal_host.py": {
       "sha256": "4384b7fa2cada21a6cf3df69c2363793695afcab98fa590a5a8eb3e90c9e8be6",
