@@ -447,7 +447,7 @@ class SimulationLifecycleTests(unittest.TestCase):
         store.upsert_trade('t1', 'ETH/USDT', lifecycle_state='SIGNAL_APPROVED')
         return adapter, store
 
-    def test_normal_fill_is_protected(self):
+    def test_normal_fill_events_wait_for_coverage_verification(self):
         with tempfile.TemporaryDirectory() as td:
             adapter, store = self._adapter(Path(td))
             ok, msg = adapter.submit('ETHUSDT')
@@ -455,7 +455,7 @@ class SimulationLifecycleTests(unittest.TestCase):
             self.assertIn('ETHUSDT', adapter.sim_positions)
             with store._connect() as con:
                 row = con.execute("SELECT lifecycle_state FROM trade_records WHERE trade_id='t1'").fetchone()
-            self.assertIn(row['lifecycle_state'], ('PROTECTION_ACTIVE', 'ENTRY_FILLED'))
+            self.assertEqual(row['lifecycle_state'], 'RECONCILIATION_REQUIRED')
 
     def test_reject_fault_is_not_accepted(self):
         with tempfile.TemporaryDirectory() as td:

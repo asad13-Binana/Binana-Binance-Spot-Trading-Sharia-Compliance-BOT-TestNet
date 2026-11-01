@@ -72,10 +72,10 @@ class HostContext:
     def inspect(self):
         identifiers = self.deployment.run(["docker", "ps", "--filter",
             "label=com.docker.compose.project=" + self.project, "--filter",
-            "label=com.docker.compose.service=" + self.service, "--format", "{{.ID}}"]).decode().split()
+            "label=com.docker.compose.service=" + self.service, "--format", "{{.ID}}"], timeout=30).decode().split()
         if len(identifiers) != 1:
             raise RuntimeError("EXACTLY_ONE_OWNER_REQUIRED")
-        rows = json.loads(self.deployment.run(["docker", "inspect", identifiers[0]]))
+        rows = json.loads(self.deployment.run(["docker", "inspect", identifiers[0]], timeout=30))
         if len(rows) != 1:
             raise RuntimeError("EXACTLY_ONE_OWNER_REQUIRED")
         container = rows[0]

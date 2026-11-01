@@ -139,13 +139,17 @@ def test_fresh_unblocked_owner_is_healthy_despite_stale_advisory_sidecar():
     {'blockers': 'none'},
     {'blockers': [False]},
     {'generated_at': float('nan')},
-    {'generated_at': time.time() + 100, 'valid_until': time.time() + 130},
-    {'valid_until': time.time() + 86400},
+    pytest.param(lambda now: {'generated_at': now + 100, 'valid_until': now + 130},
+                 id='future-generated'),
+    pytest.param(lambda now: {'valid_until': now + 86400}, id='excessive-validity'),
     {'blockers': ['RECONCILIATION_BLOCKER_OPEN']},
 ])
 def test_invalid_or_expired_owner_readiness_cannot_report_healthy(change):
     _owner()
     _legacy_health()
+    # Resolve relative timestamps at execution, not during test collection.
+    if callable(change):
+        change = change(time.time())
     _readiness(**change)
     assert metrics.runtime_health()['status'] != 'healthy'
 

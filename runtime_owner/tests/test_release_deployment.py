@@ -58,6 +58,7 @@ class ReleaseReceiptValidation(unittest.TestCase):
 
     def test_missing_or_stale_reconciliation_cannot_be_signed(self):
         status={k:'b'*64 for k in authority.BINDINGS}
+        status.update(execution_environment='TESTNET', account_scope='fixture-account-42')
         status.update(generated_at=100,blockers=['release_evidence_unavailable'],
             authenticated_reconciliation={'ok':True,'checked_at':100},retained_inventory={'ok':True,'checked_at':100})
         payload=authority.build_payload(status,'sha256:'+'a'*64,self.receipts(),now=101)

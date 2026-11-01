@@ -5,8 +5,9 @@ from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from services.common.audit import audit
-from services.common.atomic import atomic_write_json, read_json
+from services.common.atomic import atomic_write_json
 from services.universe_service.sharia_filter import ShariaFilter
+from services.universe_service.listing_age import ListingAgeCache
 from services.universe_service.ranker import rank
 from services.universe_service.snapshot_store import store
 from services.universe_service.external_signals import ExternalSignals
@@ -59,32 +60,6 @@ class BinancePublic:
         r.raise_for_status()
         return r.json()
 
-class ListingAgeCache:
-    """Persistent first-candle cache. Unknown age is rejected, never guessed."""
-    def __init__(self, path: Path, api: BinancePublic):
-        self.path = path
-        self.api = api
-        self.data = read_json(path, {}) or {}
-
-    def first_trade_ms(self, symbol: str) -> int | None:
-        cached = self.data.get(symbol)
-        if isinstance(cached, int) and cached > 0:
-            return cached
-        try:
-            rows = self.api.get('/api/v3/klines', {'symbol': symbol, 'interval': '1d', 'startTime': 0, 'limit': 1})
-            first = int(rows[0][0]) if rows else 0
-            if first > 0:
-                self.data[symbol] = first
-                atomic_write_json(self.path, self.data)
-                time.sleep(0.03)
-                return first
-        except Exception as exc:
-            log.warning('listing-age lookup failed for %s: %s', symbol, exc)
-        return None
-
-    def age_days(self, symbol: str, now_ms: int) -> int | None:
-        first = self.first_trade_ms(symbol)
-        return int((now_ms - first) / 86_400_000) if first else None
 
 def _basic_filter(symbol_info):
     raw_symbol = symbol_info.get('symbol')

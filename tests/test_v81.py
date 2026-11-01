@@ -302,7 +302,7 @@ class PersistenceAndRiskTests(unittest.TestCase):
             self.assertEqual(row['entry_order_id'], 500)
             self.assertEqual(row['commission_asset'], 'ETH')
             self.assertEqual(row['last_exchange_event_id'], '101')
-            self.assertEqual(row['lifecycle_state'], LifecycleState.TRAILING_ACTIVE.value)
+            self.assertEqual(row['lifecycle_state'], LifecycleState.RECONCILIATION_REQUIRED.value)
 
             stop_fill = {
                 'e': 'executionReport', 'I': 102, 's': 'ETHUSDT', 'i': 502,
@@ -312,11 +312,13 @@ class PersistenceAndRiskTests(unittest.TestCase):
             self.assertTrue(store.record_exchange_event(stop_fill))
             with store._connect() as con:
                 row = con.execute('SELECT * FROM trade_records WHERE trade_id=?', ('sig-1',)).fetchone()
-            self.assertEqual(row['lifecycle_state'], LifecycleState.EXIT_FILLED.value)
+            self.assertEqual(row['lifecycle_state'], LifecycleState.RECONCILIATION_REQUIRED.value)
             self.assertEqual(row['commission_asset'], 'USDT')
             self.assertEqual(row['last_exchange_event_id'], '102')
+            self.assertIsNotNone(store._active_trade_id('ETH/USDT'))
+            self.assertEqual(row['reconciliation_status'], 'EXIT_EXECUTION_RECONCILE_REQUIRED')
 
-    def test_periodic_mirror_preserves_advanced_lifecycle_mode_and_quantity(self):
+    def test_periodic_mirror_keeps_unproven_advanced_lifecycle_pending(self):
         with tempfile.TemporaryDirectory() as td:
             store = StateStore(Path(td) / 'state.json', Path(td) / 'state.sqlite')
             store.upsert_trade(
@@ -336,7 +338,8 @@ class PersistenceAndRiskTests(unittest.TestCase):
                 row = con.execute(
                     'SELECT * FROM trade_records WHERE trade_id=?', ('sig-advanced',)
                 ).fetchone()
-            self.assertEqual(row['lifecycle_state'], LifecycleState.PROFIT_LOCKED.value)
+            self.assertEqual(row['lifecycle_state'], LifecycleState.RECONCILIATION_REQUIRED.value)
+            self.assertIn('RECONCILE_REQUIRED', row['reconciliation_status'])
             self.assertEqual(row['protection_mode'], ProtectionMode.FIXED_OCO.value)
             self.assertEqual(row['protected_quantity'], '99.9')
 

@@ -189,6 +189,8 @@ def wait(image,candidate):
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--image',required=True);p.add_argument('--tag',required=True)
+    p.add_argument('--host-profile',choices=('aws-historical',),required=True,
+                   help='Explicit acknowledgement of this archived AWS-only rollout; never use for Oracle')
     p.add_argument('--evidence',type=Path,required=True);args=p.parse_args()
     os.umask(0o077);os.environ['RELEASE_TAG']='v101-4dd60e295d145e62'
     if inspect()['State']['Running']:raise RuntimeError('MAINTENANCE_STOP_REQUIRED')

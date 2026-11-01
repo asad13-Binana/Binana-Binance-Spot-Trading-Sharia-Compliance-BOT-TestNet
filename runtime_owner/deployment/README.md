@@ -1,6 +1,15 @@
 # Owner builds and deployment records
 
-The current accepted AWS owner is `clean-20261016-20269` (`960d789f...`), Freqtrade 2026.9, resumed October 18 at 04:22:10 Asia/Karachi. The image map and both Compose overlays in this directory are byte-identical to the deployed host records. See [acceptance and runtime evidence](../../docs/recovery/AWS_2026_9_RELEASE_20261018.md).
+## Portable Oracle owner package
+
+Use [the Oracle owner bundle guide](../../docs/ORACLE_OWNER_BUNDLE.md) for the
+separate stopped, Testnet-only `BinanaNfiSpot` topology. Its materializer uses
+the current manifest-verified owner patches and current research/broker
+sources, and includes host-only issuance and renewal tools outside both image
+contexts. The root Compose installer remains a different, legacy deployment.
+Do not combine its execution sidecar or recovery paths with the owner bundle.
+
+Historical AWS evidence records `clean-20261016-20269` (`960d789f...`), Freqtrade 2026.9, and its October 18 acceptance. The retained image map and Compose overlays describe that captured host only; they do not attest the current candidate, a running service, or a new Oracle installation. See [the dated acceptance record](../../docs/recovery/AWS_2026_9_RELEASE_20261018.md).
 
 ## Independent public-source build
 
@@ -15,9 +24,9 @@ docker run --rm --network=none --read-only --cap-drop=ALL \
   --tmpfs /tmp:rw,nosuid,nodev,size=256m,mode=1777 binana-owner-clean:reviewed
 ```
 
-For ARM64 builders, use `docker buildx build --platform linux/arm64 --load` with the same Dockerfile/context and `docker run --platform linux/arm64` with the same validation limits. The 2026.9 ARM64 image passed all 244 offline tests with zero skips under Docker Desktop emulation on October 18. Actual Oracle-host installation and account-bound acceptance remain separate.
+For ARM64 builders, use `docker buildx build --platform linux/arm64 --load` with the same Dockerfile/context and `docker run --platform linux/arm64` with the same validation limits. The historical October 18 2026.9 image passed 244 offline tests with zero skips under Docker Desktop ARM64 emulation. That receipt does not cover subsequent source or dependency changes. Build and validate the exact current candidate separately; actual Oracle-host installation and account-bound acceptance remain separate.
 
-The source builder now selects upstream commit `1f394eaebc2f46a83d26971388628707802f8602` (Freqtrade 2026.9), archive SHA256 `a453638c8ad59f8655036eaabd0858cb432331e70caa259976299e5c59108c89`. Only its application/client source and packaging metadata are materialized. The one upstream license symlink becomes regular verified license bytes. The manifest-verified BINANA patches include the custom exchange export required by the resolver. Python 3.14.7 is pinned by an official OCI digest. The dependency closure preserves the reviewed security updates and CCXT 4.5.87, adding upstream-required cloudpickle 3.1.2. The new AMD64 image passes 244 offline tests with zero skips. See [2026.9 repair evidence](../../docs/FREQTRADE_2026_9_ADMISSION_REPAIR_2026-10-16.md); exact-image acceptance and activation are recorded separately in the current AWS report linked above.
+The source builder now selects upstream commit `1f394eaebc2f46a83d26971388628707802f8602` (Freqtrade 2026.9), archive SHA256 `a453638c8ad59f8655036eaabd0858cb432331e70caa259976299e5c59108c89`. Only its application/client source and packaging metadata are materialized. The one upstream license symlink becomes regular verified license bytes. The manifest-verified BINANA patches include the custom exchange export required by the resolver. Python 3.14.7 is pinned by an official OCI digest. The dependency closure preserves the reviewed security updates and CCXT 4.5.87, adding upstream-required cloudpickle 3.1.2. The dated [2026.9 repair evidence](../../docs/FREQTRADE_2026_9_ADMISSION_REPAIR_2026-10-16.md) records 244 AMD64 tests for that earlier image. It is not a receipt for the current Oracle candidate; subsequent exact-source, image and host gates must be reported independently.
 
 A clean image build is not a complete live deployment: supply private configuration and keys separately, restore or initialize account-scoped durable state, use the current owner topology, and qualify/sign the new image before enabling entries. Never copy an old image-bound certificate to a new image. The supported execution contract remains Binance Spot Testnet.
 

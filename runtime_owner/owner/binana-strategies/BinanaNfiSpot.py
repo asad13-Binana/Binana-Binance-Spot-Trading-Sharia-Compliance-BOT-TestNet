@@ -7,7 +7,7 @@ import json
 import sys
 import time
 
-from freqtrade.binana.environment import assert_spot_pair, validate_runtime_contract, resolve_stake_amount, BinanaConfigError
+from freqtrade.binana.environment import assert_spot_pair, validate_runtime_contract, resolve_stake_amount, BinanaConfigError, execution_scope, package_environment
 
 _SOURCE=Path(__file__).parent/'binana_vendor'/'NostalgiaForInfinityX8.py'
 _SHA256='fcf9f622a3ad797bd143561d1017f3930220f22c793905af929ff1d33bbde686'
@@ -65,7 +65,7 @@ class BinanaNfiSpot(_vendor.NostalgiaForInfinityX8):
         # the execution contract afterwards and pin the adapted behavior.
         validate_runtime_contract(self.config)
         policy = self.config['binana']
-        self._journal_scope = f"binance-testnet|{policy.get('account_scope') or 'owner-testnet-account-1'}|{policy['testnet_epoch_id']}"
+        self._journal_scope = execution_scope(self.config)
         self.can_short=False
         self.is_futures_mode=False
         self.position_adjustment_enable=False
@@ -85,7 +85,7 @@ class BinanaNfiSpot(_vendor.NostalgiaForInfinityX8):
 
     def populate_entry_trend(self, df, metadata: dict):
         df = super().populate_entry_trend(df, metadata)
-        if self.config.get('binana', {}).get('environment') != 'testnet':
+        if self.config.get('binana', {}).get('environment') != package_environment():
             return df
         # Stabilization mode: NFI remains the sole strategy signal authority.
         # BINANA safety/liquidity/admission checks run after the native NFI signal;
@@ -94,7 +94,8 @@ class BinanaNfiSpot(_vendor.NostalgiaForInfinityX8):
         return df
 
     def version(self) -> str:
-        return 'BINANA-X8-v18.0.26-testnet-owner-5'
+        return ('BINANA-X8-v18.0.26-testnet-owner-5' if package_environment() == 'testnet'
+                else 'BINANA-X8-v18.0.26-live-owner-1')
 
     def custom_stake_amount(self, pair, current_time, current_rate, proposed_stake,
                             min_stake, max_stake, leverage, entry_tag, side, **kwargs):

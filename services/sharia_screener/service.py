@@ -62,6 +62,7 @@ from services.sharia_screener.approval import (
     apply_owner_decision,
 )
 from services.sharia_screener.bridge import (
+    REQUEST_ID_RE,
     ensure_status_file_exists,
     write_screening_outcome,
 )
@@ -210,13 +211,28 @@ class ShariaScreenerService:
             pair = str(payload.get('pair', '')).upper().strip()
             priority = str(payload.get('priority', 'idle')).lower()
             requested_by = str(payload.get('requested_by', 'unknown'))
-            if priority == 'bulk' and base == '*':
+            if not REQUEST_ID_RE.fullmatch(request_id):
+                audit('sharia_request_invalid', severity='WARNING', details={
+                    'request_id': request_id, 'base': base, 'pair': pair})
+            elif priority == 'bulk' and base == '*':
                 self._enqueue_bulk_all(request_id, requested_by)
             elif request_id and base.isalnum() and pair == f'{base}/USDT':
                 inserted = self.queue.enqueue(request_id, base, pair, priority, requested_by)
                 audit('sharia_request_ingested', details={
                     'request_id': request_id, 'base': base, 'priority': priority,
                     'inserted': inserted, 'requested_by': requested_by})
+                if not inserted:
+                    prior = self.queue.request(request_id)
+                    error = str((prior or {}).get('error') or '')
+                    if (prior and prior['status'] == 'REJECTED' and
+                            error.startswith('ALREADY_ACTIVE: ') and
+                            not (SHARIA_RESULTS_DIR / f'result_{request_id}.json').exists()):
+                        # Correlate this suppressed ID without changing the
+                        # asset's existing approval or doing duplicate work.
+                        write_screening_outcome(
+                            request_id, base, pair,
+                            fail_closed_report(base, reason=error),
+                            validated=False, error=error, publish_status=False)
             else:
                 audit('sharia_request_invalid', severity='WARNING', details={
                     'request_id': request_id, 'base': base, 'pair': pair})
@@ -241,7 +257,8 @@ class ShariaScreenerService:
             bases = self._spot_usdt_bases()
         except Exception as exc:
             audit('sharia_bulk_expansion_failed', severity='ERROR', details={'error': str(exc)})
-            return
+            # Leave the authenticated inbox item available for retry.
+            raise
         added = 0
         stamp = datetime.now(timezone.utc).strftime('%Y%m%d')
         for base in sorted(bases):
@@ -285,7 +302,7 @@ class ShariaScreenerService:
         return scheduled
 
     def process_request(self, row: dict):
-        request_id, base, pair = row['request_id'], row['base'], row['pair']
+        request_id, base = row['request_id'], row['base']
         claimed = self.queue.mark_running(
             request_id,
             daily_ceiling=self.max_scans_per_day,
@@ -299,6 +316,20 @@ class ShariaScreenerService:
                 'requested_by': row.get('requested_by'),
             })
             return
+        try:
+            self._process_claimed_request(row)
+        except Exception as exc:
+            # Failure-report publication can also fail (permissions/signing).
+            # Preserve the lifecycle independently of report/result storage.
+            why = f'{type(exc).__name__}: {exc}'
+            self._mark_failed(row, why)
+            audit('sharia_outcome_write_failed', severity='ERROR', details={
+                'request_id': request_id, 'base': base, 'error': why})
+        finally:
+            self._last_scan_at = time.time()
+
+    def _process_claimed_request(self, row: dict):
+        request_id, base, pair = row['request_id'], row['base'], row['pair']
         eligible, why, binance_entry = self._pair_eligible(base)
         if not eligible:
             report = fail_closed_report(base, reason=f'pair ineligible: {why}')
@@ -534,6 +565,14 @@ class ShariaScreenerService:
         from services.sharia_screener.readiness import screening_readiness
         from services.common.paths import SHARIA_FILE
         available, reason = self.runner.available()
+        def request_summary(status):
+            record = self.queue.last(status)
+            if not isinstance(record, dict):
+                return None
+            # Queue diagnostics can contain private source/registry values.
+            # Share lifecycle metadata only with the monitor group.
+            return {key: record.get(key) for key in (
+                'request_id', 'base', 'finished_at', 'final_code')}
         # SHARIA-HEALTH-001 / F5-004: 'ok' was hardcoded True, so Docker (and
         # therefore the whole five-service stack) reported healthy even when the
         # local backend was unusable and no new screening could be produced.
@@ -564,8 +603,8 @@ class ShariaScreenerService:
             'backend': {'name': self.runner.provider,
                         'available': available, 'reason': reason,
                         'external_ai': False},
-            'last_done': self.queue.last('DONE'),
-            'last_failed': self.queue.last('FAILED'),
+            'last_done': request_summary('DONE'),
+            'last_failed': request_summary('FAILED'),
             'idle_scanning': self.idle_enabled,
             'source_discovery': (
                 self.source_discovery.stats() if self.source_discovery is not None

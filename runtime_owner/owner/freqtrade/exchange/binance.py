@@ -563,11 +563,11 @@ class Binance(Exchange):
 class BinanaBinance(Binance):
     _ft_has = {**Binance._ft_has, "ws_enabled": False}
 
-    """Hard-fenced Binance Spot Testnet transport for the BINANA fork.
+    """Package-fenced Binance Spot transport for the BINANA fork.
 
     It deliberately retains exchange id/name ``binance`` so the rest of
     Freqtrade uses normal Binance market handling, but every CCXT client is
-    switched to Binance Spot Testnet before markets or authenticated calls.
+    fenced to its package execution venue before markets or authenticated calls.
     """
 
     _supported_trading_mode_margin_pairs: list[tuple[TradingMode, MarginMode]] = [
@@ -575,7 +575,8 @@ class BinanaBinance(Binance):
     ]
 
     def _init_ccxt(self, exchange_config, sync, ccxt_kwargs):
-        from freqtrade.binana.environment import validate_runtime_contract
+        from freqtrade.binana.environment import (validate_runtime_contract, package_environment,
+            execution_rest_endpoint, fence_ccxt_transport)
 
         validate_runtime_contract(self._config)
         # Restrict CCXT market discovery to Spot before the client performs
@@ -590,13 +591,13 @@ class BinanaBinance(Binance):
         kw_options.update(options)
         ccxt_kwargs["options"] = kw_options
         api = super()._init_ccxt(exchange_config, sync, ccxt_kwargs)
-        api.set_sandbox_mode(True)
+        api.set_sandbox_mode(package_environment() == "testnet")
         urls = getattr(api, "urls", {}) or {}
         active = urls.get("api", {}) if isinstance(urls, dict) else {}
-        # Keep every authenticated trading/account call on Spot Testnet.
+        # Keep every authenticated trading/account call on the package execution venue.
         value = str(active.get("private", ""))
-        if value != "https://testnet.binance.vision/api/v3":
-            raise OperationalException(f"BINANA Testnet private endpoint fence failed: {value}")
+        if value != execution_rest_endpoint():
+            raise OperationalException(f"BINANA private endpoint fence failed: {value}")
 
         # NFI needs deep multi-timeframe history which Spot Testnet loses on
         # periodic resets. Public market data is read-only, so source it from
@@ -614,10 +615,15 @@ class BinanaBinance(Binance):
             import ccxt
             execution_public = ccxt.binance({'enableRateLimit':True,
                 'timeout':10000, 'options':{'defaultType':'spot'}})
-            execution_public.set_sandbox_mode(True)
+            execution_public.set_sandbox_mode(package_environment() == "testnet")
             execution_public.urls['apiBackup'] = {}
-            api.binana_testnet_public = execution_public
-        return api
+            if execution_public.urls['api']['public'] != execution_rest_endpoint():
+                raise OperationalException('BINANA_EXECUTION_PUBLIC_ENDPOINT_MISMATCH')
+            api.binana_execution_public = fence_ccxt_transport(
+                execution_public, public_endpoint=execution_rest_endpoint())
+            if package_environment() == 'testnet':
+                api.binana_testnet_public = api.binana_execution_public
+        return fence_ccxt_transport(api, public_endpoint='https://api.binance.com/api/v3')
 
     def validate_config(self, config):
         from freqtrade.binana.environment import validate_runtime_contract
@@ -625,7 +631,7 @@ class BinanaBinance(Binance):
         validate_runtime_contract(config)
         super().validate_config(config)
         if self.trading_mode != TradingMode.SPOT or self.margin_mode != MarginMode.NONE:
-            raise OperationalException("BINANA can execute only Binance Spot Testnet")
+            raise OperationalException("BINANA can execute only Binance Spot")
 
 
 class Binanceusdm(Binance):

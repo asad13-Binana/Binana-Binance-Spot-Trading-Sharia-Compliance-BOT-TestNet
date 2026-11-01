@@ -281,7 +281,7 @@ class DeploymentGateTests(unittest.TestCase):
             if not bash:
                 self.skipTest('no POSIX bash available to execute the deployment shell guard')
             proc = __import__('subprocess').run(
-                [bash, str(root / 'deploy/oracle_setup.sh')],
+                [bash, str(root / 'deploy/oracle_setup.sh'), '--legacy-sidecar-recovery'],
                 cwd=root, env=env, text=True, capture_output=True, timeout=15,
             )
             self.assertNotEqual(proc.returncode, 0)
@@ -487,7 +487,8 @@ class BinanceListStatusSemanticsTests(unittest.TestCase):
                 'l': 'ALL_DONE', 'L': 'ALL_DONE', 'r': 'NONE', 'C': 'list-1',
             })
             row = self._row(store)
-            self.assertEqual(row['lifecycle_state'], 'ENTRY_FILLED')
+            self.assertEqual(row['lifecycle_state'], 'RECONCILIATION_REQUIRED')
+            self.assertIsNotNone(store._active_trade_id('ETH/USDT'))
             self.assertEqual(row['reconciliation_status'], 'ORDER_LIST_TERMINAL_RECONCILE_REQUIRED')
 
     def test_failed_list_action_does_not_falsely_mark_entire_trade_error(self):
@@ -719,7 +720,7 @@ class ExecutionReportTerminalSemanticsTests(unittest.TestCase):
                 'S': 'SELL', 'o': 'STOP_LOSS_LIMIT', 'X': 'REJECTED', 'z': '0', 'q': '1',
             })
             row = self._row(store)
-        self.assertEqual(row['lifecycle_state'], 'PROTECTION_ACTIVE')
+        self.assertEqual(row['lifecycle_state'], 'RECONCILIATION_REQUIRED')
         self.assertEqual(row['reconciliation_status'], 'SELL_PROTECTION_TERMINAL_RECONCILE_REQUIRED')
 
     def test_canceled_partial_entry_remains_an_open_partial_position(self):
@@ -735,7 +736,7 @@ class ExecutionReportTerminalSemanticsTests(unittest.TestCase):
         self.assertEqual(row['lifecycle_state'], 'ENTRY_PARTIALLY_FILLED')
         self.assertEqual(row['reconciliation_status'], 'ENTRY_TERMINAL_PARTIAL_FILL_RECONCILE_REQUIRED')
 
-    def test_rejected_zero_fill_entry_is_terminal_error(self):
+    def test_raw_rejected_zero_fill_entry_requires_authenticated_terminal_proof(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             store = StateStore(root / 'state.json', root / 'state.sqlite')
@@ -745,8 +746,8 @@ class ExecutionReportTerminalSemanticsTests(unittest.TestCase):
                 'S': 'BUY', 'o': 'LIMIT', 'X': 'REJECTED', 'z': '0', 'Z': '0', 'q': '1',
             })
             row = self._row(store)
-        self.assertEqual(row['lifecycle_state'], 'ERROR')
-        self.assertEqual(row['reconciliation_status'], 'ENTRY_TERMINAL_NO_FILL')
+        self.assertEqual(row['lifecycle_state'], 'RECONCILIATION_REQUIRED')
+        self.assertEqual(row['reconciliation_status'], 'ENTRY_TERMINAL_NO_FILL_RECONCILE_REQUIRED')
 
 
 def _audit_process_worker(path: str, worker: int, count: int) -> None:

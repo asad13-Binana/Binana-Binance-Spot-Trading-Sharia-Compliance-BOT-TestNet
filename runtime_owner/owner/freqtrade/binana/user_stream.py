@@ -1,4 +1,4 @@
-"""Read-only authenticated Testnet events inside the Freqtrade owner.
+"""Read-only authenticated Spot events inside the Freqtrade owner.
 
 Events are durably journalled. Freqtrade's normal REST reconciliation applies
 fills; this thread never creates orders or changes Trade economics.
@@ -15,7 +15,9 @@ import time
 
 from .durable_journal import append_event
 
-ENDPOINT = 'wss://ws-api.testnet.binance.vision/ws-api/v3'
+from .environment import private_stream_endpoint
+
+ENDPOINT = private_stream_endpoint()
 
 
 def health_is_fresh(health, *, now=None):

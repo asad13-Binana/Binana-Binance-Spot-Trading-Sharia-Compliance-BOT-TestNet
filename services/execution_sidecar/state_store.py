@@ -231,6 +231,15 @@ class StateStore:
     def _write_safety_state(self, halts: dict, intents: dict) -> None:
         try:
             with self._connect() as con:
+                con.execute('BEGIN IMMEDIATE')
+                # Exchange proofs have dedicated compare-and-set writers.
+                # Generic JSON saves must neither restore nor erase their state.
+                coverage = {row['safety_key']:json.loads(row['payload_json']) for row in con.execute(
+                    "SELECT * FROM recovery_intents WHERE safety_key LIKE 'coverage:%' OR safety_key LIKE 'entry-terminal:%'")}
+                for key in list(intents):
+                    if key.startswith(('coverage:', 'entry-terminal:')):
+                        del intents[key]
+                intents.update(coverage)
                 self._replace_mapping_table(con, 'safety_halts', halts)
                 self._replace_mapping_table(con, 'recovery_intents', intents)
         except Exception as exc:
@@ -346,6 +355,22 @@ class StateStore:
             self.data['safety_halts'] = halts
             self.data['recovery_intents'] = intents
             atomic_write_json(self.path, self.data)
+
+    def save_protection_proof(self, key: str, proof: dict, *, symbol: str, event_cursor: int) -> None:
+        """Persist coverage before any caller may label protection verified."""
+        with self.lock:
+            proof = self._validate_mapping(proof,'protection coverage proof')
+            with self._connect() as connection:
+                connection.execute('BEGIN IMMEDIATE')
+                latest = connection.execute('SELECT COALESCE(MAX(id),0) FROM exchange_events WHERE symbol=?',
+                                            (symbol,)).fetchone()[0]
+                if latest != event_cursor:
+                    raise RuntimeError('exchange events changed during protection verification')
+                connection.execute('''INSERT INTO recovery_intents VALUES(?,?,?)
+                    ON CONFLICT(safety_key) DO UPDATE SET payload_json=excluded.payload_json,updated_at=excluded.updated_at''',
+                    (key,self._canonical_json(proof),self._now()))
+            self.data.setdefault('recovery_intents',{})[key] = proof
+            atomic_write_json(self.path,self.data)
 
     def resolve_safety(self, key: str, resolution: str) -> None:
         """Resolve one verified incident without ever re-enabling entries."""
@@ -554,14 +579,30 @@ class StateStore:
         # when the caller passed it explicitly.
         clean.setdefault('lifecycle_state', LifecycleState.SIGNAL_APPROVED.value)
         clean['updated_at'] = self._now()
-        columns = ['trade_id','pair'] + list(clean)
-        values = [trade_id, pair] + [clean[c] for c in clean]
-        placeholders = ','.join('?' for _ in columns)
-        update_keys = [c for c in clean if c != 'lifecycle_state' or explicit_lifecycle]
-        updates = ','.join(f'{c}=excluded.{c}' for c in update_keys)
-        # SQL identifiers come only from the fixed allowlist above; all values are bound.
-        sql = f"INSERT INTO trade_records({','.join(columns)}) VALUES({placeholders}) ON CONFLICT(trade_id) DO UPDATE SET {updates}"  # nosec B608
         with self._connect() as con:
+            con.execute('BEGIN IMMEDIATE')
+            active = {LifecycleState.PROTECTION_ACTIVE.value,LifecycleState.TRAILING_ACTIVE.value,
+                      LifecycleState.BREAK_EVEN_ARMED.value,LifecycleState.PROFIT_LOCKED.value}
+            if explicit_lifecycle and clean['lifecycle_state'] in active:
+                from types import SimpleNamespace
+                current = con.execute('SELECT * FROM trade_records WHERE trade_id=?',(trade_id,)).fetchone()
+                current = dict(current) if current else {}
+                position = SimpleNamespace(entry_order_id=clean.get('entry_order_id',current.get('entry_order_id')),
+                    tp_order_id=clean.get('take_profit_order_id',current.get('take_profit_order_id')),
+                    sl_order_id=clean.get('stop_order_id',current.get('stop_order_id')),exit_order_id=None,
+                    filled_qty=clean.get('filled_quantity',current.get('filled_quantity')))
+                if not self._coverage_is_current(pair.replace('/',''),position,connection=con):
+                    clean['lifecycle_state'] = LifecycleState.RECONCILIATION_REQUIRED.value
+                    clean['reconciliation_status'] = 'PROTECTION_COVERAGE_PENDING_RECONCILE_REQUIRED'
+                elif 'COVERAGE_PENDING' in str(clean.get('reconciliation_status') or ''):
+                    clean['reconciliation_status'] = 'PROTECTION_COVERAGE_VERIFIED'
+            columns = ['trade_id','pair'] + list(clean)
+            values = [trade_id,pair] + [clean[c] for c in clean]
+            placeholders = ','.join('?' for _ in columns)
+            update_keys = [c for c in clean if c != 'lifecycle_state' or explicit_lifecycle]
+            updates = ','.join(f'{c}=excluded.{c}' for c in update_keys)
+            # Fixed allowlist above supplies every identifier; values are bound.
+            sql = f"INSERT INTO trade_records({','.join(columns)}) VALUES({placeholders}) ON CONFLICT(trade_id) DO UPDATE SET {updates}"  # nosec B608
             con.execute(sql, values)
 
     def finalize_submission(self, trade_id: str, outcome: str):
@@ -613,6 +654,37 @@ class StateStore:
         }
         return order.get(str(value), -1)
 
+    def finalize_zero_fill_entry(self, saved: dict, symbol: str, event_cursor: int, evidence: dict) -> None:
+        """Atomically terminalize the exact identity whose REST facts were read."""
+        from services.execution_sidecar.protection_proof import number, zero_fill_event
+        trade_id, entry_id = saved['trade_id'], saved['entry_order_id']
+        key = f'entry-terminal:{symbol}:{entry_id}'
+        binding_fields = ('pair', 'entry_order_id', 'entry_client_order_id', 'order_list_id',
+                          'take_profit_order_id', 'stop_order_id', 'lifecycle_state')
+        with self.lock, self._connect() as con:
+            con.execute('BEGIN IMMEDIATE')
+            cursor = con.execute('SELECT COALESCE(MAX(id),0) FROM exchange_events WHERE symbol=?',
+                                 (symbol,)).fetchone()[0]
+            row = con.execute('SELECT * FROM trade_records WHERE trade_id=?', (trade_id,)).fetchone()
+            if (cursor != event_cursor or not row or row['pair'] != self._symbol_to_pair(symbol)
+                    or any(row[field] != saved[field] for field in binding_fields)
+                    or number(row['filled_quantity'] or '0') != 0):
+                raise RuntimeError('entry identity or events changed during zero-fill verification')
+            known_ids = tuple(int(oid) for oid in evidence['orders'])
+            placeholders = ','.join('?' for _ in known_ids)
+            events = con.execute(
+                f"SELECT payload_json FROM exchange_events WHERE symbol=? AND event_type='executionReport' AND order_id IN ({placeholders})",  # nosec B608
+                (symbol, *known_ids)).fetchall()
+            if any(not zero_fill_event(json.loads(event[0])) for event in events):
+                raise RuntimeError('durable execution evidence contradicts verified zero fill')
+            proof = {**evidence, 'event_cursor': event_cursor,
+                     'durable_identity': {field: saved[field] for field in binding_fields}}
+            con.execute("UPDATE trade_records SET lifecycle_state='ERROR',reconciliation_status='ENTRY_TERMINAL_NO_FILL_VERIFIED',updated_at=? WHERE trade_id=?",
+                        (self._now(), trade_id))
+            con.execute("INSERT INTO recovery_intents VALUES(?,?,?) ON CONFLICT(safety_key) DO UPDATE SET payload_json=excluded.payload_json,updated_at=excluded.updated_at",
+                        (key, self._canonical_json(proof), self._now()))
+
+
     def _active_trade_id(self, pair: str) -> str | None:
         terminal = (LifecycleState.EXIT_FILLED.value, LifecycleState.ERROR.value)
         with self._connect() as con:
@@ -655,7 +727,7 @@ class StateStore:
         commission_asset = event.get('N') or event.get('commissionAsset')
         commission_amount = event.get('n') or event.get('commission')
 
-        with self._connect() as con:
+        with self.lock, self._connect() as con:
             try:
                 con.execute(
                     '''INSERT INTO exchange_events(event_key,event_type,symbol,order_id,order_list_id,
@@ -677,6 +749,8 @@ class StateStore:
                 values.append(order_list_id)
             if not clauses:
                 return True
+            if not isinstance(symbol,str) or not symbol:
+                return True
 
             # The dedup key stored in the UNIQUE exchange_events.event_key is the
             # composite above (M-007). The human-facing last_exchange_event_id on
@@ -684,9 +758,19 @@ class StateStore:
             readable_event_id = str(raw_event_id) if raw_event_id is not None else event_key
             rows = con.execute(
                 # Clauses are fixed literals selected above; all values are bound.
-                'SELECT * FROM trade_records WHERE ' + ' OR '.join(clauses), values  # nosec B608
+                'SELECT * FROM trade_records WHERE pair=? AND (' + ' OR '.join(clauses) + ')',  # nosec B608
+                [self._symbol_to_pair(symbol),*values]
             ).fetchall()
             for row in rows:
+                proof_key = f"coverage:{symbol}:{row['entry_order_id']}"
+                previous = con.execute('SELECT payload_json FROM recovery_intents WHERE safety_key=?',
+                                       (proof_key,)).fetchone()
+                if previous and event_type in {'executionReport','listStatus'}:
+                    invalid = json.loads(previous[0])
+                    invalid.update(invalidated=True,invalidated_by_event=event_key)
+                    con.execute('UPDATE recovery_intents SET payload_json=?,updated_at=? WHERE safety_key=?',
+                                (self._canonical_json(invalid),self._now(),proof_key))
+                    self.data.setdefault('recovery_intents',{})[proof_key] = invalid
                 updates: dict[str, Any] = {
                     'last_exchange_event_id': readable_event_id,
                     'last_event_time': str(event_time),
@@ -739,14 +823,16 @@ class StateStore:
                             lifecycle = LifecycleState.ENTRY_PARTIALLY_FILLED.value
                             updates['reconciliation_status'] = 'ENTRY_TERMINAL_PARTIAL_FILL_RECONCILE_REQUIRED'
                         else:
-                            lifecycle = LifecycleState.ERROR.value
-                            updates['reconciliation_status'] = 'ENTRY_TERMINAL_NO_FILL'
+                            lifecycle = LifecycleState.RECONCILIATION_REQUIRED.value
+                            updates['reconciliation_status'] = 'ENTRY_TERMINAL_NO_FILL_RECONCILE_REQUIRED'
                     elif side == 'SELL' and status in {'NEW', 'PARTIALLY_FILLED'} and order_type in {
                         'STOP_LOSS', 'STOP_LOSS_LIMIT', 'TAKE_PROFIT', 'TAKE_PROFIT_LIMIT', 'LIMIT_MAKER'
                     }:
-                        lifecycle = LifecycleState.PROTECTION_ACTIVE.value
+                        lifecycle = LifecycleState.RECONCILIATION_REQUIRED.value
+                        updates['reconciliation_status'] = 'PROTECTION_COVERAGE_PENDING_RECONCILE_REQUIRED'
                     elif side == 'SELL' and status == 'FILLED':
-                        lifecycle = LifecycleState.EXIT_FILLED.value
+                        lifecycle = LifecycleState.RECONCILIATION_REQUIRED.value
+                        updates['reconciliation_status'] = 'EXIT_EXECUTION_RECONCILE_REQUIRED'
                     elif side == 'SELL' and status in {'CANCELED', 'EXPIRED', 'REJECTED'}:
                         # A failed/terminal protective sell does not mean the base
                         # position disappeared. Preserve the lifecycle and force
@@ -764,20 +850,46 @@ class StateStore:
                             'UNSAFE_LIST_EXPIRY_RECONCILE_REQUIRED:' +
                             (str(expiry_reason) if expiry_reason else order_status))
                     elif list_status in {'EXEC_STARTED', 'UPDATED'} and order_status == 'EXECUTING':
-                        lifecycle = LifecycleState.PROTECTION_ACTIVE.value
+                        lifecycle = LifecycleState.RECONCILIATION_REQUIRED.value
+                        updates['reconciliation_status'] = 'PROTECTION_COVERAGE_PENDING_RECONCILE_REQUIRED'
                     elif list_status == 'ALL_DONE' or order_status == 'ALL_DONE':
                         # ALL_DONE explicitly means the list is no longer active. It
                         # does not say which leg filled; executionReport/reconciliation
                         # must determine whether the position exited or is unprotected.
                         updates['reconciliation_status'] = 'ORDER_LIST_TERMINAL_RECONCILE_REQUIRED'
+                        lifecycle = LifecycleState.RECONCILIATION_REQUIRED.value
                     elif list_status == 'RESPONSE' or order_status == 'REJECT':
                         # Binance defines these as a failed placement/cancel action.
                         # The pre-existing order list may still be live, so never mark
                         # the entire trade ERROR from this event alone.
                         updates['reconciliation_status'] = 'ORDER_LIST_ACTION_REJECTED_RECONCILE_REQUIRED'
 
-                if lifecycle:
-                    old = str(row['lifecycle_state'])
+                old = str(row['lifecycle_state'])
+                terminal_key = f"entry-terminal:{symbol}:{row['entry_order_id']}"
+                terminal = con.execute('SELECT payload_json FROM recovery_intents WHERE safety_key=?',
+                                       (terminal_key,)).fetchone()
+                terminal_contradicted = False
+                if terminal and event_type == 'executionReport':
+                    from services.execution_sidecar.protection_proof import zero_fill_event
+                    terminal_contradicted = not zero_fill_event(event)
+                    if terminal_contradicted:
+                        invalid = json.loads(terminal[0])
+                        invalid.update(invalidated=True, invalidated_by_event=event_key)
+                        con.execute('UPDATE recovery_intents SET payload_json=?,updated_at=? WHERE safety_key=?',
+                                    (self._canonical_json(invalid), self._now(), terminal_key))
+                        updates['lifecycle_state'] = LifecycleState.RECONCILIATION_REQUIRED.value
+                        updates['reconciliation_status'] = 'TERMINAL_ENTRY_CONTRADICTION_RECONCILE_REQUIRED'
+                if terminal_contradicted:
+                    # A late fill must re-reserve exposure even after zero-fill
+                    # terminal proof released the slot; terminal is not immutable.
+                    pass
+                elif (old not in {LifecycleState.EXIT_FILLED.value,LifecycleState.ERROR.value}
+                        and event_type in {'executionReport','listStatus'}
+                        and (lifecycle == LifecycleState.RECONCILIATION_REQUIRED.value
+                             or self._state_rank(old) >= self._state_rank(LifecycleState.PROTECTION_ACTIVE.value))):
+                    lifecycle = LifecycleState.RECONCILIATION_REQUIRED.value
+                    updates['lifecycle_state'] = lifecycle
+                elif lifecycle:
                     if old == LifecycleState.RECONCILED.value or self._state_rank(lifecycle) >= self._state_rank(old):
                         updates['lifecycle_state'] = lifecycle
 
@@ -788,6 +900,27 @@ class StateStore:
                     [*updates.values(), row['trade_id']],
                 )
         return True
+
+    def _coverage_is_current(self, symbol: str, position: Any, *, connection=None) -> bool:
+        try:
+            from decimal import Decimal
+            key = f'coverage:{symbol}:{int(position.entry_order_id)}'
+            if connection is None:
+                with self._connect() as proof_connection:
+                    row = proof_connection.execute('SELECT payload_json FROM recovery_intents WHERE safety_key=?',(key,)).fetchone()
+            else:
+                row = connection.execute('SELECT payload_json FROM recovery_intents WHERE safety_key=?',(key,)).fetchone()
+            proof = json.loads(row[0]) if row else {}
+            age = datetime.now(timezone.utc).timestamp()-float(proof['verified_at'])
+            ids = {str(int(getattr(position,name))) for name in
+                   ('tp_order_id','sl_order_id','exit_order_id') if getattr(position,name,None)}
+            quantity = Decimal(proof['protected_quantity'])
+            return (proof.get('invalidated') is not True and 0 <= age <= 35
+                    and ids and ids.issubset(set(map(str,proof['orders'])))
+                    and Decimal(str(position.filled_qty)) == Decimal(proof['entry_filled_quantity'])
+                    and quantity.is_finite() and quantity > 0)
+        except (ValueError,TypeError,KeyError,AttributeError,OverflowError,ArithmeticError):
+            return False
 
     def mirror_legacy_position(self, symbol: str, position: Any):
         pair = self._symbol_to_pair(symbol)
@@ -813,6 +946,11 @@ class StateStore:
         requested_lifecycle = str(getattr(position, '_sidecar_lifecycle', '') or '')
         if requested_lifecycle in {item.value for item in LifecycleState}:
             lifecycle = requested_lifecycle
+        active_states = {LifecycleState.PROTECTION_ACTIVE.value,LifecycleState.TRAILING_ACTIVE.value,
+                         LifecycleState.BREAK_EVEN_ARMED.value,LifecycleState.PROFIT_LOCKED.value}
+        coverage_pending = lifecycle in active_states and not self._coverage_is_current(symbol,position)
+        if coverage_pending:
+            lifecycle = LifecycleState.RECONCILIATION_REQUIRED.value
 
         with self._connect() as con:
             existing = con.execute(
@@ -823,7 +961,13 @@ class StateStore:
         if existing and state_name == 'CLOSED' and 'RECONCILE_REQUIRED' in str(
                 existing['reconciliation_status'] or ''):
             lifecycle = LifecycleState.RECONCILIATION_REQUIRED.value
-        lifecycle_override = requested_lifecycle in {
+        if (existing and not requested_lifecycle and not coverage_pending and lifecycle in active_states
+                and str(existing['lifecycle_state']) in {
+                    LifecycleState.BREAK_EVEN_ARMED.value, LifecycleState.PROFIT_LOCKED.value}):
+            # Generic legacy ARMED/TRAIL state cannot overwrite a durable,
+            # explicitly selected protection phase after restart/projection.
+            lifecycle = str(existing['lifecycle_state'])
+        lifecycle_override = coverage_pending or (requested_lifecycle in active_states and not coverage_pending) or requested_lifecycle in {
             LifecycleState.REPROTECT_REQUIRED.value,
             LifecycleState.RECONCILIATION_REQUIRED.value,
         } or (
@@ -851,6 +995,8 @@ class StateStore:
             protected_quantity = str(filled or '')
 
         reconciliation_status = 'MATCHED_TO_LEGACY_STATE'
+        if coverage_pending:
+            reconciliation_status = 'PROTECTION_COVERAGE_PENDING_RECONCILE_REQUIRED'
         if existing and 'RECONCILE_REQUIRED' in str(existing['reconciliation_status'] or ''):
             reconciliation_status = str(existing['reconciliation_status'])
         if requested_lifecycle in {
@@ -865,7 +1011,7 @@ class StateStore:
             order_list_id=getattr(position, 'order_list_id', None),
             take_profit_order_id=getattr(position, 'tp_order_id', None),
             stop_order_id=getattr(position, 'sl_order_id', None) or getattr(position, 'exit_order_id', None),
-            filled_quantity=str(filled or ''),
+            filled_quantity=str(filled if filled is not None else ''),
             protected_quantity=protected_quantity,
             average_entry_price=str(getattr(position, 'entry_price', '') or ''),
             protection_mode=protection_mode,
@@ -897,8 +1043,8 @@ class StateStore:
                 # Fixed clauses and bound parameters only.
                 event = con.execute(
                     '''SELECT event_key,commission_asset,event_time,payload_json FROM exchange_events
-                       WHERE ''' + ' OR '.join(clauses) + ' ORDER BY id DESC LIMIT 1',  # nosec B608
-                    params,
+                       WHERE symbol=? AND (''' + ' OR '.join(clauses) + ') ORDER BY id DESC LIMIT 1',  # nosec B608
+                    [symbol,*params],
                 ).fetchone()
                 if event:
                     # Store the readable raw execution id (falling back to the
@@ -914,7 +1060,8 @@ class StateStore:
                     con.execute(
                         '''UPDATE trade_records SET commission_asset=COALESCE(?,commission_asset),
                            last_exchange_event_id=?,last_event_time=?,
-                           reconciliation_status='MATCHED_TO_LEGACY_STATE_AND_EVENTS',updated_at=?
+                           reconciliation_status=CASE WHEN reconciliation_status LIKE '%RECONCILE_REQUIRED%'
+                           THEN reconciliation_status ELSE 'MATCHED_TO_LEGACY_STATE_AND_EVENTS' END,updated_at=?
                            WHERE trade_id=?''',
                         (event['commission_asset'], readable, event['event_time'], self._now(), trade_id),
                     )

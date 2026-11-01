@@ -5,6 +5,7 @@ import math
 import os
 from pathlib import Path
 from time import time
+from .environment import execution_epoch, account_scope, package_environment
 
 
 def _public_policy(value):
@@ -51,7 +52,9 @@ def runtime_bindings(config):
     policy = _public_policy(config)
     return {'code_sha256':digest.hexdigest(),
             'config_sha256':sha256(json.dumps(policy, sort_keys=True, default=str).encode()).hexdigest(),
-            'exchange_epoch_id':config['binana']['testnet_epoch_id'],
+            'exchange_epoch_id':execution_epoch(config),
+            'execution_environment':package_environment().upper(),
+            'account_scope':account_scope(config),
             'deployment_sha256':deployment_binding(),
             'dependency_sha256':dependency_binding()}
 

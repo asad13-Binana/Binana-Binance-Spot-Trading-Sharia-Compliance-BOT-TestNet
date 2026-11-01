@@ -662,6 +662,28 @@ class CoreAdapter:
     def _verify_live_protection(self, broker, position) -> tuple[bool, str, dict]:
         facts = {'orders': {}, 'order_list': None}
         try:
+            from services.execution_sidecar.protection_proof import coverage_proof, number
+            def child(order_id, allowed_types):
+                order = self._query_order(broker,position.symbol,order_id)
+                facts['orders'][str(order_id)] = order
+                if (int(order['orderId']) != int(order_id) or order.get('symbol') != position.symbol
+                        or order.get('side') != 'SELL' or not order.get('clientOrderId')
+                        or order.get('type') not in allowed_types
+                        or self._unsafe_exchange_fact(order)
+                        or self._order_status(order) not in {'NEW','PARTIALLY_FILLED'}
+                        or number(order['origQty']) <= number(order['executedQty'])):
+                    raise ValueError('protective child identity, role or live quantity invalid')
+                if order['type'] in {'LIMIT_MAKER','STOP_LOSS_LIMIT','TAKE_PROFIT_LIMIT'}:
+                    if number(order.get('price')) <= 0:
+                        raise ValueError('protective limit price unavailable')
+                if order['type'] != 'LIMIT_MAKER':
+                    delta = number(order.get('trailingDelta',0))
+                    stop = number(order.get('stopPrice',0))
+                    if (delta != int(delta) or (delta and not position.sym.trail_min <= delta <= position.sym.trail_max)
+                            or (not delta and stop <= 0)):
+                        raise ValueError('protective trigger or trailing geometry invalid')
+                return order
+            orders = {}
             if getattr(position, 'bracket', False) and getattr(position, 'order_list_id', None):
                 value = self._query_list(broker, position.order_list_id)
                 facts['order_list'] = value
@@ -669,24 +691,26 @@ class CoreAdapter:
                     return False, 'order list has unsafe expiry semantics', facts
                 if str(value.get('listOrderStatus') or '').upper() != 'EXECUTING':
                     return False, 'order list is not EXECUTING', facts
+                if (int(value['orderListId']) != int(position.order_list_id)
+                        or value.get('symbol') != position.symbol
+                        or (position.list_client_id and value.get('listClientOrderId') != position.list_client_id)):
+                    return False,'protective list ownership mismatch',facts
                 if not position.tp_order_id or not position.sl_order_id:
                     return False, 'protective list leg identifiers are incomplete', facts
-                for order_id in (position.tp_order_id, position.sl_order_id):
-                    order = self._query_order(broker, position.symbol, order_id)
-                    facts['orders'][str(order_id)] = order
-                    if self._unsafe_exchange_fact(order) or self._order_status(order) not in {
-                            'NEW', 'PARTIALLY_FILLED'}:
-                        return False, f'protective leg {order_id} is not live', facts
+                for order_id, types_ in ((position.tp_order_id,{'LIMIT_MAKER','TAKE_PROFIT','TAKE_PROFIT_LIMIT'}),
+                        (position.sl_order_id,{'STOP_LOSS','STOP_LOSS_LIMIT'})):
+                    order = child(order_id,types_)
+                    if int(order.get('orderListId',-1)) != int(position.order_list_id):
+                        return False,'protective child list mismatch',facts
+                    orders[int(order_id)] = order
+                facts['coverage'] = coverage_proof(self,broker,position,orders)
                 return True, 'order list and both protective legs are live', facts
             order_id = getattr(position, 'exit_order_id', None)
             if not order_id:
                 return False, 'no protective order identifier', facts
-            order = self._query_order(broker, position.symbol, order_id)
-            facts['orders'][str(order_id)] = order
-            if self._unsafe_exchange_fact(order):
-                return False, 'protective order has unsafe expiry semantics', facts
-            if self._order_status(order) not in {'NEW', 'PARTIALLY_FILLED'}:
-                return False, 'protective order is not live', facts
+            order = child(order_id,{'STOP_LOSS','STOP_LOSS_LIMIT','TAKE_PROFIT','TAKE_PROFIT_LIMIT'})
+            orders[int(order_id)] = order
+            facts['coverage'] = coverage_proof(self,broker,position,orders)
             return True, 'protective order is live', facts
         except Exception as exc:
             return False, f'protection verification failed: {exc}', facts
@@ -942,7 +966,17 @@ class CoreAdapter:
                 position, key, f'base remains locked ({locked}) after confirmed cancellation',
                 'reprotect', balance)
             return False
-        quantity = legacy.round_down(min(free, position.filled_qty or free), position.sym.step)
+        try:
+            from services.execution_sidecar.protection_proof import coverage_proof
+            if self.state_store:
+                self.state_store.mirror_legacy_position(position.symbol,position)
+            ownership = coverage_proof(self,broker,position,{},ownership_only=True)
+            owned = Decimal(ownership['owned_quantity'])
+        except Exception as exc:
+            self._mark_reprotect_required(position,key,'rescue ownership proof unavailable: '+str(exc),
+                                          'reconciliation')
+            return False
+        quantity = legacy.round_down(min(free,owned), position.sym.step)
         if quantity <= 0:
             self._mark_reprotect_required(position, key, 'no positively sellable quantity for rescue',
                                           'reprotect', balance)
@@ -1017,6 +1051,8 @@ class CoreAdapter:
                 position, key, 'rescue accepted but local persistence failed',
                 'reconciliation', {'order_id': order_id})
             return False
+        if self.state_store:
+            self.state_store.mirror_legacy_position(position.symbol,position)
         live, detail, facts = self._verify_live_protection(broker, position)
         if not live:
             self._mark_reprotect_required(position, key, detail, 'reconciliation', facts)
@@ -1121,6 +1157,8 @@ class CoreAdapter:
         self._update_intent(key, stage='CANCEL_VERIFIED' if confirmed else 'CANCEL_UNCERTAIN',
                             verification=detail, facts=facts)
         if not confirmed:
+            return
+        if not self._apply_verified_cancel_entry_fact(position, facts, key):
             return
         return self._place_verified_rescue_trail(engine.ex, position, key)
 
@@ -1247,6 +1285,9 @@ class CoreAdapter:
             f'{label} {sym.symbol}')
 
     def _entry_fill_ready(self, engine, position, key: str, delta: int | None = None) -> bool:
+        if self.state_store:
+            position._sidecar_lifecycle = LifecycleState.RECONCILIATION_REQUIRED.value
+            self.state_store.mirror_legacy_position(position.symbol,position)
         if position.bracket:
             live, detail, facts = self._verify_live_protection(engine.b, position)
             if live:
@@ -1277,6 +1318,34 @@ class CoreAdapter:
         self._resolve_safety(key, detail)
         return True
 
+    def _complete_zero_fill_entry(self, broker, portfolio, position) -> bool:
+        """Release an empty entry only after its durable obligations are verified."""
+        try:
+            from services.execution_sidecar.protection_proof import number, zero_fill_terminal_proof
+            saved, cursor, evidence = zero_fill_terminal_proof(self, broker, position)
+            with portfolio.lock:
+                binding = {
+                    'entry_order_id': position.entry_order_id,
+                    'entry_client_order_id': getattr(position, 'entry_client_id', None),
+                    'order_list_id': getattr(position, 'order_list_id', None),
+                    'take_profit_order_id': getattr(position, 'tp_order_id', None),
+                    'stop_order_id': getattr(position, 'sl_order_id', None) or getattr(position, 'exit_order_id', None),
+                }
+                if (portfolio.positions.get(position.symbol) is not position
+                        or binding != evidence['position_binding'] or number(position.filled_qty) != 0):
+                    return False
+                self.state_store.finalize_zero_fill_entry(saved, position.symbol, cursor, evidence)
+                portfolio.positions.pop(position.symbol)
+                portfolio.save()
+            self._resolve_symbol_reprotect_halts(
+                position.symbol, 'entry and all known obligations verified empty and terminal')
+            return True
+        except Exception as exc:
+            audit('zero_fill_entry_verification_pending', severity='ERROR', details={
+                'symbol': position.symbol, 'error': str(exc)})
+            return False
+
+
     def _await_fill_interposed(self, engine, symbol: str):
         task = engine._pending.get(symbol)
         if not task:
@@ -1299,6 +1368,10 @@ class CoreAdapter:
                     engine._pending.pop(symbol, None)
                     return
                 if status in {'CANCELED', 'REJECTED', 'EXPIRED'}:
+                    if executed == 0 and position.filled_qty == 0:
+                        if self._complete_zero_fill_entry(engine.b, engine.pf, position):
+                            engine._pending.pop(symbol, None)
+                        return
                     if executed > 0 or position.filled_qty > 0 or (
                             position.bracket and position.order_list_id):
                         self._mark_reprotect_required(
@@ -1315,13 +1388,11 @@ class CoreAdapter:
                                 if self._place_verified_rescue_trail(engine.ex, position, key):
                                     engine._pending.pop(symbol, None)
                             else:
-                                engine.pf.close(symbol, Decimal('0'))
-                                engine._pending.pop(symbol, None)
-                                self._resolve_safety(
-                                    key, 'entry/list cancellation and zero fill verified')
+                                if self._complete_zero_fill_entry(engine.b,engine.pf,position):
+                                    engine._pending.pop(symbol, None)
                         return
-                    engine.pf.close(symbol, Decimal('0'))
-                    engine._pending.pop(symbol, None)
+                    if self._complete_zero_fill_entry(engine.b,engine.pf,position):
+                        engine._pending.pop(symbol, None)
                     return
                 if time.time() - started > legacy.CFG.ENTRY_REPRICE_EVERY_SEC * (
                         task.get('repriced', 0) + 1):
@@ -1347,6 +1418,11 @@ class CoreAdapter:
                 self._update_intent(key, stage='UNSAFE_EXPIRY', fact=final_fact)
                 return
             self._apply_entry_fill(position, final_fact)
+            if (self._order_status(final_fact) in {'CANCELED', 'REJECTED', 'EXPIRED'}
+                    and position.filled_qty == 0):
+                if self._complete_zero_fill_entry(engine.b, engine.pf, position):
+                    engine._pending.pop(symbol, None)
+                return
             if self._order_status(final_fact) == 'FILLED':
                 if self._entry_fill_ready(
                         engine, position, key, self._entry_trail_delta(engine, position)):
@@ -1366,9 +1442,8 @@ class CoreAdapter:
             if self._place_verified_rescue_trail(engine.ex, position, key):
                 engine._pending.pop(symbol, None)
             return
-        engine.pf.close(symbol, Decimal('0'))
-        engine._pending.pop(symbol, None)
-        self._resolve_safety(key, 'entry cancellation and zero fill positively verified')
+        if self._complete_zero_fill_entry(engine.b,engine.pf,position):
+            engine._pending.pop(symbol, None)
 
     def emergency_exit(self, symbol, reason='manual owner request') -> dict:
         """Halt, cancel, verify, then submit one filter-checked idempotent IOC."""
@@ -1579,6 +1654,8 @@ class CoreAdapter:
         for symbol, position in list(getattr(trader.pf, 'positions', {}).items()):
             filled = Decimal(str(getattr(position, 'filled_qty', 0) or 0))
             if filled <= 0:
+                if not self._complete_zero_fill_entry(trader.broker,trader.pf,position):
+                    issues.append(f'{symbol}: zero-fill entry obligations remain unverified')
                 continue
             emergency_incidents = []
             if self.state_store:

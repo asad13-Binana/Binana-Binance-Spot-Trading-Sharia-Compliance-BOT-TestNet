@@ -25,7 +25,7 @@ class ShariaHealthPermissionTests(unittest.TestCase):
         previous = os.umask(0o077)
         self.addCleanup(os.umask, previous)
 
-    def publish(self, *, available):
+    def publish(self, *, available, last_request=None):
         projector = manual.ManualRegistryProjector.__new__(manual.ManualRegistryProjector)
         projector.health_path = self.root / 'manual/health.json'
         projector.registry_path = self.root / 'registry.json'
@@ -37,7 +37,7 @@ class ShariaHealthPermissionTests(unittest.TestCase):
             available, '' if available else 'backend unavailable'))
         screener.queue = SimpleNamespace(
             counts=lambda: {}, completed_today=lambda: 0,
-            cost_today=lambda: 0, last=lambda status: None)
+            cost_today=lambda: 0, last=lambda status: last_request)
         screener.max_scans_per_day = 100
         screener.urgent_reserve_per_day = 10
         screener.max_scans_per_base_per_day = 1
@@ -74,6 +74,18 @@ class ShariaHealthPermissionTests(unittest.TestCase):
             atomic_write_json(path, {'private': 'replacement'})
             self.publish(available=True)
             self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o600)
+
+    def test_public_research_health_omits_private_queue_diagnostics(self):
+        self.publish(available=True, last_request={
+            'request_id': 'manual-ETH-test', 'base': 'ETH',
+            'finished_at': '2026-10-24T00:00:00Z', 'final_code': 'NO_TRADE_INFO',
+            'error': 'private registry source https://user:secret-sentinel@example.org',
+            'private_evidence': 'confidential-evidence-sentinel',
+        })
+        raw = (self.root / 'research/health.json').read_text()
+        self.assertNotIn('secret-sentinel', raw)
+        self.assertNotIn('confidential-evidence-sentinel', raw)
+        self.assertEqual(json.loads(raw)['last_failed']['request_id'], 'manual-ETH-test')
 
     @unittest.skipUnless(hasattr(os, 'fork') and hasattr(os, 'geteuid') and os.geteuid() == 0,
                          'different-UID check requires a root Linux test container')

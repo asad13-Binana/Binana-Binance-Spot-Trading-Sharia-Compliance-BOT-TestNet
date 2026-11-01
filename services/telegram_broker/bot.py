@@ -22,14 +22,14 @@ from services.common.paths import (
     AUDIT_DIR,
     COMMAND_INBOX,
     RUNTIME,
-    SHARIA_DECISION_INBOX,
-    SHARIA_DISCOVERY_CURRENT_DIR,
+    SHARIA_DECISION_INBOX as SHARIA_DECISION_INBOX,
+    SHARIA_DISCOVERY_CURRENT_DIR as SHARIA_DISCOVERY_CURRENT_DIR,
     SHARIA_FILE,
-    SHARIA_QUEUE_INBOX,
-    SHARIA_REPORTS_DIR,
-    SHARIA_RESULTS_DIR,
+    SHARIA_QUEUE_INBOX as SHARIA_QUEUE_INBOX,
+    SHARIA_REPORTS_DIR as SHARIA_REPORTS_DIR,
+    SHARIA_RESULTS_DIR as SHARIA_RESULTS_DIR,
     SHARIA_RUNTIME_DIR,
-    SHARIA_SOURCE_REGISTRY,
+    SHARIA_SOURCE_REGISTRY as SHARIA_SOURCE_REGISTRY,
     SIGNAL_INBOX,
     SIGNAL_PROCESSED,
     SIGNAL_REJECTED,
@@ -83,6 +83,7 @@ BOT_PRODUCT = os.getenv('BOT_PRODUCT', 'BINANA').strip().upper()
 BOT_ENVIRONMENT = os.getenv('BOT_ENVIRONMENT', 'TESTNET').strip().upper()
 BOT_INSTANCE_ID = os.getenv('BOT_INSTANCE_ID', 'BINANA-TN-TYO-01').strip().upper()
 BASE = f'https://api.telegram.org/bot{TOKEN}'
+_TELEGRAM_RETRY_AT = 0.0
 CB = CallbackStore(ttl=int(os.getenv('CALLBACK_TTL_SECONDS', '120')))
 FT_BASE = os.getenv('FREQTRADE_API_URL', 'http://freqtrade:8080/api/v1').rstrip('/')
 FT_USER = os.getenv('FREQTRADE_API_USERNAME', 'freqtrade')
@@ -152,11 +153,51 @@ def _telegram_message_data(text, chat_id=None, buttons=None) -> dict:
     return data
 
 
+def _telegram_retry_delay() -> int:
+    return max(3, math.ceil(_TELEGRAM_RETRY_AT - time.monotonic()))
+
+
+def _telegram_rate_guard() -> None:
+    if time.monotonic() < _TELEGRAM_RETRY_AT:
+        raise RuntimeError('Telegram flood-control cooldown is active')
+
+
+def _telegram_check_payload(payload) -> None:
+    global _TELEGRAM_RETRY_AT
+    if not isinstance(payload, dict) or payload.get('ok') is not False:
+        return
+    if payload.get('error_code') == 429:
+        parameters = payload.get('parameters')
+        delay = parameters.get('retry_after') if isinstance(parameters, dict) else None
+        if isinstance(delay, bool) or not isinstance(delay, int) or delay < 1:
+            delay = 3
+        _TELEGRAM_RETRY_AT = max(
+            _TELEGRAM_RETRY_AT, time.monotonic() + min(delay, 86_400))
+        raise RuntimeError('Telegram flood-control response; API calls deferred')
+    raise RuntimeError('Telegram API rejected the request')
+
+
+def _telegram_post(endpoint: str, **kwargs):
+    _telegram_rate_guard()
+    response = requests.post(BASE + endpoint, **kwargs)
+    try:
+        payload = response.json()
+    except (AttributeError, ValueError):
+        payload = None
+    if response.status_code == 429:
+        payload = {**(payload if isinstance(payload, dict) else {}),
+                   'ok': False, 'error_code': 429}
+    if not (endpoint == '/editMessageText' and response.status_code == 400 and
+            'message is not modified' in response.text.lower()):
+        _telegram_check_payload(payload)
+    return response
+
+
 def send(text, chat_id=None, buttons=None):
     if not TOKEN:
         return
     data = _telegram_message_data(text, chat_id, buttons)
-    response = requests.post(BASE + '/sendMessage', data=data, timeout=15)
+    response = _telegram_post('/sendMessage', data=data, timeout=15)
     response.raise_for_status()
 
 
@@ -175,7 +216,7 @@ def edit_or_send(text, chat_id, message_id=None, buttons=None):
     data = _telegram_message_data(text, chat_id, buttons)
     data['message_id'] = message_id
     try:
-        response = requests.post(BASE + '/editMessageText', data=data, timeout=15)
+        response = _telegram_post('/editMessageText', data=data, timeout=15)
         if (response.status_code == 400 and
                 'message is not modified' in response.text.lower()):
             return
@@ -2482,7 +2523,7 @@ def handle_callback(callback):
     data = str(callback.get('data', ''))
     callback_id = callback.get('id')
     try:
-        requests.post(BASE + '/answerCallbackQuery', data={'callback_query_id': callback_id}, timeout=10)
+        _telegram_post('/answerCallbackQuery', data={'callback_query_id': callback_id}, timeout=10)
     except Exception as exc:
         # Callback acknowledgement is best-effort; never stop control supervision.
         log.debug('answerCallbackQuery failed: %s', _redact_secrets(exc))
@@ -2520,8 +2561,39 @@ def _load_offset() -> int:
         ) from exc
 
 
-def _store_offset(offset: int):
-    atomic_write_json(OFFSET_PATH, {'offset': int(offset), 'ts': time.time()})
+def _store_offset(offset: int, *, pending_update_id: int | None = None):
+    payload = {'offset': int(offset), 'ts': time.time()}
+    if pending_update_id is not None:
+        payload['pending_update_id'] = pending_update_id
+    atomic_write_json(OFFSET_PATH, payload)
+
+
+def _recover_interrupted_update() -> None:
+    """Make an interrupted claim observable without replaying its side effects."""
+    if not OFFSET_PATH.exists():
+        return
+    offset = _load_offset()
+    state = json.loads(OFFSET_PATH.read_text(encoding='utf-8'))
+    pending = state.get('pending_update_id')
+    if pending is None:
+        return
+    if (isinstance(pending, bool) or not isinstance(pending, int) or
+            pending < 0 or pending + 1 != offset):
+        raise RuntimeError('Telegram pending update state is corrupt')
+    notice_id = hashlib.sha256(
+        f'{BOT_INSTANCE_ID}:interrupted-update:{pending}'.encode()).hexdigest()[:32]
+    atomic_write_json(TELEGRAM_ALERT_OUTBOX / f'{notice_id}.json', {
+        'schema': 1, 'notification_id': notice_id, 'created_at': time.time(),
+        'text': (
+            f'Telegram request {pending} was interrupted; its outcome is unknown. '
+            'It will not be replayed automatically. Check /shariastatus and '
+            '/status before retrying.'),
+        'buttons': None, 'chat_id': None,
+    })
+    # Clear only after the notice is durable; failed publication is retryable.
+    _store_offset(offset)
+    audit('telegram_update_interrupted', severity='ERROR', details={
+        'update_id': pending, 'notification_id': notice_id})
 
 
 def _claim_update(update_id: object, offset: int) -> tuple[int, bool]:
@@ -2543,22 +2615,24 @@ def _claim_update(update_id: object, offset: int) -> tuple[int, bool]:
         })
         return committed, False
     next_offset = update_id + 1
-    _store_offset(next_offset)
+    _store_offset(next_offset, pending_update_id=update_id)
     return next_offset, True
 
 
-def _dispatch_claimed_update(update: dict) -> None:
+def _dispatch_claimed_update(update: dict) -> bool:
     """Isolate one claimed Telegram update from the long-poll supervisor.
 
     The durable offset is intentionally committed before this function runs.
-    A failed menu renderer must therefore return a useful, secret-free error to
-    the owner and allow later updates in the same batch to continue.
+    Return whether dispatch completed. A handler can fail after accepting a
+    command, so the supervisor must preserve its unknown outcome before
+    acknowledging the claim or processing a later update.
     """
     try:
         if 'message' in update:
             handle_message(update['message'])
         if 'callback_query' in update:
             handle_callback(update['callback_query'])
+        return True
     except Exception as exc:
         safe = _redact_secrets(exc)[:300]
         audit('telegram_update_handler_failed', severity='ERROR', details={
@@ -2576,13 +2650,15 @@ def _dispatch_claimed_update(update: dict) -> None:
         if chat:
             try:
                 send(
-                    'This request failed safely and no trading action was '
-                    f'performed. {type(exc).__name__}: {safe}', chat)
+                    'The request could not finish; its outcome is unknown. '
+                    'A command may already have been accepted. Check /status '
+                    f'before retrying. {type(exc).__name__}: {safe}', chat)
             except Exception as send_exc:
                 audit('telegram_update_error_reply_failed', severity='ERROR', details={
                     'update_id': update.get('update_id'),
                     'error_type': type(send_exc).__name__,
                 })
+        return False
 
 
 def main():
@@ -2597,16 +2673,20 @@ def main():
     except envelope.EnvelopeError as exc:
         raise SystemExit(f'BUS KEYS MISSING: {exc}') from exc
     offset = _load_offset()
+    _recover_interrupted_update()
     while True:
         try:
+            _recover_interrupted_update()
             _maybe_restore_testnet_entries()
             deliver_sidecar_notifications()
             deliver_signal_notifications()
+            _telegram_rate_guard()
             response = requests.get(
                 BASE + '/getUpdates',
                 params={'offset': offset, 'timeout': 25, 'allowed_updates': json.dumps(['message', 'callback_query'])},
                 timeout=35,
             ).json()
+            _telegram_check_payload(response)
             if not response.get('ok', False):
                 raise RuntimeError('Telegram getUpdates returned an error: ' + str(response)[:500])
             atomic_write_json(RUNTIME / 'telegram_health.json', {
@@ -2619,7 +2699,12 @@ def main():
                 offset, claimed = _claim_update(update.get('update_id'), offset)
                 if not claimed:
                     continue
-                _dispatch_claimed_update(update)
+                if _dispatch_claimed_update(update):
+                    _store_offset(offset)
+                else:
+                    # Record a durable notice before clearing the pending
+                    # claim, even when Telegram cannot deliver an error reply.
+                    _recover_interrupted_update()
             deliver_sidecar_notifications()
             deliver_signal_notifications()
         except Exception as exc:
@@ -2634,7 +2719,7 @@ def main():
                 'error_type': type(exc).__name__,
             }, group_readable=True)
             log.warning('poll failed: %s', safe)
-            time.sleep(3)
+            time.sleep(_telegram_retry_delay())
 
 if __name__ == '__main__':
     main()

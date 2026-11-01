@@ -1,5 +1,9 @@
 # GitHub-to-Oracle deployment
 
+> Retained root Compose / sidecar procedure. New Freqtrade-only Oracle
+> preparation starts at [ORACLE_OWNER_BUNDLE.md](ORACLE_OWNER_BUNDLE.md).
+> These artifacts are not interchangeable. This is not owner-bundle rollback.
+
 ## Repository and private-data model
 
 Use one public GitHub repository for source, tests, safe examples, Docker/deployment files, and documentation. Do not place trading credentials in any branch, including a private branch.

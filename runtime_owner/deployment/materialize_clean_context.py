@@ -45,7 +45,7 @@ def source_files(raw):
 
 def clean_context(source, destination, raw):
     files = source_files(raw)  # Validate before creating any destination.
-    result = materialize(source, destination)
+    result = materialize(source, destination, include_retained_dockerfile=False)
     upstream = destination / 'upstream'
     for relative, content in files.items():
         target = upstream / relative
