@@ -16,6 +16,7 @@ export LIVE_EVIDENCE_KEY="$(python -c 'import secrets;print(secrets.token_hex(24
 export ENVELOPE_RELEASE_HASH="$(python -c 'print("a"*64)')"
 
 python -m compileall -q services legacy_core freqtrade/user_data/strategies tests scripts monitoring
+python scripts/verify_dependency_consistency.py
 
 # Fail fast when the release label, package mode, safety default or
 # certification state drifts across the shipped control files.

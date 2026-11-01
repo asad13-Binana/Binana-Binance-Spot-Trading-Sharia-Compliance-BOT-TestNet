@@ -56,6 +56,15 @@ class OwnerBuildContext(unittest.TestCase):
                 module.materialize(source, root / 'output')
             self.assertFalse((root / 'output').exists())
 
+    def test_runtime_file_omitted_from_manifest_is_rejected_before_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source, _ = self.fixture(root)
+            (source / 'owner/freqtrade/required_patch.py').write_bytes(b'PATCHED = True\n')
+            with self.assertRaisesRegex(ValueError, 'Manifest file set mismatch'):
+                module.materialize(source, root / 'output')
+            self.assertFalse((root / 'output').exists())
+
     def test_existing_destination_is_not_merged(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

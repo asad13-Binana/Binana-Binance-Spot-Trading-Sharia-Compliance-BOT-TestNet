@@ -396,9 +396,10 @@ class TelegramOperatorTests(unittest.TestCase):
                 bot, 'handle_callback', side_effect=RuntimeError('empty universe')), \
                 mock.patch.object(bot, 'send') as send, \
                 mock.patch.object(bot, 'audit') as audit:
-            bot._dispatch_claimed_update(update)
-        self.assertIn('failed safely', send.call_args.args[0])
-        self.assertIn('no trading action', send.call_args.args[0])
+            completed = bot._dispatch_claimed_update(update)
+        self.assertFalse(completed)
+        self.assertIn('outcome is unknown', send.call_args.args[0])
+        self.assertNotIn('no trading action', send.call_args.args[0])
         audit.assert_called_once()
 
     def test_authenticated_terminal_signals_are_notified_once_without_secrets(self):

@@ -96,7 +96,8 @@ class MarketDataService:
             self.cache[pair]=snap
             return snap
         try:
-            execution_public=getattr(getattr(self.exchange,'_api',None),'binana_testnet_public',None)
+            api=getattr(self.exchange,'_api',None)
+            execution_public=getattr(api,'binana_execution_public',getattr(api,'binana_testnet_public',None))
             book=(execution_public.publicGetDepth({'symbol':pair.replace('/',''),'limit':20})
                   if execution_public is not None else self.exchange.fetch_l2_order_book(pair,20))
             bids=book.get('bids') or []; asks=book.get('asks') or []

@@ -7,6 +7,7 @@ from typing import Any
 import json
 
 from .protection_plan import ProtectionPlan
+from .environment import execution_rest_endpoint
 
 
 class OrderListError(RuntimeError):
@@ -45,7 +46,7 @@ class ListIds:
 class BinanceOrderLists:
     def __init__(self, ccxt_api):
         self.api=ccxt_api
-        self.public = getattr(ccxt_api, 'binana_testnet_public', ccxt_api)
+        self.public = getattr(ccxt_api, 'binana_execution_public', getattr(ccxt_api, 'binana_testnet_public', ccxt_api))
         self._metadata = {}
 
     def symbol_info(self, pair):
@@ -128,8 +129,8 @@ class BinanceOrderLists:
             else:
                 # CCXT 4.5.76 has no generated binding. Use its existing rate-
                 # limited transport and explicitly restrict this route to Testnet.
-                if self.public.urls['api']['public'] != 'https://testnet.binance.vision/api/v3':
-                    raise OrderListError('referencePrice transport is not Testnet')
+                if self.public.urls['api']['public'] != execution_rest_endpoint():
+                    raise OrderListError('referencePrice transport execution endpoint mismatch')
                 response = self.public.request('referencePrice', 'public', 'GET',
                     {'symbol':symbol}, config={'cost':2})
         except Exception as exc:
@@ -171,8 +172,8 @@ class BinanceOrderLists:
         if callable(method):
             response=method({'symbol':symbol})
         else:
-            if self.api.urls['api']['private'] != 'https://testnet.binance.vision/api/v3':
-                raise OrderListError('myFilters transport is not Testnet')
+            if self.api.urls['api']['private'] != execution_rest_endpoint():
+                raise OrderListError('myFilters transport execution endpoint mismatch')
             response=self.api.request('myFilters','private','GET',{'symbol':symbol},config={'cost':40})
         if not isinstance(response,dict) or any(not isinstance(response.get(key),list)
                 for key in ('symbolFilters','exchangeFilters','assetFilters')):

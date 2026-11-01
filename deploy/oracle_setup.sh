@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# This retained bootstrap provisions the legacy sidecar architecture, not the
+# Freqtrade-only Oracle bundle. Select recovery explicitly before any host probe.
+if [[ $# -ne 1 || ${1:-} != --legacy-sidecar-recovery ]]; then
+  printf '%s\n' 'ERROR: legacy Oracle bootstrap requires --legacy-sidecar-recovery; new deployments must use docs/ORACLE_OWNER_BUNDLE.md.' >&2
+  exit 64
+fi
+shift
+
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
 ROOT_DIR=$(cd -- "$SCRIPT_DIR/.." && pwd -P)
 # shellcheck source=deploy/instance_identity.sh

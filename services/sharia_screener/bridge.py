@@ -19,7 +19,6 @@ Verdict names are V19.3 final codes verbatim — never renamed.
 import hashlib
 import re
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 
 from services.common import envelope
 from services.common.sharia_attestation import RESULT_PURPOSE, STATUS_PURPOSE, attach
@@ -119,7 +118,8 @@ def update_status_projection(base: str, report: dict, *, request_id: str,
 
 
 def write_screening_outcome(request_id: str, base: str, pair: str, report: dict, *,
-                            validated: bool, error: str = '', meta: dict | None = None) -> dict:
+                            validated: bool, error: str = '', meta: dict | None = None,
+                            publish_status: bool = True) -> dict:
     """Validate independently, then persist report/result/status bindings."""
     base = str(base).upper().strip()
     pair = str(pair).upper().strip()
@@ -128,6 +128,8 @@ def write_screening_outcome(request_id: str, base: str, pair: str, report: dict,
         raise ValueError('screening base/pair binding is invalid')
     if not REQUEST_ID_RE.fullmatch(request_id):
         raise ValueError('screening request_id is invalid')
+    if not publish_status and validated:
+        raise ValueError('only unvalidated request failures may omit status publication')
     requested_validated = bool(validated)
     validation_error = ''
     try:
@@ -169,9 +171,10 @@ def write_screening_outcome(request_id: str, base: str, pair: str, report: dict,
         payload=payload, ttl_seconds=ttl)
     result_path = SHARIA_RESULTS_DIR / f'result_{request_id}.json'
     atomic_write_json(result_path, signed)
-    record = update_status_projection(
+    record = (update_status_projection(
         base, report, request_id=request_id, pair=pair, validated=bool(validated),
         report_file=report_name, report_sha256=report_sha, completed_at=completed_at)
+        if publish_status else None)
     from services.common.retention import prune_files
     keep = env_int('SHARIA_ARCHIVE_MAX_FILES', 5000, 100, 100_000)
     retain_days = env_int('SHARIA_ARCHIVE_RETENTION_DAYS', 90, 7, 365)

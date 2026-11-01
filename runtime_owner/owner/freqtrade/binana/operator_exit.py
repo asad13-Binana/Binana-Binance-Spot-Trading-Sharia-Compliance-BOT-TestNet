@@ -3,6 +3,7 @@ import json
 from decimal import Decimal
 from .canonical_fees import receipt
 from .recovery_contract import RecoveryBlocked, TERMINAL, dec
+from .environment import execution_rest_endpoint
 
 
 OPERATOR_PRE_SUBMISSION = frozenset({'EXIT_REQUESTED', 'EXIT_CANCEL_PENDING', 'EXIT_CANCEL_UNKNOWN'})
@@ -16,8 +17,8 @@ class OperatorExit:
 
     def request_operator_exit(self, trade, *, reason='force_exit', ordertype=None, amount=None, price=None):
         self.validate_operator_exit_options(ordertype=ordertype, amount=amount, price=price)
-        if self.exchange._api.urls['api']['private'] != 'https://testnet.binance.vision/api/v3':
-            raise RecoveryBlocked('OPERATOR_EXIT_REQUIRES_TESTNET')
+        if self.exchange._api.urls['api']['private'] != execution_rest_endpoint():
+            raise RecoveryBlocked('OPERATOR_EXIT_EXECUTION_ENDPOINT_MISMATCH')
         identity = trade.binana_custom_data('binana_entry_identity')
         if (not trade.is_open or trade.is_short or trade.leverage != 1
                 or not identity or identity.get('scope_id') != self.scope_id

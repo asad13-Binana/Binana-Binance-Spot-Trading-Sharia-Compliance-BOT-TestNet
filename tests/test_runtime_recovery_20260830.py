@@ -44,12 +44,20 @@ def trade(store):
 
 
 @pytest.mark.parametrize('fault', ['none', 'partial_fill'])
-def test_submission_ack_cannot_regress_protection(scenario, fault):
+def test_submission_ack_preserves_unverified_protection(scenario, fault):
     manager, store, adapter, signal, plan = scenario
     plan.write_text(json.dumps({'queue': [fault]}))
     assert manager.process_signal(signal, {'ETH/USDT'}, 'h')[0] is True
-    assert trade(store)['lifecycle_state'] == 'PROTECTION_ACTIVE'
-    assert trade(store)['protected_quantity'] == ('0.5' if fault == 'partial_fill' else '1')
+    # Raw simulator stream events are exposure evidence, not authenticated
+    # coverage proof. The submission ACK must retain pending reconciliation.
+    row = trade(store)
+    assert row['lifecycle_state'] == 'RECONCILIATION_REQUIRED'
+    assert row['reconciliation_status'] == 'PROTECTION_COVERAGE_PENDING_RECONCILE_REQUIRED'
+    assert row['protected_quantity'] == ('0.5' if fault == 'partial_fill' else '1')
+    assert row['filled_quantity'] == row['protected_quantity']
+    assert store._active_trade_id('ETH/USDT') == row['trade_id']
+    store.finalize_submission(row['trade_id'], 'ACCEPTED')
+    assert trade(store)['lifecycle_state'] == 'RECONCILIATION_REQUIRED'
 
 
 def test_unknown_submission_survives_restart_and_cannot_rearm(scenario):
@@ -75,18 +83,38 @@ def test_known_exchange_rejection_is_not_ambiguous(scenario):
     manager, store, adapter, signal, plan = scenario
     plan.write_text(json.dumps({'queue': ['reject']}))
     assert manager.process_signal(signal, {'ETH/USDT'}, 'h')[0] is False
-    assert trade(store)['lifecycle_state'] == 'ERROR'
+    assert adapter.last_submission_outcome == 'REJECTED'
+    assert 'UNKNOWN' not in store.signal_result('sig-recovery')
+    # A known transport rejection does not authenticate flat exposure; raw
+    # REJECTED events must retain the slot until the zero-fill proof completes.
+    row = trade(store)
+    assert row['lifecycle_state'] == 'RECONCILIATION_REQUIRED'
+    assert row['reconciliation_status'] == 'ENTRY_TERMINAL_NO_FILL_RECONCILE_REQUIRED'
+    assert store._active_trade_id('ETH/USDT') == row['trade_id']
     assert not store.safety_halts()
 
 
-def test_concurrent_ack_preserves_exchange_state(tmp_path):
+@pytest.mark.parametrize('verified_coverage', [False, True])
+def test_concurrent_ack_preserves_coverage_gate(tmp_path, verified_coverage):
     store = StateStore(tmp_path / 'state.json', tmp_path / 'state.sqlite')
-    store.upsert_trade('t1', 'ETH/USDT', lifecycle_state='SIGNAL_APPROVED')
+    store.upsert_trade('t1', 'ETH/USDT', lifecycle_state='SIGNAL_APPROVED',
+                       entry_order_id=1, stop_order_id=2, filled_quantity='1')
+    if verified_coverage:
+        # Fixture at the durable-proof boundary. Adapter/exchange authentication
+        # itself is covered by test_entry_reprice_late_fills, not bypassed here.
+        store.save_protection_proof('coverage:ETHUSDT:1', {
+            'verified_at': datetime.now(timezone.utc).timestamp(),
+            'entry_filled_quantity': '1', 'protected_quantity': '1', 'orders': {'2': {}}},
+            symbol='ETHUSDT', event_cursor=0)
     with ThreadPoolExecutor(max_workers=2) as pool:
         a = pool.submit(store.finalize_submission, 't1', 'ACCEPTED')
         b = pool.submit(store.upsert_trade, 't1', 'ETH/USDT', lifecycle_state='PROTECTION_ACTIVE')
         a.result(); b.result()
-    assert trade(store)['lifecycle_state'] == 'PROTECTION_ACTIVE'
+    expected = 'PROTECTION_ACTIVE' if verified_coverage else 'RECONCILIATION_REQUIRED'
+    assert trade(store)['lifecycle_state'] == expected
+    assert store._active_trade_id('ETH/USDT') == 't1'
+    if not verified_coverage:
+        assert trade(store)['reconciliation_status'] == 'PROTECTION_COVERAGE_PENDING_RECONCILE_REQUIRED'
 
 
 def test_shutdown_does_not_require_simulated_portfolio(scenario):

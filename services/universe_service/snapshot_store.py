@@ -42,8 +42,20 @@ def _validate_publication(rows: list[dict], config: dict, refresh_period: int) -
     if not isinstance(config, dict):
         raise ValueError('universe configuration must be an object')
     target = config.get('limit')
-    if isinstance(target, bool) or not isinstance(target, int) or not 1 <= target <= 50:
-        raise ValueError('universe configuration limit must be an integer within 1-50')
+    mode = config.get('limit_mode')
+    if isinstance(target, bool) or not isinstance(target, int):
+        raise ValueError('universe configuration limit must be an integer')
+    if mode == 'all_eligible':
+        if target < 0:
+            raise ValueError('all-eligible universe limit cannot be negative')
+    elif mode == 'top_n':
+        if not 1 <= target <= 200:
+            raise ValueError('top-n universe limit must be within 1-200')
+    elif mode is None:
+        if not 1 <= target <= 50:
+            raise ValueError('legacy universe limit must be within 1-50')
+    else:
+        raise ValueError('universe configuration limit_mode is unsupported')
     if (
         isinstance(refresh_period, bool)
         or not isinstance(refresh_period, int)
@@ -52,6 +64,8 @@ def _validate_publication(rows: list[dict], config: dict, refresh_period: int) -
         raise ValueError('universe refresh_period must be a positive integer')
     if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
         raise ValueError('universe ranking must be a list of objects')
+    if mode == 'all_eligible' and target != len(rows):
+        raise ValueError('all-eligible universe limit must equal the published row count')
     if len(rows) > target:
         raise ValueError('universe ranking exceeds configured limit')
     seen_pairs: set[str] = set()

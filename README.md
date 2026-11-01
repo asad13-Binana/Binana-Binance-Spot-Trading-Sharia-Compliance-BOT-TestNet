@@ -1,8 +1,17 @@
 # BINANA Binance Spot Testnet
 
-October 18, 2026: AWS Spot Testnet resumed at 04:22:10 Asia/Karachi on Freqtrade 2026.9, image `960d789f...`. Exact-image offline tests, one/four-slot acceptance, lifecycle, restoration, rollback and daily certificate renewal passed. See [the deployment evidence and remaining limits](docs/recovery/AWS_2026_9_RELEASE_20261018.md).
+For new Oracle preparation, use [the owner bundle](docs/ORACLE_OWNER_BUNDLE.md)
+and [Oracle deployment route](docs/ORACLE_DEPLOYMENT_GUIDE.md). Freqtrade **2026.9**
+with `BinanaNfiSpot` owns all orders, retaining five-minute signals, four
+250-USDT slots and the existing Sharia, freshness and protection gates.
+`owner-monitor` cannot execute orders. Startup remains stopped.
 
-AWS uses the recovered Freqtrade 2026.9/NFI owner with a monitor-only sidecar. Source is in `runtime_owner/`. The root Compose package below remains a legacy topology and must not overwrite that deployment. The independent public-source image build passes all 244 owner regressions offline on AMD64 and ARM64. A new image still needs its own exchange acceptance before trading.
+This is a release candidate, not a certified Oracle deployment. Native ARM64,
+account, certificate, restore, rollback and soak acceptance remain separate.
+The root Compose/installer below is retained legacy sidecar recovery material,
+excluded from the owner bundle. It must not install or roll back the new owner.
+Historical [AWS acceptance](docs/recovery/AWS_2026_9_RELEASE_20261018.md) applies
+only to its recorded image and host, not this candidate.
 
 Historical records: [October 8 deployment evidence](docs/recovery/RECOVERY_STATUS_20261007.md), [registry additions](docs/recovery/REGISTRY_ADDITIONS_20260930.json).
 

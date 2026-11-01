@@ -56,7 +56,8 @@ class PortableReleaseTests(unittest.TestCase):
         self.image = "sha256:" + "b" * 64
         stamp = time.time()
         self.status = {k: "a" * 64 for k in issuer.deploy.authority.BINDINGS}
-        self.status.update(generated_at=stamp, blockers=["release_evidence_unavailable"],
+        self.status.update(execution_environment="TESTNET", account_scope="offline-oracle-testnet-fixture",
+            generated_at=stamp, blockers=["release_evidence_unavailable"],
             authenticated_reconciliation={"ok": True, "checked_at": stamp, "open_orders": 0, "open_lists": 0},
             retained_inventory={"ok": True, "checked_at": stamp})
         self.readiness = self.root / "shared/freqtrade/runtime/owner_readiness.json"
@@ -98,6 +99,11 @@ class PortableReleaseTests(unittest.TestCase):
             "source_config_sha256": config_sha, "read_only": True, "init": True,
             "rollback_verified": True, "accounting_preserved": True}))
         self.args = ["--host", str(self.profile), "--evidence", str(self.evidence), "--rollout", str(self.rollout)]
+        self.python = self.root / 'private-venv/bin/python'
+        self.python.parent.mkdir(parents=True, mode=0o700)
+        (self.python.parent.parent / 'pyvenv.cfg').write_text('include-system-site-packages = false\n')
+        self.python.write_text('#!/bin/sh\nexit 0\n')
+        self.python.chmod(0o755)
         self.commands = []
 
     def write_profile(self):
@@ -207,7 +213,7 @@ class PortableReleaseTests(unittest.TestCase):
                 issuer.main()
         self.assertEqual(self.commands, [])
 
-    def install(self, *, fail_enable=False, old=False, absent=False):
+    def install(self, *, fail_enable=False, old=False, absent=False, crypto_version='50.0.0'):
         self.destination = self.root / "tools"
         self.unit_dir = self.root / "units"
         self.timer = "binana-oracle-testnet-release-renewal.timer"
@@ -222,6 +228,9 @@ class PortableReleaseTests(unittest.TestCase):
         state = {"failed": False}
         def run(args, **kwargs):
             self.commands.append(args)
+            if args[0] == str(self.python):
+                return SimpleNamespace(returncode=0, stdout=json.dumps(
+                    {'python': [3, 12], 'cryptography': crypto_version}).encode(), stderr=b'')
             op = args[1]
             unit = args[-1]
             if absent and op != "daemon-reload" and not (self.unit_dir / unit).exists():
@@ -254,7 +263,7 @@ class PortableReleaseTests(unittest.TestCase):
             return SimpleNamespace(returncode=code, stdout=output, stderr=b"")
         with patch.object(installer, "DESTINATION", self.destination, create=True), \
                 patch.object(installer, "UNIT_DIR", self.unit_dir, create=True), patch("subprocess.run", side_effect=run):
-            with patch.object(sys, "argv", ["install"] + self.args):
+            with patch.object(sys, "argv", ["install"] + self.args + ['--python', str(self.python)]):
                 installer.main()
 
     def test_installer_renders_oracle_paths_and_full_validation_timeout(self):
@@ -268,6 +277,26 @@ class PortableReleaseTests(unittest.TestCase):
         self.assertIn(self.timer, self.enabled & self.active)
         self.assertTrue((self.destination / "scripts/recovery/release_host.py").is_file())
         self.assertTrue((self.destination / "scripts/recovery/deploy_candidate_owner.py").is_file())
+
+    def test_installer_uses_explicit_private_venv_python(self):
+        self.install()
+        service = (self.unit_dir / self.timer.replace('.timer', '.service')).read_text()
+        self.assertIn('ExecStart=' + str(self.python) + ' ', service)
+        self.assertTrue(any(command[0] == str(self.python) for command in self.commands))
+
+    def test_symlinked_interpreter_is_rejected_before_unit_changes(self):
+        alias = self.python.with_name('symlinked-python')
+        alias.symlink_to(self.python)
+        self.python = alias
+        with self.assertRaisesRegex(RuntimeError, 'SYMLINK'):
+            self.install()
+        self.assertEqual(self.commands, [])
+
+    def test_wrong_crypto_version_is_rejected_before_unit_changes(self):
+        with self.assertRaisesRegex(RuntimeError, 'INTERPRETER_DEPENDENCIES'):
+            self.install(crypto_version='0.0.0')
+        self.assertEqual(len(self.commands), 1)
+        self.assertEqual(self.commands[0][0], str(self.python))
 
     def test_failed_first_install_cleans_own_timer_and_units(self):
         with self.assertRaisesRegex(RuntimeError, "COMMAND_FAILED"):

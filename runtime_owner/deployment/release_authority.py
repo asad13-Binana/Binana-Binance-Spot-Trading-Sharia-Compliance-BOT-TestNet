@@ -13,7 +13,7 @@ import tempfile
 import time
 
 BINDINGS=('code_sha256','config_sha256','exchange_epoch_id','account_key_sha256',
-          'deployment_sha256','dependency_sha256')
+          'deployment_sha256','dependency_sha256','execution_environment','account_scope')
 FLAGS=('verified','controlled_lifecycle_verified','restart_verified','backup_restore_verified',
        'critical_suite_10x_verified','one_slot_soak_verified','four_slot_soak_verified')
 
@@ -52,6 +52,8 @@ def validate_receipts(image,receipts):
 def build_payload(status,image,receipts,*,now=None):
     now=time.time() if now is None else now
     validate_receipts(image,receipts)
+    if status.get('execution_environment') not in {'TESTNET','LIVE'}:
+        raise ValueError('EXECUTION_ENVIRONMENT_REQUIRED')
     for key in BINDINGS:
         if not isinstance(status.get(key),str) or not status[key]:
             raise ValueError('BINDING_MISSING:'+key)
@@ -70,7 +72,7 @@ def build_payload(status,image,receipts,*,now=None):
         'generated_at':now,'valid_until':now+7*86400,
         'acceptance_sha256':{name:sha256(json.dumps(value,sort_keys=True,separators=(',',':')).encode()).hexdigest()
                              for name,value in receipts.items()},
-        'scope':'Binance Spot Testnet; existing strategy and allocation',
+        'scope':'Binance Spot '+status['execution_environment']+'; existing strategy and allocation',
         'limits':['No strategy profitability claim.','Telegram delivery is at least once, not exactly once.']}
 
 

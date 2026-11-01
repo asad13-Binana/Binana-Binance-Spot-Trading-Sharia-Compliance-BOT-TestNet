@@ -4,6 +4,7 @@ from math import isfinite
 from time import time
 
 from .recovery_contract import RecoveryBlocked
+from .environment import package_environment
 
 
 def explicit_absence(error, *, order_list=False):
@@ -23,7 +24,7 @@ def explicit_absence(error, *, order_list=False):
 
 def verify_absent_replacement(manager, generation, pair, *, require_record=True,
                               require_empty_symbol=True):
-    if (str(manager.config.get('binana', {}).get('environment', '')).lower() != 'testnet'
+    if (str(manager.config.get('binana', {}).get('environment', '')).lower() != package_environment()
             or generation.get('mode') not in {'FIXED_OCO', 'TRAILING_OCO'}
             or int(generation.get('generation', 0)) <= 1 or generation.get('pair') != pair
             or generation.get('working_client_id')

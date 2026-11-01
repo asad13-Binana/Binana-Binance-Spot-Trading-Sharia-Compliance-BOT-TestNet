@@ -6,7 +6,7 @@ from pathlib import Path, PurePosixPath
 import shutil
 
 
-def materialize(source: Path, destination: Path):
+def materialize(source: Path, destination: Path, *, include_retained_dockerfile=True):
     source = source.resolve()
     manifest_path=source / 'CANDIDATE_MANIFEST.json'
     if not manifest_path.exists():
@@ -25,6 +25,20 @@ def materialize(source: Path, destination: Path):
         if len(content) != expected['bytes'] or hashlib.sha256(content).hexdigest() != expected['sha256']:
             raise ValueError(f'Provenance mismatch: {relative}')
         verified.append((relative, content))
+    # A valid hash for every listed file cannot detect a required patch omitted
+    # from the list. Bind the complete runtime source set before exporting it.
+    actual = set()
+    for directory in ('owner', 'tests', 'runtime-fixes'):
+        for path in (source / directory).rglob('*'):
+            relative = path.relative_to(source)
+            if '__pycache__' in relative.parts or path.suffix == '.pyc':
+                continue
+            if path.is_symlink():
+                raise ValueError(f'Symlink source: {relative.as_posix()}')
+            if path.is_file():
+                actual.add(relative.as_posix())
+    if actual != set(manifest['files']):
+        raise ValueError('Manifest file set mismatch')
     # Never merge a build context with existing files, databases or configuration.
     destination.mkdir(parents=True, exist_ok=False)
     for relative, content in verified:
@@ -32,7 +46,10 @@ def materialize(source: Path, destination: Path):
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(content)
     shutil.copyfile(manifest_path, destination / 'PROVENANCE.json')
-    for name in ['Dockerfile', 'validate_image.py','release_authority.py']:
+    deployment_files = ['validate_image.py', 'release_authority.py']
+    if include_retained_dockerfile:
+        deployment_files.insert(0, 'Dockerfile')
+    for name in deployment_files:
         shutil.copyfile(source / 'deployment' / name, destination / name)
     return {'source_files': len(verified), 'context': str(destination.resolve()),
             'authenticated_exchange_acceptance': False}

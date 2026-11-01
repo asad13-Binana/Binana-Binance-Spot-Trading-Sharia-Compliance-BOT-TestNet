@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .binance_order_lists import BinanceOrderLists, OrderListError, OrderListUnknown, _client
-from .environment import assert_spot_pair, validate_runtime_contract, resolve_stake_amount, BinanaConfigError
+from .environment import assert_spot_pair, validate_runtime_contract, resolve_stake_amount, BinanaConfigError, package_environment, execution_rest_endpoint, execution_epoch, account_scope, execution_scope
 from .market_data import MarketDataService, MarketSnapshot
 from .protection_plan import provisional_plan
 from .registry import OwnerRegistry, RegistryError
@@ -49,11 +49,12 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
         self.store=StateStore(policy['state_db_path'])
         self.market_data=MarketDataService(exchange,policy['market_context_path'],policy.get('liquidity',{}))
         self.order_lists=BinanceOrderLists(exchange._api)
-        account_label=str(policy.get('account_scope') or 'owner-testnet-account-1').strip()
+        account_label=account_scope(config)
         if not account_label:
             raise AdmissionRejected('MISSING_ACCOUNT_SCOPE')
-        self.scope_id=f"binance-testnet|{account_label}|{policy['testnet_epoch_id']}"
-        self.legacy_scope_ids={f"binance-testnet|{policy['testnet_epoch_id']}|no-key"}
+        self.scope_id=execution_scope(config)
+        self.legacy_scope_ids=({f"binance-testnet|{execution_epoch(config)}|no-key"}
+                               if package_environment() == "testnet" else set())
         self.prepared: dict[str,PreparedAdmission]={}
         self._trade_intent: dict[int,str]={}
         self._promotion_last: dict[int,float]={}
@@ -98,7 +99,7 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
         self._rest_health = {'ok':False, 'checked_at':now}
         try:
             api = self.exchange._api
-            if api.urls['api']['private'] != 'https://testnet.binance.vision/api/v3':
+            if api.urls['api']['private'] != execution_rest_endpoint():
                 raise AdmissionRejected('EXECUTION_ENDPOINT_MISMATCH')
             account = api.privateGetAccount()
             if account.get('accountType') != 'SPOT' or account.get('canTrade') is not True:
@@ -161,7 +162,7 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
                 'sizing_policy':{'allocation_usdt':str(self.config['binana']['allocation_usdt']),
                     'nominal_usdt':str(self.config['stake_amount']),
                     'max_open_trades':self.config['max_open_trades']},
-                'order_owner':'FREQTRADE', 'scope_id':self.scope_id, 'execution_environment':'TESTNET',
+                'order_owner':'FREQTRADE', 'scope_id':self.scope_id, 'execution_environment':package_environment().upper(),
                 'market_data_environment':'PRODUCTION_PUBLIC_SPOT',
                 'authenticated_reconciliation':dict(rest),
                 'persistence':persistence,
@@ -583,9 +584,9 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
         entry_evidence={'profile':prepared.profile,'plan':json.loads(json.dumps(plan.__dict__,default=str)),
             'admitted_nominal_usdt':str(prepared.nominal_usdt),'actual_order_notional_usdt':str(actual_notional),
             'authenticated_base_fee_reserve':str(fee_buffer)}
-        self.store.put_generation(intent_id=plan.intent_id,generation=1,pair=pair,mode='FIXED_OCO',status='SUBMISSION_PENDING',
-                                  ids=ids,expected_qty=str(protected),payload=entry_evidence)
-        self.store.set_intent_state(plan.intent_id,'ENTRY_PENDING')
+        if not self.store.claim_entry_submission(intent_id=plan.intent_id,pair=pair,
+                ids=ids,expected_qty=str(protected),payload=entry_evidence):
+            raise AdmissionRejected('ENTRY_SUBMISSION_ALREADY_CLAIMED')
         try:
             response,list_ids=self.order_lists.submit_fixed_otoco(plan,pending_quantity=protected)
         except OrderListUnknown as exc:
@@ -620,7 +621,7 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
         if row is None:
             order=next((r for r in response.get('orders',[]) if r.get('clientOrderId')==client_id),{})
             row=order
-        status_map={'NEW':'open','PARTIALLY_FILLED':'open','FILLED':'closed','CANCELED':'canceled','CANCELLED':'canceled','REJECTED':'rejected','EXPIRED':'expired','PENDING_NEW':'open'}
+        status_map={'NEW':'open','PARTIALLY_FILLED':'open','FILLED':'closed','CANCELED':'canceled','CANCELLED':'canceled','REJECTED':'rejected','EXPIRED':'expired','EXPIRED_IN_MATCH':'expired','PENDING_NEW':'open'}
         filled=Decimal(str(row.get('executedQty','0'))); cost=Decimal(str(row.get('cummulativeQuoteQty','0')))
         avg=(cost/filled) if filled>0 and cost>0 else None
         oid=row.get('orderId')

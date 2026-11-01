@@ -113,10 +113,26 @@ class QueueStore:
         """
         prio = PRIORITIES.get(str(priority).lower(), PRIORITIES['idle'])
         with self._connect() as con:
+            # Serialize suppression and insertion across independent writers.
+            con.execute('BEGIN IMMEDIATE')
+            if con.execute('SELECT 1 FROM screening_requests WHERE request_id=?',
+                           (request_id,)).fetchone():
+                return False
             row = con.execute(
-                'SELECT 1 FROM screening_requests WHERE base=? AND status IN (?,?) AND priority<=?',
+                'SELECT request_id FROM screening_requests WHERE base=? AND status IN (?,?) AND priority<=? '
+                'ORDER BY priority, enqueued_at, request_id LIMIT 1',
                 (base.upper(), *ACTIVE, prio)).fetchone()
             if row:
+                # Suppress duplicate work without losing the acknowledged ID.
+                now = self._now()
+                con.execute(
+                    'INSERT INTO screening_requests '
+                    '(request_id, base, pair, priority, status, requested_by, '
+                    'enqueued_at, finished_at, final_code, error) '
+                    'VALUES (?,?,?,?,?,?,?,?,?,?)',
+                    (request_id, base.upper(), pair.upper(), prio, 'REJECTED',
+                     self._actor(requested_by), now, now, 'NO_TRADE_INFO',
+                     'ALREADY_ACTIVE: ' + str(row['request_id'])))
                 return False
             cur = con.execute(
                 '''INSERT OR IGNORE INTO screening_requests
@@ -125,6 +141,14 @@ class QueueStore:
                 (request_id, base.upper(), pair.upper(), prio, 'QUEUED',
                  self._actor(requested_by), self._now()))
             return cur.rowcount == 1
+
+    def request(self, request_id: str) -> dict | None:
+        """Return durable lifecycle state for an exact correlation ID."""
+        with self._connect() as con:
+            row = con.execute(
+                'SELECT * FROM screening_requests WHERE request_id=?',
+                (request_id,)).fetchone()
+        return dict(row) if row else None
 
     def next_request(self, *, min_priority: int | None = None,
                      max_priority: int | None = None,

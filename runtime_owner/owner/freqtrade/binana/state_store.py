@@ -454,6 +454,37 @@ class StateStore:
                     (state,json.dumps(admission,sort_keys=True,separators=(",",":")),time(),intent_id),
                 )
 
+    def claim_entry_submission(self, *, intent_id: str, pair: str, ids: dict,
+                               expected_qty: str, payload: dict) -> bool:
+        """Authorize exactly one entry POST with its recovery evidence committed.
+
+        Binance can accept reused client IDs once the previous list is terminal.
+        A status/receipt upsert therefore cannot serve as a submission claim.
+        BEGIN IMMEDIATE serializes this transition across separate coordinators.
+        """
+        now = time()
+        with self.tx() as connection:
+            intent = connection.execute('SELECT * FROM intents WHERE intent_id=?',
+                                        (intent_id,)).fetchone()
+            if (intent is None or intent['pair'] != pair or intent['state'] != 'RESERVED'
+                    or not intent['halal_allowed'] or intent['freqtrade_trade_id'] is not None
+                    or self._has_order_evidence(connection, intent_id)):
+                return False
+            connection.execute('''INSERT INTO protection(
+                intent_id,generation,pair,mode,status,list_client_id,working_client_id,
+                tp_client_id,sl_client_id,expected_qty,payload_json,updated_ts)
+                VALUES(?,1,?,'FIXED_OCO','SUBMISSION_PENDING',?,?,?,?,?,?,?)''',
+                (intent_id,pair,ids['list_client_id'],ids['working_client_id'],
+                 ids['tp_client_id'],ids['sl_client_id'],expected_qty,
+                 json.dumps(payload,sort_keys=True,separators=(',',':')),now))
+            canonical = json.dumps({'plan':payload['plan'],'profile':payload.get('profile')},
+                                   sort_keys=True,separators=(',',':'))
+            connection.execute('INSERT INTO protection_plan_revisions VALUES(?,1,1,?,?,?,?)',
+                (intent_id,canonical,sha256(canonical.encode()).hexdigest(),'initial_plan',now))
+            connection.execute("UPDATE intents SET state='ENTRY_PENDING',updated_ts=? WHERE intent_id=?",
+                               (now,intent_id))
+            return True
+
     def put_generation(self, *, intent_id: str, generation: int, pair: str, mode: str,
                        status: str, ids: dict[str, Any] | None = None,
                        expected_qty: str | None = None, payload: dict[str, Any] | None = None,

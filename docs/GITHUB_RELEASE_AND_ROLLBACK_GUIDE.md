@@ -1,5 +1,9 @@
 # GitHub Release & Rollback Guide
 
+> This workflow retains the root legacy sidecar artifact. The new Oracle
+> Freqtrade-owner bundle uses [ORACLE_OWNER_BUNDLE.md](ORACLE_OWNER_BUNDLE.md).
+> Do not apply the legacy installer or rollback procedure to an owner bundle.
+
 ## One repository, secret-free
 One public, secret-free source repository. Secrets live only on Oracle (`/etc/.../.env`, mode 600) and in
 protected GitHub Actions secrets for the deploy job. Never commit Binance/Telegram/API keys.

@@ -281,6 +281,7 @@ class TelegramRepairTests(unittest.TestCase):
             )
             with common[0], common[1], common[2], common[3], common[4], common[5], \
                     mock.patch.object(telegram_bot.requests, 'get', replay_get), \
+                    mock.patch.object(telegram_bot, 'TELEGRAM_ALERT_OUTBOX', runtime / 'alerts'), \
                     mock.patch.object(telegram_bot, 'handle_message', replay_handler):
                 with self.assertRaises(StopPolling):
                     telegram_bot.main()

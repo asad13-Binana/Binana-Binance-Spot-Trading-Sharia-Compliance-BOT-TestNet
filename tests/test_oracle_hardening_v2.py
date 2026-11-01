@@ -31,7 +31,7 @@ PROTECTED = {
     "services/common/evidence_providers.py": "e8c76e1cd75a2847903420b764d4d4669283c1420ebbb0729021b5e565b282cf",
     "services/common/sharia_attestation.py": "55fc7d9b206cf0d4193124bab4d770ae80371dd939054c737c4cfa363c998757",
     "services/common/sharia_v19.py": "768b3f5261d618e0beb50aa7f15de4ab84b4e02ad3a621d9dfebb944175580f5",
-    "services/execution_sidecar/core_adapter.py": "647ca0f0e80d2307c98df966f0062830a4616036eff1bf24bdb6927720267da3",
+    "services/execution_sidecar/core_adapter.py": "578d3cd97879c4a6512dbc6a0a5c0d82cf179d80ed17a9cec1320dc69280ff1f",
     "services/execution_sidecar/filters.py": "5897ca3ab71c2bda9e096b51aeaf3e9abae40c26048cc615b3ded5bbe6d417a8",
     "services/execution_sidecar/live_evidence.py": "08b467b7e8547efb553f2f88a1d257450887a82a1454b15360d974b0e6fc14c3",
     "services/execution_sidecar/main.py": "967b4cf72ae1fa33563318c2e5243cdb55b4052b5231ef04774035ce585a984f",
@@ -41,30 +41,35 @@ PROTECTED = {
     "services/execution_sidecar/reconciler.py": "c3ef1c46abb44001901b9988d94586ff4e33ae928f159385ab004ca4309fa92f",
     "services/execution_sidecar/risk_checks.py": "1664091dfbbcf8fbdcf27363dcb41d85aa4a10eab9849df829bb6d761680d93a",
     "services/execution_sidecar/simulation_adapter.py": "b438c33d8b7e9c1c46432d2a7996aa4070a57cfdc06fb0004f4f01276d311432",
-    "services/execution_sidecar/state_store.py": "fd77b9688970978cfedaa53f526ce6fa4f7f00a12efc20f641f793e5cf9bb767",
+    "services/execution_sidecar/state_store.py": "bf3294992cee1e282ec29bb5a7345a8767fd8cc89db60edc4fd44c407c3ceace",
     "services/execution_sidecar/user_data_stream.py": "85e64a72d8b60e2e91a9a56fa46e69d3a3970221903919f3820b1ef92ee89c83",
     "services/sharia_rules/engine.py": "b17d33bc5a095810ba759554828f6c21e95cffa57a40a62f90464c5a46047e86",
     "services/sharia_screener/approval.py": "f34453c2356cdc40ff23bd532a6dbb8e0a57c3eb0f4a5930442ab0e11cee656e",
-    "services/sharia_screener/bridge.py": "930d1a2aaa6d21996277d9dd12022902147f3e434ccb5db79e9c676cad6426c2",
+    "services/sharia_screener/bridge.py": "3cc237e29f2892967d562b9f0272e79e9bb8f2e491d532a5a4fa8056f38dcd49",
     "services/sharia_screener/evidence_binding.py": "e3782a392e133b1c156dbfef7e592f3f9f0846af86f1273b01643acb8202b645",
     "services/sharia_screener/local_runner.py": "23ad93a18835d548db6d53ab26593b3e7792d590c6ed2b5e2bb89418fe98689e",
-    "services/sharia_screener/queue_store.py": "377c83943a6518965b58b5e6f6aa027c173eeaea1590fb8930cffefd6c8b6021",
+    "services/sharia_screener/queue_store.py": "44c63c34b0407dbeb319636259a425d19ec3542c4ca81e5e01cdccea2b302c6d",
     "services/sharia_screener/runner.py": "7298f5ebad396b7d45849d3344d7218f6be92e70de930dfe19f92973656d4f66",
-    "services/sharia_screener/service.py": "2b3e94ac3a990b19915e85e89b5b74a6714ac2c5d01bc605e3bc34e8422d4dcc",
+    "services/sharia_screener/service.py": "3c837f393bbf18158ed366021107cbefb476c5791ad1971909c018f688d50f4a",
     "services/sharia_screener/source_discovery.py": "cf54c90bba66e586da5e161c5b9d1fe5406a9b993018ed72e2b48a53384a8459",
     "services/sharia_screener/source_registry.py": "72de23c10a37c8db27e31cc6bfb58bdfb41b27efb2f2fc57edb43c76f13baffe",
     "services/sharia_screener/verdict_policy.py": "afde5fc2733d6e5a4aea50e436adf3cf55ff83e5d1e32428214f57f8dc6f55e2",
     "services/universe_service/ranker.py": "267b743782453979cbc6fbbf77fa37895dfdec9910b1d190ba6efa898b7c8e2a",
-    "services/universe_service/scanner.py": "5691b664168a9b9db0ba7537ba204cb36ca262196b0de22e9cff8429649a4d9d",
+    "services/universe_service/scanner.py": "4b6e80fe5b2777adfff3d42b7a77883b804e6c56d8b2cc74be3fafc2778a1028",
     # Explicit owner-authorized transition to the manual operational registry:
     # Research version binding now follows the explicitly supplied v19.3 controller.
     "services/universe_service/sharia_filter.py": "3fed49cca73b8e6646768d144b928a3c588b5cac7a6a750578747a10d33763d0",
-    "services/universe_service/snapshot_store.py": "aa4bc05c079cb3d68d782e145dbbf3a5b3cc1255987bdd552b2e9214070d17c6",
+    "services/universe_service/snapshot_store.py": "70b2cc407a014c069fa902d90da955b2b62a33407a370269b46fe33672a6b264",
     "services/universe_service/validate_sharia.py": "3f512488ecc53f4f259883907843da5218881af3bd579e9dd543c1a486fd8219",
     "shared/sharia/halal_coins.json": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
     "shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json": "418e7280f0b6a5f4cd9ba3887b8be3099f5fcc4b18bfca66808749720a4dd355",
     "shared/sharia/sharia_status.json": "e0d7b34b8411a7829a38618971708da9bda470244fc421fbdebecdae9ff10939",
 }
+
+# BEGIN REVIEWED LOCAL RECOVERY TRANSITIONS
+# Audit 2026-10-24: local repairs, regression evidence and independent review.
+AUDITED_RECOVERY_TRANSITIONS = {'services/execution_sidecar/core_adapter.py': {'before': '647ca0f0e80d2307c98df966f0062830a4616036eff1bf24bdb6927720267da3', 'after': '578d3cd97879c4a6512dbc6a0a5c0d82cf179d80ed17a9cec1320dc69280ff1f', 'finding': 'ORDER-003, ORDER-004; zero-fill liveness and independent review 2026-10-29'}, 'services/execution_sidecar/state_store.py': {'before': 'fd77b9688970978cfedaa53f526ce6fa4f7f00a12efc20f641f793e5cf9bb767', 'after': 'bf3294992cee1e282ec29bb5a7345a8767fd8cc89db60edc4fd44c407c3ceace', 'finding': 'ORDER-005, IR-003; zero-fill identity/cursor review 2026-10-29'}, 'services/sharia_screener/bridge.py': {'before': '930d1a2aaa6d21996277d9dd12022902147f3e434ccb5db79e9c676cad6426c2', 'after': '3cc237e29f2892967d562b9f0272e79e9bb8f2e491d532a5a4fa8056f38dcd49', 'finding': 'ST-004'}, 'services/sharia_screener/queue_store.py': {'before': '377c83943a6518965b58b5e6f6aa027c173eeaea1590fb8930cffefd6c8b6021', 'after': '44c63c34b0407dbeb319636259a425d19ec3542c4ca81e5e01cdccea2b302c6d', 'finding': 'ST-004'}, 'services/sharia_screener/service.py': {'before': '2b3e94ac3a990b19915e85e89b5b74a6714ac2c5d01bc605e3bc34e8422d4dcc', 'after': '3c837f393bbf18158ed366021107cbefb476c5791ad1971909c018f688d50f4a', 'finding': 'ST-001, ST-003, ST-005'}, 'services/universe_service/scanner.py': {'before': '5691b664168a9b9db0ba7537ba204cb36ca262196b0de22e9cff8429649a4d9d', 'after': '4b6e80fe5b2777adfff3d42b7a77883b804e6c56d8b2cc74be3fafc2778a1028', 'finding': 'UNI-001'}, 'services/universe_service/snapshot_store.py': {'before': 'aa4bc05c079cb3d68d782e145dbbf3a5b3cc1255987bdd552b2e9214070d17c6', 'after': '70b2cc407a014c069fa902d90da955b2b62a33407a370269b46fe33672a6b264', 'finding': 'UNI-002; approved LIVE owner service parity 2026-10-29'}}
+# END REVIEWED LOCAL RECOVERY TRANSITIONS
 
 AUTHORIZED_MANUAL_REGISTRY_TRANSITIONS = {
     "services/universe_service/sharia_filter.py": (
@@ -79,14 +84,21 @@ AUTHORIZED_MANUAL_REGISTRY_TRANSITIONS = {
 
 
 class ProtectedCoreTests(unittest.TestCase):
-    def test_sharia_health_permission_fix_preserves_every_other_byte(self):
+    def test_sharia_health_permissions_remain_in_reviewed_recovery_source(self):
+        # The earlier permission-only inverse hash is historical evidence.
+        # Durable failure/correlation repairs now intentionally change this file.
         raw = (ROOT / 'services/sharia_screener/service.py').read_bytes()
         revised = b"else {'enabled': False, 'trade_permission_from_discovery': False}),\n        }, group_readable=True)"
-        original = b"else {'enabled': False, 'trade_permission_from_discovery': False}),\n        })"
         self.assertEqual(raw.count(revised), 1)
-        self.assertEqual(
-            hashlib.sha256(raw.replace(revised, original, 1)).hexdigest(),
-            'b940f64b03c3bf7f5fc9be5062c2d23cfe19a4736292b9c42d8d3170b6aef914')
+        self.assertEqual(hashlib.sha256(raw).hexdigest(), PROTECTED['services/sharia_screener/service.py'])
+
+    def test_recovery_transitions_keep_explicit_reviewed_before_and_after_hashes(self):
+        for relative, transition in AUDITED_RECOVERY_TRANSITIONS.items():
+            with self.subTest(relative=relative):
+                self.assertRegex(transition['before'], r'^[0-9a-f]{64}$')
+                self.assertNotEqual(transition['before'], transition['after'])
+                self.assertEqual(PROTECTED[relative], transition['after'])
+                self.assertTrue(transition['finding'])
 
     def test_every_protected_file_matches_reviewed_baseline(self):
         for relative, expected in PROTECTED.items():

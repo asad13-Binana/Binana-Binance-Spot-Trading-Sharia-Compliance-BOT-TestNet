@@ -11,7 +11,33 @@ from release_host import HostContext, checked_path
 DESTINATION = Path("/usr/local/lib/binana-release-maintenance")
 UNIT_DIR = Path("/etc/systemd/system")
 FILES = ("scripts/recovery/issue_candidate_release.py", "scripts/recovery/deploy_candidate_owner.py",
-         "scripts/recovery/release_host.py", "runtime_owner/deployment/release_authority.py")
+         "scripts/recovery/release_host.py", "runtime_owner/deployment/release_authority.py",
+         "requirements.renewal.txt", "requirements.renewal.lock")
+
+
+def validated_interpreter(path):
+    path = checked_path(path, trusted=True)
+    config = checked_path(path.parent.parent / 'pyvenv.cfg', trusted=True)
+    if (not path.is_file() or not os.access(path, os.X_OK)
+            or not config.is_file()
+            or 'include-system-site-packages = false' not in config.read_text().splitlines()):
+        raise RuntimeError('PRIVATE_RENEWAL_VENV_REQUIRED')
+    expected = next(line.split('==', 1)[1].strip() for line in
+                    (deploy.REPO / 'requirements.renewal.txt').read_text().splitlines()
+                    if line.startswith('cryptography=='))
+    script = ('import json,sys,importlib.metadata;'
+              'from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey;'
+              'print(json.dumps({"python":list(sys.version_info[:2]),'
+              '"cryptography":importlib.metadata.version("cryptography")}))')
+    result = subprocess.run([str(path), '-I', '-c', script], capture_output=True, timeout=30)
+    try:
+        valid = result.returncode == 0 and json.loads(result.stdout) == {
+            'python': [3, 12], 'cryptography': expected}
+    except (ValueError, TypeError):
+        valid = False
+    if not valid:
+        raise RuntimeError('RENEWAL_INTERPRETER_DEPENDENCIES_REQUIRED')
+    return path
 
 
 def unit_state(unit, operation):
@@ -43,7 +69,7 @@ def prepare_parent(path):
         raise RuntimeError("ISSUER_DESTINATION_SYMLINK")
 
 
-def install(context, evidence, rollout):
+def install(context, evidence, rollout, python):
     destination = DESTINATION
     # Each project has its own tooling, unit names and profile. Tests supply an
     # already isolated destination; the production prefix gets a project child.
@@ -75,7 +101,7 @@ PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
 ReadWritePaths=""" + str(deploy.RELEASE) + " " + str(context.paths["evidence_root"]) + """
-ExecStart=/usr/bin/python3 """ + command + "\n"
+ExecStart=""" + str(python) + " " + command + "\n"
     timer = """[Unit]
 Description=Check BINANA release renewal daily before expiry
 
@@ -116,6 +142,7 @@ WantedBy=timers.target
             relative: hashlib.sha256(updates[destination / relative][0]).hexdigest() for relative in FILES},
             "host_profile_sha256": hashlib.sha256(updates[profile][0]).hexdigest(),
             "evidence": str(evidence), "rollout": str(rollout), "timer": timer_name,
+            "python": str(python),
             "trading_resumed": False}
         deploy.authority.atomic(evidence / "renewal-installation.json",
             (json.dumps(report, indent=2) + "\n").encode(), mode=0o600)
@@ -152,6 +179,8 @@ def main(argv=None):
     parser.add_argument("--host", type=Path, required=True)
     parser.add_argument("--evidence", type=Path, required=True)
     parser.add_argument("--rollout", type=Path, required=True)
+    parser.add_argument("--python", type=Path, required=True,
+                        help='Root-owned Python 3.12 venv created with --copies and the renewal lock')
     args = parser.parse_args(argv)
     if os.geteuid() != 0:
         raise RuntimeError("ROOT_REQUIRED")
@@ -160,7 +189,8 @@ def main(argv=None):
     evidence, rollout = context.evidence_paths(args.evidence, args.rollout)
     if json.loads(rollout.read_text()).get("passed") is not True:
         raise RuntimeError("SUCCESSFUL_ROLLOUT_REQUIRED")
-    print(json.dumps(install(context, evidence, rollout)))
+    python = validated_interpreter(args.python)
+    print(json.dumps(install(context, evidence, rollout, python)))
 
 
 if __name__ == "__main__":

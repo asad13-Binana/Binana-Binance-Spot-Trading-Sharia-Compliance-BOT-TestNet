@@ -11,6 +11,7 @@ from pathlib import Path
 import time
 import base64
 import subprocess
+import uuid
 import deploy_candidate_owner as deploy
 from release_host import HostContext, checked_path
 
@@ -34,10 +35,32 @@ def refresh_offline(evidence,image):
     root=evidence/('offline-renewal-'+str(int(time.time())));root.mkdir(mode=0o700)
     report={'image':image,'passed':False,'runs':[]}
     for number in range(1,11):
-        result=subprocess.run(['docker','run','--rm','--network','none','--read-only','--cap-drop=ALL',
+        name='binana-release-check-'+uuid.uuid4().hex
+        started=time.monotonic()
+        command=['docker','run','--rm','--name',name,'--network','none','--read-only','--cap-drop=ALL',
             '--security-opt=no-new-privileges','--memory=1g','--cpus=0.75','--pids-limit=256',
             '--tmpfs','/tmp:rw,nosuid,nodev,size=128m,mode=1777','--entrypoint','python',image,
-            '/freqtrade/recovery_validation/validate_image.py'],capture_output=True,timeout=180)
+            '/freqtrade/recovery_validation/validate_image.py']
+        try:
+            result=subprocess.run(command,capture_output=True,timeout=180)
+        except subprocess.TimeoutExpired as exc:
+            (root/(str(number)+'.stdout')).write_bytes(exc.stdout or b'')
+            (root/(str(number)+'.stderr')).write_bytes(exc.stderr or b'')
+            (root/(str(number)+'.timeout.json')).write_text(json.dumps({
+                'phase':'offline-validation','pass':number,'container':name,
+                'timeout_seconds':180,'elapsed_seconds':time.monotonic()-started,
+                'passed':False})+'\n')
+            # Killing the attached CLI does not establish container exit. The
+            # random name scopes cleanup to this credential-free validation.
+            try:
+                cleanup=subprocess.run(['docker','rm','--force',name],capture_output=True,timeout=30)
+            except (subprocess.TimeoutExpired,OSError) as cleanup_error:
+                raise RuntimeError('VALIDATION_CONTAINER_CLEANUP_FAILED') from cleanup_error
+            (root/(str(number)+'.cleanup.stdout')).write_bytes(cleanup.stdout)
+            (root/(str(number)+'.cleanup.stderr')).write_bytes(cleanup.stderr)
+            if cleanup.returncode:
+                raise RuntimeError('VALIDATION_CONTAINER_CLEANUP_FAILED') from exc
+            raise
         (root/(str(number)+'.stdout')).write_bytes(result.stdout)
         (root/(str(number)+'.stderr')).write_bytes(result.stderr)
         summaries=[json.loads(line) for line in result.stdout.decode().splitlines() if line.startswith('{"tests":')]
