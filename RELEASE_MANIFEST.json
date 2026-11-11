@@ -21,8 +21,8 @@
       "size": 1499
     },
     ".github/workflows/ci.yml": {
-      "sha256": "527b57c0f0c9e30c9a19fc0e6eb2f9a64042af2171f7ff5ccf9002c565b6984c",
-      "size": 9023
+      "sha256": "472612da33bc407c0d9f5d0055ac9d53750845753bc9ef6be10549c91d39dcf7",
+      "size": 11478
     },
     ".gitignore": {
       "sha256": "4f9fd03b96ad4cad58801e464808e7969aa331801b1cb30ee06f44fde36db136",
@@ -264,6 +264,10 @@
       "sha256": "739e555691d05f8c0afb7792a86bb34e5f86a7a829d096d1d0da88fe0dc9e331",
       "size": 1947
     },
+    "docs/IMAGE_SECURITY_20261112.md": {
+      "sha256": "8fa641c3edb8a6291f694a102df0d8639b24d3397437d8f64868f53efefdfbe8",
+      "size": 7537
+    },
     "docs/LEGACY_ORACLE_DEPLOYMENT_GUIDE.md": {
       "sha256": "f216d518140beeb0647f39086bf7804c0e9dd9e7efda98a435ce2cf2bdf2a1cd",
       "size": 4449
@@ -293,8 +297,8 @@
       "size": 5519
     },
     "docs/ORACLE_OWNER_BUNDLE.md": {
-      "sha256": "8a34526db72c7c17a30a7c32b73d9b699ad74a8bc15c6d56f6eef6b6307991a8",
-      "size": 13601
+      "sha256": "22d2325bf75c972f0c6b54d5f16a981844b51a0c7a9b3c6c76dd09afd5e8ef72",
+      "size": 13920
     },
     "docs/RUNTIME_RECOVERY_20260830.md": {
       "sha256": "8800d391dd6a164f008e1dacb1aeb1329a8165a21741e0c1404f1ae87f841d6e",
@@ -357,16 +361,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "5497572717cae3b8d20e0a40b905f207927cd8c48d530d82c12d2c91699eb2c4",
-      "size": 92991
+      "sha256": "d548dcc844b7ad7f8e9ce4bf9d7df724d0f6668cdfb8e4c8bc80a2e81ac02d32",
+      "size": 93634
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "0b42a4becddf933b4d0da2f246298d08c62526ba7868ce8381011e3a697f7faa",
-      "size": 602218
+      "sha256": "5a35f7ddf2fd495ae638d9ed4b32da0905d5f5201f1d3b3d7d15255e4e12ed4f",
+      "size": 602897
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -985,8 +989,8 @@
       "size": 20524
     },
     "runtime_owner/deployment/Dockerfile.clean": {
-      "sha256": "c89f949f245f9c2489968b9fbe9d3b54c9e9b1ee4eeda1bfa799b42ccb9826ee",
-      "size": 2386
+      "sha256": "403a87f2fa421c9d9c656fadc3f1782a1e0a2faa2ed00aaaf27d5c18ff0db24b",
+      "size": 3913
     },
     "runtime_owner/deployment/README.md": {
       "sha256": "55e46fea56c330aeced78cd68eacf0cadb80a9d31fa5745f4c7a982995cd9bf5",
@@ -996,21 +1000,25 @@
       "sha256": "6a97e11c617fb8b66fec802ac5f0e965eb143c1a2a3a25048e68a86df59bf537",
       "size": 2508
     },
+    "runtime_owner/deployment/build_native_runtime.sh": {
+      "sha256": "95a0af0312ad272b14c748b6e447b87affbed3f121ff5cadc666fee7d6f26607",
+      "size": 3625
+    },
     "runtime_owner/deployment/local-images-20261007.json": {
       "sha256": "c76f88ba34e9cbc123a65d79fa5ec7a3c7bcc7390a09f97eccce50b9710821a5",
       "size": 1312
     },
     "runtime_owner/deployment/materialize_clean_context.py": {
-      "sha256": "5d3bb7a37c21d99e7508bb9c63e8699581e2f3107312b12b9aef85f303cf2830",
-      "size": 3500
+      "sha256": "93ed74e42a96ab7346c4d63ee567e79100491f0d0128faaa4d3effa9fe84c89a",
+      "size": 3596
     },
     "runtime_owner/deployment/materialize_context.py": {
       "sha256": "36e45d5b8aa9d4182bf530155b81195e47e9be6412431f10511d072bfeb2228b",
       "size": 2959
     },
     "runtime_owner/deployment/materialize_oracle_bundle.py": {
-      "sha256": "90991c0259281536f14e6df07305ee33a1ad55ad1099778c4a2d668aa5143a63",
-      "size": 25695
+      "sha256": "f7af7a46db7a7b279502ed480ad0cbe876748d546cec9c6c304655dbad8f2676",
+      "size": 25870
     },
     "runtime_owner/deployment/materialize_service_health.py": {
       "sha256": "0dc7beded0b7cf2f936210cddce05086ab0e0ef1a1b056868221812c325e93dc",
@@ -1029,8 +1037,8 @@
       "size": 10704
     },
     "runtime_owner/deployment/oracle_services.Dockerfile": {
-      "sha256": "58ac76b1b12004d3e4013b1b808534caa146ca226108802a00afec3be2207534",
-      "size": 1592
+      "sha256": "a19067572f49ea37eb05a175d501a783ba074bbe09179a4b61de32cdf663fa79",
+      "size": 3045
     },
     "runtime_owner/deployment/oracle_validate_support.py": {
       "sha256": "890c1d1dcd402ec99a112dde9d6c0771bbb38d04b97bc49cafaeac1e578e3d82",
@@ -1060,9 +1068,17 @@
       "sha256": "9251574093efc3f4268ff068c8076b179e4598f2873ae9879860aff8d52250e2",
       "size": 180
     },
+    "runtime_owner/deployment/stage_runtime.py": {
+      "sha256": "779205832effe2d83099bf1769ae710e2742879da3266bd7a9a2eff9e78d136f",
+      "size": 1162
+    },
     "runtime_owner/deployment/validate_image.py": {
       "sha256": "a7d7fcad5348b853c3144d9f9ab00f6d805844254ce752848fd55eb31d17633c",
       "size": 3840
+    },
+    "runtime_owner/deployment/validate_runtime_security.py": {
+      "sha256": "6d5f2d98b57cac2da18e0171a71c2cea93e3de811ca66cb571ed992192aff5ee",
+      "size": 4109
     },
     "runtime_owner/deployment/verify_local_images.py": {
       "sha256": "81f2ffa668f61b5028f6653cffea64083dc26ae84f23412170f967194560593d",
@@ -2073,8 +2089,8 @@
       "size": 18436
     },
     "tests/test_oracle_package_mode.py": {
-      "sha256": "43db4fb2fbf9631e16acd842cb940369b7e7357cc041f8f6ff8a4ae1a28e8d61",
-      "size": 6281
+      "sha256": "9316c5493f23c6b61dd3b091bd5af352f25c00dc1b3720b1d0cd97e52215689a",
+      "size": 6385
     },
     "tests/test_oracle_panel_transport.py": {
       "sha256": "a65717dc643280c930ca6ccf7ecb3a67bf97cdb5290715a7e5d4ed18d55d7c8c",

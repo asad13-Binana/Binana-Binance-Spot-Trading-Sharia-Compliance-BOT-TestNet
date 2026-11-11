@@ -49,7 +49,8 @@ class OraclePackageModeTests(unittest.TestCase):
             deployment.mkdir(parents=True)
             (source / "PROVENANCE.json").write_text('{"files":{}}')
             for name in ("validate_image.py", "release_authority.py", "requirements.owner.lock",
-                         "requirements.build.lock", "Dockerfile.clean"):
+                         "requirements.build.lock", "Dockerfile.clean", "build_native_runtime.sh",
+                         "stage_runtime.py", "validate_runtime_security.py"):
                 (deployment / name).write_text("# isolated packaging fixture\n")
             with patch.object(self.builder.clean, "source_files", return_value={}):
                 self.builder.clean.clean_context(source, root / "output", b"fixture")

@@ -1,6 +1,12 @@
 # Independent of every retained AWS image. Build only the allowlisted context
 # emitted by materialize_clean_context.py, never the repository root.
-FROM python:3.14.10-slim-trixie@sha256:3cabfd7d7aaf394e6040e79fa1eec6ca1c52b74ed9188650472695d9a9326999
+FROM python:3.14.10-slim-trixie@sha256:3cabfd7d7aaf394e6040e79fa1eec6ca1c52b74ed9188650472695d9a9326999 AS native
+RUN apt-get -o Acquire::Retries=0 update \
+    && apt-get -o Acquire::Retries=0 install -y --no-install-recommends build-essential pkg-config xz-utils
+COPY build_native_runtime.sh /tmp/build_native_runtime.sh
+RUN sh /tmp/build_native_runtime.sh
+
+FROM python:3.14.10-slim-trixie@sha256:3cabfd7d7aaf394e6040e79fa1eec6ca1c52b74ed9188650472695d9a9326999 AS builder
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 PYTHONDONTWRITEBYTECODE=1 PYTHONFAULTHANDLER=1 \
     OPENBLAS_NUM_THREADS=1 HOME=/home/ftuser FT_APP_ENV=docker
 # Keep the immutable base and explicitly replace its fixable Debian packages.
@@ -9,7 +15,7 @@ ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 PYTHONDONTWRITEBYTECODE=1 PYTHONFAULTHANDLER=1 \
 RUN apt-get -o Acquire::Retries=0 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update \
     && apt-get -o Acquire::Retries=0 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y --no-install-recommends \
         apt=3.0.4 libapt-pkg7.0=3.0.4 zlib1g=1:1.3.dfsg+really1.3.1-1+deb13u1 \
-        libgomp1 ca-certificates=20250419+deb13u1 liblzma5=5.8.1-1+deb13u2 \
+        libgomp1 libgdbm-compat4t64 ca-certificates=20250419+deb13u1 liblzma5=5.8.1-1+deb13u2 \
         libpcre2-8-0=10.46-1~deb13u3 libssl3t64=3.5.7-1~deb13u3 \
         openssl=3.5.7-1~deb13u3 openssl-provider-legacy=3.5.7-1~deb13u3 \
     && rm -rf /var/lib/apt/lists/* \
@@ -30,6 +36,24 @@ RUN python -m pip install --no-cache-dir --no-deps --no-build-isolation ./ft_cli
 COPY tests/ /freqtrade/binana_tests/
 COPY runtime-fixes/ /freqtrade/runtime-fixes/
 COPY PROVENANCE.json validate_image.py release_authority.py CLEAN_SOURCE.json /freqtrade/recovery_validation/
+COPY stage_runtime.py /tmp/stage_runtime.py
+RUN python /tmp/stage_runtime.py && python -m pip uninstall -y pip
+
+FROM gcr.io/distroless/cc-debian13:nonroot@sha256:cc66d222f0a7ec996b78a99fe76a969bc80b539a5016ad866c14d1949bc6d0ab
+ENV PATH=/usr/local/bin LANG=C.UTF-8 LC_ALL=C.UTF-8 \
+    LD_LIBRARY_PATH=/usr/local/lib PYTHONDONTWRITEBYTECODE=1 PYTHONFAULTHANDLER=1 \
+    OPENBLAS_NUM_THREADS=1 HOME=/home/ftuser FT_APP_ENV=docker
+COPY --from=builder /usr/local /usr/local
+COPY --from=builder /runtime-extra/ /
+COPY --from=native /opt/native/lib/ /usr/local/lib/
+COPY --from=native /opt/native/share/binana-native-runtime.json /usr/local/share/binana-native-runtime.json
+COPY --from=native /tmp/native-source/ncurses-6.6/COPYING /usr/local/share/licenses/ncurses-6.6.txt
+COPY --from=native /tmp/native-source/util-linux-2.42.4/libuuid/COPYING /usr/local/share/licenses/libuuid-2.42.4.txt
+COPY --from=builder /etc/passwd /etc/group /etc/
+COPY --from=builder --chown=999:987 /home/ftuser /home/ftuser
+COPY --from=builder /freqtrade /freqtrade
+COPY validate_runtime_security.py /usr/local/share/validate_runtime_security.py
+WORKDIR /freqtrade
 USER 999:987
 ENTRYPOINT ["python", "/freqtrade/recovery_validation/validate_image.py"]
 CMD []

@@ -151,6 +151,14 @@ jobs:
           docker run --rm --network=none --read-only --cap-drop=ALL
           --security-opt=no-new-privileges --memory=2g --cpus=2 --pids-limit=256
           --tmpfs /tmp:rw,nosuid,nodev,size=256m,mode=1777 binana-owner:ci
+      - name: Verify patched libraries and minimal runtime in both final images
+        run: |
+          for image in binana-owner:ci binana-support:ci; do
+            docker run --rm --network=none --read-only --cap-drop=ALL \
+              --security-opt=no-new-privileges --memory=1g --pids-limit=128 \
+              --tmpfs /tmp:rw,nosuid,nodev,size=128m,mode=1777 \
+              --entrypoint python "$image" /usr/local/share/validate_runtime_security.py
+          done
       - name: Validate support imports offline
         run: >-
           docker run --rm --network=none --read-only --cap-drop=ALL
@@ -162,6 +170,43 @@ jobs:
           docker run --rm --network=none --read-only --cap-drop=ALL
           --security-opt=no-new-privileges --entrypoint /usr/local/bin/freqtrade
           binana-owner:ci --version
+      - name: Scan both final images with no vulnerability exceptions
+        run: |
+          case '${{ matrix.arch }}' in
+            amd64) asset=Linux-64bit; checksum=c7cbe3137fb8a48a17574bede3dd6beb16742d1e9772929940fc90082c39d9c0 ;;
+            arm64) asset=Linux-ARM64; checksum=e174dff2a6dba5e3ae41f8d0537a6324405bd08132497340304c6b20e0f16a1f ;;
+            *) exit 1 ;;
+          esac
+          mkdir -p /tmp/binana-image-audit
+          cd /tmp/binana-image-audit
+          curl --fail --show-error --location --max-time 120 --output trivy.tar.gz \
+            "https://github.com/aquasecurity/trivy/releases/download/v0.76.1/trivy_0.76.1_${asset}.tar.gz"
+          printf '%s  trivy.tar.gz\n' "$checksum" | sha256sum --check -
+          tar -xzf trivy.tar.gz trivy
+          for component in owner support; do
+            ./trivy image --scanners vuln --format json --output "$component.json" "binana-$component:ci"
+          done
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          blocked = []
+          for component in ('owner', 'support'):
+              report = json.loads(Path(component + '.json').read_text())
+              if not {'os-pkgs', 'lang-pkgs'} <= {r.get('Class') for r in report['Results']}:
+                  raise SystemExit('Incomplete OS/Python image scan')
+              findings = [v for r in report['Results'] for v in r.get('Vulnerabilities', [])
+                          if v['Severity'] in {'HIGH', 'CRITICAL'}]
+              print(f'{component}: {len(findings)} HIGH/CRITICAL findings')
+              blocked.extend(findings)
+          if blocked:
+              raise SystemExit('Final-image vulnerability gate failed')
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: image-security-${{ matrix.arch }}-${{ github.sha }}
+          path: /tmp/binana-image-audit/*.json
+          if-no-files-found: warn
 
   artifact:
     needs: [verify, sast, quality-evidence, host-fixtures, dependency-audit, owner-build]

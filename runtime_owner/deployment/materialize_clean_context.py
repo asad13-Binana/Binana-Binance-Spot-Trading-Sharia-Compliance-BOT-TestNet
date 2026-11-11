@@ -51,7 +51,8 @@ def clean_context(source, destination, raw):
         target = upstream / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(content)
-    for name in ('requirements.owner.lock', 'requirements.build.lock', 'Dockerfile.clean'):
+    for name in ('requirements.owner.lock', 'requirements.build.lock', 'Dockerfile.clean',
+                 'build_native_runtime.sh', 'stage_runtime.py', 'validate_runtime_security.py'):
         shutil.copyfile(source / 'deployment' / name, destination / name)
     result.update(upstream_commit=UPSTREAM_COMMIT, upstream_archive_sha256=UPSTREAM_SHA256,
                   upstream_files=len(files), retained_aws_image_required=False)

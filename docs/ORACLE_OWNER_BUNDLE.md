@@ -13,6 +13,11 @@ order-owning sidecar is used here.
 
 ## Build and verify the immutable public package
 
+The final images use a minimal Debian runtime with pinned patched native
+libraries. Runtime pip and shells are absent; rebuild through the supplied
+Dockerfiles for dependency updates. Follow the offline image gates and
+remaining host acceptance requirements in [the image security review](IMAGE_SECURITY_20261112.md).
+
 From the reviewed repository checkout, with Python 3.10 or later:
 
 ```sh
