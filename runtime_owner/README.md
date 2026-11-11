@@ -1,10 +1,10 @@
-# Recovered AWS Testnet owner
+# Freqtrade Spot Testnet owner
 
-The recovered Freqtrade 2026.9/NFI owner is separate from the legacy root deployment package. The clean public-source owner was deployed and resumed on October 18, 2026 at 04:22:10 (Asia/Karachi), image `960d789f...`. See [deployment and acceptance evidence](../docs/recovery/AWS_2026_9_RELEASE_20261018.md). Earlier audit findings remain historical evidence; current readiness must be queried from the owner.
+The current source package uses Freqtrade 2026.10 and the approved `BinanaNfiSpot` strategy. Build the standalone [Oracle owner bundle](../docs/ORACLE_OWNER_BUNDLE.md). The earlier [AWS deployment record](../docs/recovery/AWS_2026_9_RELEASE_20261018.md) is historical evidence, not acceptance of this source or an Oracle deployment.
 
-`PROVENANCE.json` is the historical recovery receipt and is preserved unchanged. `CANDIDATE_MANIFEST.json` binds the modified owner, canonical Telegram panel and current regression tests. Build-context materialization verifies every candidate hash. The new CI owner job runs the isolated selection with hash-locked cryptography; the complete suite must also pass in the pinned retained runtime with no network, credentials or production mounts.
+`PROVENANCE.json` is the historical recovery receipt and is preserved unchanged. `CANDIDATE_MANIFEST.json` binds the modified owner, canonical Telegram panel and current regression tests. Build-context materialization verifies every candidate hash. CI builds the current image on AMD64 and ARM64 and runs the complete owner suite with no network, credentials or production mounts.
 
-The retained-image recovery build and the independent public-source build are separate procedures; see [build instructions](deployment/README.md). The public-source procedure pins official Freqtrade 2026.9, verifies the archive, restores all seven patched upstream modules, and installs a hash-locked dependency closure. Each new image still requires its own runtime acceptance. The owner contract is Testnet-only. Root Compose describes the legacy sidecar-owned architecture and must not replace this AWS owner.
+The [public-source build](deployment/README.md) pins official Freqtrade 2026.10, verifies its archive, applies the seven reviewed upstream overlays and installs hash-locked dependencies on Python 3.14.10. The retained AWS image builder and legacy order engines are retired. Each new image still requires its own runtime acceptance. This repository's owner contract remains Testnet-only.
 
 The latest corrected panel source is `runtime-fixes/telegram/runtime_stable_panel.py`; historical fixture copies are not deployment proof. No private configuration, credentials or trading databases are included.
 

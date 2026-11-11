@@ -15,16 +15,7 @@ sys.path.insert(0, str(ROOT))
 from scripts import api_readiness  # noqa: E402
 
 
-PROTECTED = {
-    "freqtrade/user_data/strategies/IctSmcStrategy.py":
-        "9f6bafc78c8cd0d9b9cbde615ddce89e304ab09738584b88d05bfdf92ff4e830",
-    "legacy_core/binance_bot_V4.9.16_ALL_IN_ONE.py":
-        "70b1d67cc0092b5b8db4a68b343cf893641bde1aae580e9ef51e2adec1062459",
-    "services/common/sharia_v19.py":
-        "768b3f5261d618e0beb50aa7f15de4ab84b4e02ad3a621d9dfebb944175580f5",
-    "shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json":
-        "418e7280f0b6a5f4cd9ba3887b8be3099f5fcc4b18bfca66808749720a4dd355",
-}
+PROTECTED = {'services/common/sharia_v19.py': '768b3f5261d618e0beb50aa7f15de4ab84b4e02ad3a621d9dfebb944175580f5', 'shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json': '418e7280f0b6a5f4cd9ba3887b8be3099f5fcc4b18bfca66808749720a4dd355'}
 
 
 def _config(**overrides):

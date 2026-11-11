@@ -4,14 +4,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PROTECTED = {
-    "freqtrade/user_data/strategies/IctSmcStrategy.py":
-        "9f6bafc78c8cd0d9b9cbde615ddce89e304ab09738584b88d05bfdf92ff4e830",
-    "legacy_core/binance_bot_V4.9.16_ALL_IN_ONE.py":
-        "70b1d67cc0092b5b8db4a68b343cf893641bde1aae580e9ef51e2adec1062459",
-    "services/common/sharia_v19.py":
-        "768b3f5261d618e0beb50aa7f15de4ab84b4e02ad3a621d9dfebb944175580f5",
-}
+PROTECTED = {'services/common/sharia_v19.py': '768b3f5261d618e0beb50aa7f15de4ab84b4e02ad3a621d9dfebb944175580f5'}
 
 
 def read(relative: str) -> str:

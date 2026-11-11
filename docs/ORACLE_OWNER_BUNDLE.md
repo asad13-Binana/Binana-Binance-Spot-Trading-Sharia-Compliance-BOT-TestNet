@@ -1,6 +1,6 @@
 # Portable Oracle bundle for the recovered Spot Testnet owner
 
-This is the deployment source package for `BinanaNfiSpot` on Freqtrade **2026.9**.
+This is the deployment source package for `BinanaNfiSpot` on Freqtrade **2026.10**.
 It starts **stopped**. Building it does not certify an Oracle host, an exchange
 account, a strategy return, or a release certificate. The same source may be
 mirrored in the LIVE repository for review; this bundle remains **Testnet-only**.
@@ -20,10 +20,10 @@ python runtime_owner/deployment/materialize_oracle_bundle.py /tmp/binana-owner-b
 python /tmp/binana-owner-bundle/oracle_preflight.py --bundle /tmp/binana-owner-bundle
 ```
 
-For offline packaging, add `--archive /path/to/freqtrade-2026.9.tar.gz` to the
+For offline packaging, add `--archive /path/to/freqtrade-2026.10.tar.gz` to the
 first command. The archive must match the existing pinned upstream commit
-`1f394eaebc2f46a83d26971388628707802f8602` and SHA-256
-`a453638c8ad59f8655036eaabd0858cb432331e70caa259976299e5c59108c89`.
+`4cf0351e08d26e96a6429ef48103b726bb230cf8` and SHA-256
+`e7e83e139f0d7b01f337dfb2e0c4ff13d895431615886b3c8570e99bb139476a`.
 A different archive, a symlink source, or an existing output directory is
 rejected. The output manifest records every file's exact size and SHA-256.
 Generated contexts are byte-identical across output locations.
@@ -208,9 +208,9 @@ no deletion of host containers, databases, private keys or backups.
 
 The exact-version references supporting the build and backtest distinction:
 
-- [Freqtrade 2026.9 Docker deployment](https://www.freqtrade.io/en/2026.9/docker_quickstart/)
-- [Freqtrade 2026.9 backtesting assumptions](https://www.freqtrade.io/en/2026.9/backtesting/)
-- [Exact 2026.9 backtesting callback implementation](https://github.com/freqtrade/freqtrade/blob/2026.9/freqtrade/optimize/backtesting.py)
+- [Freqtrade 2026.10 Docker deployment](https://www.freqtrade.io/en/2026.10/docker_quickstart/)
+- [Freqtrade 2026.10 backtesting assumptions](https://www.freqtrade.io/en/2026.10/backtesting/)
+- [Exact 2026.10 backtesting callback implementation](https://github.com/freqtrade/freqtrade/blob/2026.10/freqtrade/optimize/backtesting.py)
 - [Binance official documentation index](https://developers.binance.com/en/docs/llms.txt)
 
 An ordinary candle backtest does not implement BINANA's native order-list

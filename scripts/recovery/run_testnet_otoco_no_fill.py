@@ -9,11 +9,11 @@ import subprocess
 import time
 
 
-IMAGE = 'sha256:a90b7f661500f7d00b3da32ce4c22d987d41d6da01483affe849a0baccddb523'
-SOURCE = Path('/var/lib/binana-testnet/shared')
-OWNER = 'binana-testnet-freqtrade-1'
-CONFIG = Path('/home/ubuntu/binana-repair-20260912T130255Z/release-config/config.json')
-ROOT = Path('/var/backups/binana-testnet/otoco-no-fill-' + time.strftime('%Y%m%dT%H%M%SZ', time.gmtime()))
+IMAGE = None
+SOURCE = None
+OWNER = None
+CONFIG = None
+ROOT = None
 
 
 def inspect_owner():
@@ -56,7 +56,9 @@ def verified_result(receipt, report):
                 'trade_order_counts_and_open_incidents_unchanged']))
 
 
-def main():
+def run_rehearsal():
+    if any(value is None for value in (ROOT, SOURCE, CONFIG, IMAGE, OWNER)):
+        raise RuntimeError('EXPLICIT_REHEARSAL_CONTEXT_REQUIRED')
     os.umask(0o077)
     before = inspect_owner()
     state_before = owner_state()
@@ -141,6 +143,9 @@ def main():
     finally:
         credentials.unlink(missing_ok=True)
         subprocess.run(['docker', 'rm', '-f', name], capture_output=True, timeout=20)
+
+def main():
+    raise SystemExit(64)  # Retired AWS wrapper; no implicit host operations.
 
 
 if __name__ == '__main__':

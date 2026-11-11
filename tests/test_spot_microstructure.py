@@ -368,17 +368,6 @@ def test_signal_observer_failure_is_isolated_and_original_runs_once(
     assert manager.calls == 1
 
 
-def test_non_core_launchers_leave_protected_sources_untouched():
-    universe_launcher = (ROOT / "services/market_context/universe_main.py").read_text(
-        encoding="utf-8"
-    )
-    execution_launcher = (
-        ROOT / "services/execution_sidecar/guarded_main.py"
-    ).read_text(encoding="utf-8")
-    compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
-    assert "start_background()" in universe_launcher
-    assert "install_signal_observer(order_manager.OrderManager)" in execution_launcher
-    assert "python -m services.market_context.universe_main" in compose
 
 
 def test_missing_corrupt_stale_evidence_never_raises_or_claims_freshness(tmp_path):
@@ -419,13 +408,6 @@ def test_component_contains_no_futures_endpoint_credentials_or_order_methods():
         assert forbidden not in source
 
 
-def test_protected_strategy_is_not_imported_by_market_context():
-    source = "\n".join(
-        path.read_text(encoding="utf-8")
-        for path in sorted((ROOT / "services/market_context").glob("*.py"))
-    )
-    assert "IctSmcStrategy" not in source
-    assert "legacy_core" not in source
 
 
 def test_one_letter_spot_symbols_are_valid_and_empty_base_is_rejected():

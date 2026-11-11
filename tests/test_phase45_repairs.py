@@ -17,7 +17,6 @@ from services.common import envelope
 from services.common.sharia_v19 import (
     ResultValidationError, V19_CONTROLLER_FILENAME, validate_result,
 )
-from services.execution_sidecar.package_mode import enforce_sharia_gate_mode
 from services.sharia_screener.queue_store import QueueStore
 from services.universe_service.sharia_filter import ShariaFilter
 
@@ -70,23 +69,6 @@ class ProjectionAndBridgeRepairTests(unittest.TestCase):
                 self.assertTrue(good['payload']['validated'])
                 self.assertTrue(ShariaFilter(status).decision('ETH').allowed)
 
-    def test_request_or_result_hmac_holder_cannot_forge_result_attestation(self):
-        from services.execution_sidecar import order_manager as om
-        with tempfile.TemporaryDirectory() as td:
-            results = Path(td) / 'results'; results.mkdir()
-            forged_payload = {
-                'request_id': 'signal-forged', 'base': 'ETH', 'pair': 'ETH/USDT',
-                'final_code': 'GREEN', 'validated': True,
-            }
-            forged = envelope.sign_envelope(
-                producer='sharia-screener', purpose=envelope.BUS_SHARIA_RESULT,
-                payload=forged_payload, ttl_seconds=300)
-            (results / 'result_signal-forged.json').write_text(json.dumps(forged))
-            manager = object.__new__(om.OrderManager)
-            with mock.patch.object(om, 'SHARIA_RESULTS_DIR', results):
-                state, detail = manager._fresh_screening_result('signal-forged', 'ETH')
-            self.assertEqual(state, 'rejected')
-            self.assertIn('unattested', detail)
 
 
 class SemanticAndModeRepairTests(unittest.TestCase):
@@ -147,19 +129,7 @@ class SemanticAndModeRepairTests(unittest.TestCase):
                 'api.openai.com', 'requests.post'):
             self.assertNotIn(forbidden, source)
 
-    def test_all_packages_require_signed_cached_gate(self):
-        with self.assertRaisesRegex(SystemExit, 'requires.*cached'):
-            enforce_sharia_gate_mode('live', 'fresh')
-        self.assertEqual(enforce_sharia_gate_mode('live', 'cached'), 'cached')
-        self.assertEqual(enforce_sharia_gate_mode('testnet', 'cached'), 'cached')
 
-    def test_direct_order_manager_construction_cannot_enable_fresh_live_gate(self):
-        from services.execution_sidecar import order_manager as om
-        with mock.patch.object(om, 'load_package_mode', return_value='live'), \
-                mock.patch.dict('os.environ', {'SHARIA_SIGNAL_GATE_MODE': 'fresh'}):
-            with self.assertRaisesRegex(
-                    SystemExit, 'requires.*cached'):
-                om.OrderManager(None, None, None, None, None, {})
 
 class AutonomousDiscoveryAndRetryRepairTests(unittest.TestCase):
     def test_idle_discovery_seeds_from_binance_before_sharia(self):

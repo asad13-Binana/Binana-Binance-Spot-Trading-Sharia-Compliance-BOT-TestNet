@@ -53,19 +53,3 @@ def test_evidence_output_is_valid_json(tmp_path):
     output = tmp_path / "nested/EVIDENCE_STATUS.json"
     _atomic_json(output, {"ok": True})
     assert json.loads(output.read_text(encoding="utf-8")) == {"ok": True}
-
-
-def test_strategy_probe_and_offline_compose_use_runtime_image_digest():
-    digest = (
-        "freqtradeorg/freqtrade:2026.9@sha256:"
-        "989aff5636d8f0213ed44fe334c3314a194a51c0c755d16866960247aafd2eae"
-    )
-    workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
-    offline_compose = (ROOT / "freqtrade/docker-compose.yml").read_text(encoding="utf-8")
-    runtime_compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
-    runtime_wrapper = (ROOT / "Dockerfile.freqtrade").read_text(encoding="utf-8")
-    assert digest in workflow
-    assert digest in offline_compose
-    assert "dockerfile: Dockerfile.freqtrade" in runtime_compose
-    assert digest in runtime_wrapper
-    assert "Generate detached machine-readable release evidence" in workflow

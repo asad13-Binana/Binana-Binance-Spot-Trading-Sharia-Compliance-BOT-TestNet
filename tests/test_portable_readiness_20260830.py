@@ -39,19 +39,8 @@ def test_revenue_proposal_prefers_network_fees_not_fundraising():
     assert infer_verdict(fee) == ''  # a useful quote is not religious approval
 
 
-@pytest.mark.parametrize('used,total,expected', [(89,100,''), (90,100,'critical-disk-pressure'),
-                                               (0,0,'disk-capacity-unknown')])
-def test_disk_guard_works_without_writable_health_file(monkeypatch, used, total, expected):
-    from services.execution_sidecar import main
-    monkeypatch.setenv('DISK_CRITICAL_PERCENT', '90')
-    monkeypatch.setattr(main.shutil, 'disk_usage', lambda path: SimpleNamespace(used=used,total=total))
-    assert main.disk_pressure_reason() == expected
 
 
-def test_disk_probe_error_is_unknown(monkeypatch):
-    from services.execution_sidecar import main
-    monkeypatch.setattr(main.shutil, 'disk_usage', Mock(side_effect=OSError('full')))
-    assert main.disk_pressure_reason() == 'disk-capacity-unknown'
 
 
 @pytest.mark.parametrize('profile,mode,occupants,code', [

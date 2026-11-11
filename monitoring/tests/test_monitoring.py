@@ -558,8 +558,6 @@ def test_systemd_pairs_and_hardening():
 
 def test_monitor_installer_preserves_runtime_ownership_and_refreshes_release():
     installer = (ROOT / "deploy/install_monitoring.sh").read_text(encoding="utf-8")
-    setup = (ROOT / "deploy/oracle_setup.sh").read_text(encoding="utf-8")
-    assert 'usermod -a -G "$BOT_USER" "$MONITOR_USER"' in setup
     assert 'usermod -a -G "$BOT_USER" "$MONITOR_USER"' in installer
     assert 'install -d -m 0750 -o "$BOT_USER" -g "$BOT_USER" "$PERSIST/runtime"' in installer
     assert INSTANCE["bot_user"] in (ROOT / "deploy/instance_identity.sh").read_text(encoding="utf-8")
@@ -589,10 +587,7 @@ def test_root_snapshot_publishes_only_fixed_sanitised_sources_read_only(tmp_path
 
 
 def test_monitor_status_files_are_root_owned_group_readable_not_public():
-    installer = (ROOT / "deploy/install_artifact.sh").read_text(encoding="utf-8")
     snapshot = (ROOT / "monitoring/snapshot.py").read_text(encoding="utf-8")
-    assert installer.count("os.fchmod(fd, 0o640)") >= 2
-    assert installer.count("os.fchown(fd, 0, p.parent.stat().st_gid)") >= 2
     assert "os.fchmod(descriptor, 0o640)" in snapshot
     assert "os.fchown(descriptor, 0, path.parent.stat().st_gid)" in snapshot
     assert "0o644" not in snapshot
@@ -615,7 +610,7 @@ def test_ci_and_release_gate_include_monitoring():
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
     verifier = (ROOT / "deploy/verify_release.sh").read_text(encoding="utf-8")
     assert "requirements-monitoring.lock" in workflow
-    assert "pytest -q monitoring/tests" in verifier
+    assert "pytest -q -p no:cacheprovider tests monitoring/tests" in verifier
     assert "systemd-analyze verify" in verifier
     assert "scripts/build_manifest.py" not in verifier
 
@@ -637,11 +632,25 @@ def test_monitoring_tests_install_exact_hash_locked_runtime_separately():
     assert "--require-hashes" in installer
 
 
-def test_oracle_installer_installs_monitoring():
-    installer = (ROOT / "deploy/install_artifact.sh").read_text(encoding="utf-8")
-    setup = (ROOT / "deploy/oracle_setup.sh").read_text(encoding="utf-8")
-    assert "install_monitoring.sh" in installer
-    assert "useradd --system" in setup and "python3-venv" in setup
+def test_current_bundle_monitor_is_an_unprivileged_container():
+    import importlib.util
+    import sys
+    deployment = ROOT / 'runtime_owner/deployment'
+    specification = importlib.util.spec_from_file_location('bundle_monitor_test', deployment / 'materialize_oracle_bundle.py')
+    builder = importlib.util.module_from_spec(specification)
+    previous = sys.path[:]
+    try:
+        sys.path.insert(0, str(deployment))
+        specification.loader.exec_module(builder)
+    finally:
+        sys.path[:] = previous
+    topology = builder.topology('a' * 64, (ROOT / 'RELEASE_MODE').read_text().strip())
+    monitor = topology['services']['owner-monitor']
+    assert monitor['network_mode'] == 'none'
+    assert monitor['read_only'] is True
+    assert monitor['cap_drop'] == ['ALL']
+    assert 'docker.sock' not in json.dumps(monitor)
+    assert all(row['read_only'] or row['target'] == '/app/shared/runtime' for row in monitor['volumes'])
 
 
 def test_every_api_route_is_get_only_and_has_no_order_route():

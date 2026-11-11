@@ -598,7 +598,7 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
             except Exception as reconcile_exc:
                 self.store.set_intent_state(plan.intent_id,'UNKNOWN')
                 self.store.incident(incident_id='submit-'+plan.intent_id,intent_id=plan.intent_id,pair=pair,
-                    code='ENTRY_SUBMISSION_UNKNOWN',detail=f'{exc}; reconcile={type(reconcile_exc).__name__}:{reconcile_exc}')
+                    code='ENTRY_SUBMISSION_UNKNOWN',detail=f'{type(exc).__name__}; reconcile={type(reconcile_exc).__name__}')
                 raise AdmissionRejected('ENTRY_SUBMISSION_UNKNOWN') from exc
         except OrderListError as exc:
             # Preflight happens before the transport POST; no exchange mutation.
@@ -764,7 +764,7 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
             self.store.update_generation_status(intent_id,2,'CANCEL_UNKNOWN')
             self.store.set_intent_state(intent_id,'UNKNOWN')
             self.store.incident(incident_id='promote-cancel-'+intent_id,intent_id=intent_id,pair=trade.pair,
-                                code='PROMOTION_CANCEL_UNKNOWN',detail=str(exc))
+                                code='PROMOTION_CANCEL_UNKNOWN',detail=type(exc).__name__)
             return None
         # Cancellation can race with an exchange fill. Reconcile immutable trades,
         # then replace protection only for the unsold portion of the old protected quantity.
@@ -855,7 +855,7 @@ class BinanaExecutionManager(OperatorExit, ClosedRecovery, RetainedInventory, Ca
                 self.store.update_generation_status(intent_id,2,'SUBMISSION_UNKNOWN')
                 self.store.set_intent_state(intent_id,'UNKNOWN')
                 self.store.incident(incident_id='promote-submit-'+intent_id,intent_id=intent_id,pair=trade.pair,
-                    code='TRAILING_SUBMISSION_UNKNOWN',detail=f'{exc}; reconcile={type(rec).__name__}:{rec}')
+                    code='TRAILING_SUBMISSION_UNKNOWN',detail=f'{type(exc).__name__}; reconcile={type(rec).__name__}')
                 return None
         except OrderListError as exc:
             self.store.update_generation_status(intent_id,2,'RESIDUAL_PLAN_INVALID')

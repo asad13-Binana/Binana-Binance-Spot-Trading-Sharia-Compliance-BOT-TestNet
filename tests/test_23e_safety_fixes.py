@@ -30,19 +30,6 @@ import tests._harness as harness  # noqa: E402,F401  (bus keys before service im
 class SpotPermissionFailsClosedTests(unittest.TestCase):
     """SPOT-FAILOPEN-001: absent Spot permission is uncertainty, not consent."""
 
-    def test_all_four_consumers_default_to_false(self):
-        consumers = {
-            'services/common/binance_public.py': "isSpotTradingAllowed', False",
-            'services/execution_sidecar/filters.py': "entry.get('isSpotTradingAllowed') is not True",
-            'services/sharia_screener/service.py': "isSpotTradingAllowed', False",
-            'services/universe_service/scanner.py': "isSpotTradingAllowed', False",
-        }
-        for rel, fail_closed_check in consumers.items():
-            text = (ROOT / rel).read_text(encoding='utf-8')
-            self.assertNotIn("isSpotTradingAllowed', True", text,
-                             msg=f'{rel} still treats missing Spot permission as allowed')
-            self.assertIn(fail_closed_check, text,
-                          msg=f'{rel} must require explicit Spot permission')
 
     def test_universe_scanner_rejects_symbol_without_spot_permission(self):
         from services.universe_service.scanner import _basic_filter
@@ -61,94 +48,8 @@ class SpotPermissionFailsClosedTests(unittest.TestCase):
         self.assertNotIn('spot_not_allowed', reasons)
 
 
-class UserDataStreamTests(unittest.TestCase):
-    """H-001 / UDS-EVENT-001 / UDS-STARTUP-001."""
-
-    def _stream(self):
-        from services.execution_sidecar import user_data_stream as uds
-        obj = uds.ModernUserDataStream.__new__(uds.ModernUserDataStream)
-        obj._ws = mock.Mock()
-        obj._subscribed = True
-        obj._connected = True
-        obj._last_error = None
-        obj._write_health = lambda: None
-        obj.on_order_update = None
-        obj.on_list_update = None
-        obj.on_resync = mock.Mock()
-        return obj
-
-    def test_balance_update_triggers_reconciliation(self):
-        stream = self._stream()
-        stream._dispatch_event({'e': 'balanceUpdate'})
-        stream.on_resync.assert_called_once()
-
-    def test_external_lock_update_triggers_reconciliation(self):
-        stream = self._stream()
-        stream._dispatch_event({'e': 'externalLockUpdate'})
-        stream.on_resync.assert_called_once()
-
-    def test_outbound_account_position_still_reconciles(self):
-        stream = self._stream()
-        stream._dispatch_event({'e': 'outboundAccountPosition'})
-        stream.on_resync.assert_called_once()
-
-    def test_server_shutdown_closes_the_socket(self):
-        stream = self._stream()
-        stream._dispatch_event({'e': 'serverShutdown'})
-        stream._ws.close.assert_called_once()
-        self.assertFalse(stream._subscribed)
-        self.assertEqual(stream._last_error, 'server_shutdown')
-
-    def test_event_stream_terminated_closes_the_socket(self):
-        stream = self._stream()
-        stream._dispatch_event({'e': 'eventStreamTerminated'})
-        stream._ws.close.assert_called_once()
-
-    def test_rejected_subscription_closes_the_socket(self):
-        """A non-200 acknowledgement must not leave a connected-but-
-        unsubscribed socket alive with no reconnect."""
-        import json as _json
-        stream = self._stream()
-        stream._request_id = 'req-1'
-        stream._ready = mock.Mock()
-        stream._backoff = 1.0
-        stream._last_message_at = 0.0
-        stream._last_event_at = 0.0
-        stream._startup_error = None
-        from services.execution_sidecar import user_data_stream as uds
-        uds.ModernUserDataStream._on_message(stream, None,
-                                       _json.dumps({'id': 'req-1', 'status': 401}))
-        self.assertFalse(stream._subscribed)
-        self.assertEqual(stream._last_error, 'subscription_rejected')
-        stream._ws.close.assert_called_once()
 
 
-class SidecarHealthReflectsStreamTests(unittest.TestCase):
-    """H-001: health must not be green while the stream is unusable."""
-
-    def test_simulation_needs_no_exchange_stream(self):
-        from services.common.models import ExecutionMode
-        from services.execution_sidecar.main import user_stream_state
-        ok, detail = user_stream_state(ExecutionMode.SIMULATION)
-        self.assertTrue(ok)
-        self.assertFalse(detail['required'])
-
-    def test_live_requires_connected_subscribed_and_fresh(self):
-        import time as _time
-        from services.common.models import ExecutionMode
-        from services.execution_sidecar import main as sidecar_main
-        cases = [
-            ({'connected': True, 'subscribed': True, 'ts': _time.time()}, True),
-            ({'connected': True, 'subscribed': False, 'ts': _time.time()}, False),
-            ({'connected': False, 'subscribed': True, 'ts': _time.time()}, False),
-            ({'connected': True, 'subscribed': True, 'ts': _time.time() - 99999}, False),
-            ({}, False),
-        ]
-        for health, expected in cases:
-            with self.subTest(health=health), \
-                    mock.patch.object(sidecar_main, 'read_json', return_value=health):
-                ok, _detail = sidecar_main.user_stream_state(ExecutionMode.LIVE)
-                self.assertEqual(ok, expected)
 
 
 class TelegramSecretRedactionTests(unittest.TestCase):

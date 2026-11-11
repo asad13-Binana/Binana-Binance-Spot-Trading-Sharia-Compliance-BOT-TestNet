@@ -2,7 +2,6 @@
 # strategy change cannot be silently re-baselined in the same commit.
 # Ownership assigned. Enable branch protection (require review from Code
 # Owners) on the default branch before any live use.
-/freqtrade/user_data/strategies/IctSmcStrategy.py   @asad13-Binana
 /services/common/strategy_fingerprint.py            @asad13-Binana
 /scripts/build_manifest.py                          @asad13-Binana
 /tests/test_v101_consolidation.py                   @asad13-Binana

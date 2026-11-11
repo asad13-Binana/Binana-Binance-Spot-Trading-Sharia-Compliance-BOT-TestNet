@@ -52,6 +52,7 @@ class OperatorExitTests(unittest.TestCase):
             'ocoAllowed':True,'otoAllowed':True,'filters':self.filters}]}
         api.publicGetTickerBookTicker = lambda params: {'symbol':'ADAUSDT','bidPrice':'10.05','askPrice':'10.06'}
         api.publicGetTickerPrice = lambda params: {'symbol':'ADAUSDT','price':'10.05'}
+        api.publicGetReferencePrice = lambda params: {'symbol':'ADAUSDT','referencePrice':None}
         api.privateGetMyFilters = lambda params: {'symbolFilters':[], 'exchangeFilters':[], 'assetFilters':[]}
         api.publicGetAvgPrice = lambda params: {'price':'10.05','mins':0}
         api.fetch_open_orders = Mock(side_effect=lambda pair:[copy.deepcopy(row) for row in self.orders.values() if row['status']=='open'])

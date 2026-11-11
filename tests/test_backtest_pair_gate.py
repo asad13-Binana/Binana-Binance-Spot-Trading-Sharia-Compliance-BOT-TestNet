@@ -68,16 +68,12 @@ class BacktestPairGateTests(unittest.TestCase):
             expected = frozenset(DEFAULT_STABLECOINS.split(','))
             self.assertEqual(expected, frozenset(scanner.STABLES))
 
-    def test_shell_scripts_use_arrays_and_the_manual_registry(self):
+    def test_legacy_backtest_launchers_cannot_select_a_retired_strategy(self):
         root = Path(__file__).resolve().parents[1]
-        for relative in (
-            'freqtrade/scripts/backtest.sh',
-            'freqtrade/scripts/download_data.sh',
-        ):
-            text = (root / relative).read_text(encoding='utf-8')
-            self.assertIn('services/common/backtest_pairs.py', text)
-            self.assertIn('--pairs "${PAIRS[@]}"', text)
-            self.assertNotIn('halal_list.json', text)
+        registry = json.loads((root / 'docs/retirement/retired_sources.json').read_text())
+        for relative in ('freqtrade/scripts/backtest.sh', 'freqtrade/scripts/download_data.sh'):
+            self.assertFalse((root / relative).exists())
+            self.assertRegex(registry['files'][relative]['sha256'], r'^[0-9a-f]{64}$')
 
 
 if __name__ == '__main__':

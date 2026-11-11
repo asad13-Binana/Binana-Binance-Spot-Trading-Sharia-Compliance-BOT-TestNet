@@ -14,6 +14,31 @@ spec.loader.exec_module(module)
 
 
 class OwnerBuildContext(unittest.TestCase):
+    def test_support_context_includes_the_hash_locked_installer(self):
+        import sys
+        previous = sys.path[:]
+        try:
+            sys.path.insert(0, str(MODULE.parent))
+            spec = importlib.util.spec_from_file_location(
+                'oracle_build_toolchain', MODULE.parent / 'materialize_oracle_bundle.py')
+            builder = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(builder)
+            sources = builder.support_sources(MODULE.parents[2])
+        finally:
+            sys.path[:] = previous
+        self.assertEqual(sources['requirements.build.lock'],
+                         (MODULE.parent / 'requirements.build.lock').read_bytes())
+
+    def test_context_does_not_export_retained_aws_dockerfile(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source, _ = self.fixture(root)
+            output = root / 'output'
+            module.materialize(source, output)
+            self.assertFalse((output / 'Dockerfile').exists(),
+                             'Raw patch export must not select a retained AWS image')
+            self.assertTrue((output / 'validate_image.py').is_file())
+
     def test_fresh_source_exports_the_custom_exchange_used_by_the_resolver(self):
         path = MODULE.parents[1] / 'owner/freqtrade/exchange/__init__.py'
         self.assertTrue(path.is_file(), 'clean build would lose the deployed BinanaBinance export')
@@ -86,55 +111,3 @@ class OwnerBuildContext(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'Invalid manifest path'):
                 module.materialize(source, root / 'output')
             self.assertFalse((root / 'output').exists())
-
-
-class RetainedOwnerBuild(unittest.TestCase):
-    def fixture(self, root):
-        import shutil
-        script = root / 'build_verified_owner.py'
-        shutil.copyfile(MODULE.with_name('build_verified_owner.py'), script)
-        retained = {'freqtrade': {'reference': 'retained:base', 'image_id': 'sha256:' + 'a' * 64}}
-        runtime = {'freqtrade': {'reference': 'current:clean', 'image_id': 'sha256:' + 'b' * 64}}
-        (root / 'retained-owner-base.json').write_text(json.dumps(retained))
-        (root / 'local-images-20261007.json').write_text(json.dumps(runtime))
-        return script, retained
-
-    def run_builder(self, script, verify, build, tag='candidate:test'):
-        import runpy
-        import sys
-        from types import ModuleType
-        from unittest.mock import patch
-        verifier = ModuleType('verify_local_images')
-        verifier.verify = verify
-        with patch.dict(sys.modules, {'verify_local_images': verifier}), \
-                patch.object(sys, 'argv', [str(script), str(script.parent / 'context'), '--tag', tag]), \
-                patch('subprocess.run', build):
-            runpy.run_path(str(script), run_name='__main__')
-
-    def test_current_runtime_map_cannot_change_retained_build_base(self):
-        from unittest.mock import Mock, call
-        with tempfile.TemporaryDirectory() as tmp:
-            script, retained = self.fixture(Path(tmp))
-            verify, build = Mock(), Mock()
-            self.run_builder(script, verify, build)
-            self.assertEqual(verify.call_args_list, [call(retained), call(retained)])
-            self.assertIn('BASE_IMAGE=retained:base', build.call_args.args[0])
-            self.assertIn('--pull=false', build.call_args.args[0])
-
-    def test_missing_retained_image_prevents_build(self):
-        from unittest.mock import Mock
-        with tempfile.TemporaryDirectory() as tmp:
-            script, _ = self.fixture(Path(tmp))
-            build = Mock()
-            with self.assertRaisesRegex(RuntimeError, 'missing retained image'):
-                self.run_builder(script, Mock(side_effect=RuntimeError('missing retained image')), build)
-            build.assert_not_called()
-
-    def test_base_identity_change_during_build_is_rejected(self):
-        from unittest.mock import Mock
-        with tempfile.TemporaryDirectory() as tmp:
-            script, _ = self.fixture(Path(tmp))
-            build = Mock()
-            with self.assertRaisesRegex(RuntimeError, 'retagged retained image'):
-                self.run_builder(script, Mock(side_effect=[None, RuntimeError('retagged retained image')]), build)
-            build.assert_called_once()

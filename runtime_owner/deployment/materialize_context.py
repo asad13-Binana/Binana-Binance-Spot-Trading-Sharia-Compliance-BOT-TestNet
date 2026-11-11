@@ -6,7 +6,7 @@ from pathlib import Path, PurePosixPath
 import shutil
 
 
-def materialize(source: Path, destination: Path, *, include_retained_dockerfile=True):
+def materialize(source: Path, destination: Path):
     source = source.resolve()
     manifest_path=source / 'CANDIDATE_MANIFEST.json'
     if not manifest_path.exists():
@@ -47,8 +47,6 @@ def materialize(source: Path, destination: Path, *, include_retained_dockerfile=
         target.write_bytes(content)
     shutil.copyfile(manifest_path, destination / 'PROVENANCE.json')
     deployment_files = ['validate_image.py', 'release_authority.py']
-    if include_retained_dockerfile:
-        deployment_files.insert(0, 'Dockerfile')
     for name in deployment_files:
         shutil.copyfile(source / 'deployment' / name, destination / name)
     return {'source_files': len(verified), 'context': str(destination.resolve()),

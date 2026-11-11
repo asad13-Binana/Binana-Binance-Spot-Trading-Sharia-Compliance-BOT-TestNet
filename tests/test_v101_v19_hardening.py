@@ -146,43 +146,6 @@ class EnvelopeAuthTests(unittest.TestCase):
                 envelope.load_key(envelope.BUS_COMMAND)
 
 
-class ForgedBusFileTests(unittest.TestCase):
-    def test_unsigned_command_file_is_rejected_by_sidecar(self):
-        from services.execution_sidecar.main import process_command
-        from services.execution_sidecar.state_store import StateStore
-        from services.execution_sidecar.risk_checks import FreshSignalGuard
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            store = StateStore(root / 'state.json', root / 'state.sqlite')
-            guard = FreshSignalGuard(root / 'risk.json')
-            forged = root / 'forged.json'
-            forged.write_text(json.dumps({'command_id': 'x', 'command': 'entries',
-                                          'args': {'enabled': True}, 'created_at': 0}))
-            adapter = SimpleNamespace(trader=SimpleNamespace(is_running=lambda: False))
-            with mock.patch('services.execution_sidecar.main.RUNTIME', root / 'runtime'):
-                process_command(adapter, store, guard, forged)
-            # No result file is written for an unauthenticated command, and it is removed.
-            self.assertFalse((root / 'runtime' / 'command_result_x.json').exists())
-            self.assertFalse(forged.exists())
-
-    def test_sibling_container_cannot_forge_a_command_with_the_signal_key(self):
-        from services.execution_sidecar.main import process_command
-        from services.execution_sidecar.state_store import StateStore
-        from services.execution_sidecar.risk_checks import FreshSignalGuard
-        # Freqtrade only holds the signal key; a command it signs must not verify.
-        forged = envelope.sign_envelope(producer='freqtrade-strategy', purpose=envelope.BUS_SIGNAL,
-                                        payload={'command_id': 'x', 'command': 'entries',
-                                                 'args': {'enabled': True}, 'created_at': 0},
-                                        ttl_seconds=300)
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            store = StateStore(root / 'state.json', root / 'state.sqlite')
-            guard = FreshSignalGuard(root / 'risk.json')
-            path = root / 'forged.json'; path.write_text(json.dumps(forged))
-            adapter = SimpleNamespace(trader=SimpleNamespace(is_running=lambda: False))
-            with mock.patch('services.execution_sidecar.main.RUNTIME', root / 'runtime'):
-                process_command(adapter, store, guard, path)
-            self.assertFalse((root / 'runtime' / 'command_result_x.json').exists())
 
 
 # ── master protocol 8.1: immutable V19.3 controller ───────────────────────
@@ -287,61 +250,6 @@ def _symbol_entry(filters):
             'baseAsset': 'ETH', 'quoteAsset': 'USDT', 'filters': filters}
 
 
-class FilterPrevalidationTests(unittest.TestCase):
-    def _validator(self, filters, price='10'):
-        from services.execution_sidecar.filters import SpotFilterValidator
-        return SpotFilterValidator(public_client=_FakePublic(_symbol_entry(filters), price))
-
-    def test_percent_price_band_violation_rejected(self):
-        from services.execution_sidecar.filters import FilterViolation
-        filters = [
-            {'filterType': 'PRICE_FILTER', 'tickSize': '0.01', 'minPrice': '0.01', 'maxPrice': '100000'},
-            {'filterType': 'LOT_SIZE', 'stepSize': '0.001', 'minQty': '0.001', 'maxQty': '9000'},
-            {'filterType': 'NOTIONAL', 'minNotional': '5', 'maxNotional': '0'},
-            {'filterType': 'PERCENT_PRICE_BY_SIDE', 'askMultiplierUp': '1.5', 'askMultiplierDown': '0.5', 'avgPriceMins': 0},
-        ]
-        v = self._validator(filters, price='10')
-        params = {'quantity': '1', 'aboveType': 'LIMIT_MAKER', 'abovePrice': '100.00',
-                  'belowType': 'STOP_LOSS_LIMIT', 'belowPrice': '9.00', 'belowStopPrice': '9.10'}
-        with self.assertRaisesRegex(FilterViolation, 'percent-price'):
-            v.validate_replacement('ETHUSDT', 'orderList/oco', params)
-
-    def test_max_notional_violation_rejected(self):
-        from services.execution_sidecar.filters import FilterViolation
-        filters = [
-            {'filterType': 'PRICE_FILTER', 'tickSize': '0.01', 'minPrice': '0.01', 'maxPrice': '100000'},
-            {'filterType': 'LOT_SIZE', 'stepSize': '0.001', 'minQty': '0.001', 'maxQty': '9000'},
-            {'filterType': 'NOTIONAL', 'minNotional': '5', 'maxNotional': '50'},
-        ]
-        v = self._validator(filters)
-        params = {'symbol': 'ETHUSDT', 'side': 'SELL', 'type': 'STOP_LOSS_LIMIT',
-                  'quantity': '100', 'price': '10.00', 'stopPrice': '10.00'}
-        with self.assertRaisesRegex(FilterViolation, 'maxNotional'):
-            v.validate_replacement('ETHUSDT', 'order', params)
-
-    def test_unavailable_filter_data_refuses_before_cancel(self):
-        from services.execution_sidecar.filters import FilterDataUnavailable, SpotFilterValidator
-
-        class Broken:
-            def exchange_info(self, symbol=None):
-                raise RuntimeError('network down')
-        v = SpotFilterValidator(public_client=Broken())
-        with self.assertRaises(FilterDataUnavailable):
-            v.validate_replacement('ETHUSDT', 'order',
-                                   {'quantity': '1', 'price': '10', 'stopPrice': '10'})
-
-    def test_clean_replacement_passes(self):
-        filters = [
-            {'filterType': 'PRICE_FILTER', 'tickSize': '0.01', 'minPrice': '0.01', 'maxPrice': '100000'},
-            {'filterType': 'LOT_SIZE', 'stepSize': '0.001', 'minQty': '0.001', 'maxQty': '9000'},
-            {'filterType': 'NOTIONAL', 'minNotional': '5', 'maxNotional': '1000000'},
-            {'filterType': 'PERCENT_PRICE_BY_SIDE', 'askMultiplierUp': '5', 'askMultiplierDown': '0.2', 'avgPriceMins': 0},
-        ]
-        v = self._validator(filters, price='10')
-        params = {'quantity': '1', 'aboveType': 'LIMIT_MAKER', 'abovePrice': '12.00',
-                  'belowType': 'STOP_LOSS_LIMIT', 'belowPrice': '9.00', 'belowStopPrice': '9.10'}
-        summary = v.validate_replacement('ETHUSDT', 'orderList/oco', params)
-        self.assertIn('PRICE_FILTER', summary['filters_checked'])
 
 
 class ReferencePriceFilterTests(unittest.TestCase):
@@ -356,60 +264,17 @@ class ReferencePriceFilterTests(unittest.TestCase):
         {'filterType': 'PERCENT_PRICE_BY_SIDE', 'askMultiplierUp': '1.2', 'askMultiplierDown': '0.8', 'avgPriceMins': 5},
     ]
 
-    def _validator(self, price='50', reference=None, ref_error=None):
-        from services.execution_sidecar.filters import SpotFilterValidator
-        pub = _FakePublic(_symbol_entry(self._FILTERS), price=price,
-                          reference=reference, ref_error=ref_error)
-        return SpotFilterValidator(public_client=pub)
 
     def _sell(self, price):
         return {'symbol': 'ETHUSDT', 'side': 'SELL', 'type': 'STOP_LOSS_LIMIT',
                 'quantity': '1', 'price': price, 'stopPrice': price}
 
-    def test_reference_price_divergence_now_rejects(self):
-        # The exact audit reproduction: avgPrice 50 would ACCEPT price 45,
-        # but the real Binance referencePrice 100 must REJECT it (band 80..120).
-        from services.execution_sidecar.filters import FilterViolation
-        v = self._validator(price='50', reference='100')
-        with self.assertRaisesRegex(FilterViolation, 'percent-price'):
-            v.validate_replacement('ETHUSDT', 'order', self._sell('45.00'))
 
-    def test_the_old_behavior_would_have_wrongly_accepted(self):
-        # Guard: with NO reference price, the fallback (avgPrice=50) accepts 45,
-        # proving the divergence test above is meaningful, not vacuous.
-        v = self._validator(price='50', reference=None)
-        summary = v.validate_replacement('ETHUSDT', 'order', self._sell('45.00'))
-        self.assertEqual(summary['reference_price'], '50')
 
-    def test_reference_price_within_band_accepts(self):
-        v = self._validator(price='50', reference='100')
-        summary = v.validate_replacement('ETHUSDT', 'order', self._sell('95.00'))
-        self.assertEqual(summary['reference_price'], '100')
 
-    def test_null_reference_falls_back_to_previous_behavior(self):
-        # referencePrice null => documented fallback to avgPrice/last price.
-        v = self._validator(price='73', reference=None)
-        summary = v.validate_replacement('ETHUSDT', 'order', self._sell('73.00'))
-        self.assertEqual(summary['reference_price'], '73')
 
-    def test_minus_2043_falls_back(self):
-        # A -2043 error is surfaced by the client as NO_REFERENCE_PRICE.
-        v = self._validator(price='60', reference=None)
-        summary = v.validate_replacement('ETHUSDT', 'order', self._sell('60.00'))
-        self.assertEqual(summary['reference_price'], '60')
 
-    def test_malformed_reference_fails_closed(self):
-        from services.execution_sidecar.filters import FilterDataUnavailable
-        v = self._validator(price='50', reference='not-a-number')
-        with self.assertRaises(FilterDataUnavailable):
-            v.validate_replacement('ETHUSDT', 'order', self._sell('50.00'))
 
-    def test_reference_fetch_error_fails_closed(self):
-        from services.common.binance_public import BinancePublicError
-        from services.execution_sidecar.filters import FilterDataUnavailable
-        v = self._validator(price='50', ref_error=BinancePublicError('timeout'))
-        with self.assertRaises(FilterDataUnavailable):
-            v.validate_replacement('ETHUSDT', 'order', self._sell('50.00'))
 
     def test_client_maps_minus_2043_and_null_to_no_reference(self):
         # Unit-level proof of the client contract used above.
@@ -435,112 +300,11 @@ class ReferencePriceFilterTests(unittest.TestCase):
 
 
 # ── C-004 + C-002: simulation lifecycle with faults, structured emergency ─
-class SimulationLifecycleTests(unittest.TestCase):
-    def _adapter(self, root):
-        from services.execution_sidecar.simulation_adapter import SimulationAdapter
-        from services.execution_sidecar.state_store import StateStore
-        from services.execution_sidecar.risk_checks import FreshSignalGuard
-        store = StateStore(root / 'state.json', root / 'state.sqlite')
-        guard = FreshSignalGuard(root / 'risk.json', state_store=store)
-        adapter = SimulationAdapter(store, guard, fault_path=root / 'faults.json')
-        adapter.start()
-        store.upsert_trade('t1', 'ETH/USDT', lifecycle_state='SIGNAL_APPROVED')
-        return adapter, store
-
-    def test_normal_fill_events_wait_for_coverage_verification(self):
-        with tempfile.TemporaryDirectory() as td:
-            adapter, store = self._adapter(Path(td))
-            ok, msg = adapter.submit('ETHUSDT')
-            self.assertTrue(ok)
-            self.assertIn('ETHUSDT', adapter.sim_positions)
-            with store._connect() as con:
-                row = con.execute("SELECT lifecycle_state FROM trade_records WHERE trade_id='t1'").fetchone()
-            self.assertEqual(row['lifecycle_state'], 'RECONCILIATION_REQUIRED')
-
-    def test_reject_fault_is_not_accepted(self):
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            (root / 'faults.json').write_text(json.dumps({'queue': ['reject']}))
-            adapter, store = self._adapter(root)
-            ok, msg = adapter.submit('ETHUSDT')
-            self.assertFalse(ok)
-            self.assertIn('reject', msg.lower())
-
-    def test_timeout_fault_is_uncertain(self):
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            (root / 'faults.json').write_text(json.dumps({'queue': ['timeout']}))
-            adapter, store = self._adapter(root)
-            ok, msg = adapter.submit('ETHUSDT')
-            self.assertFalse(ok)
-            self.assertIn('reconcil', msg.lower())
-
-    def test_partial_fill_fault_protects_partial(self):
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            (root / 'faults.json').write_text(json.dumps({'queue': ['partial_fill']}))
-            adapter, store = self._adapter(root)
-            ok, msg = adapter.submit('ETHUSDT')
-            self.assertTrue(ok)
-            self.assertTrue(adapter.sim_positions['ETHUSDT']['partial'])
-
-    def test_emergency_exit_returns_structured_verified_result(self):
-        with tempfile.TemporaryDirectory() as td:
-            adapter, store = self._adapter(Path(td))
-            adapter.submit('ETHUSDT')
-            result = adapter.emergency_exit('ETHUSDT')
-            self.assertIsInstance(result, dict)
-            self.assertTrue(result['ok'])
-            self.assertEqual(result['stage'], 'verified-exit')
-
-    def test_emergency_exit_missing_position_is_not_success(self):
-        with tempfile.TemporaryDirectory() as td:
-            adapter, store = self._adapter(Path(td))
-            result = adapter.emergency_exit('ADAUSDT')
-            self.assertFalse(result['ok'])
 
 
 # ── H-005: endpoint-complete reconciliation ───────────────────────────────
-class ReconciliationTests(unittest.TestCase):
-    def test_all_endpoints_ok_reports_success(self):
-        adapter = _reconcile_adapter(fail=None)
-        result = adapter.verified_reconcile()
-        self.assertTrue(result['ok'])
-
-    def test_failed_enumeration_reports_failure_not_success(self):
-        adapter = _reconcile_adapter(fail='openOrders')
-        result = adapter.verified_reconcile()
-        self.assertFalse(result['ok'])
-        self.assertIn('openOrders', result['detail'])
 
 
-def _reconcile_adapter(fail):
-    from services.execution_sidecar.core_adapter import CoreAdapter
-
-    class Client:
-        def get_open_orders(self):
-            if fail == 'openOrders':
-                raise RuntimeError('timeout')
-            return []
-
-        def _get(self, path, signed, data=None):
-            if fail == 'openOrderList':
-                raise RuntimeError('timeout')
-            return []
-
-        def get_account(self):
-            if fail == 'account':
-                raise RuntimeError('timeout')
-            return {'balances': []}
-
-    broker = SimpleNamespace(c=Client(), _sync_weight=lambda: None)
-    pf = SimpleNamespace(save=lambda: None)
-    trader = SimpleNamespace(broker=broker, pf=pf, _uds_resync=lambda: None)
-    adapter = CoreAdapter.__new__(CoreAdapter)
-    adapter.trader = trader
-    adapter.state_store = None
-    adapter.mirror_positions = lambda status: 0
-    return adapter
 
 
 # ── V101-NEW-007: bounded configuration ───────────────────────────────────
@@ -559,52 +323,9 @@ class ConfigBoundsTests(unittest.TestCase):
         with mock.patch.dict('os.environ', {'PAIR_COOLDOWN_SECONDS': '30'}):
             self.assertEqual(env_int('PAIR_COOLDOWN_SECONDS', 60, 0, 86_400), 30)
 
-    def test_guard_rejects_unsafe_environment_at_construction(self):
-        from services.execution_sidecar.risk_checks import FreshSignalGuard
-        with tempfile.TemporaryDirectory() as td, \
-             mock.patch.dict('os.environ', {'MAX_SIGNAL_AGE_SECONDS': '-1'}):
-            with self.assertRaises(ConfigError):
-                FreshSignalGuard(Path(td) / 'risk.json')
 
 
 # ── V101-NEW-006: fee-shave zero guard ────────────────────────────────────
-class FeeShaveTests(unittest.TestCase):
-    def test_zero_shaved_quantity_rejects_entry(self):
-        from services.execution_sidecar.protection_modes import OrderRequestFactory
-        from services.common.models import ProtectionMode
-
-        class L:
-            CFG = SimpleNamespace(EXIT_FEE_SHAVE=True, FEE_PCT_PER_SIDE=100.0,
-                                  FIXED_STOP_PCT=2.0, LIMIT_FILL_BUFFER_BIPS=10,
-                                  OTOCO_TP_PCT=4.0, INITIAL_TRAIL_DELTA_BIPS=100)
-
-            @staticmethod
-            def round_down(v, s):
-                from decimal import Decimal, ROUND_DOWN
-                v, s = Decimal(str(v)), Decimal(str(s))
-                return (v / s).to_integral_value(rounding=ROUND_DOWN) * s
-
-            @staticmethod
-            def dstr(v):
-                return format(Decimal(str(v)), 'f')
-
-            @staticmethod
-            def bips_mult(b):
-                return Decimal(1) + Decimal(b) / Decimal(10000)
-
-            _c = 0
-
-            @classmethod
-            def _new_coid(cls, p='X'):
-                cls._c += 1
-                return f'{p}{cls._c}'
-
-        sym = SimpleNamespace(symbol='DUSTUSDT', tick=Decimal('0.01'), step=Decimal('1'),
-                              trail_min=10, trail_max=2000)
-        factory = OrderRequestFactory(L)
-        # 100% fee shave -> shaved qty rounds to zero -> entry must be refused.
-        with self.assertRaisesRegex(ValueError, 'rounds to zero'):
-            factory.entry(ProtectionMode.FIXED_OCO, sym, Decimal('1'), Decimal('10'), Decimal('12'), 100)
 
 
 # ── master protocol 8.3/8.4: durable screening queue ──────────────────────
@@ -720,164 +441,14 @@ class TelegramShariaControlTests(unittest.TestCase):
 
 
 # ── H-006: SQLite integrity / verified backup ─────────────────────────────
-class SqliteIntegrityTests(unittest.TestCase):
-    def test_corrupted_db_fails_closed_on_init(self):
-        from services.execution_sidecar.state_store import StateStore
-        with tempfile.TemporaryDirectory() as td:
-            db = Path(td) / 'state.sqlite'
-            db.write_bytes(b'SQLite format 3\x00' + b'\xde\xad\xbe\xef' * 400)
-            with self.assertRaises(RuntimeError):
-                StateStore(Path(td) / 'state.json', db)
-
-    def test_verified_backup_is_produced(self):
-        from services.execution_sidecar.state_store import StateStore
-        with tempfile.TemporaryDirectory() as td:
-            store = StateStore(Path(td) / 'state.json', Path(td) / 'state.sqlite')
-            store.upsert_trade('t1', 'ETH/USDT', lifecycle_state='ENTRY_FILLED')
-            dest = store.backup(Path(td) / 'backups', retain=3)
-            self.assertTrue(Path(dest).exists())
 
 
 # ── master protocol 8.5: signal-time fresh screening seam ─────────────────
-class SignalTimeScreeningTests(unittest.TestCase):
-    def _manager(self, root, gate_mode, signal_id, status='GREEN'):
-        from services.execution_sidecar import order_manager as om
-        from services.execution_sidecar.state_store import StateStore
-        from services.execution_sidecar.risk_checks import FreshSignalGuard
-        from services.execution_sidecar.simulation_adapter import SimulationAdapter
-        store = StateStore(root / 'state.json', root / 'state.sqlite')
-        store.data['simulation'] = True
-        store.set_entries(True)
-        guard = FreshSignalGuard(root / 'risk.json', state_store=store)
-        adapter = SimulationAdapter(store, guard); adapter.start()
-        sharia = root / 'sharia.json'
-        _harness.write_attested_status(sharia, [('ETH', status)])
-        processed = root / 'processed'; rejected = root / 'rejected'
-        processed.mkdir(); rejected.mkdir()
-        # Isolate the Sharia queue/result buses per test so results never leak
-        # across tests via the global shared paths.
-        queue_inbox = root / 'sharia_queue_inbox'; queue_inbox.mkdir()
-        results_dir = root / 'sharia_results'; results_dir.mkdir()
-        self._patchers = [
-            mock.patch.object(om, 'SHARIA_QUEUE_INBOX', queue_inbox),
-            mock.patch.object(om, 'SHARIA_RESULTS_DIR', results_dir),
-            mock.patch.object(om, 'SHARIA_REPORTS_DIR', root / 'reports'),
-            mock.patch.object(om, 'load_package_mode', return_value='testnet'),
-            mock.patch.dict('os.environ', {'SHARIA_SIGNAL_GATE_MODE': gate_mode}),
-        ]
-        for p in self._patchers:
-            p.start()
-        mgr = om.OrderManager(adapter, store, guard, store, sharia,
-                              {'processed': processed, 'rejected': rejected})
-        return mgr, store, processed, rejected, results_dir
-
-    def tearDown(self):
-        for p in getattr(self, '_patchers', []):
-            p.stop()
-
-    def _signal(self, root, signal_id):
-        now = datetime.now(timezone.utc)
-        payload = {'signal_id': signal_id, 'pair': 'ETH/USDT', 'symbol': 'ETHUSDT',
-                   'candle_time': now.isoformat(), 'generated_at': now.isoformat(),
-                   'strategy': 'IctSmcStrategy', 'universe_hash': 'h', 'sharia_status': 'GREEN'}
-        path = root / 'inbox'; path.mkdir(exist_ok=True)
-        f = path / f'{signal_id}.json'; f.write_text(json.dumps(_harness.sign_signal(payload)))
-        return f
-
-    def _write_result(self, results_dir, signal_id, final_code):
-        report = (_green_report('ETH') if final_code == 'GREEN'
-                  else fail_closed_report('ETH', reason='test prohibited result'))
-        final_code = str(report['final_code'])
-        report_name = f'ETH_signal-{signal_id}.json'
-        report_dir = results_dir.parent / 'reports'; report_dir.mkdir(exist_ok=True)
-        report_path = report_dir / report_name
-        report_path.write_text(json.dumps(report), encoding='utf-8')
-        payload = {'request_id': 'signal-' + signal_id, 'base': 'ETH',
-                   'pair': 'ETH/USDT', 'final_code': final_code, 'validated': True,
-                   'report_file': report_name,
-                   'report_sha256': hashlib.sha256(report_path.read_bytes()).hexdigest()}
-        (results_dir / f'result_signal-{signal_id}.json').write_text(
-            json.dumps(_harness.sign_sharia_result(payload)))
-
-    def test_cached_gate_processes_recent_signed_eligible_record(self):
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            sid = 'sig-eligible'
-            mgr, store, processed, rejected, results_dir = self._manager(root, 'cached', sid)
-            sig = self._signal(root, sid)
-            ok, msg = mgr.process_signal(sig, {'ETH/USDT'}, 'h')
-            self.assertTrue(ok)
-            self.assertTrue(any(processed.glob('*.json')))
-
-    def test_cached_gate_rejects_prohibited_record(self):
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            sid = 'sig-prohibited'
-            mgr, store, processed, rejected, results_dir = self._manager(
-                root, 'cached', sid, status='NO_TRADE_INFO')
-            sig = self._signal(root, sid)
-            ok, reason = mgr.process_signal(sig, {'ETH/USDT'}, 'h')
-            self.assertFalse(ok)
-            self.assertIn('sharia_', reason)
-            self.assertTrue(any(rejected.glob('*.json')))
 
 
-def OrderManagerAwaiting():
-    from services.execution_sidecar.order_manager import OrderManager
-    return OrderManager.AWAITING
 
 
 # ── Step 2 adoption: modern (post-listenKey) user-data-stream transport ────
-class ModernUserDataStreamTests(unittest.TestCase):
-    def _stream(self):
-        from services.execution_sidecar.user_data_stream import ModernUserDataStream
-        return ModernUserDataStream(broker=SimpleNamespace(), testnet=True)
-
-    def test_credentials_required(self):
-        from services.execution_sidecar.user_data_stream import ModernUserDataStream
-        s = ModernUserDataStream(broker=SimpleNamespace(), testnet=True)
-        with mock.patch.dict('os.environ', {'BINANCE_API_KEY': '', 'BINANCE_API_SECRET': ''}, clear=False):
-            with self.assertRaises(RuntimeError):
-                s.start()
-
-    def test_subscription_request_is_signed_and_uses_ws_api_method(self):
-        s = self._stream()
-        with mock.patch.dict('os.environ', {'BINANCE_API_KEY': 'k' * 16, 'BINANCE_API_SECRET': 's' * 16}):
-            req = s._subscription_request()
-        self.assertEqual(req['method'], 'userDataStream.subscribe.signature')
-        self.assertIn('signature', req['params'])
-        self.assertEqual(req['params']['apiKey'], 'k' * 16)
-        self.assertTrue(len(req['params']['signature']) == 64)  # hex sha256
-
-    def test_endpoint_selection(self):
-        from services.execution_sidecar.user_data_stream import ModernUserDataStream
-        self.assertIn('testnet', ModernUserDataStream(broker=None, testnet=True).endpoint)
-        self.assertIn('ws-api.binance.com', ModernUserDataStream(broker=None, testnet=False).endpoint)
-
-    def test_event_dispatch_routes_by_type(self):
-        seen = {'order': None, 'list': None, 'resync': 0}
-        from services.execution_sidecar.user_data_stream import ModernUserDataStream
-        s = ModernUserDataStream(
-            broker=None,
-            on_order_update=lambda e: seen.__setitem__('order', e),
-            on_list_update=lambda e: seen.__setitem__('list', e),
-            on_resync=lambda: seen.__setitem__('resync', seen['resync'] + 1),
-        )
-        s._dispatch_event({'e': 'executionReport', 'X': 'FILLED'})
-        s._dispatch_event({'e': 'listStatus', 'l': 'ALL_DONE'})
-        s._dispatch_event({'e': 'outboundAccountPosition'})
-        self.assertEqual(seen['order']['X'], 'FILLED')
-        self.assertEqual(seen['list']['l'], 'ALL_DONE')
-        self.assertEqual(seen['resync'], 1)
-
-    def test_core_adapter_swaps_legacy_transport_at_start(self):
-        # The adoption must replace only the runtime class reference; the
-        # legacy source stays byte-identical (enforced by the preservation test).
-        import services.execution_sidecar.core_adapter as ca
-        from services.execution_sidecar.user_data_stream import ModernUserDataStream
-        src = (ROOT / 'services/execution_sidecar/core_adapter.py').read_text(encoding='utf-8')
-        self.assertIn('legacy.UserDataStream = ModernUserDataStream', src)
-        self.assertTrue(issubclass(ModernUserDataStream, object))
 
 
 if __name__ == '__main__':

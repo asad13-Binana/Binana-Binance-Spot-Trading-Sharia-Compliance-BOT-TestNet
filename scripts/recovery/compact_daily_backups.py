@@ -10,7 +10,7 @@ from pathlib import Path
 import re
 import time
 
-import compact_old_binana_backups_20261007 as archive
+import backup_archive as archive
 
 
 def prune_archives(root, *, keep):
@@ -58,6 +58,8 @@ def main():
     if os.geteuid()!=0:raise RuntimeError('ROOT_REQUIRED')
     os.umask(0o077)
     root=archive.ROOT
+    if root is None:
+        raise RuntimeError('EXPLICIT_BACKUP_ROOT_REQUIRED')
     if root.resolve()!=root or root.is_symlink():raise RuntimeError('BACKUP_ROOT_CHANGED')
     with (root/'.backup.lock').open('a') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
@@ -67,4 +69,9 @@ def main():
         prune_archives(root,keep=int(os.environ.get('BACKUP_RETAIN','14')))
 
 
-if __name__=='__main__':main()
+if __name__=='__main__':
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--root', type=Path, required=True)
+    archive.ROOT = parser.parse_args().root
+    main()

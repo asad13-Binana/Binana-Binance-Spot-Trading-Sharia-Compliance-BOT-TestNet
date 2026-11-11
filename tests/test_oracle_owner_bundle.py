@@ -36,7 +36,7 @@ def fixture_archive():
     with tarfile.open(fileobj=output, mode="w:gz") as archive:
         for name, raw in {
             "README.md": b"Packaging fixture, not an executable Freqtrade build.\n",
-            "freqtrade/__init__.py": b"__version__ = '2026.9'\n",
+            "freqtrade/__init__.py": b"__version__ = '2026.10'\n",
             "ft_client/__init__.py": b"",
         }.items():
             member = tarfile.TarInfo("freqtrade-fixture/" + name)

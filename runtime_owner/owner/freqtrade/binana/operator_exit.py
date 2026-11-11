@@ -54,6 +54,9 @@ class OperatorExit:
             raise RecoveryBlocked('OPERATOR_REMAINDER_NOT_EXECUTABLE')
         for rule in (lot, market):
             self.order_lists._validate_quantity(quantity, rule, 'operator exit')
+        symbol = pair.replace('/', '')
+        reference_loaded = False
+        reference = None
         for rule in (rules.get('MIN_NOTIONAL'), rules.get('NOTIONAL')):
             if not rule:
                 continue
@@ -62,16 +65,19 @@ class OperatorExit:
             maximum = rule.get('applyMaxToMarket', False)
             if not minimum and not maximum:
                 continue
-            reference = price
-            minutes = int(rule.get('avgPriceMins') or 0)
-            if minutes:
-                average = self.order_lists.public.publicGetAvgPrice({'symbol': pair.replace('/', '')})
-                if int(average.get('mins', -1)) != minutes:
-                    raise RecoveryBlocked('OPERATOR_NOTIONAL_REFERENCE_UNVERIFIED')
-                reference = dec(average['price'])
-            if minimum and min(price, reference) * quantity < dec(rule.get('minNotional', '0')):
+            try:
+                if not reference_loaded:
+                    reference = self.order_lists._reference_price(symbol)
+                    reference_loaded = True
+                # Binance applies the reference price when available; only a
+                # verified null permits the filter's VWAP/last-price fallback.
+                basis = self.order_lists._percent_basis(
+                    symbol, dict(rule, avgPriceMins=rule.get('avgPriceMins', 0)), reference)
+            except Exception:
+                raise RecoveryBlocked('OPERATOR_NOTIONAL_REFERENCE_UNVERIFIED') from None
+            if minimum and basis * quantity < dec(rule.get('minNotional', '0')):
                 raise RecoveryBlocked('OPERATOR_BELOW_MIN_NOTIONAL')
-            if maximum and dec(rule.get('maxNotional', '0')) and max(price, reference) * quantity > dec(rule['maxNotional']):
+            if maximum and dec(rule.get('maxNotional', '0')) and basis * quantity > dec(rule['maxNotional']):
                 raise RecoveryBlocked('OPERATOR_ABOVE_MAX_NOTIONAL')
         if not any(key in rules for key in ('MIN_NOTIONAL', 'NOTIONAL')):
             raise RecoveryBlocked('OPERATOR_NOTIONAL_FILTER_UNAVAILABLE')

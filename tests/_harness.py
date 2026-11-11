@@ -196,46 +196,6 @@ def write_attested_status(path: Path, records) -> Path:
     return path
 
 
-def write_live_evidence(runtime_dir, release_hash: str, strategy_path,
-                        *, controller_sha256: str = V19_CONTROLLER_SHA256,
-                        trades: int = 120) -> Path:
-    """Build and sign a complete live-promotion evidence envelope (C-003/H-007).
-
-    Binds the envelope to `release_hash` so the sidecar's live gate can verify
-    it. Used to prove the STRONGER gate can still pass with full evidence.
-    """
-    from services.common.strategy_fingerprint import fingerprints
-    prints = fingerprints(Path(strategy_path), 'IctSmcStrategy', [
-        'populate_indicators_5m', 'populate_indicators',
-        'populate_entry_trend', 'populate_exit_trend'])
-    payload = {
-        'release_hash': release_hash, 'controller_sha256': controller_sha256,
-        'strategy_fingerprints': prints,
-        'freqtrade_backtest': {
-            'strategy': 'IctSmcStrategy', 'artifact_sha256': 'd' * 64,
-            'trades': trades, 'timerange': '20260101-20260301',
-        },
-        'assertions': {
-            'binance_spot_testnet_lifecycle_passed': True,
-            'oracle_deployment_soak_completed': True,
-            'step1_clean_passes_completed': True,
-            'final_clean_passes_completed': True,
-        },
-    }
-    old = os.environ.get('ENVELOPE_RELEASE_HASH')
-    os.environ['ENVELOPE_RELEASE_HASH'] = release_hash
-    try:
-        signed = envelope.sign_envelope(
-            producer='release-certifier', purpose=envelope.BUS_LIVE_EVIDENCE,
-            payload=payload, ttl_seconds=3600)
-    finally:
-        if old is not None:
-            os.environ['ENVELOPE_RELEASE_HASH'] = old
-    runtime_dir = Path(runtime_dir)
-    runtime_dir.mkdir(parents=True, exist_ok=True)
-    target = runtime_dir / 'LIVE_EVIDENCE.json'
-    target.write_text(json.dumps(signed), encoding='utf-8')
-    return target
 
 
 def posix_bash() -> str | None:

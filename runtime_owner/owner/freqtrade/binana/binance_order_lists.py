@@ -352,14 +352,14 @@ class BinanceOrderLists:
             "pendingAbovePrice":self._format(plan.tp_price),
             "pendingBelowType":"STOP_LOSS_LIMIT","pendingBelowClientOrderId":sid,
             "pendingBelowPrice":self._format(plan.stop_limit),"pendingBelowStopPrice":self._format(plan.stop_trigger),
-            "pendingBelowTimeInForce":"GTC",
+            "pendingBelowTimeInForce":"GTC","maxRetriesOnFailure":0,
         }
         try:
             response=self.api.privatePostOrderListOtoco(params)
         except Exception as exc:
             # Network/timeouts/5xx are not safe to blindly retry. The caller persists
             # deterministic IDs before submission and reconciles them on any exception.
-            raise OrderListUnknown(f"OTOCO submission outcome unknown: {type(exc).__name__}: {exc}") from exc
+            raise OrderListUnknown(f"OTOCO submission outcome unknown: {type(exc).__name__}") from exc
         return response,self._extract_ids(response,list_client_id=lid,working_client_id=wid,tp_client_id=tid,sl_client_id=sid)
 
     def submit_oco(self, plan: ProtectionPlan) -> tuple[dict[str, Any], ListIds]:
@@ -371,7 +371,7 @@ class BinanceOrderLists:
         params={"symbol":_symbol(plan.pair),"listClientOrderId":lid,"side":"SELL",
                 "quantity":self._format(plan.quantity),"newOrderRespType":"FULL",
                 "aboveType":"LIMIT_MAKER","aboveClientOrderId":tid,"abovePrice":self._format(plan.tp_price),
-                "belowType":"STOP_LOSS_LIMIT","belowClientOrderId":sid,"belowTimeInForce":"GTC"}
+                "belowType":"STOP_LOSS_LIMIT","belowClientOrderId":sid,"belowTimeInForce":"GTC","maxRetriesOnFailure":0}
         if plan.mode == "FIXED_OCO":
             params.update({"belowPrice":self._format(plan.stop_limit),"belowStopPrice":self._format(plan.stop_trigger)})
         elif plan.mode == "TRAILING_OCO":
@@ -386,7 +386,7 @@ class BinanceOrderLists:
         try:
             response=self.api.privatePostOrderListOco(params)
         except Exception as exc:
-            raise OrderListUnknown(f"OCO submission outcome unknown: {type(exc).__name__}: {exc}") from exc
+            raise OrderListUnknown(f"OCO submission outcome unknown: {type(exc).__name__}") from exc
         return response,self._extract_ids(response,list_client_id=lid,working_client_id=None,tp_client_id=tid,sl_client_id=sid)
 
     def query_list(self, *, order_list_id: str | None = None, list_client_id: str | None = None) -> dict[str, Any]:
@@ -398,10 +398,10 @@ class BinanceOrderLists:
 
     def cancel_list(self, *, symbol: str, order_list_id: str | None = None, list_client_id: str | None = None) -> dict[str, Any]:
         if not order_list_id and not list_client_id: raise OrderListError("order-list identity required")
-        params={"symbol":_symbol(symbol)}
+        params={"symbol":_symbol(symbol),"maxRetriesOnFailure":0}
         if order_list_id: params["orderListId"]=order_list_id
         else: params["listClientOrderId"]=list_client_id
         try:
             return self.api.privateDeleteOrderList(params)
         except Exception as exc:
-            raise OrderListUnknown(f"order-list cancellation outcome unknown: {type(exc).__name__}: {exc}") from exc
+            raise OrderListUnknown(f"order-list cancellation outcome unknown: {type(exc).__name__}") from exc

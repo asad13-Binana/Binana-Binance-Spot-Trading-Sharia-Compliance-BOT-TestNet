@@ -4,7 +4,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXCLUDE = {'RELEASE_MANIFEST.json', 'RELEASE_SHA256.txt'}
-EXCLUDE_PARTS = {'.git', '__pycache__', '.pytest_cache', '.ruff_cache'}
+EXCLUDE_PARTS = {'.git', '__pycache__', '.pytest_cache', '.ruff_cache', '.hypothesis'}
 
 
 def sha(path: Path) -> str:
@@ -57,22 +57,16 @@ def main():
             errors.append(f'hash mismatch: {rel}')
         if path.stat().st_size != int(meta.get('size', -1)):
             errors.append(f'size mismatch: {rel}')
-    preservation = manifest.get('preservation', {})
-    if preservation.get('legacy_core_sha256') != preservation.get('expected_legacy_core_sha256'):
-        errors.append('legacy core preservation hash mismatch in manifest')
-    if preservation.get('strategy_signal_fingerprints') != preservation.get('expected_strategy_signal_fingerprints'):
-        errors.append('strategy signal fingerprint mismatch in manifest')
-    # Recompute the canonical fingerprints from the installed strategy file so a
-    # manifest edited in transit cannot vouch for a modified strategy.
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))
-    from services.common.strategy_fingerprint import fingerprints
-    live = fingerprints(
-        ROOT / 'freqtrade/user_data/strategies/IctSmcStrategy.py', 'IctSmcStrategy',
-        ['populate_indicators_5m', 'populate_indicators', 'populate_entry_trend', 'populate_exit_trend'],
-    )
-    if live != preservation.get('expected_strategy_signal_fingerprints'):
-        errors.append('installed strategy signal methods differ from expected fingerprints')
+    from services.common.owner_source_integrity import verify
+    try:
+        protected = verify(ROOT)
+        expected = {'execution_owner': 'BinanaNfiSpot', 'protected_source_sha256': protected}
+        if manifest.get('preservation') != expected:
+            errors.append('manifest owner/support preservation does not match reviewed sources')
+    except (OSError, ValueError) as error:
+        errors.append(str(error))
     release_line = (ROOT / 'RELEASE_SHA256.txt').read_text(encoding='utf-8').split()[0]
     if release_line != sha(manifest_path):
         errors.append('manifest release hash mismatch')
