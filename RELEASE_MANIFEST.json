@@ -361,7 +361,7 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "d548dcc844b7ad7f8e9ce4bf9d7df724d0f6668cdfb8e4c8bc80a2e81ac02d32",
+      "sha256": "3d9d7d92241cea6efcaf70064437c45e8d3084ce902612a3b1483061756feb0b",
       "size": 93634
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
@@ -369,8 +369,8 @@
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "5a35f7ddf2fd495ae638d9ed4b32da0905d5f5201f1d3b3d7d15255e4e12ed4f",
-      "size": 602897
+      "sha256": "c09febf1b97bf2585b952ef6c9052e6ee3d19b7091ae43213ceb7bbac4157a1e",
+      "size": 603053
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -2293,8 +2293,8 @@
       "size": 21319
     },
     "tests/test_workflow_graph.py": {
-      "sha256": "681b3bec5cbb9579cee4040d081779e8561e166b8d0e1fd043581ed302fdac41",
-      "size": 2639
+      "sha256": "8db5607cdeb8304979aea8a2204e5c6aedfc5eac2c75f5e2b25151ce1df48aac",
+      "size": 4240
     }
   },
   "lineage": "Freqtrade-owned Oracle bundle; historical source identities retained in Git",

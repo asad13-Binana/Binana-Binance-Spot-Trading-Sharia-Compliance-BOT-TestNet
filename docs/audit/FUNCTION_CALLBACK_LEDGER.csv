@@ -4380,8 +4380,9 @@ tests/test_verdict_policy.py,RejectedResponseIsClosedTests.test_a_peer_rejected_
 tests/test_verdict_policy.py,RejectedResponseIsClosedTests.test_a_peer_rejected_response_is_closed_before_raising._Resp.close,function,nested,461,462,-,test
 tests/test_verdict_policy.py,RejectedResponseIsClosedTests.test_a_peer_rejected_response_is_closed_before_raising._Resp.iter_content,function,nested,464,465,-,test
 tests/test_verdict_policy.py,RejectedResponseIsClosedTests.test_a_peer_rejected_response_is_closed_before_raising._Session.get,function,nested,468,469,-,test
-tests/test_workflow_graph.py,OracleWorkflowTests.setUp,function,top-level-or-method,11,13,-,test
-tests/test_workflow_graph.py,OracleWorkflowTests.test_artifact_cannot_run_before_support_and_both_native_owner_gates,function,top-level-or-method,15,20,-,test
-tests/test_workflow_graph.py,OracleWorkflowTests.test_ci_has_no_remote_deployment_capability,function,top-level-or-method,22,30,-,test
-tests/test_workflow_graph.py,OracleWorkflowTests.test_image_regressions_cannot_authenticate_or_write_the_host,function,top-level-or-method,32,41,-,test
-tests/test_workflow_graph.py,OracleWorkflowTests.test_explicit_pytest_files_exist_in_this_package,function,top-level-or-method,43,52,-,test
+tests/test_workflow_graph.py,OracleWorkflowTests.setUp,function,top-level-or-method,15,17,-,test
+tests/test_workflow_graph.py,OracleWorkflowTests.test_artifact_cannot_run_before_support_and_both_native_owner_gates,function,top-level-or-method,19,24,-,test
+tests/test_workflow_graph.py,OracleWorkflowTests.test_ci_has_no_remote_deployment_capability,function,top-level-or-method,26,34,-,test
+tests/test_workflow_graph.py,OracleWorkflowTests.test_image_regressions_cannot_authenticate_or_write_the_host,function,top-level-or-method,36,45,-,test
+tests/test_workflow_graph.py,OracleWorkflowTests.test_final_image_gate_rejects_high_findings_and_incomplete_scans,function,top-level-or-method,47,65,-,test
+tests/test_workflow_graph.py,OracleWorkflowTests.test_explicit_pytest_files_exist_in_this_package,function,top-level-or-method,67,76,-,test
