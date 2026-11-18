@@ -81,6 +81,68 @@ are separate evidence for these three components. This work does not run the
 complete upstream SQLite/util-linux/ncurses test suites or prove absence of
 unknown vulnerabilities. Future upstream advisories require continued review.
 
+## Verification follow-up, 18 November 2026
+
+The image implementation was independently rechecked without changing trading
+code, dependency locks, controls or Dockerfiles. The successful implementation
+baseline and native image artifacts for this package are:
+
+- [Commit 9ceff4b](https://github.com/asad13-Binana/Binana-Binance-Spot-Trading-Sharia-Compliance-BOT-TestNet/commit/9ceff4ba275010b75453a1b9c93b8abde74f3f0d), [CI run 43124289497](https://github.com/asad13-Binana/Binana-Binance-Spot-Trading-Sharia-Compliance-BOT-TestNet/actions/runs/43124289497).
+
+That run passed all ten jobs, including Python 3.12/3.13/3.14, dependency audits,
+SAST, installer/rollback/certificate fixtures, and native AMD64/ARM64 images.
+The ARM64 job recorded 287 owner regressions plus four runtime-security tests
+in each owner and support image, all passing. Artifact ZIP hashes were checked
+against GitHub before inspecting the four image reports for this repository.
+
+A fresh Trivy database (`UpdatedAt=2026-11-18T07:15:21.579242117Z`) was used
+to rescan the complete CI package inventories, preserving all 21 OS packages
+and 110 owner or 43 support Python packages. Direct scans of the existing
+local AMD64 audit images confirmed the same result: **0 CRITICAL, 0 HIGH,
+44 MEDIUM, 12 LOW and 5 UNKNOWN per image**. Both local images also passed
+their four runtime-security tests. No ignore file, unfixed filter, VEX or
+severity override was used. The earlier 35-MEDIUM result above is historical.
+
+Remaining UNKNOWN findings concern libc6 (CVE-2026-100290, CVE-2026-115819)
+and libssl3t64 (CVE-2026-107493, CVE-2026-124709, CVE-2026-35190). The scanner
+reported no fixed version for those rows. UNKNOWN does not mean safe.
+New GCC-family advisory CVE-2026-125709 and updated advisory severity data
+contribute to the increased MEDIUM count. These findings remain unresolved.
+
+Focused offline checks used pytest 9.0.2 and Ruff 0.16.2:
+
+```sh
+python -B -m pytest -q -p no:cacheprovider tests/test_oracle_package_mode.py tests/test_workflow_graph.py
+python -B -m ruff check --no-cache --select E9,F63,F7,F82 .
+python -B scripts/verify_manifest.py
+python -B scripts/verify_dependency_consistency.py
+git diff --check
+```
+
+Pytest passed **10 tests and 8 subtests**; Ruff and release checks exited zero.
+Existing Ruff configuration was preserved. Tests used network-disabled
+disposable containers with repository mounts read-only; no packages were
+installed into bot environments. The existing applicable CI results were
+reused instead of restarting unrelated investigations.
+
+Graphify was used for bounded queries, file dependencies and test relationships.
+Its indexed main revision predates the repair branch, so current source and
+executable tests were checked separately. Weak name matches were not counted
+as test coverage. Separate standards and specification reviews found no
+actionable defect in the bounded image-security patch. This does not certify
+every repository file or guarantee absence of vulnerabilities.
+
+The SQLite regression covers new-library WAL commit, rollback and reopen;
+it does not prove old-version state migration or process-crash restoration.
+Actual Oracle state restoration, host-bound certificate issuance/renewal and
+runtime acceptance remain untested. Current source-advisory review is separate
+from Trivy's OS/Python package coverage of the source-built native libraries.
+
+This follow-up updates this existing report and generated release metadata.
+It does not merge the repair branch, create a PR, deploy, restart services
+or activate trading. Its own commit's CI checks must pass before consuming
+the newly generated release artifact.
+
 ## What still blocks Oracle trading deployment
 
 Passing image/source CI does not create or accept an Oracle host. Before

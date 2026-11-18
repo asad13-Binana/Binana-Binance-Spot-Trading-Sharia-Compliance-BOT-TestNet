@@ -265,8 +265,8 @@
       "size": 1947
     },
     "docs/IMAGE_SECURITY_20261112.md": {
-      "sha256": "8fa641c3edb8a6291f694a102df0d8639b24d3397437d8f64868f53efefdfbe8",
-      "size": 7537
+      "sha256": "d8875cec31891bf306609d432c032e654165e6c8a6d0602c95b7db70c3eb6fc5",
+      "size": 11191
     },
     "docs/LEGACY_ORACLE_DEPLOYMENT_GUIDE.md": {
       "sha256": "f216d518140beeb0647f39086bf7804c0e9dd9e7efda98a435ce2cf2bdf2a1cd",
@@ -361,8 +361,8 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "3d9d7d92241cea6efcaf70064437c45e8d3084ce902612a3b1483061756feb0b",
-      "size": 93634
+      "sha256": "d718f14fe16cb5098787c17ac63bc07ef6b710121608000df6ebc8bb1593bff9",
+      "size": 93635
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
