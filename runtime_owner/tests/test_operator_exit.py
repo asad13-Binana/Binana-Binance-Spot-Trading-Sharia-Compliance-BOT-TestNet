@@ -44,7 +44,8 @@ class OperatorExitTests(unittest.TestCase):
             {'filterType':'PRICE_FILTER','tickSize':'.0001','minPrice':'.0001','maxPrice':'10000'},
             {'filterType':'LOT_SIZE','stepSize':'.01','minQty':'.01','maxQty':'100000'},
             {'filterType':'MARKET_LOT_SIZE','stepSize':'.01','minQty':'.01','maxQty':'100000'},
-            {'filterType':'NOTIONAL','minNotional':'.1','maxNotional':'1000000','applyMinToMarket':True,'applyMaxToMarket':True},
+            {'filterType':'NOTIONAL','minNotional':'.1','maxNotional':'1000000',
+             'applyMinToMarket':True,'applyMaxToMarket':True,'avgPriceMins':0},
             {'filterType':'MAX_NUM_ORDERS','maxNumOrders':100},
             {'filterType':'MAX_NUM_ORDER_LISTS','maxNumOrderLists':100},
             {'filterType':'MAX_NUM_ALGO_ORDERS','maxNumAlgoOrders':100}]

@@ -36,6 +36,29 @@ class MarketNotionalReference(unittest.TestCase):
                     quantity()
                 self.public.publicGetAvgPrice.assert_not_called()
 
+    def test_null_reference_requires_an_explicit_integer_averaging_window(self):
+        for kind in ('NOTIONAL', 'MIN_NOTIONAL'):
+            for window in (None, False, 0.5, -1, '0'):
+                with self.subTest(kind=kind, window=window):
+                    quantity = self.fixture(reference=None, average='100', last='1')
+                    rule = self.rules[-1]
+                    rule.update(filterType=kind, applyToMarket=True)
+                    if window is None:
+                        del rule['avgPriceMins']
+                    else:
+                        rule['avgPriceMins'] = window
+                    with self.assertRaisesRegex(RecoveryBlocked, 'OPERATOR_NOTIONAL_REFERENCE_UNVERIFIED'):
+                        quantity()
+                    self.public.publicGetTickerPrice.assert_not_called()
+                    self.public.publicGetAvgPrice.assert_not_called()
+
+    def test_market_and_regular_lots_share_an_exact_increment(self):
+        quantity = self.fixture()
+        self.rules[0]['stepSize'] = '.03'
+        self.rules[1]['stepSize'] = '.02'
+        self.rules[-1]['minNotional'] = '1'
+        self.assertEqual(quantity(), Decimal('.06'))
+
     def test_nonnull_reference_rejects_above_maximum(self):
         quantity = self.fixture(reference='200')
         with self.assertRaisesRegex(RecoveryBlocked, 'OPERATOR_ABOVE_MAX_NOTIONAL'):

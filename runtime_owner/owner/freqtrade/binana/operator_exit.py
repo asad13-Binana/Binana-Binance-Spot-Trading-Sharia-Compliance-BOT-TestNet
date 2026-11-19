@@ -1,12 +1,29 @@
 """Durable full-position operator exits, serialized by Freqtrade's exit lock."""
 import json
 from decimal import Decimal
+from math import lcm
 from .canonical_fees import receipt
 from .recovery_contract import RecoveryBlocked, TERMINAL, dec
 from .environment import execution_rest_endpoint
 
 
 OPERATOR_PRE_SUBMISSION = frozenset({'EXIT_REQUESTED', 'EXIT_CANCEL_PENDING', 'EXIT_CANCEL_UNKNOWN'})
+OPERATOR_DUST_REPLAY = frozenset({'OPERATOR_REMAINDER_DUST', 'DUST_PENDING', 'DUST_RETAINED'})
+
+
+class MarketBelowMinimum(RecoveryBlocked):
+    """A market remainder below minimum after all applicable filters were verified."""
+
+    def __init__(self, reason, classification, bases):
+        super().__init__(reason)
+        self.classification = classification
+        self.bases = bases
+
+
+def unsubmitted_operator_exit(generation):
+    return (generation['mode'] == 'OPERATOR_EXIT' and not generation.get('tp_order_id')
+            and generation.get('expected_qty') is None
+            and generation['status'] in OPERATOR_PRE_SUBMISSION | OPERATOR_DUST_REPLAY)
 
 
 class OperatorExit:
@@ -39,58 +56,77 @@ class OperatorExit:
         return {'trade_id': trade.id, 'state': 'accepted', 'generation': generation['generation'],
                 'phase': generation['status'], 'message': 'Durable exit request; exchange reconciliation pending'}
 
-    def _operator_market_quantity(self, pair, owned, filters, price):
+    def _operator_market_quantity(self, pair, owned, filters, price, *, reserved=None):
         rules = {row['filterType']: row for row in filters}
-        lot = rules.get('LOT_SIZE')
-        market = rules.get('MARKET_LOT_SIZE')
-        if not lot or not market or price <= 0:
+        if price <= 0 or not {'LOT_SIZE', 'MARKET_LOT_SIZE'} <= rules.keys():
             raise RecoveryBlocked('OPERATOR_MARKET_FILTERS_UNAVAILABLE')
-        quantity = owned
-        for rule in (lot, market):
-            step = dec(rule.get('stepSize', '0'))
-            if step > 0:
-                quantity = quantity // step * step
-        if quantity <= 0:
-            raise RecoveryBlocked('OPERATOR_REMAINDER_NOT_EXECUTABLE')
-        for rule in (lot, market):
-            self.order_lists._validate_quantity(quantity, rule, 'operator exit')
+        # A quantity must align to both increments, even when neither divides the other.
+        lots = []
+        for name in ('LOT_SIZE', 'MARKET_LOT_SIZE'):
+            rule = rules[name]
+            minimum, maximum, step = (dec(rule[key]) for key in ('minQty', 'maxQty', 'stepSize'))
+            if min(minimum, maximum, step) < 0 or (maximum and minimum > maximum):
+                raise RecoveryBlocked('OPERATOR_MARKET_FILTERS_INVALID')
+            lots.append((minimum, maximum, step))
+        steps = [step for _, _, step in lots if step > 0]
+        increment = Decimal(0)
+        if steps:
+            scale = 10 ** max(0, -min(step.as_tuple().exponent for step in steps))
+            increment = Decimal(lcm(*(int(step * scale) for step in steps))) / scale
+
         symbol = pair.replace('/', '')
-        reference_loaded = False
+        bounds, bases = [], {}
         reference = None
-        for rule in (rules.get('MIN_NOTIONAL'), rules.get('NOTIONAL')):
-            if not rule:
+        if not {'MIN_NOTIONAL', 'NOTIONAL'}.intersection(rules):
+            raise RecoveryBlocked('OPERATOR_NOTIONAL_FILTER_UNAVAILABLE')
+        for name in ('MIN_NOTIONAL', 'NOTIONAL'):
+            if name not in rules:
                 continue
-            minimum = (rule.get('applyToMarket', False) if rule['filterType'] == 'MIN_NOTIONAL'
-                       else rule.get('applyMinToMarket', False))
-            maximum = rule.get('applyMaxToMarket', False)
-            if not minimum and not maximum:
+            rule = rules[name]
+            use_min = rule['applyToMarket' if name == 'MIN_NOTIONAL' else 'applyMinToMarket']
+            use_max = rule['applyMaxToMarket'] if name == 'NOTIONAL' else False
+            if type(use_min) is not bool or type(use_max) is not bool:
+                raise RecoveryBlocked('OPERATOR_MARKET_FILTERS_INVALID')
+            if not use_min and not use_max:
                 continue
+            minimum = dec(rule['minNotional']) if use_min else Decimal(0)
+            maximum = dec(rule['maxNotional']) if use_max else Decimal(0)
+            if min(minimum, maximum) < 0 or (maximum and minimum > maximum):
+                raise RecoveryBlocked('OPERATOR_MARKET_FILTERS_INVALID')
             try:
-                if not reference_loaded:
+                if not bases:
                     reference = self.order_lists._reference_price(symbol)
-                    reference_loaded = True
-                # Binance applies the reference price when available; only a
-                # verified null permits the filter's VWAP/last-price fallback.
-                basis = self.order_lists._percent_basis(
-                    symbol, dict(rule, avgPriceMins=rule.get('avgPriceMins', 0)), reference)
+                basis = self.order_lists._percent_basis(symbol, rule, reference)
             except Exception:
                 raise RecoveryBlocked('OPERATOR_NOTIONAL_REFERENCE_UNVERIFIED') from None
-            if minimum and basis * quantity < dec(rule.get('minNotional', '0')):
-                raise RecoveryBlocked('OPERATOR_BELOW_MIN_NOTIONAL')
-            if maximum and dec(rule.get('maxNotional', '0')) and basis * quantity > dec(rule['maxNotional']):
-                raise RecoveryBlocked('OPERATOR_ABOVE_MAX_NOTIONAL')
-        if not any(key in rules for key in ('MIN_NOTIONAL', 'NOTIONAL')):
-            raise RecoveryBlocked('OPERATOR_NOTIONAL_FILTER_UNAVAILABLE')
-        return quantity
+            bases[name] = str(basis)
+            bounds.append((minimum, maximum, basis))
 
-    def reconcile_operator_exit(self, trade, iid, request, histories, all_owned_ids, filters, price, open_orders):
-        """Old history has been authenticated; raced fills were imported first."""
-        if request['status'] not in OPERATOR_PRE_SUBMISSION:
-            raise RecoveryBlocked('OPERATOR_SUBMISSION_MUST_RECOVER_BY_CLIENT_ID')
+        def size(amount):
+            if amount < 0:
+                raise RecoveryBlocked('OPERATOR_CANONICAL_QUANTITY_UNVERIFIED')
+            quantity = (amount // increment) * increment if increment else amount
+            if any(maximum and quantity > maximum for _, maximum, _ in lots):
+                raise RecoveryBlocked('OPERATOR_ABOVE_MAX_QTY')
+            if any(maximum and quantity * basis > maximum for _, maximum, basis in bounds):
+                raise RecoveryBlocked('OPERATOR_ABOVE_MAX_NOTIONAL')
+            if not quantity or any(quantity < minimum for minimum, _, _ in lots):
+                raise MarketBelowMinimum('OPERATOR_REMAINDER_NOT_EXECUTABLE',
+                                         'NON_EXECUTABLE_DUST_MIN_QTY', bases)
+            if any(quantity * basis < minimum for minimum, _, basis in bounds):
+                raise MarketBelowMinimum('OPERATOR_BELOW_MIN_NOTIONAL',
+                                         'NON_EXECUTABLE_DUST_MIN_NOTIONAL', bases)
+            return quantity
+
+        if reserved is not None and reserved != owned:
+            try:
+                return size(reserved)
+            except MarketBelowMinimum:
+                pass  # Retry the verified canonical balance against the same price evidence.
+        return size(owned)
+
+    def _verified_exit_history(self, trade, iid, histories):
         pair = trade.pair
-        payload = json.loads(request['payload_json'])
-        if payload.get('scope_id') != self.scope_id or payload.get('trade_id') != trade.id:
-            raise RecoveryBlocked('OPERATOR_REQUEST_SCOPE_MISMATCH')
         committed = trade.binana_custom_data('binana_fill_receipts')
         economics = trade.binana_economics()
         if not committed or not economics or economics['quantity'] <= 0:
@@ -122,9 +158,30 @@ class OperatorExit:
                 active.append((generation, live))
         if verified != committed['orders']:
             raise RecoveryBlocked('OPERATOR_RECEIPT_COVERAGE_INCOMPLETE')
+        return economics, active
+
+    def reconcile_operator_exit(self, trade, iid, request, histories, all_owned_ids, filters, price, open_orders):
+        """Old history has been authenticated; raced fills were imported first."""
+        if request['status'] not in OPERATOR_PRE_SUBMISSION | OPERATOR_DUST_REPLAY:
+            raise RecoveryBlocked('OPERATOR_SUBMISSION_MUST_RECOVER_BY_CLIENT_ID')
+        pair = trade.pair
+        payload = json.loads(request['payload_json'])
+        if payload.get('scope_id') != self.scope_id or payload.get('trade_id') != trade.id:
+            raise RecoveryBlocked('OPERATOR_REQUEST_SCOPE_MISMATCH')
+        economics, active = self._verified_exit_history(trade, iid, histories)
         if any(str(order.get('id')) not in all_owned_ids for order in open_orders):
             raise RecoveryBlocked('OPERATOR_FOREIGN_OPEN_ORDER')
-        quantity = self._operator_market_quantity(pair, economics['quantity'], filters, price)
+        try:
+            quantity = self._operator_market_quantity(pair, economics['quantity'], filters, price)
+        except MarketBelowMinimum as below:
+            if active or open_orders or not economics['exits']:
+                raise RecoveryBlocked(str(below)) from below
+            raise
+        if request['status'] in OPERATOR_DUST_REPLAY:
+            if request['status'] == 'DUST_RETAINED':
+                raise RecoveryBlocked('OPERATOR_RETAINED_REMAINDER_NOW_EXECUTABLE')
+            if active or open_orders or request.get('expected_qty') is not None:
+                raise RecoveryBlocked('OPERATOR_REMAINDER_REPLAY_CONFLICT')
         if active:
             self.store.update_generation_status(iid, request['generation'], 'EXIT_CANCEL_PENDING', payload=payload)
             for generation, orders in active:
@@ -146,6 +203,7 @@ class OperatorExit:
         balance = self.exchange._api.fetch_balance()
         if dec((balance.get(pair.split('/')[0]) or {}).get('free') or 0) < quantity:
             raise RecoveryBlocked('OPERATOR_INSUFFICIENT_FREE_OWNED_ASSET')
+        self._supersede_retained_dust(trade)
         self.store.prepare_operator_submission(intent_id=iid, generation=request['generation'], quantity=quantity)
         # CCXT removes maxRetriesOnFailure before signing. A timeout is never a
         # second POST: subsequent passes query this persisted client identity.

@@ -151,8 +151,8 @@ class BinanceOrderLists:
     def _percent_basis(self, symbol, rule, reference):
         if reference is not None:
             return reference
-        minutes = int(rule['avgPriceMins'])
-        if minutes < 0:
+        minutes = rule.get('avgPriceMins')
+        if type(minutes) is not int or minutes < 0:
             raise OrderListError('avgPriceMins invalid')
         if minutes == 0:
             response = self.public.publicGetTickerPrice({'symbol':symbol})
@@ -160,7 +160,7 @@ class BinanceOrderLists:
                 raise OrderListError('last-price symbol mismatch')
         else:
             response = self.public.publicGetAvgPrice({'symbol':symbol})
-            if response.get('mins') != minutes:
+            if type(response.get('mins')) is not int or response['mins'] != minutes:
                 raise OrderListError('average price window mismatch')
         value = self._decimal(response.get('price'))
         if value <= 0:
