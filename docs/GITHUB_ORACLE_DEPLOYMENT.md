@@ -1,127 +1,16 @@
-# GitHub-to-Oracle deployment
+# Current Oracle owner route
 
-> Retained root Compose / sidecar procedure. New Freqtrade-only Oracle
-> preparation starts at [ORACLE_OWNER_BUNDLE.md](ORACLE_OWNER_BUNDLE.md).
-> These artifacts are not interchangeable. This is not owner-bundle rollback.
+Use [ORACLE_OWNER_BUNDLE.md](ORACLE_OWNER_BUNDLE.md) for the supported installation.
+The candidate uses Freqtrade **2026.10** with `BinanaNfiSpot`, 5m, four 250 USDT
+slots, unchanged Spot/Sharia/risk gates, and stopped startup. Source preparation
+does not establish host, exchange or strategy-performance acceptance.
 
-## Repository and private-data model
+CI validates and packages the standalone owner/support bundle; it does not SSH
+to a host or deploy. The previous root ICT/sidecar installation is retired.
+Historical reports and recovery records remain evidence for their stated release.
+Current owner behavioral regressions live in `runtime_owner/tests/`; support,
+Sharia, Telegram, packaging and monitoring regressions remain in `tests/` and
+`monitoring/tests/`.
 
-Use one public GitHub repository for source, tests, safe examples, Docker/deployment files, and documentation. Do not place trading credentials in any branch, including a private branch.
-
-Keep private trading material only on Oracle in root-owned `/etc/binana-testnet/.env` with mode `600`, and runtime/private data under `/var/lib/binana-testnet/shared`.
-
-Required GitHub **environment secrets**:
-
-- `ORACLE_HOST`
-- `ORACLE_USER`
-- `ORACLE_SSH_PORT`
-- `ORACLE_SSH_PRIVATE_KEY`
-- `ORACLE_SSH_KNOWN_HOSTS` — a pre-verified host-key line; the workflow deliberately does not use `ssh-keyscan`
-
-Configure a protected `oracle-testnet` GitHub environment and set repository
-variable `ORACLE_TESTNET_DEPLOY_ENABLED=true` only after the host, private
-environment, persistent ownership, and rollback process are prepared.
-
-## Oracle preparation
-
-```bash
-sudo ./deploy/oracle_setup.sh
-sudoedit /etc/binana-testnet/.env
-sudo chmod 600 /etc/binana-testnet/.env
-```
-
-In the private `.env` set:
-
-```text
-BOT_UID=<BOT_UID printed by oracle_setup.sh>
-BOT_GID=<BOT_GID printed by oracle_setup.sh>
-SHARED_HOST_PATH=/var/lib/binana-testnet/shared
-EXECUTION_MODE=testnet
-BINANCE_TESTNET=true
-```
-
-The installer requires Ubuntu 24.04 ARM64 and the declared shared four-bot A1 target: at least 2 OCPUs, 12 GiB RAM, 4 GiB swap, and 80 GiB free on the root filesystem. Use a boot volume larger than 80 GiB (100 GiB is the documented working target) so the free-space gate can pass after the operating system is installed. AMD64 is blocked by default and requires an explicit reviewed override.
-
-Recommended Binance key controls:
-
-- dedicated account/sub-account
-- Spot trading permission only
-- withdrawals disabled
-- Oracle public IP allow-listed
-- no universal-transfer permission unless separately justified
-- testnet credentials during lifecycle validation
-
-## Persistent data
-
-`/var/lib/binana-testnet/shared` retains:
-
-- private Sharia records and legacy-compatible HALAL export
-- sidecar SQLite state and exchange events
-- incoming/processed/rejected signal files
-- universe snapshots and exact snapshot hashes
-- audit logs and bounded backups
-- command results and deployment status
-- preserved-core runtime state/logs/cache
-- Freqtrade database and logs
-- live approval marker
-
-A release never overwrites an existing private Sharia dataset. Release directories and service images are immutable and retained in a bounded rollback set.
-
-## Deployment transaction
-
-A push to `main` performs verification and artifact creation. Only when the
-testnet deployment variable is enabled may CI transfer the artifact and invoke
-the narrow wrapper; the wrapper still fails closed unless an operator has
-independently approved that exact archive digest on the host. CI cannot write
-the root-owned approval file.
-
-1. Python compilation, the complete merged core suite, and monitoring tests
-2. original 33-test V4.9.16 self-test
-3. source-preservation, Sharia-schema, JSON, shell, YAML, secret, and manifest checks
-4. service image build
-5. deterministic immutable one-root tar artifact and SHA-256 checksum
-6. SSH transfer using a pinned known-hosts secret
-7. checksum, traversal, link, special-file, and archive-root validation
-8. safe extraction plus release-manifest, secret, full regression, Compose and image-build verification against the extracted artifact
-9. build of the new immutable image tag before touching the running release
-10. explicit pause and reconciliation commands to the current sidecar, with verified acknowledgements
-11. atomic `current` symlink switch
-12. startup of all six bot services plus the isolated monitoring units, with health verification
-13. deployment status and Telegram notification
-14. automatic rollback to the prior release on failed health checks
-15. bounded old-release and old-image cleanup
-
-This is not an uncontrolled `git pull && restart` process. Every restart leaves new entries paused; the owner must review status and explicitly confirm resume.
-
-## Container secret boundaries
-
-The root Compose file does not pass the whole `.env` into containers:
-
-- `execution-sidecar`: Binance key/secret and execution controls
-- `telegram-broker`: Telegram token/owner and Freqtrade internal API password
-- `freqtrade`: internal API credentials; no Binance secret in the merged signal-only runtime
-- `universe`: public-market filters and Sharia/universe paths only
-
-The `.dockerignore` is allowlist-based so the private `.env`, SQLite files, caches, and unrelated files are excluded from image build context.
-
-## Live promotion marker
-
-Only after all external gates pass, set `SIDECAR_RELEASE_HASH` in the private Oracle environment to the exact hash from the **installed** `RELEASE_SHA256.txt`, and place the same value in:
-
-```text
-/var/lib/binana-testnet/shared/runtime/SIDECAR_LIVE_OK
-```
-
-The sidecar refuses live mode unless the installed release hash, private environment hash and persistent marker all match. The preserved V4.9.16 live markers must independently pass. Matching values are only interlocks; they are not evidence of testnet correctness or live readiness.
-
-## Mandatory external gates
-
-Before production consideration, document for the exact artifact hash:
-
-1. OTO, OTOCO, fixed OCO, OCO+trailing, cancellation, replacement, and user-stream events on Binance Spot Testnet.
-2. Partial fills, accepted-order REST timeouts, duplicate callbacks, stream disconnection, and restart with open order lists.
-3. Oracle simulation with real market data, real Telegram controls, dynamic top-50 snapshots, and active Sharia expiry handling.
-4. Resource/network/restart soak, emergency pause/exit, deployment rollback, and persistent-state recovery.
-5. Three consecutive full clean audit passes.
-
-Keep `EXECUTION_MODE=simulation` or controlled `testnet` until all gates are complete.
+The retained host planning floor is 2 OCPUs, 12 GiB memory and 80 GiB disk.
+Those figures do not prove native host acceptance or capacity for four bundles.

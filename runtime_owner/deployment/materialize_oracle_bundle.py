@@ -150,8 +150,11 @@ def support_sources(repo):
         raise ValueError("MONITOR_SOURCE_MISMATCH")
     result["owner_monitor.py"] = current_monitor(raw, package_environment(repo))
     result["requirements.services.lock"] = source_bytes(repo, "requirements.services.lock")
+    result["requirements.build.lock"] = source_bytes(repo, "runtime_owner/deployment/requirements.build.lock")
     result["RELEASE_MODE"] = (package_environment(repo) + "\n").encode("ascii")
     result["Dockerfile"] = source_bytes(repo, "runtime_owner/deployment/oracle_services.Dockerfile")
+    for name in ('build_native_runtime.sh', 'stage_runtime.py', 'validate_runtime_security.py'):
+        result[name] = source_bytes(repo, 'runtime_owner/deployment/' + name)
     result["validate_support.py"] = source_bytes(repo, "runtime_owner/deployment/oracle_validate_support.py")
     result["oracle_panel.py"] = source_bytes(repo, "runtime_owner/deployment/oracle_panel.py")
     controller = "HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json"

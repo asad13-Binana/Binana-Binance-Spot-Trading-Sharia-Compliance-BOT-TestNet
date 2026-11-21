@@ -517,7 +517,7 @@ def deliver_signal_notifications(limit: int = 20) -> int:
                 raise ValueError('invalid signal identifier')
             if not re.fullmatch(r'[A-Z0-9]{2,20}/USDT', pair):
                 raise ValueError('invalid Spot/USDT pair')
-            if strategy != 'IctSmcStrategy':
+            if strategy != 'BinanaNfiSpot':
                 raise ValueError('unexpected strategy identity')
             candle_time = _redact_secrets(payload.get('candle_time', ''), 80)
             entry_tag = _redact_secrets(payload.get('entry_tag', ''), 80)
@@ -2043,13 +2043,9 @@ def _backtest_status():
     if verified.exists():
         return ('VERIFIED PRODUCTION BACKTEST:\n'
                 + verified.read_text(encoding='utf-8')[:3500])
-    selftest = Path('/app/legacy_core/logs/backtest_results_selftest.json')
     lines = ['NO VERIFIED PRODUCTION BACKTEST is installed.',
              'The strategy has not proven an edge; previous real backtests lost after fees.',
              'Run the exact-strategy Freqtrade backtest and install its verified artifact.']
-    if selftest.exists():
-        lines.append('\n[Deterministic unit self-test artifact — NOT performance evidence:]')
-        lines.append(selftest.read_text(encoding='utf-8')[:1500])
     return '\n'.join(lines)[:3900]
 
 
@@ -2080,12 +2076,12 @@ def route(action, chat, message_id=None):
         edit_or_send(
             'TestNet controls — pause/resume automatic entries, set the existing '
             'USDT-per-trade amount, and set the existing maximum concurrent '
-            'positions. These controls do not change IctSmcStrategy.',
+            'positions. These controls do not change BinanaNfiSpot.',
             chat, message_id, controls_menu())
     elif action == 'menu_autotrade':
         edit_or_send(
             'Manual Auto Trading control. Check Market Context or the latest '
-            'IctSmcStrategy signal, then pause Auto Entries whenever you do not '
+            'BinanaNfiSpot signal, then pause Auto Entries whenever you do not '
             'want new trades. This does not create a second bullishness strategy.',
             chat, message_id, auto_trading_menu())
     elif action == 'menu_sizing':

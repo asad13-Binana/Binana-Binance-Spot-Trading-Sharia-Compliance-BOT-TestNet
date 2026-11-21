@@ -28,6 +28,7 @@ class RuntimeHealthPermissionTests(unittest.TestCase):
         previous = os.umask(0o077)
         self.addCleanup(os.umask, previous)
         self.token = '123456789:' + ('EXAMPLE_' * 5)
+        self.package_mode = (Path(__file__).resolve().parents[1] / 'RELEASE_MODE').read_text().strip()
 
     def poll(self, *, fail=False):
         if fail:
@@ -64,7 +65,7 @@ class RuntimeHealthPermissionTests(unittest.TestCase):
             'advisory_only': True, 'spot_only': True, 'can_trade': False,
         })
         collector.stream = SimpleNamespace(status=lambda: {'subscription_ready': ready})
-        collector.mode = (Path(__file__).resolve().parents[1] / 'RELEASE_MODE').read_text().strip()
+        collector.mode = self.package_mode
         collector._universe_snapshot_hash = 'a' * 64
         collector._last_universe_error = None
         return collector

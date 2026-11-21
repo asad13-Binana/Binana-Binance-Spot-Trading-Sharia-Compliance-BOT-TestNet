@@ -79,6 +79,17 @@ def retained_quantities(trades, scope_id):
 
 
 class RetainedInventory:
+    def _supersede_retained_dust(self, trade):
+        """Keep the verified proof, but remove reactivated holdings from the retained total."""
+        proof = trade.binana_custom_data('binana_retained_dust')
+        if proof is None or (isinstance(proof, dict) and proof.get('phase') == 'superseded'):
+            return
+        if not isinstance(proof, dict) or proof.get('phase') not in ('prepared', 'retained'):
+            raise RecoveryBlocked('RETAINED_PHASE_UNVERIFIED')
+        retained_quantities([trade], self.scope_id)
+        trade.set_custom_data(key='binana_retained_dust', value={**proof, 'phase': 'superseded'})
+        trade.commit()
+
     def refresh_retained_inventory(self, trades, open_orders):
         now = time()
         self._retained_health = {'ok':False, 'checked_at':now}

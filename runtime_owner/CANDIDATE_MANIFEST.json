@@ -19,8 +19,8 @@
       "sha256": "51400315c30a61d6f0cc887dae3735e45730fb0e3cf322bbf4dbba6f4d4a4789"
     },
     "owner/freqtrade/binana/binance_order_lists.py": {
-      "bytes": 23868,
-      "sha256": "f4442d50c969dcd27258f808b61976076cf92525a421e5196174b3e8f06c2931"
+      "bytes": 23983,
+      "sha256": "6027ed5cc0372b53b2fec7fc12f929d1f04bbc241c86509456d41988109692f8"
     },
     "owner/freqtrade/binana/cache.py": {
       "bytes": 15370,
@@ -39,8 +39,8 @@
       "sha256": "2021f65f1c17581df556044b88a3e9fdaccd88e173dc18a1a631bfb9d1a609ea"
     },
     "owner/freqtrade/binana/closed_recovery.py": {
-      "bytes": 9016,
-      "sha256": "95b422cf6b23cdaa2de4906ce24426aae614a43e648886beb998d114c1b8e5f9"
+      "bytes": 8966,
+      "sha256": "c87cca3192f16f1b47c8a46ea32ca1ecc094507863bad9e48bc74ac6a74b6531"
     },
     "owner/freqtrade/binana/confluence.py": {
       "bytes": 4077,
@@ -59,16 +59,16 @@
       "sha256": "076b477006b279e4565173b4fb5f2a5a155a1aaf192b3b91236378ff72be1a46"
     },
     "owner/freqtrade/binana/execution_manager.py": {
-      "bytes": 54837,
-      "sha256": "9a7071ae7152311e1f57b4ede553513aaf8ea470fb713cb965c77646492c1e1f"
+      "bytes": 54855,
+      "sha256": "79ccf3d3e564ca1479f2c52a0a944f5f49781758532948115b77f3ee2faefb64"
     },
     "owner/freqtrade/binana/market_data.py": {
       "bytes": 7962,
       "sha256": "afaa9d41d302b30e5875a3e1487508ff7a78dfb4b8e9ddff75e3721ef601a760"
     },
     "owner/freqtrade/binana/operator_exit.py": {
-      "bytes": 10433,
-      "sha256": "8cbb887950a85ac6f0f29a7d085d292e34d4a2bec8deebd01333ff1d0891fcfb"
+      "bytes": 13689,
+      "sha256": "a857dfcf4176c2b1d2f97caf3f3d4d732b769585f60cac3fa5922d0b8116e32d"
     },
     "owner/freqtrade/binana/package_profile.py": {
       "bytes": 275,
@@ -99,12 +99,12 @@
       "sha256": "0c1ae8dfe43525ebc6b41268be8dd845e6f2333a8051f077b7ef07acf7f517e9"
     },
     "owner/freqtrade/binana/retained_inventory.py": {
-      "bytes": 7708,
-      "sha256": "abbc7edc5690d0e4156d642094fb7b6ae029a94b14fe01a0e5c77a99a39e1342"
+      "bytes": 8360,
+      "sha256": "1382c19dc8fd436f15932194e62a0c9fbe8aae4a126a80f057d22895a328f766"
     },
     "owner/freqtrade/binana/state_store.py": {
-      "bytes": 39296,
-      "sha256": "b590a3b4819652b74a95e5b440945f6d04d53f55906fb2c1a928f9d15233a3c7"
+      "bytes": 39443,
+      "sha256": "cbea95c193a3bf4f4d0634f2a5277727bd7487c4bd0636f31b9ef509340e8e93"
     },
     "owner/freqtrade/binana/submission_absence.py": {
       "bytes": 3207,
@@ -115,24 +115,24 @@
       "sha256": "b6a4c15fd457b463f967b8944faa0931223a0b948d34074c19af145c6b52352c"
     },
     "owner/freqtrade/binana/verified_recovery.py": {
-      "bytes": 26208,
-      "sha256": "2518bcaa239b1e32f5f4f7682a1d39eaacfede783ede38d6552ed3b5877da19b"
+      "bytes": 30246,
+      "sha256": "056078da86ffea421263a7d4dfa40742ad379a8ae754a0601038476688818676"
     },
     "owner/freqtrade/exchange/__init__.py": {
       "bytes": 1780,
       "sha256": "6025655ffd3f667e643f8c37739ab642b2f1f6be36ddaa87c61bc2f3f955efa0"
     },
     "owner/freqtrade/exchange/binance.py": {
-      "bytes": 26846,
-      "sha256": "8a8e20fd10ed45a4c3d59b7c8bf7a68e0d6275ea723a55bac5d314a07d87f6ca"
+      "bytes": 27444,
+      "sha256": "26b07f961eb871c1ef8ff2df1040ae636dd0635804a9121d2ecad572e67338ca"
     },
     "owner/freqtrade/freqtradebot.py": {
-      "bytes": 137220,
-      "sha256": "8cc1935109e093bda78248374971d45928888c5686b0681b167cbf90989c29a6"
+      "bytes": 137615,
+      "sha256": "e096cdb32d86c2817a0da355200c18cf390a8bb48fc924db5d267777cfd3b12a"
     },
     "owner/freqtrade/persistence/trade_model.py": {
-      "bytes": 93990,
-      "sha256": "988956604e6ba18c3a3e26212328b6c1971965631baed9bdeb16e32c234451f9"
+      "bytes": 93948,
+      "sha256": "6a91863f9a05ef3138eeb31f5706c6118c85576f83b85e92983c6a2ec8cc2066"
     },
     "owner/freqtrade/resolvers/exchange_resolver.py": {
       "bytes": 4363,
@@ -143,8 +143,8 @@
       "sha256": "36f57593a8d37d70919f61bf531215071bcf007d8de5a4fbd3095243d1a98322"
     },
     "owner/freqtrade/rpc/rpc.py": {
-      "bytes": 76672,
-      "sha256": "346a4c8d5f77f1386242b65b1fc3de5c8ddca4d562e8d502f90e39347beb9494"
+      "bytes": 76515,
+      "sha256": "d9b92666b9be3c0510081ff95d58b577a00bcf71c54981f5a17df499e94d2e1f"
     },
     "runtime-fixes/telegram/durable_outbox.py": {
       "bytes": 4276,
@@ -187,8 +187,8 @@
       "sha256": "184c55d28ce565a6cec3342faae0987ebf55a3cf3cf764930c384153125f6f83"
     },
     "tests/test_deployment_completion.py": {
-      "bytes": 4529,
-      "sha256": "2a29991625f0f9e84517367ae7281f44d07e8d3b68806fbc0428d93c4e0ea745"
+      "bytes": 5071,
+      "sha256": "a142ee39772fbb7d09fe3f8da13eaafe2bc232dfa85be5ff56a2e7fd331c69a5"
     },
     "tests/test_durable_notifications.py": {
       "bytes": 1538,
@@ -222,6 +222,10 @@
       "bytes": 10565,
       "sha256": "0187994831ebe817712f6010bfaf678a9a6b38f128512aab816d3eb20ea1cf73"
     },
+    "tests/test_freqtrade_202610_upgrade.py": {
+      "bytes": 9345,
+      "sha256": "a84ad5a1cd5ed4bb1f1f3e148f82e150ee6aecfad1407633aa2e2136b3fe16e8"
+    },
     "tests/test_freqtrade_20269_upgrade.py": {
       "bytes": 4854,
       "sha256": "3d36235955ed161631b08a9d4a21aee0a6ea6307282d8be9e3d80b47755cc5a4"
@@ -230,9 +234,17 @@
       "bytes": 4233,
       "sha256": "3901d4b5a7cd39ddb011b175b5aac0cf627ab42cbefca9079a168cd3e2c82be2"
     },
+    "tests/test_market_notional_reference.py": {
+      "bytes": 6651,
+      "sha256": "2d6d5819571f07985ef4265f9b713646b1697e8bb18a59901b4cd6d8d5bf1849"
+    },
+    "tests/test_market_recovery_safety.py": {
+      "bytes": 14054,
+      "sha256": "6b11241c0613db15f5c08afa1b9a9ed31dc886fb4d9ded7f88dc1d97967c7000"
+    },
     "tests/test_operator_exit.py": {
-      "bytes": 16416,
-      "sha256": "3917ae9630ffc0f5c79a5e7b5558fabe9710d113e586aa475117be6a736c77b1"
+      "bytes": 16543,
+      "sha256": "2a22976e8d1c9b253f183401f6d5d76e3ac80e48ffceabca033fe571c4206a84"
     },
     "tests/test_owned_signal_replay.py": {
       "bytes": 2652,
@@ -349,9 +361,9 @@
   },
   "kind": "Reviewed current owner source and panel; runtime acceptance is recorded separately per image",
   "upstream": {
-    "archive_sha256": "a453638c8ad59f8655036eaabd0858cb432331e70caa259976299e5c59108c89",
-    "commit": "1f394eaebc2f46a83d26971388628707802f8602",
-    "version": "2026.9"
+    "archive_sha256": "e7e83e139f0d7b01f337dfb2e0c4ff13d895431615886b3c8570e99bb139476a",
+    "commit": "4cf0351e08d26e96a6429ef48103b726bb230cf8",
+    "version": "2026.10"
   },
   "validation": {
     "authenticated_exchange_acceptance": false,
@@ -442,6 +454,7 @@
       "test_deployment_completion.MaximumPosition.test_working_buy_includes_free_locked_and_pending_buys",
       "test_deployment_completion.NativeWorkingExit.test_triggered_native_stop_is_preserved_and_reconciled",
       "test_deployment_completion.NativeWorkingExit.test_untriggered_survivor_does_not_authorize_entries",
+      "test_deployment_completion.SignedResumeProjection.test_future_and_expired_owner_readiness_still_block",
       "test_deployment_completion.SignedResumeProjection.test_panel_uses_fresh_authenticated_owner_decision",
       "test_deployment_completion.SignedResumeProjection.test_unverified_owner_still_blocks",
       "test_durable_notifications.DurableNotifications.test_chat_budget_is_shared_across_instances_and_restarts",
@@ -489,6 +502,11 @@
       "test_final_contracts.FinalContracts.test_promotion_reconciles_old_child_execution_before_replacement",
       "test_final_contracts.FinalContracts.test_promotion_reuses_protected_quantity_not_gross_trade_amount",
       "test_final_contracts.FinalContracts.test_scoped_order_ids_do_not_collide_across_symbols",
+      "test_freqtrade_202610_upgrade.Upstream202610OverlayAdmission.test_history_api_applies_instance_overrides_to_returned_analysis",
+      "test_freqtrade_202610_upgrade.Upstream202610OverlayAdmission.test_real_nfi_instances_reject_api_policy_override_without_state_leak",
+      "test_freqtrade_202610_upgrade.Upstream202610OverlayAdmission.test_resolver_constructs_fenced_owner_without_public_websocket_workers",
+      "test_freqtrade_202610_upgrade.Upstream202610OverlayAdmission.test_rpc_cleanup_releases_custom_session_when_trade_cleanup_raises",
+      "test_freqtrade_202610_upgrade.Upstream202610OverlayAdmission.test_rpc_handler_registers_and_delivers_off_the_owner_thread",
       "test_freqtrade_20269_upgrade.Upstream20269CustomDataAdmission.test_key_deletion_preserves_binana_identity_and_other_trade_data",
       "test_freqtrade_20269_upgrade.Upstream20269SpotAdmission.test_depth_gate_counts_every_level_in_uneven_spot_order_books",
       "test_freqtrade_20269_upgrade.Upstream20269SpotAdmission.test_informative_candles_validate_support_before_runtime",
@@ -498,6 +516,37 @@
       "test_identity_integrity.IdentityIntegrity.test_pair_and_role_conflicts_block_entries",
       "test_identity_integrity.IdentityIntegrity.test_protection_child_binding_survives_restart_and_conflicting_replay",
       "test_identity_integrity.IdentityIntegrity.test_trade_binding_is_unique_and_immutable",
+      "test_market_notional_reference.MarketNotionalReference.test_filters_not_applied_to_market_need_no_reference_request",
+      "test_market_notional_reference.MarketNotionalReference.test_invalid_reference_identity_or_value_blocks_without_fallback",
+      "test_market_notional_reference.MarketNotionalReference.test_market_and_regular_lots_share_an_exact_increment",
+      "test_market_notional_reference.MarketNotionalReference.test_nonnull_reference_is_not_overridden_by_average_or_last_price",
+      "test_market_notional_reference.MarketNotionalReference.test_nonnull_reference_rejects_above_maximum",
+      "test_market_notional_reference.MarketNotionalReference.test_nonnull_reference_rejects_below_minimum_without_average",
+      "test_market_notional_reference.MarketNotionalReference.test_null_reference_requires_an_explicit_integer_averaging_window",
+      "test_market_notional_reference.MarketNotionalReference.test_null_reference_uses_the_verified_average_window",
+      "test_market_notional_reference.MarketNotionalReference.test_null_reference_with_zero_window_uses_verified_last_price",
+      "test_market_notional_reference.MarketNotionalReference.test_reference_timeout_is_not_permission_to_use_an_average",
+      "test_market_notional_reference.MarketNotionalReference.test_two_market_filters_share_one_reference_snapshot",
+      "test_market_notional_reference.MarketNotionalReference.test_wrong_average_window_blocks",
+      "test_market_recovery_safety.MarketRecovery.test_acknowledged_operator_dust_completes_once_across_a_price_change",
+      "test_market_recovery_safety.MarketRecovery.test_missing_historical_child_keeps_unsubmitted_operator_identity",
+      "test_market_recovery_safety.MarketRecovery.test_missing_market_reference_keeps_operator_remainder_unsettled",
+      "test_market_recovery_safety.MarketRecovery.test_new_operator_exit_can_close_after_an_earlier_retained_request",
+      "test_market_recovery_safety.MarketRecovery.test_operator_invalid_reference_does_not_cancel_existing_protection",
+      "test_market_recovery_safety.MarketRecovery.test_operator_request_reaches_market_reference_validation",
+      "test_market_recovery_safety.MarketRecovery.test_operator_retains_partial_oco_remainder_after_market_reference_check",
+      "test_market_recovery_safety.MarketRecovery.test_reprotecting_market_dust_reactivates_the_verified_inventory",
+      "test_market_recovery_safety.MarketRecovery.test_stop_ignores_minimum_not_applied_to_market",
+      "test_market_recovery_safety.MarketRecovery.test_stop_preserves_executable_fee_reserve",
+      "test_market_recovery_safety.MarketRecovery.test_stop_reference_timeout_never_becomes_dust",
+      "test_market_recovery_safety.MarketRecovery.test_stop_rejects_market_lot_maximum",
+      "test_market_recovery_safety.MarketRecovery.test_stop_rejects_reference_below_minimum",
+      "test_market_recovery_safety.MarketRecovery.test_stop_retains_remainder_below_market_lot_without_releasing_limit_slot",
+      "test_market_recovery_safety.MarketRecovery.test_stop_uses_canonical_quantity_when_reserve_is_below_market_minimum",
+      "test_market_recovery_safety.MarketRecovery.test_stop_uses_reference_when_bid_would_be_dust",
+      "test_market_recovery_safety.MarketRecovery.test_unacknowledged_dust_resumes_original_operator_exit_after_restart",
+      "test_market_recovery_safety.NativeSubmissionSafety.test_mutation_disables_configured_ccxt_retries",
+      "test_market_recovery_safety.NativeSubmissionSafety.test_raw_transport_details_are_not_persisted",
       "test_operator_exit.OperatorExitTests.test_cancel_timeout_already_done_recovers_from_reads",
       "test_operator_exit.OperatorExitTests.test_cancel_timeout_still_active_never_submits",
       "test_operator_exit.OperatorExitTests.test_crash_after_preparing_before_post_only_queries",
@@ -618,6 +667,6 @@
       "test_zero_fill_entry_cleanup.ZeroFillCleanupSourceContract.test_freqtrade_notifies_binana_on_zero_fill_terminal_entry",
       "test_zero_fill_entry_cleanup.ZeroFillCleanupSourceContract.test_telegram_suppresses_max_slot_rejection_notices"
     ],
-    "tests": 260
+    "tests": 297
   }
 }

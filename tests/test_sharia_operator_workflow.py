@@ -419,7 +419,7 @@ class TelegramOperatorTests(unittest.TestCase):
                     'pair': pair,
                     'symbol': pair.replace('/', ''),
                     'candle_time': '2026-09-05T18:00:00+00:00',
-                    'strategy': 'IctSmcStrategy',
+                    'strategy': 'BinanaNfiSpot',
                     'entry_tag': 'ema_vwap_pullback',
                 }
                 signed = bot.envelope.sign_envelope(
@@ -482,7 +482,7 @@ class TelegramOperatorTests(unittest.TestCase):
             (processed / 'forged.json').write_text(json.dumps({
                 'payload': {
                     'signal_id': 'forged', 'pair': 'ETH/USDT',
-                    'strategy': 'IctSmcStrategy',
+                    'strategy': 'BinanaNfiSpot',
                 },
             }), encoding='utf-8')
             with mock.patch.object(bot, 'SIGNAL_PROCESSED', processed), \

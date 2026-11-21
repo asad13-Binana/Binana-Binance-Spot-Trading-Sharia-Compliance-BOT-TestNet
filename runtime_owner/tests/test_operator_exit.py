@@ -44,7 +44,8 @@ class OperatorExitTests(unittest.TestCase):
             {'filterType':'PRICE_FILTER','tickSize':'.0001','minPrice':'.0001','maxPrice':'10000'},
             {'filterType':'LOT_SIZE','stepSize':'.01','minQty':'.01','maxQty':'100000'},
             {'filterType':'MARKET_LOT_SIZE','stepSize':'.01','minQty':'.01','maxQty':'100000'},
-            {'filterType':'NOTIONAL','minNotional':'.1','maxNotional':'1000000','applyMinToMarket':True,'applyMaxToMarket':True},
+            {'filterType':'NOTIONAL','minNotional':'.1','maxNotional':'1000000',
+             'applyMinToMarket':True,'applyMaxToMarket':True,'avgPriceMins':0},
             {'filterType':'MAX_NUM_ORDERS','maxNumOrders':100},
             {'filterType':'MAX_NUM_ORDER_LISTS','maxNumOrderLists':100},
             {'filterType':'MAX_NUM_ALGO_ORDERS','maxNumAlgoOrders':100}]
@@ -52,6 +53,7 @@ class OperatorExitTests(unittest.TestCase):
             'ocoAllowed':True,'otoAllowed':True,'filters':self.filters}]}
         api.publicGetTickerBookTicker = lambda params: {'symbol':'ADAUSDT','bidPrice':'10.05','askPrice':'10.06'}
         api.publicGetTickerPrice = lambda params: {'symbol':'ADAUSDT','price':'10.05'}
+        api.publicGetReferencePrice = lambda params: {'symbol':'ADAUSDT','referencePrice':None}
         api.privateGetMyFilters = lambda params: {'symbolFilters':[], 'exchangeFilters':[], 'assetFilters':[]}
         api.publicGetAvgPrice = lambda params: {'price':'10.05','mins':0}
         api.fetch_open_orders = Mock(side_effect=lambda pair:[copy.deepcopy(row) for row in self.orders.values() if row['status']=='open'])

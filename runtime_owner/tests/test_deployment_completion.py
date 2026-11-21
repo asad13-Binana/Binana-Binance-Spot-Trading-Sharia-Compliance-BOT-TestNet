@@ -5,6 +5,7 @@ from dataclasses import replace
 from decimal import Decimal
 from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 import test_restart_partial_recovery as recovery_fixture
 from test_audit_20261012 import plan
@@ -64,6 +65,11 @@ class MaximumPosition(unittest.TestCase):
 
 
 class SignedResumeProjection(unittest.TestCase):
+    def setUp(self):
+        clock = patch('time.time', return_value=1000.0)
+        self.now = clock.start()
+        self.addCleanup(clock.stop)
+
     def state(self):
         return dict(cfg={'state':'paused'},ext={'available':True,'incidents':[],'intents':[],
             'protection':[]},market={'status':'fresh','stream':{'connected':True,'probation_complete':True}},
@@ -79,3 +85,11 @@ class SignedResumeProjection(unittest.TestCase):
         state=self.state(); state['owner_readiness']['release_approved']=False
         state['owner_readiness']['blockers']=['release_evidence_unavailable']
         self.assertIn('release_evidence_unavailable',load('_resume_blockers_from_state')(**state))
+
+    def test_future_and_expired_owner_readiness_still_block(self):
+        state = self.state()
+        for now in (999.0, 1030.0):
+            with self.subTest(now=now):
+                self.now.return_value = now
+                self.assertIn('owner_readiness_stale_or_unavailable',
+                              load('_resume_blockers_from_state')(**state))

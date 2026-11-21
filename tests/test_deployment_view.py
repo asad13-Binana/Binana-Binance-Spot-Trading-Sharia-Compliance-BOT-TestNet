@@ -21,7 +21,7 @@ def display(*, stale=False, unavailable=False, health_changes=None):
         'json': json, 'time': time, 'RUNTIME': Path('/runtime'), 'BOT_ENVIRONMENT': 'SIMULATION',
         'read_json': lambda p, default: paths.get(p.name, default),
         'ft_call': lambda *args: {'ok': False} if unavailable else {
-            'ok': True, 'data': {'state': 'stopped', 'strategy': 'IctSmcStrategy'}},
+            'ok': True, 'data': {'state': 'stopped', 'strategy': 'BinanaNfiSpot'}},
         'envelope': SimpleNamespace(installed_release_hash=lambda: 'a' * 64),
         '_release_label': lambda: 'test-release',
         'send': lambda text, chat: sent.append(text),
@@ -39,7 +39,7 @@ class DeploymentView(unittest.TestCase):
     def test_button_uses_current_authenticated_state(self):
         result = display()
         self.assertEqual(result['freqtrade_state'], 'STOPPED')
-        self.assertEqual(result['strategy'], 'IctSmcStrategy')
+        self.assertEqual(result['strategy'], 'BinanaNfiSpot')
         self.assertIs(result['entries_enabled'], False)
         self.assertNotIn('OLD_ROLLOUT', json.dumps(result))
 

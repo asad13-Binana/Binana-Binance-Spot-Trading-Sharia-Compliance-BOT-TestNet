@@ -2,7 +2,7 @@
 from .canonical_fees import receipt
 from .recovery_contract import RecoveryBlocked, TERMINAL, dec
 from .verified_recovery import RESOLVED_PREFIXES
-from .operator_exit import OPERATOR_PRE_SUBMISSION
+from .operator_exit import unsubmitted_operator_exit
 from .submission_absence import verify_absent_replacement
 
 
@@ -92,7 +92,7 @@ class ClosedRecovery:
                 if generation['status'] == 'SUBMISSION_ABSENT':
                     verify_absent_replacement(self, generation, pair)
                     continue
-                if generation['mode'] == 'OPERATOR_EXIT' and generation['status'] in OPERATOR_PRE_SUBMISSION:
+                if unsubmitted_operator_exit(generation):
                     continue
                 if generation['status'] in NO_SUBMISSION_PHASES:
                     continue
