@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.12', '3.13', '3.14']
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -208,8 +208,43 @@ jobs:
           path: /tmp/binana-image-audit/*.json
           if-no-files-found: warn
 
+  strategy-probe-container:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.14'
+      - name: Build the owner from the Oracle release bundle
+        run: |
+          python runtime_owner/deployment/materialize_oracle_bundle.py "$RUNNER_TEMP/bundle"
+          docker build --pull -f "$RUNNER_TEMP/bundle/owner/Dockerfile.clean" -t binana-strategy-ci "$RUNNER_TEMP/bundle/owner"
+      - name: Exercise the packaged strategy against offline candles
+        run: |
+          docker run --rm -i --pull=never --network=none --read-only --cap-drop=ALL \
+            --security-opt=no-new-privileges --memory=2g --cpus=2 --pids-limit=256 \
+            --tmpfs /tmp:rw,nosuid,nodev,size=256m,mode=1777 \
+            -e BINANA_TEST_EXPECTED_MODE="$(cat RELEASE_MODE)" --entrypoint python \
+            binana-strategy-ci -B - < tests/ci/owner_strategy_probe.py
+
+  integration-simulation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.14'
+      - name: Build the materialized support image
+        run: |
+          python runtime_owner/deployment/materialize_oracle_bundle.py "$RUNNER_TEMP/bundle"
+          docker build --pull -t binana-integration-ci "$RUNNER_TEMP/bundle/services"
+      - name: Exercise two networkless support services and resume from their state
+        run: python tests/ci/support_integration.py host "$(cat RELEASE_MODE)" --image binana-integration-ci
+
   artifact:
-    needs: [verify, sast, quality-evidence, host-fixtures, dependency-audit, owner-build]
+    needs: [verify, sast, quality-evidence, host-fixtures, dependency-audit, owner-build, strategy-probe-container, integration-simulation]
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:

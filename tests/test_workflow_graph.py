@@ -17,11 +17,64 @@ class OracleWorkflowTests(unittest.TestCase):
         self.jobs = self.workflow['jobs']
 
     def test_artifact_cannot_run_before_support_and_both_native_owner_gates(self):
-        self.assertEqual(set(self.jobs['artifact']['needs']), {'verify', 'sast', 'quality-evidence', 'host-fixtures', 'dependency-audit', 'owner-build'})
+        self.assertEqual(set(self.jobs['artifact']['needs']), {
+            'verify', 'sast', 'quality-evidence', 'host-fixtures', 'dependency-audit',
+            'owner-build', 'strategy-probe-container', 'integration-simulation',
+        })
+        for key in ('if', 'continue-on-error'):
+            self.assertNotIn(key, self.jobs['artifact'])
         self.assertEqual(self.jobs['owner-build']['needs'], 'verify')
         entries = self.jobs['owner-build']['strategy']['matrix']['include']
         self.assertEqual({(row['runner'], row['arch']) for row in entries},
                          {('ubuntu-24.04', 'amd64'), ('ubuntu-24.04-arm', 'arm64')})
+
+    def test_required_checks_run_on_pull_requests(self):
+        events = self.workflow.get("on", self.workflow.get(True))
+        self.assertIn("pull_request", events)
+        self.assertFalse(events["pull_request"])
+        verify = self.jobs["verify"]
+        matrix = verify["strategy"]["matrix"]
+        self.assertEqual(set(matrix), {"python-version"})
+        self.assertCountEqual(matrix["python-version"], ["3.10", "3.11", "3.12", "3.13", "3.14"])
+        interpreters = [step["with"]["python-version"] for step in verify["steps"]
+                        if step.get("uses", "").startswith("actions/setup-python@")]
+        self.assertEqual(interpreters, ["${{ matrix.python-version }}"])
+        for name in ("verify", "strategy-probe-container", "integration-simulation"):
+            with self.subTest(job=name):
+                job = self.jobs[name]
+                for key in ("name", "if", "continue-on-error", "needs"):
+                    self.assertNotIn(key, job)
+                for step in job["steps"]:
+                    self.assertNotIn("if", step)
+                    self.assertNotIn("continue-on-error", step)
+
+    def test_required_checks_execute_the_packaged_fixtures(self):
+        def commands(name):
+            self.assertIn(name, self.jobs)
+            return [step["run"].strip() for step in self.jobs[name]["steps"] if "run" in step]
+
+        verify = commands("verify")
+        self.assertIn("bash deploy/verify_release.sh", verify)
+        self.assertIn("python -m pip check", verify)
+        owner_build, owner_run = commands("strategy-probe-container")
+        support_build, support_run = commands("integration-simulation")
+        for build, component in ((owner_build, "owner"), (support_build, "services")):
+            materialize, docker_build = [shlex.split(line) for line in build.splitlines()]
+            self.assertEqual(materialize, ["python", "runtime_owner/deployment/materialize_oracle_bundle.py",
+                                           "$RUNNER_TEMP/bundle"])
+            self.assertEqual(docker_build[:2], ["docker", "build"])
+            self.assertEqual(docker_build[-1], "$RUNNER_TEMP/bundle/" + component)
+        self.assertIn('"$RUNNER_TEMP/bundle/owner/Dockerfile.clean"', owner_build)
+        probe = shlex.split(owner_run.replace("\\\n", " "))
+        self.assertEqual(probe[:2], ["docker", "run"])
+        for flag in ("--network=none", "--read-only", "--cap-drop=ALL", "--pull=never"):
+            self.assertIn(flag, probe)
+        self.assertEqual(probe[-7:], ["--entrypoint", "python", "binana-strategy-ci", "-B", "-",
+                                      "<", "tests/ci/owner_strategy_probe.py"])
+        self.assertEqual(shlex.split(support_run), ["python", "tests/ci/support_integration.py", "host",
+                                                    "$(cat RELEASE_MODE)", "--image", "binana-integration-ci"])
+        for path in ("tests/ci/owner_strategy_probe.py", "tests/ci/support_integration.py"):
+            self.assertTrue((ROOT / path).is_file())
 
     def test_ci_has_no_remote_deployment_capability(self):
         self.assertEqual(self.workflow['permissions'], {'contents': 'read'})
