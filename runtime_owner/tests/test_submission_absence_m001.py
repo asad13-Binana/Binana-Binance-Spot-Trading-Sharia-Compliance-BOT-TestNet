@@ -11,9 +11,11 @@ from __future__ import annotations
 from types import SimpleNamespace
 import unittest
 
+from binana.recovery_contract import order_history_state
 from binana.submission_absence import (
     _is_valid_open_orders,
     _our_order_in_list,
+    explicit_absence,
     verify_absent_replacement,
 )
 
@@ -81,18 +83,18 @@ class TestOurOrderInList(unittest.TestCase):
         self.assertTrue(_our_order_in_list(orders, ["our-cid"]))
 
 
-def _raise_2018(*args, **kwargs):
-    raise RuntimeError('binance {"code":-2018,"msg":"Order list does not exist."}')
-
-
 def _raise_2013(*args, **kwargs):
     raise RuntimeError('binance {"code":-2013,"msg":"Order does not exist."}')
 
 
-def _make_manager(open_orders_result, list_raises_2018=True, child_raises_2013=True):
+def _raise_2018(*args, **kwargs):
+    raise RuntimeError('binance {"code":-2018,"msg":"Order list does not exist."}')
+
+
+def _make_manager(open_orders_result, list_raises_2013=True, child_raises_2013=True):
     """Build a manager that proves list+child absence via documented codes."""
     order_lists = SimpleNamespace()
-    order_lists.query_list = _raise_2018 if list_raises_2018 else lambda *a, **k: None
+    order_lists.query_list = _raise_2013 if list_raises_2013 else lambda *a, **k: None
 
     exchange = SimpleNamespace()
     exchange._api = SimpleNamespace()
@@ -152,7 +154,7 @@ class TestVerifyAbsentReplacementOpenOrders(unittest.TestCase):
             raise RuntimeError('binance {"code":-1007,"msg":"Timeout"}')
 
         order_lists = SimpleNamespace()
-        order_lists.query_list = _raise_2018
+        order_lists.query_list = _raise_2013
 
         exchange = SimpleNamespace()
         exchange._api = SimpleNamespace()
@@ -172,6 +174,59 @@ class TestVerifyAbsentReplacementOpenOrders(unittest.TestCase):
         mgr = _make_manager([{"id": "1"}, "not-a-dict"])
         with self.assertRaisesRegex(Exception, "REPLACEMENT_OPEN_ORDER_ABSENCE_UNVERIFIED"):
             verify_absent_replacement(mgr, dict(_GEN), "ETH/USDT")
+
+
+class TestM007UndocumentedErrorCode(unittest.TestCase):
+    """M007: explicit_absence must not match undocumented -2018."""
+
+    def test_2018_not_matched_single_order(self):
+        exc = RuntimeError('binance {"code":-2018,"msg":"Order list does not exist."}')
+        self.assertFalse(explicit_absence(exc))
+
+    def test_2018_not_matched_order_list(self):
+        exc = RuntimeError('binance {"code":-2018,"msg":"Order list does not exist."}')
+        self.assertFalse(explicit_absence(exc, order_list=True))
+
+    def test_2013_still_matched_single_order(self):
+        exc = RuntimeError('binance {"code":-2013,"msg":"Order does not exist."}')
+        self.assertTrue(explicit_absence(exc))
+
+    def test_2013_still_matched_order_list(self):
+        exc = RuntimeError('binance {"code":-2013,"msg":"Order does not exist."}')
+        self.assertTrue(explicit_absence(exc, order_list=True))
+
+
+class TestM014ExactCodeComparison(unittest.TestCase):
+    """M014: order_history_state must use exact integer code comparison."""
+
+    def test_2013_json_code_matches(self):
+        self.assertEqual(
+            order_history_state('{"code":-2013,"msg":"Order does not exist."}', testnet=True),
+            "ORDER_HISTORY_UNAVAILABLE",
+        )
+
+    def test_20130_does_not_match(self):
+        self.assertIsNone(
+            order_history_state('{"code":-20130,"msg":"..."}', testnet=True)
+        )
+
+    def test_free_text_does_not_match(self):
+        self.assertIsNone(
+            order_history_state("Order -2013 does not exist", testnet=True)
+        )
+
+    def test_string_code_does_not_match(self):
+        self.assertIsNone(
+            order_history_state('{"code":"-2013","msg":"..."}', testnet=True)
+        )
+
+    def test_none_does_not_match(self):
+        self.assertIsNone(order_history_state(None, testnet=True))
+
+    def test_not_testnet_returns_none(self):
+        self.assertIsNone(
+            order_history_state('{"code":-2013,"msg":"Order does not exist."}', testnet=False)
+        )
 
 
 if __name__ == "__main__":
