@@ -1,4 +1,5 @@
 """Verified residual arithmetic and exchange protection evidence. No order transport."""
+import json
 from decimal import Decimal
 from dataclasses import dataclass
 
@@ -155,10 +156,23 @@ def protectable_quantity(original, sold, canonical, price, filters):
     return recovery_protection_quantity(original, sold, canonical, price, filters)
 
 def order_history_state(error_text, *, testnet):
-    """Map TestNet's missing historical order response to an explicit recovery state."""
-    text=str(error_text or '')
-    if testnet and ('-2013' in text or 'NO_SUCH_ORDER' in text or 'Order does not exist' in text):
-        return "ORDER_HISTORY_UNAVAILABLE"
+    """Map TestNet's missing historical order response to an explicit recovery state.
+
+    Matches only a structured JSON error payload whose integer ``code`` field
+    equals -2013. Free-text substring matches (e.g. "-20130", "-2013" embedded
+    in prose) are intentionally ignored.
+    """
+    text = str(error_text or '')
+    for index, character in enumerate(text):
+        if character != '{':
+            continue
+        try:
+            payload, _ = json.JSONDecoder().raw_decode(text[index:])
+        except ValueError:
+            continue
+        if (isinstance(payload, dict) and isinstance(payload.get('code'), int)
+                and payload.get('code') == -2013):
+            return "ORDER_HISTORY_UNAVAILABLE" if testnet else None
     return None
 
 def executable_quantity(quantity, price, filters):
