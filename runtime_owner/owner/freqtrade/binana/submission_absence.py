@@ -22,6 +22,36 @@ def explicit_absence(error, *, order_list=False):
     return False
 
 
+def _is_valid_open_orders(value):
+    """Only a real JSON array from GET /api/v3/openOrders can prove absence.
+
+    Binance returns an array of order objects; empty array means no open orders.
+    None, an error envelope, or any non-list/non-dict-shape value is transient
+    or malformed and cannot prove absence — fail closed.
+    """
+    if not isinstance(value, list):
+        return None
+    for item in value:
+        if not isinstance(item, dict):
+            return None
+    return value
+
+
+def _our_order_in_list(open_orders, client_ids):
+    """True when any open order carries one of our client order IDs."""
+    wanted = {str(cid) for cid in client_ids if cid}
+    for order in open_orders:
+        if not isinstance(order, dict):
+            continue
+        client_id = order.get('clientOrderId') or order.get('origClientOrderId')
+        if client_id and str(client_id) in wanted:
+            return True
+        oid = order.get('id') or order.get('orderId')
+        if oid and str(oid) in wanted:
+            return True
+    return False
+
+
 def verify_absent_replacement(manager, generation, pair, *, require_record=True,
                               require_empty_symbol=True):
     if (str(manager.config.get('binana', {}).get('environment', '')).lower() != package_environment()
@@ -56,8 +86,23 @@ def verify_absent_replacement(manager, generation, pair, *, require_record=True,
                 raise RecoveryBlocked('REPLACEMENT_CHILD_ABSENCE_UNVERIFIED') from exc
         else:
             raise RecoveryBlocked('REPLACEMENT_CHILD_EXISTS')
-    if require_empty_symbol and manager.exchange._api.fetch_open_orders(pair):
-        raise RecoveryBlocked('REPLACEMENT_OPEN_ORDER_EXISTS')
+    if require_empty_symbol:
+        try:
+            open_orders = manager.exchange._api.fetch_open_orders(pair)
+        except Exception:
+            # Transient API error/timeout: cannot prove absence. Fail closed.
+            raise RecoveryBlocked('REPLACEMENT_OPEN_ORDER_ABSENCE_UNVERIFIED')
+        valid = _is_valid_open_orders(open_orders)
+        if valid is None:
+            # None, error envelope, or non-list/non-dict shape: cannot prove absence.
+            raise RecoveryBlocked('REPLACEMENT_OPEN_ORDER_ABSENCE_UNVERIFIED')
+        if valid:
+            # Non-empty list: our orders present means an open replacement exists;
+            # foreign orders present means we cannot prove our absence.
+            if _our_order_in_list(valid, ids):
+                raise RecoveryBlocked('REPLACEMENT_OPEN_ORDER_EXISTS')
+            raise RecoveryBlocked('REPLACEMENT_OPEN_ORDER_ABSENCE_UNVERIFIED')
+        # Empty list [] proves absence of open orders on the symbol.
     return {'verified_absent_at': time(), 'scope_id': manager.scope_id,
             'generation': generation['generation'], 'list_client_id': ids[0],
             'tp_client_id': ids[1], 'sl_client_id': ids[2]}
