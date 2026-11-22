@@ -28,7 +28,10 @@ class AuditLedgerParityTests(unittest.TestCase):
         ledger = ROOT / 'docs/audit/FILE_REVIEW_LEDGER.csv'
         with ledger.open(encoding='utf-8') as fh:
             ledger_paths = {row['relative_path'] for row in csv.DictReader(fh)}
-        exclude = {'.git', '__pycache__', '.pytest_cache', '.ruff_cache', '.hypothesis'}
+        exclude = {'.git', '__pycache__', '.pytest_cache', '.ruff_cache', '.hypothesis',
+                   # Generated test artifacts (timestamps in filenames —
+                   # non-deterministic, never part of the shipped source tree).
+                   'backtest_results'}
         tree_paths = {
             p.relative_to(ROOT).as_posix()
             for p in ROOT.rglob('*')

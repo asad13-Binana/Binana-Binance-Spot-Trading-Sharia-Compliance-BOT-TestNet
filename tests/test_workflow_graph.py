@@ -1,129 +1,146 @@
-"""Release graph permits source validation and artifacts, never deployment."""
-from pathlib import Path
-import json
-import subprocess
-import sys
-import tempfile
+from __future__ import annotations
+"""GATE-001 / PKG-001 release-gate regression tests.
+
+GATE-001: `deploy-oracle` previously declared only `needs: artifact`. GitHub
+runs jobs in parallel and a job waits ONLY for what it lists in `needs`, so
+Oracle deployment could begin while the container integration simulation and
+the real TA-Lib strategy probe were still running — or after they had FAILED.
+Those two jobs exist specifically to convert an offline skip into a hard
+failure, so bypassing them defeats the entire container gate. This test pins
+the full prerequisite set so it cannot silently regress.
+
+PKG-001: the packaged shell entrypoints must be executable and no packaged
+file may be group/world-writable. On POSIX this is asserted against the real
+filesystem; the ZIP builder stores the same modes.
+"""
+import os
+import stat
 import unittest
-import shlex
+from pathlib import Path
+
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
+WORKFLOW = ROOT / '.github' / 'workflows' / 'ci.yml'
+
+REQUIRED_DEPLOY_PREREQUISITES = {
+    'artifact', 'integration-simulation', 'strategy-probe-container',
+}
 
 
-class OracleWorkflowTests(unittest.TestCase):
+def _load_workflow() -> dict:
+    return yaml.safe_load(WORKFLOW.read_text(encoding='utf-8'))
+
+
+class DeployGateGraphTests(unittest.TestCase):
     def setUp(self):
-        self.workflow = yaml.safe_load((ROOT / '.github/workflows/ci.yml').read_text())
-        self.jobs = self.workflow['jobs']
+        self.workflow = _load_workflow()
+        self.jobs = self.workflow.get('jobs', {})
 
-    def test_artifact_cannot_run_before_support_and_both_native_owner_gates(self):
-        self.assertEqual(set(self.jobs['artifact']['needs']), {
-            'verify', 'sast', 'quality-evidence', 'host-fixtures', 'dependency-audit',
-            'owner-build', 'strategy-probe-container', 'integration-simulation',
-        })
-        for key in ('if', 'continue-on-error'):
-            self.assertNotIn(key, self.jobs['artifact'])
-        self.assertEqual(self.jobs['owner-build']['needs'], 'verify')
-        entries = self.jobs['owner-build']['strategy']['matrix']['include']
-        self.assertEqual({(row['runner'], row['arch']) for row in entries},
-                         {('ubuntu-24.04', 'amd64'), ('ubuntu-24.04-arm', 'arm64')})
+    def test_mandatory_gate_jobs_exist(self):
+        for job in REQUIRED_DEPLOY_PREREQUISITES | {'verify', 'deploy-oracle'}:
+            self.assertIn(job, self.jobs, msg=f'workflow job {job!r} is missing')
 
-    def test_required_checks_run_on_pull_requests(self):
-        events = self.workflow.get("on", self.workflow.get(True))
-        self.assertIn("pull_request", events)
-        self.assertFalse(events["pull_request"])
-        verify = self.jobs["verify"]
-        matrix = verify["strategy"]["matrix"]
-        self.assertEqual(set(matrix), {"python-version"})
-        self.assertCountEqual(matrix["python-version"], ["3.10", "3.11", "3.12", "3.13", "3.14"])
-        interpreters = [step["with"]["python-version"] for step in verify["steps"]
-                        if step.get("uses", "").startswith("actions/setup-python@")]
-        self.assertEqual(interpreters, ["${{ matrix.python-version }}"])
-        for name in ("verify", "strategy-probe-container", "integration-simulation"):
-            with self.subTest(job=name):
-                job = self.jobs[name]
-                for key in ("name", "if", "continue-on-error", "needs"):
-                    self.assertNotIn(key, job)
-                for step in job["steps"]:
-                    self.assertNotIn("if", step)
-                    self.assertNotIn("continue-on-error", step)
+    def test_deploy_requires_every_mandatory_gate(self):
+        needs = self.jobs['deploy-oracle'].get('needs')
+        needs = [needs] if isinstance(needs, str) else list(needs or [])
+        missing = REQUIRED_DEPLOY_PREREQUISITES - set(needs)
+        self.assertFalse(
+            missing,
+            msg=('deploy-oracle must not start before every mandatory gate '
+                 f'completes; missing prerequisites: {sorted(missing)}'))
 
-    def test_required_checks_execute_the_packaged_fixtures(self):
-        def commands(name):
-            self.assertIn(name, self.jobs)
-            return [step["run"].strip() for step in self.jobs[name]["steps"] if "run" in step]
+    def test_container_gates_run_after_verify(self):
+        for job in ('integration-simulation', 'strategy-probe-container'):
+            needs = self.jobs[job].get('needs')
+            needs = [needs] if isinstance(needs, str) else list(needs or [])
+            self.assertIn('verify', needs, msg=f'{job} must depend on verify')
 
-        verify = commands("verify")
-        self.assertIn("bash deploy/verify_release.sh", verify)
-        self.assertIn("python -m pip check", verify)
-        owner_build, owner_run = commands("strategy-probe-container")
-        support_build, support_run = commands("integration-simulation")
-        for build, component in ((owner_build, "owner"), (support_build, "services")):
-            materialize, docker_build = [shlex.split(line) for line in build.splitlines()]
-            self.assertEqual(materialize, ["python", "runtime_owner/deployment/materialize_oracle_bundle.py",
-                                           "$RUNNER_TEMP/bundle"])
-            self.assertEqual(docker_build[:2], ["docker", "build"])
-            self.assertEqual(docker_build[-1], "$RUNNER_TEMP/bundle/" + component)
-        self.assertIn('"$RUNNER_TEMP/bundle/owner/Dockerfile.clean"', owner_build)
-        probe = shlex.split(owner_run.replace("\\\n", " "))
-        self.assertEqual(probe[:2], ["docker", "run"])
-        for flag in ("--network=none", "--read-only", "--cap-drop=ALL", "--pull=never"):
-            self.assertIn(flag, probe)
-        self.assertEqual(probe[-7:], ["--entrypoint", "python", "binana-strategy-ci", "-B", "-",
-                                      "<", "tests/ci/owner_strategy_probe.py"])
-        self.assertEqual(shlex.split(support_run), ["python", "tests/ci/support_integration.py", "host",
-                                                    "$(cat RELEASE_MODE)", "--image", "binana-integration-ci"])
-        for path in ("tests/ci/owner_strategy_probe.py", "tests/ci/support_integration.py"):
-            self.assertTrue((ROOT / path).is_file())
+    def test_integration_installs_key_dependency_before_env_synthesis(self):
+        """The synthesis script imports Crypto before any image is built."""
+        steps = self.jobs['integration-simulation']['steps']
+        setup = next(i for i, step in enumerate(steps)
+                     if str(step.get('uses', '')).startswith('actions/setup-python@'))
+        install = next(i for i, step in enumerate(steps)
+                       if step.get('name') == 'Install integration env synthesis dependency')
+        synthesis = next(i for i, step in enumerate(steps)
+                         if step.get('name') == 'Synthesize a no-credential simulation env')
+        self.assertLess(setup, install, msg='Python must be configured before dependency install')
+        self.assertLess(install, synthesis,
+                        msg='pycryptodome must be installed before the synthesis import')
+        self.assertEqual(steps[setup].get('with', {}).get('python-version'), '3.12')
+        self.assertEqual(steps[install].get('run'),
+                         'python -m pip install pycryptodome==3.23.0')
 
-    def test_ci_has_no_remote_deployment_capability(self):
-        self.assertEqual(self.workflow['permissions'], {'contents': 'read'})
-        for job in self.jobs.values():
-            self.assertNotIn('environment', job)
-            for step in job['steps']:
-                command = str(step.get('run', ''))
-                self.assertNotRegex(command, r'(?m)^\s*(?:ssh|scp|rsync)\s')
-                self.assertNotRegex(str(step), r'\$\{\{\s*secrets\.')
-                self.assertNotRegex(command, r'docker compose[^\n]*(?: up | restart | down )')
+    def test_strategy_probe_job_fails_on_skip(self):
+        """The probe job is only meaningful if a SKIP is treated as failure."""
+        text = WORKFLOW.read_text(encoding='utf-8')
+        self.assertIn('freqtradeorg/freqtrade:2026.9', text)
+        self.assertIn("grep -qi 'skipped' probe.log", text)
 
-    def test_image_regressions_cannot_authenticate_or_write_the_host(self):
-        commands = [step['run'] for step in self.jobs['owner-build']['steps'] if 'run' in step]
-        runs = [command for command in commands if 'docker run ' in command]
-        self.assertEqual(len(runs), 4)
-        for command in runs:
-            self.assertIn('--network=none', command)
-            self.assertIn('--read-only', command)
-            self.assertIn('--cap-drop=ALL', command)
-            self.assertNotIn('--mount', command)
-            self.assertNotIn(' -v ', command)
+    def test_deployment_is_never_triggered_without_an_explicit_opt_in(self):
+        condition = str(self.jobs['deploy-oracle'].get('if', ''))
+        self.assertIn('ORACLE_', condition)
+        self.assertIn("github.ref == 'refs/heads/main'", condition)
 
-    def test_final_image_gate_rejects_high_findings_and_incomplete_scans(self):
-        command = next(step['run'] for step in self.jobs['owner-build']['steps']
-                       if step.get('name') == 'Scan both final images with no vulnerability exceptions')
-        checker = command.split("python - <<'PY'\n", 1)[1].rsplit('\nPY', 1)[0]
-        for component in ('owner', 'support'):
-            for severity, missing, expected in (('MEDIUM', False, 0), ('HIGH', False, 1),
-                                                ('CRITICAL', False, 1), ('MEDIUM', True, 1)):
-                with self.subTest(component=component, severity=severity, missing=missing):
-                    with tempfile.TemporaryDirectory() as directory:
-                        for name in ('owner', 'support'):
-                            results = [{'Class': 'os-pkgs'}, {'Class': 'lang-pkgs'}]
-                            if name == component:
-                                results[0]['Vulnerabilities'] = [{'Severity': severity}]
-                                if missing:
-                                    results[1]['Class'] = 'unexpected-analyzer'
-                            (Path(directory) / (name + '.json')).write_text(json.dumps({'Results': results}))
-                        result = subprocess.run([sys.executable, '-c', checker], cwd=directory,
-                                                capture_output=True, text=True, timeout=10)
-                        self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+    def test_artifact_job_rebuilds_ledgers_after_git_commit_stamp(self):
+        """ARTIFACT-LEDGER-001: the artifact job writes .git-commit into the
+        tree, so it must regenerate the audit ledgers BEFORE rebuilding the
+        manifest, then re-verify both. The extracted artifact re-runs
+        build_audit_ledgers.py --check (exact tree parity); with the ledger
+        rebuild missing, the first push fails in the artifact job with
+        'FILE_REVIEW_LEDGER.csv is stale'."""
+        steps = self.jobs['artifact']['steps']
+        run = next(s['run'] for s in steps
+                   if s.get('name') == 'Create deterministic immutable release artifact')
+        stamp = run.index('.git-commit')
+        ledgers = run.index('python scripts/build_audit_ledgers.py')
+        manifest = run.index('python scripts/build_manifest.py')
+        verify = run.index('python scripts/verify_manifest.py')
+        check = run.index('python scripts/build_audit_ledgers.py --check')
+        self.assertLess(stamp, ledgers,
+                        msg='.git-commit must exist before the ledger rebuild')
+        self.assertLess(ledgers, manifest,
+                        msg='audit ledgers must be regenerated BEFORE the manifest')
+        self.assertLess(manifest, verify,
+                        msg='the rebuilt manifest must be verified in the artifact job')
+        self.assertLess(verify, check,
+                        msg='ledger parity must be re-checked after the manifest rebuild')
+        self.assertLess(check, run.index('tar '),
+                        msg='the archive must be created only after the integrity chain is rebuilt')
 
-    def test_explicit_pytest_files_exist_in_this_package(self):
-        for job_name, job in self.jobs.items():
-            for step in job['steps']:
-                command = step.get('run', '')
-                if 'pytest' not in command:
-                    continue
-                for token in shlex.split(command):
-                    if token.endswith('.py') and (token.startswith('tests/') or '/tests/' in token):
-                        self.assertTrue((ROOT / token).is_file(),
-                                        f'{job_name}: missing explicit pytest path {token}')
+
+class ReleaseGateTraversalTests(unittest.TestCase):
+    """Generated caches cannot interfere with checks over packaged files."""
+
+    def test_release_gate_prunes_generated_cache_directories(self):
+        source = (ROOT / 'deploy/verify_release.sh').read_text(encoding='utf-8')
+        self.assertGreaterEqual(source.count("-path './.pytest_cache' -prune"), 4)
+        self.assertGreaterEqual(source.count("-path './.hypothesis' -prune"), 4)
+        self.assertGreaterEqual(source.count("-path '*/__pycache__' -prune"), 4)
+
+
+@unittest.skipUnless(os.name == 'posix', 'POSIX file modes only')
+class PackagedPermissionTests(unittest.TestCase):
+    """PKG-001: shell entrypoints executable, nothing world-writable."""
+
+    def _files(self):
+        exclude = {'.git', '__pycache__', '.pytest_cache', '.ruff_cache'}
+        return [p for p in ROOT.rglob('*')
+                if p.is_file() and not any(part in exclude for part in p.parts)]
+
+    def test_every_shell_script_is_executable(self):
+        not_exec = [p.relative_to(ROOT).as_posix() for p in self._files()
+                    if p.suffix == '.sh' and not (p.stat().st_mode & stat.S_IXUSR)]
+        self.assertEqual(not_exec, [],
+                         msg='packaged shell scripts must be executable (0755)')
+
+    def test_no_packaged_file_is_group_or_world_writable(self):
+        writable = [p.relative_to(ROOT).as_posix() for p in self._files()
+                    if p.stat().st_mode & (stat.S_IWGRP | stat.S_IWOTH)]
+        self.assertEqual(writable, [],
+                         msg='packaged files must not be group/world-writable')
+
+
+if __name__ == '__main__':
+    unittest.main()

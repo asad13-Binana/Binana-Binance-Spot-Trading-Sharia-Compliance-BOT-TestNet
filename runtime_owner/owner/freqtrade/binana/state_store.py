@@ -372,7 +372,7 @@ class StateStore:
                                         (intent_id,)).fetchone()
             if latest is None:
                 raise ValueError('Operator exit protection history missing')
-            if latest['mode'] == 'OPERATOR_EXIT' and latest['status'] not in ('TERMINAL', 'DUST_RETAINED'):
+            if latest['mode'] == 'OPERATOR_EXIT' and latest['status'] not in ('TERMINAL', 'DUST_RETAINED', 'DUST_PENDING'):
                 return dict(latest)
             generation = int(latest['generation']) + 1
             client = _client('E', intent_id, generation, 'exit')

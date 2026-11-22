@@ -37,6 +37,27 @@ print('Owner/support source identities and source syntax verified')
 PY
 while IFS= read -r -d '' script; do bash -n "$script"; done < <(find deploy scripts monitoring runtime_owner -type f -name '*.sh' -print0)
 
+# PKG-002: no release entrypoint may embed a populated high-confidence
+# credential. Distinct from the mode/writable/syntax checks above: this scans
+# file content under deploy/ and scripts/ for real secret material that must
+# not ship in the artifact. Fail-closed: any match aborts the gate.
+ENTRYPOINT_SECRET=$(find . \
+  -path './.git' -prune -o \
+  -path './tests' -prune -o \
+  -path './.pytest_cache' -prune -o \
+  -path './.hypothesis' -prune -o \
+  -path '*/__pycache__' -prune -o \
+  -type f \( -path './deploy/*' -o -path './deploy/*/*' \
+             -o -path './scripts/*' -o -path './scripts/*/*' \) \
+  \( -name '*.sh' -o -name '*.py' \) -print0 \
+  | xargs -0 grep -lE -- 'sk-[A-Za-z0-9_-]{20,}|ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|[0-9]{8,10}:[A-Za-z0-9_-]{30,}' 2>/dev/null || true)
+if [ -n "$ENTRYPOINT_SECRET" ]; then
+  echo 'FAIL: release entrypoints embed credential material:' >&2
+  printf '%s\n' "$ENTRYPOINT_SECRET" >&2
+  exit 1
+fi
+echo 'packaged entrypoint credential scan passed (no embedded high-confidence secrets)'
+
 python - <<'PY'
 from pathlib import Path
 units=Path('monitoring/systemd')

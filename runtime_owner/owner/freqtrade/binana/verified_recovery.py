@@ -6,8 +6,7 @@ from time import time
 from .recovery_contract import RecoveryBlocked, TERMINAL, dec, verify_child, live_protection, residual_quantity, executable_quantity, recovery_protection_quantity, recovery_boundary_action, classify_executability, protectable_quantity, order_history_state
 from .binance_order_lists import _client
 from .protection_plan import provisional_plan, trailing_plan
-from .operator_exit import OPERATOR_PRE_SUBMISSION, MarketBelowMinimum, unsubmitted_operator_exit
-from .retained_inventory import retained_quantities
+from .operator_exit import OPERATOR_PRE_SUBMISSION
 from .submission_absence import verify_absent_replacement, explicit_absence
 from .recovery_contract import native_exit_working
 
@@ -49,8 +48,11 @@ class VerifiedRecovery:
             # A failed read must never leave an apparently verified ACTIVE label.
             latest = self.store.latest_generation(iid)
             explicit = str(exc) if isinstance(exc,RecoveryBlocked) else ""
-            if latest and explicit == "ORDER_HISTORY_UNAVAILABLE" and not unsubmitted_operator_exit(latest):
-                self.store.update_generation_status(iid, int(latest["generation"]), "ORDER_HISTORY_UNAVAILABLE")
+            if latest and explicit == "ORDER_HISTORY_UNAVAILABLE":
+                # -2013 on an older child must not overwrite an unsubmitted operator phase;
+                # the next reconciliation re-reads by client ID, never blindly POSTs.
+                if not (latest.get('mode') == 'OPERATOR_EXIT' and latest.get('status') in OPERATOR_PRE_SUBMISSION):
+                    self.store.update_generation_status(iid, int(latest["generation"]), "ORDER_HISTORY_UNAVAILABLE")
             elif latest and latest["status"] in {"TRAILING_ACTIVE","FIXED_ACTIVE","NATIVE_EXIT_WORKING"}:
                 self.store.update_generation_status(iid, int(latest["generation"]), "VERIFICATION_UNKNOWN")
             self._recovery_block(iid, trade.pair, type(exc).__name__+(":"+explicit if explicit else ""))
@@ -64,7 +66,7 @@ class VerifiedRecovery:
         if not generations:
             raise RecoveryBlocked("PROTECTION_GENERATION_MISSING")
         latest = generations[-1]
-        operator_request = latest if unsubmitted_operator_exit(latest) else None
+        operator_request = latest if latest['mode'] == 'OPERATOR_EXIT' and latest['status'] in OPERATOR_PRE_SUBMISSION else None
         histories = []
         all_owned_ids = set()
         buy_total = sell_total = base_fees = Decimal(0)
@@ -72,7 +74,7 @@ class VerifiedRecovery:
         original = None
         pending_exit = None
         for gen in generations:
-            if unsubmitted_operator_exit(gen):
+            if gen['mode'] == 'OPERATOR_EXIT' and gen['status'] in OPERATOR_PRE_SUBMISSION | {'OPERATOR_REMAINDER_DUST','DUST_PENDING','DUST_RETAINED'}:
                 continue
             if not any(gen.get(k+"_order_id") for k in ("working","tp","sl")):
                 if gen['status'] == 'SUBMISSION_ABSENT':
@@ -169,8 +171,7 @@ class VerifiedRecovery:
                 if original != dec(children["sl"]["amount"]):
                     raise RecoveryBlocked("INITIAL_PROTECTION_BASIS_MISMATCH")
             sell_keys=("tp",) if gen["mode"] in {"TARGET_EXIT","OPERATOR_EXIT"} else (("sl",) if gen["mode"]=="STOP_EXIT" else ("tp","sl"))
-            if (gen['status'] not in {'DUST_PENDING', 'DUST_RETAINED'} and
-                    all(children.get(k,{}).get("status") in TERMINAL for k in sell_keys)):
+            if all(children.get(k,{}).get("status") in TERMINAL for k in sell_keys):
                 self.store.update_generation_status(iid,int(gen["generation"]),"TERMINAL",
                     payload={"verified_at":time(),"tp_status":children.get("tp",{}).get("status"),"sl_status":children.get("sl",{}).get("status")})
             histories.append((gen,children))
@@ -179,11 +180,7 @@ class VerifiedRecovery:
             return pending_exit
         if original is None:
             raise RecoveryBlocked("IMMUTABLE_ENTRY_PROTECTION_BASIS_UNAVAILABLE")
-        if operator_request and latest['status'] == 'DUST_RETAINED':
-            return self._finish_acknowledged_operator_dust(trade, iid, latest, histories)
-        terminal_remainder = sell_total > 0 and all(
-            order['status'] in TERMINAL for _, children in histories for order in children.values())
-        if operator_request or terminal_remainder:
+        if operator_request:
             self.order_lists._metadata.pop(pair.replace('/',''), None)
         filters = self.order_lists.symbol_info(pair).get("filters",[])
         lot = next((r for r in filters if r.get("filterType")=="LOT_SIZE"),None)
@@ -204,23 +201,25 @@ class VerifiedRecovery:
         open_orders = self.exchange._api.fetch_open_orders(pair)
         ticker = self.order_lists.public.publicGetTickerBookTicker({'symbol':pair.replace('/','')})
         price = dec(ticker.get("bidPrice") or 0)
+        if operator_request and price <= 0:
+            # Cannot verify the reference price, so we cannot safely classify the
+            # remainder as dust (we don't know it is unsellable) or execute an
+            # exit. Fail-closed: block recovery instead of marking dust.
+            raise RecoveryBlocked("OPERATOR_REFERENCE_PRICE_UNAVAILABLE")
+        quantity = protectable_quantity(original,sell_total,canonical,price,filters)
         if any(str(o.get("id")) not in all_owned_ids for o in open_orders):
             raise RecoveryBlocked("UNRECONCILED_OPEN_ORDER_ON_SYMBOL")
         if operator_request:
-            try:
-                return self.reconcile_operator_exit(trade, iid, operator_request, histories,
-                                                    all_owned_ids, filters, price, open_orders)
-            except MarketBelowMinimum as below:
-                if not terminal_remainder or canonical <= 0:
-                    raise
-                if operator_request['status'] in OPERATOR_PRE_SUBMISSION:
-                    self.store.update_generation_status(iid, latest['generation'], 'OPERATOR_REMAINDER_DUST')
-                return self._prepare_retained_dust(trade, iid, latest, canonical, original, sell_total,
-                    base_fees, price, filters, below.classification, market_bases=below.bases)
+            execution_class, _ = classify_executability(canonical,price,filters)
+            if not open_orders and execution_class != 'EXECUTABLE':
+                self.store.update_generation_status(iid,operator_request['generation'],'OPERATOR_REMAINDER_DUST')
+                return None
+            else:
+                return self.reconcile_operator_exit(trade,iid,operator_request,histories,
+                    all_owned_ids,filters,price,open_orders)
         active_histories = [(g,ch) for g,ch in histories if any(
             ch.get(k,{}).get("status")=="open" for k in ("tp","sl"))]
         if active_histories:
-            quantity = protectable_quantity(original,sell_total,canonical,price,filters)
             if len(active_histories)!=1:
                 raise RecoveryBlocked("MULTIPLE_ACTIVE_PROTECTION_GENERATIONS")
             gen,ch = active_histories[0]
@@ -263,46 +262,56 @@ class VerifiedRecovery:
             return None
         if open_orders:
             raise RecoveryBlocked("OPEN_ORDER_SNAPSHOT_CONFLICT")
-        cfg = self.config["binana"]
-        profile = json.loads(generations[0].get("payload_json") or "{}").get("profile")
-        stop = cfg["defensive_stop_fraction"] if profile=="DEFENSIVE" else cfg["normal_stop_fraction"]
-        fixed = provisional_plan(intent_id=iid,pair=pair,quantity=max(canonical,step),entry_limit=trade.open_rate,
-            tick_size=self._tick_size(pair),target_fraction=cfg["fixed_target_fraction"],stop_fraction=stop,
-            stop_limit_buffer_fraction=cfg["stop_limit_buffer_fraction"],
-            estimated_exit_fee_fraction=cfg.get("estimated_exit_fee_fraction","0"))
-        boundary_action=recovery_boundary_action(price,fixed.stop_trigger,fixed.tp_price)
-        if boundary_action == "STOP_EXIT":
-            reserved = residual_quantity(original, sell_total, canonical, step)
-            try:
-                quantity = self._operator_market_quantity(pair, canonical, filters, price, reserved=reserved)
-            except MarketBelowMinimum as below:
-                if not terminal_remainder or canonical <= 0:
-                    raise
-                # Match committed Freqtrade receipts and authenticate terminal list identities.
-                economics, active = self._verified_exit_history(trade, iid, histories)
-                if active or not economics['exits'] or economics['quantity'] != canonical:
-                    raise RecoveryBlocked('STOP_REMAINDER_OWNERSHIP_UNVERIFIED')
-                return self._prepare_retained_dust(trade, iid, latest, canonical, original, sell_total,
-                    base_fees, price, filters, below.classification, market_bases=below.bases)
-        else:
-            execution_class, _ = classify_executability(canonical, price, filters)
-            if execution_class != 'EXECUTABLE':
-                return self._prepare_retained_dust(trade, iid, latest, canonical, original, sell_total,
-                    base_fees, price, filters, execution_class)
-        if boundary_action != "STOP_EXIT":
-            quantity = recovery_protection_quantity(original,sell_total,canonical,price,filters)
+        # No surviving exchange obligation: determine dust from current native filters.
+        execution_class, canonical_rounded = classify_executability(canonical,price,filters)
+        executable = execution_class == "EXECUTABLE"
+        if not executable:
+            filled_dates = [order.order_filled_date for order in trade.orders
+                            if order.filled and order.order_filled_date]
+            evidence={"quantity":str(canonical),"cost_basis":str(trade.stake_amount),
+                "classification":execution_class,"non_executable":True,
+                "price":str(price),"original_protection_qty":str(original),"sold_qty":str(sell_total),
+                "base_commission":str(base_fees),"verified_at":time(),"exchange_open_orders":0,
+                "filters":filters,"scope":self.scope_id,
+                "settled_at":max(filled_dates).isoformat() if filled_dates else None}
+            self.store.update_generation_status(iid,int(latest["generation"]),"DUST_PENDING",payload=evidence)
+            self.store.set_intent_state(iid,"EXIT_PENDING")
+            return {"dust_retained":evidence}
+        quantity = recovery_protection_quantity(original,sell_total,canonical,price,filters)
         if quantity is None:
             raise RecoveryBlocked("CANONICAL_EXECUTABILITY_CHANGED_DURING_RECOVERY")
         balance = self.exchange._api.fetch_balance()
         if dec((balance.get(base_asset) or {}).get("free") or 0) < quantity:
             raise RecoveryBlocked("INSUFFICIENT_FREE_OWNED_ASSET")
-        if any(g['status'] in {'DUST_PENDING', 'DUST_RETAINED'}
-               or json.loads(g.get('payload_json') or '{}').get('non_executable') is True
-               for g in generations):
-            self._supersede_retained_dust(trade)
-        fixed = replace(fixed,quantity=quantity)
+        cfg = self.config["binana"]
+        profile = json.loads(generations[0].get("payload_json") or "{}").get("profile")
+        stop = cfg["defensive_stop_fraction"] if profile=="DEFENSIVE" else cfg["normal_stop_fraction"]
+        fixed = provisional_plan(intent_id=iid,pair=pair,quantity=quantity,entry_limit=trade.open_rate,
+            tick_size=self._tick_size(pair),target_fraction=cfg["fixed_target_fraction"],stop_fraction=stop,
+            stop_limit_buffer_fraction=cfg["stop_limit_buffer_fraction"],
+            estimated_exit_fee_fraction=cfg.get("estimated_exit_fee_fraction","0"))
         new_generation = int(latest["generation"])+1
+        boundary_action=recovery_boundary_action(price,fixed.stop_trigger,fixed.tp_price)
         if boundary_action == "STOP_EXIT":
+            market = next((r for r in filters if r.get("filterType")=="MARKET_LOT_SIZE"),None)
+            market_min = dec(market["minQty"]) if market else dec(0)
+            lot_min = dec(lot["minQty"]) if lot else dec(0)
+            if canonical < max(lot_min, market_min):
+                # MARKET_LOT_SIZE.minQty can exceed LOT_SIZE.minQty: a remainder
+                # large enough for a lot order can still be ineligible for a
+                # market exit. Classify the verified market-ineligible remainder
+                # as dust instead of submitting an order the exchange rejects.
+                filled_dates = [order.order_filled_date for order in trade.orders
+                                if order.filled and order.order_filled_date]
+                evidence={"quantity":str(canonical),"cost_basis":str(trade.stake_amount),
+                    "classification":"NON_EXECUTABLE_DUST_MARKET_MIN_QTY","non_executable":True,
+                    "price":str(price),"original_protection_qty":str(original),"sold_qty":str(sell_total),
+                    "base_commission":str(base_fees),"verified_at":time(),"exchange_open_orders":0,
+                    "filters":filters,"scope":self.scope_id,
+                    "settled_at":max(filled_dates).isoformat() if filled_dates else None}
+                self.store.update_generation_status(iid,int(latest["generation"]),"DUST_PENDING",payload=evidence)
+                self.store.set_intent_state(iid,"EXIT_PENDING")
+                return {"dust_retained":evidence}
             cid=_client("R",iid,new_generation,"stop")
             self.store.put_generation(intent_id=iid,generation=new_generation,pair=pair,
                 mode="STOP_EXIT",status="SUBMISSION_PENDING",ids={"sl_client_id":cid},
@@ -311,7 +320,7 @@ class VerifiedRecovery:
                     "immutable_basis":str(original)})
             self._recovery_block(iid,pair,"STOP_EXIT_VERIFICATION_PENDING")
             order=self.exchange._api.create_order(pair,"market","sell",float(quantity),None,
-                params={"newClientOrderId":cid,"maxRetriesOnFailure":0})
+                params={"newClientOrderId":cid})
             if not order.get("id"):
                 raise RecoveryBlocked("STOP_EXIT_ID_UNAVAILABLE")
             self.store.put_generation(intent_id=iid,generation=new_generation,pair=pair,
@@ -337,7 +346,7 @@ class VerifiedRecovery:
                          "immutable_basis":str(original)})
             self._recovery_block(iid,pair,"TARGET_EXIT_VERIFICATION_PENDING")
             order=self.exchange._api.create_order(pair,"limit","sell",float(quantity),
-                float(plan.tp_price),params={"timeInForce":"IOC","newClientOrderId":cid,"maxRetriesOnFailure":0})
+                float(plan.tp_price),params={"timeInForce":"IOC","newClientOrderId":cid})
             if not order.get("id"):
                 raise RecoveryBlocked("TARGET_EXIT_ID_UNAVAILABLE")
             self.store.put_generation(intent_id=iid,generation=new_generation,pair=pair,
@@ -400,43 +409,6 @@ class VerifiedRecovery:
         self._recovery_clear(iid)
         return True
 
-    def _finish_acknowledged_operator_dust(self, trade, iid, generation, histories):
-        """Finish the canonical half of an acknowledged retention without reopening the exit."""
-        saved = json.loads(generation['payload_json'])
-        marker = trade.binana_custom_data('binana_retained_dust')
-        if (not isinstance(marker, dict) or marker.get('phase') not in ('prepared', 'retained')
-                or marker.get('non_executable') is not True or marker.get('scope') != self.scope_id
-                or saved.get('trade_id') != trade.id or saved.get('scope_id') != self.scope_id):
-            raise RecoveryBlocked('ACKNOWLEDGED_RETENTION_IDENTITY_UNVERIFIED')
-        evidence = {k: v for k, v in marker.items() if k != 'phase'}
-        if any(saved.get(k) != value for k, value in evidence.items()):
-            raise RecoveryBlocked('ACKNOWLEDGED_RETENTION_PROOF_MISMATCH')
-        economics, active = self._verified_exit_history(trade, iid, histories)
-        if active or not economics['exits'] or self.exchange._api.fetch_open_orders(trade.pair):
-            raise RecoveryBlocked('ACKNOWLEDGED_RETENTION_OBLIGATIONS_UNVERIFIED')
-        retained_quantities([trade], self.scope_id)
-        if marker['phase'] == 'prepared':
-            return {'dust_retained': evidence}
-        self.acknowledge_retained_dust(trade, evidence)
-        return None
-
-    def _prepare_retained_dust(self, trade, iid, latest, canonical, original, sold, fees,
-                               price, filters, classification, *, market_bases=None):
-        filled_dates = [order.order_filled_date for order in trade.orders
-                        if order.filled and order.order_filled_date]
-        evidence={"intent_id":iid, "generation":int(latest['generation']),
-            "quantity":str(canonical),"cost_basis":str(trade.stake_amount),
-            "classification":classification,"non_executable":True,
-            "price":str(price),"original_protection_qty":str(original),"sold_qty":str(sold),
-            "base_commission":str(fees),"verified_at":time(),"exchange_open_orders":0,
-            "filters":filters,"scope":self.scope_id,
-            "settled_at":max(filled_dates).isoformat() if filled_dates else None}
-        if market_bases is not None:
-            evidence['market_notional_bases'] = market_bases
-        self.store.update_generation_status(iid,int(latest["generation"]),"DUST_PENDING",payload=evidence)
-        self.store.set_intent_state(iid,"EXIT_PENDING")
-        return {"dust_retained":evidence}
-
     def acknowledge_retained_dust(self, trade, evidence):
         """Called only after Freqtrade's canonical custom-data transaction commits."""
         iid=self.intent_for_trade(int(trade.id))
@@ -444,10 +416,19 @@ class VerifiedRecovery:
         if not actual or actual["quantity"]!=evidence["quantity"] or actual["cost_basis"]!=evidence["cost_basis"]:
             raise RecoveryBlocked("CANONICAL_DUST_ACK_MISMATCH")
         gen=self.store.latest_generation(iid)
-        if (not gen or gen['status'] not in {'DUST_PENDING', 'DUST_RETAINED'}
-                or evidence.get('intent_id', iid) != iid
-                or evidence.get('generation', gen['generation']) != gen['generation']):
-            raise RecoveryBlocked('CANONICAL_DUST_GENERATION_MISMATCH')
+        # Cancel any retained STOP/TP remainder so the trade slot is freed once the
+        # bid recovers and the dust becomes executable again. Without this, the
+        # retained open order keeps the slot occupied and the admission monitor
+        # rejects a new OCO for the same pair.
+        open_orders = self.exchange._api.fetch_open_orders(trade.pair)
+        retained_ids = {str(gen.get(key)) for key in ("tp_order_id","sl_order_id","working_order_id") if gen.get(key)}
+        for order in open_orders:
+            oid = str(order.get("id"))
+            if oid in retained_ids:
+                try:
+                    self.exchange._api.cancel_order(oid, trade.pair, params={'maxRetriesOnFailure': 0})
+                except Exception:
+                    pass  # order may already be terminal; fail-closed
         self.store.update_generation_status(iid,int(gen["generation"]),"DUST_RETAINED",payload=evidence)
         self.store.set_intent_state(iid,"DUST_RETAINED")
         self._recovery_clear(iid)

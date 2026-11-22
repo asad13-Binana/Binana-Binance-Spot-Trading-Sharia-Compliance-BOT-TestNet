@@ -1298,8 +1298,11 @@ class RPC:
                 try:
                     self._freqtrade.exchange.cancel_order(open_order.order_id, trade.pair)
                     c_count += 1
-                except ExchangeError:
-                    pass
+                except ExchangeError as e:
+                    logger.info(
+                        f"Cannot cancel order {open_order.order_id} for trade {trade_id} due to {e}.",
+                        exc_info=True,
+                    )
 
             # cancel stoploss on exchange orders ...
             if (
@@ -1310,8 +1313,11 @@ class RPC:
                     try:
                         self._freqtrade.exchange.cancel_stoploss_order(oslo.order_id, trade.pair)
                         c_count += 1
-                    except ExchangeError:
-                        pass
+                    except ExchangeError as e:
+                        logger.info(
+                            f"Cannot cancel stoploss order {oslo.order_id} for trade {trade_id} due to {e}.",
+                            exc_info=True,
+                        )
             trade_pair = trade.pair
             trade.delete()
             self._freqtrade.wallets.update()

@@ -1,8 +1,8 @@
 {
   "files": {
     ".dockerignore": {
-      "sha256": "1d751c0d5d3ab943a56a145f72fc58b319cd4b0865ff64229d602a24303a89f1",
-      "size": 72
+      "sha256": "8e59bfc7a9f6998affe8db7978c5e2eba3ce022425c90562e06414a19c90728e",
+      "size": 693
     },
     ".env.example": {
       "sha256": "d16377127c7f292cfbe0b95574da7f7d68e1859a332183ee43c94e3ae998a59b",
@@ -13,24 +13,24 @@
       "size": 725
     },
     ".github/CODEOWNERS": {
-      "sha256": "569279ac5891cf8e8303b429ae37f9958240f1afa5f81a9b2ee6961091641ca0",
-      "size": 758
+      "sha256": "4497e338f245f17d1e227e856571b75e91fd0f262945ea4e33c3385b58e6cc09",
+      "size": 825
     },
     ".github/workflows/binance-contract-drift.yml": {
       "sha256": "2952d6e58f1e19e9e931518e493e1c1e4cbb39dd35a8cf16471e50bfd6c2305f",
       "size": 1499
     },
     ".github/workflows/ci.yml": {
-      "sha256": "6aa9cb2972d4a3ce6d86ce08c5c50d3e0d06fc53fef110aa7fd1369c405289ee",
-      "size": 13321
+      "sha256": "c9b06d3b66308c563d16d970cdf5aa4d10a34d5b3ffb6856c012d0a7699843ef",
+      "size": 29631
     },
     ".gitignore": {
       "sha256": "4f9fd03b96ad4cad58801e464808e7969aa331801b1cb30ee06f44fde36db136",
       "size": 1876
     },
     "ARCHITECTURE.md": {
-      "sha256": "5fe22a683b0d807a3c0f3395ea975ee9d5f69dc7ee02f04f468ad55ff136b797",
-      "size": 1343
+      "sha256": "237509eaa5cfb3ee89b338b606304e279f75fa0e0484e4428e9291b5a0f61d38",
+      "size": 5072
     },
     "AUDIT_AND_RELEASE_NOTES_2026-07-19.md": {
       "sha256": "31d4402d285c18f0288daa5b1b237e9ace3e9fe4507bfe7bc89a223985284660",
@@ -48,17 +48,33 @@
       "sha256": "004f6813b7d08edce4f99d4de01ebf6abeacea025a13e2d9b74d23d1696bd46c",
       "size": 4367
     },
+    "CI_PUBLICATION_POLICY_DIAGNOSTIC.md": {
+      "sha256": "c610ec5ea2377581c69ae35bbfe169e793616056efcc296211820e294b843f7d",
+      "size": 13443
+    },
+    "C\uf03aUsersasadmNemotron-WorkspaceBinana-TestNetvalidator_out.txt": {
+      "sha256": "c5cf11211dad47993ec81f4f558f0d147b43aecc2050662d1498be5822663451",
+      "size": 51140
+    },
     "DURABLE_SAFETY_STATE_CHANGES_2026-08-14.txt": {
       "sha256": "18c1011f7725ad2a5ad1b42b9fa549b74acf2d630fc096b8a2ff7fd16d023d57",
       "size": 2171
+    },
+    "Dockerfile.freqtrade": {
+      "sha256": "6e876ba68e53b97075ad6aab244a6969818a6d51d80893232ba726b0db717215",
+      "size": 771
+    },
+    "Dockerfile.services": {
+      "sha256": "c020f9364f95e1f7d3c1bf97e2c39fe0f4709d3b1060a63793986e4b2eb18f75",
+      "size": 1887
     },
     "FOUR_BOT_COHOST_AUDIT_2026-08-21.txt": {
       "sha256": "b2ae09b1c1f344b20e9ced20515f0efc254d36e17252a49c998671f7ab258dfc",
       "size": 11933
     },
     "FOUR_BOT_ORACLE_RUNBOOK.md": {
-      "sha256": "5fe22a683b0d807a3c0f3395ea975ee9d5f69dc7ee02f04f468ad55ff136b797",
-      "size": 1343
+      "sha256": "fc28aa121ddda1b407043cb4aa0f77b6eb1d25d542a4e42ea736878b077a1b2a",
+      "size": 4682
     },
     "GITHUB_ACTION_PIN_REPAIR_2026-08-25.txt": {
       "sha256": "c2af2d608b0449c8c9e54efe1f212f9940d04a027ce8e0fef068963feebb15de",
@@ -69,8 +85,8 @@
       "size": 2492
     },
     "Makefile": {
-      "sha256": "bd14ded88bfef346ec3e845bfc120c7c549a37ea64a02e078400126500a9a02b",
-      "size": 338
+      "sha256": "0d9f26842d8f03eb1ea4400dba46b11d178ed9ead4eed971400f34362255372d",
+      "size": 607
     },
     "NON_CORE_RESILIENCE_CHANGES_2026-08-13.txt": {
       "sha256": "36f117c1845c5c0959f33d8ae97978743e7987b76f7da410fd97078e716891e6",
@@ -93,16 +109,16 @@
       "size": 1942
     },
     "ORACLE_SETUP_GUIDE.md": {
-      "sha256": "5fe22a683b0d807a3c0f3395ea975ee9d5f69dc7ee02f04f468ad55ff136b797",
-      "size": 1343
+      "sha256": "89aa6a8bbe0e00439c55c1ee3111a63d5007bcbdb9bdfad27f83f136bbd6560f",
+      "size": 12739
     },
     "PACKAGE_NOTES.txt": {
       "sha256": "8db951ac048148bada366c47ae1d68eaa9df0a91953103466d9d29f01ea9616a",
       "size": 877
     },
     "README.md": {
-      "sha256": "5fe22a683b0d807a3c0f3395ea975ee9d5f69dc7ee02f04f468ad55ff136b797",
-      "size": 1343
+      "sha256": "b675f353c4183ecaf2340b98d3b8320a8e6f44bf711f71c45b04291adee61003",
+      "size": 4802
     },
     "RELEASE_MODE": {
       "sha256": "e4b87a69f913da48060c909bafab37d64bcf4dc7d835a19d388da46ebd838c3d",
@@ -128,6 +144,14 @@
       "sha256": "cfa59ef7f420802f944967a0e82c4871538790f7ab258afe6d7f4725a1facd0c",
       "size": 2678
     },
+    "deploy/binana-approve-release.sh": {
+      "sha256": "f435d9545175289d8dba514b4b7c3ed31864c234f49e56b3cc40b70eeec89b0b",
+      "size": 800
+    },
+    "deploy/binana-deploy-wrapper.sh": {
+      "sha256": "cdfb338413833a58247e3c5ee588191184e0346dd9ea668ea251466003e63230",
+      "size": 4580
+    },
     "deploy/configure_offhost_backup.sh": {
       "sha256": "65c18164379b75992291d3f04b61f28d7849ef2a7710cac6886e51282db9f9d0",
       "size": 1374
@@ -151,6 +175,10 @@
     "deploy/harden_ssh.sh": {
       "sha256": "d05d7a71bdd2a20b2d51987b4740069ceef73423988ddabee1e18f1c4045ba87",
       "size": 2278
+    },
+    "deploy/install_artifact.sh": {
+      "sha256": "fd5349fbe5625a6e7edfe78c45a0a733ed9837f471301a7a69fcd3e3809d2569",
+      "size": 30615
     },
     "deploy/install_monitoring.sh": {
       "sha256": "02ebcbd028155442632d4e7ecf7cb1c0780db83f6f208081549fbcc146ec6002",
@@ -180,6 +208,10 @@
       "sha256": "89ae1be4b2f9a73c541d42a58c35f9621c9ece4ca8643a4726e0ce8b4b01e470",
       "size": 10548
     },
+    "deploy/oracle_setup.sh": {
+      "sha256": "f51c48319d5d5c640a1d09837e094430eef9035fbb8db7407845372d29b4ad31",
+      "size": 16134
+    },
     "deploy/oracle_validate.sh": {
       "sha256": "ecf4ed952b087f5d96fabab8019dcc5aae7cdd2a58e19783f9ff3bd77227b279",
       "size": 7984
@@ -192,9 +224,17 @@
       "sha256": "d6535534945753f6e084a6902a73a168d7fd0e2ed6d426cbd91ead311e702010",
       "size": 6216
     },
+    "deploy/update_docker.sh": {
+      "sha256": "6ea7ff641dcce2c5d4915be114ee2b9823e214a173ecd4f1355b84a14a9bacba",
+      "size": 1227
+    },
     "deploy/verify_release.sh": {
-      "sha256": "ae0ac9d4c270450815865d2c93f2cb3ad0e0b1f364b1ac3fb9e3e0462771c861",
-      "size": 4889
+      "sha256": "685bbf35927d11d07ce98aefea9a647f4c7d195ea465bb356fb1bf60d648409c",
+      "size": 12128
+    },
+    "docker-compose.yml": {
+      "sha256": "83162e26316bcb5e3b5c4095441004beb8e9cfecb4fc0c26727efc61e8824eec",
+      "size": 19159
     },
     "docs/API_READINESS_RUNBOOK.md": {
       "sha256": "ba9253f2e12570cdcac137d33a210b855b9506fec52883875291b142359efcbf",
@@ -253,8 +293,8 @@
       "size": 8649
     },
     "docs/GITHUB_ORACLE_DEPLOYMENT.md": {
-      "sha256": "c86b14e4f26c3f4ba1c32e6ae3130e6acd57eddac443f3ca6bf3f826275e1c10",
-      "size": 919
+      "sha256": "ab1bb75c8ae393be2b5a0bc8a835a2acb398163441f8c76b8cca0d2ceb2cf9c1",
+      "size": 6098
     },
     "docs/GITHUB_RELEASE_AND_ROLLBACK_GUIDE.md": {
       "sha256": "7325fdcce8b47ebec62a1e5754ffcfdd313f092403a50e44b550afb1afa008b8",
@@ -263,10 +303,6 @@
     "docs/IMAGE_DIGEST_PINNING.md": {
       "sha256": "739e555691d05f8c0afb7792a86bb34e5f86a7a829d096d1d0da88fe0dc9e331",
       "size": 1947
-    },
-    "docs/IMAGE_SECURITY_20261112.md": {
-      "sha256": "d8875cec31891bf306609d432c032e654165e6c8a6d0602c95b7db70c3eb6fc5",
-      "size": 11191
     },
     "docs/LEGACY_ORACLE_DEPLOYMENT_GUIDE.md": {
       "sha256": "f216d518140beeb0647f39086bf7804c0e9dd9e7efda98a435ce2cf2bdf2a1cd",
@@ -289,16 +325,16 @@
       "size": 2557
     },
     "docs/ORACLE_DEPLOYMENT_GUIDE.md": {
-      "sha256": "c86b14e4f26c3f4ba1c32e6ae3130e6acd57eddac443f3ca6bf3f826275e1c10",
-      "size": 919
+      "sha256": "3e5fb3a61ba2f5a1a68e817530ef2896480412d7bfb1ac911f7b2d8e1ae3417f",
+      "size": 2729
     },
     "docs/ORACLE_HOST_LOSS_RESILIENCE.md": {
       "sha256": "b4e3ea4f79162dde9f2df39d5cd57dbf6c8d9c0206ca5687d7877222abee4987",
       "size": 5519
     },
     "docs/ORACLE_OWNER_BUNDLE.md": {
-      "sha256": "22d2325bf75c972f0c6b54d5f16a981844b51a0c7a9b3c6c76dd09afd5e8ef72",
-      "size": 13920
+      "sha256": "612dc275a3d81ed9fd1fed4d8e05686bee7292e97aa8ae748d0d937ea859a025",
+      "size": 13593
     },
     "docs/RUNTIME_RECOVERY_20260830.md": {
       "sha256": "8800d391dd6a164f008e1dacb1aeb1329a8165a21741e0c1404f1ae87f841d6e",
@@ -325,8 +361,8 @@
       "size": 3918
     },
     "docs/STRATEGY_NOTES.md": {
-      "sha256": "3fcb6452a3118e760c0fb0c224f7473d4fc504cee04fc891ce0ef92c815afacc",
-      "size": 762
+      "sha256": "df54bbf9ac9abb12980e4b4f36746938b89787340fbbeee7651443ce0b61f00d",
+      "size": 3175
     },
     "docs/TELEGRAM_BOT_SETUP.md": {
       "sha256": "d77c213a155f520b0e01586da2c771cd898966af42a0e9b6bc244495854c1dd1",
@@ -361,16 +397,16 @@
       "size": 1781
     },
     "docs/audit/FILE_REVIEW_LEDGER.csv": {
-      "sha256": "68faf046457cd0454a39fe2e642e2ef32e3a5c894174aaf9e32f0dea6728eda8",
-      "size": 93928
+      "sha256": "b89f304ea604e5e806f20628aaa3c603b79fa1d8ad469146a10ddba4494327ad",
+      "size": 179636
     },
     "docs/audit/FINAL_AUDIT_REPORT.md": {
       "sha256": "47deee6835be69cd54c96c3505e31b6e25265772e16cb520e4128fb4a446aa93",
       "size": 3833
     },
     "docs/audit/FUNCTION_CALLBACK_LEDGER.csv": {
-      "sha256": "7895acc346a22a6bb65b0fff40e824d6a280cc037a89da55c4bbfe2260a31783",
-      "size": 607682
+      "sha256": "3fa90f8e110b898f13557f6fcfb95697acd68784f23f1e70562d72a197d03d70",
+      "size": 762115
     },
     "docs/audit/ISSUE_LEDGER.csv": {
       "sha256": "0c35c066d36aea9960c9feed960d69c0a3eaae1f7ff10fb5280d7e43cfe57771",
@@ -492,17 +528,189 @@
       "sha256": "7faf63de7e7c334a35ebc96dae8445f9dc5aa1ffdae80c25700d32060a0d8fbe",
       "size": 674
     },
-    "docs/retirement/README.md": {
-      "sha256": "56f50a5b578de381dbd52add8d8e5e057201584aff6e6c05c360162abaa66c79",
-      "size": 2323
-    },
-    "docs/retirement/retired_sources.json": {
-      "sha256": "74e7293f4b98454b10641a5d69b4d6bd1fb1c9515a4884a037339ca4f0cb9446",
-      "size": 20497
-    },
     "docs/testnet_validation_evidence.template.json": {
       "sha256": "bebb975c45d90f3478ff6b63802aa6baa28e7902d0f645fb81179df8d7b266e8",
       "size": 1435
+    },
+    "freqtrade/.env.example": {
+      "sha256": "72f2ec76ed2f1ec2aec733ed7f6e42aac97789438b16ed2496cab5d770887a7e",
+      "size": 580
+    },
+    "freqtrade/.gitignore": {
+      "sha256": "f2283dc5ce752a6e4568e14a60901796e633ad76678764dcea17660b883c1732",
+      "size": 192
+    },
+    "freqtrade/README.md": {
+      "sha256": "f979aff1de46523e64d9725baa615844dce426d9f14b70ee2eec3aa3eb3810ee",
+      "size": 998
+    },
+    "freqtrade/config.backtest.json": {
+      "sha256": "b251da5e13463243ce2ad7c7b6bfeb3ff8d4cd7d7e6ec347bd2ab2a8372150e4",
+      "size": 1847
+    },
+    "freqtrade/deploy/freqtrade-docker.service": {
+      "sha256": "9fab9c129348c8fb94ee1e3d2d45e0932e538be65958001d9d43915a8ddf43df",
+      "size": 327
+    },
+    "freqtrade/deploy/freqtrade-update.service": {
+      "sha256": "df9afc2fb50c8dbefd9842b27eb6a3a01ca4319e65323a25ebaf1de0ad28b7b6",
+      "size": 243
+    },
+    "freqtrade/deploy/freqtrade-update.timer": {
+      "sha256": "0ddaee33ceeadb5494738d3e7cad7e7d65740b1f219fd73b4e7887fe88cc3109",
+      "size": 254
+    },
+    "freqtrade/deploy/oracle_setup.sh": {
+      "sha256": "15f721e0d4e9302098a5697e7c59b035c05193a8da2daf87697041a290bbfd0c",
+      "size": 190
+    },
+    "freqtrade/deploy/update.sh": {
+      "sha256": "8e03d43fc252b01e0f03ce8fd23ad1f2aa6ee61e2fb4246a3fb46e2585a5657a",
+      "size": 214
+    },
+    "freqtrade/docker-compose.yml": {
+      "sha256": "7ae192c36cd354dd9a6b18ffa73aaaaf127cf53b0b3158de4b85f0cffafbba4e",
+      "size": 728
+    },
+    "freqtrade/scripts/backtest.sh": {
+      "sha256": "e8dd56c57328d87e32608eb6ae7947a41553585bc2fab2fe87693a906eb1567d",
+      "size": 2780
+    },
+    "freqtrade/scripts/download_data.sh": {
+      "sha256": "cfc213114cbd8767ffc3e0dee16d073898fe4ab95cb09969d029c55c6847bfca",
+      "size": 731
+    },
+    "freqtrade/scripts/start.sh": {
+      "sha256": "70af19557b80c2e50b1c11faed3e26dc813a0c303c00ab15b795800d389855cc",
+      "size": 241
+    },
+    "freqtrade/scripts/stop.sh": {
+      "sha256": "54478f228e82b5f27aede035606a327f7e1dd52e6b08b22b171173d05d5d25ab",
+      "size": 232
+    },
+    "freqtrade/scripts/verify.sh": {
+      "sha256": "41ccbf82394aeca35bc8d84f50fad001d1e7d5b6f2dbf8d75fb13f5fbe15ff46",
+      "size": 618
+    },
+    "freqtrade/shared/universe/current_pairlist.json": {
+      "sha256": "f1b8b753c8c5e96c59aa261446b44a772f47d1cf28a149563272ddaa02871bd2",
+      "size": 124
+    },
+    "freqtrade/tests/audit_probes.py": {
+      "sha256": "15b014c7a021a28b026933b81e97f0ef5a9145670059158ba2de1dff11b6f491",
+      "size": 14267
+    },
+    "freqtrade/tests/test_operator_exit_dust.py": {
+      "sha256": "5db1f2d65d4e85583ff6f660f174ba08e4529c0d7690b8b5ce6f027a415e9618",
+      "size": 9822
+    },
+    "freqtrade/user_data/backtest_results/.last_result.json": {
+      "sha256": "f80f63f68c30dfaf4b022986ad25891a564572454c219f65ef54bd8e8911c6d9",
+      "size": 61
+    },
+    "freqtrade/user_data/backtest_results/backtest-result-2026-11-15_13-49-19.meta.json": {
+      "sha256": "206bc16018b794424af5c7e84cb1c973c50a8742e46256e914e67ba83999c523",
+      "size": 206
+    },
+    "freqtrade/user_data/backtest_results/backtest-result-2026-11-15_13-49-19.zip": {
+      "sha256": "d3be47c84415e6b6c8e31887f4c6ca01ee44f85d9f0f87300f2c0a1bb851b5e7",
+      "size": 92022
+    },
+    "freqtrade/user_data/backtest_results/backtest-result-2026-11-15_13-54-41.meta.json": {
+      "sha256": "3860a4e01b20e3e58d71bd70d55d9db2e7284396eee6737749f677a44cafeaa3",
+      "size": 206
+    },
+    "freqtrade/user_data/backtest_results/backtest-result-2026-11-15_13-54-41.zip": {
+      "sha256": "ac0fe7c1fe9f72fbf0a1f55232d0b6f3f796e160dc0b7c2bbf00c7e2859b826b",
+      "size": 92022
+    },
+    "freqtrade/user_data/backtest_results/backtest-result-2026-11-15_14-02-16.meta.json": {
+      "sha256": "9b070628558b41df395c5a6338454bf9b93ac85b355edbaa40c0d3e3a60ffb7f",
+      "size": 206
+    },
+    "freqtrade/user_data/backtest_results/backtest-result-2026-11-15_14-02-16.zip": {
+      "sha256": "71d2f3026257410e90ecd7190b1a36ea52cb83b1e7a26168a8b18c8a92bc22a9",
+      "size": 92022
+    },
+    "freqtrade/user_data/config.json": {
+      "sha256": "eddee010cd07f43cbd3d33fbe7d791ced49d5b09fb4ffa1f488a3c6efa5c75e6",
+      "size": 2192
+    },
+    "freqtrade/user_data/data/binance/BNB_USDT-5m.feather": {
+      "sha256": "d384292d9d0504bd0d743d998e652f39ff5cb510814732d780d48a783678abe5",
+      "size": 215994
+    },
+    "freqtrade/user_data/data/binance/BTC_USDT-1m.feather": {
+      "sha256": "9d9f20e2ed275662484ab9b3f86d293dbd53e913e94f32514c8dd2bb7e4cb5c5",
+      "size": 1139538
+    },
+    "freqtrade/user_data/data/binance/BTC_USDT-5m.feather": {
+      "sha256": "90cf9168728c79b3c9c7188478a0feabe40dd204e2672e79cf476f18b82b2da7",
+      "size": 253738
+    },
+    "freqtrade/user_data/data/binance/ETH_USDT-1m.feather": {
+      "sha256": "43755ace6e1a857a4d6524f8c3a4925d5bb8edd4fb1d95dd32816805c2fbd167",
+      "size": 1082226
+    },
+    "freqtrade/user_data/data/binance/ETH_USDT-5m.feather": {
+      "sha256": "71274ee10d997309a35c416f8274ce656ae842a572cfd964cf57d6cc3b1ca687",
+      "size": 235930
+    },
+    "freqtrade/user_data/data/binance/SOL_USDT-5m.feather": {
+      "sha256": "e0e2e991a53d3d71435748d9980c9e7fe65704a6c5727d3a6a2057d5b0d5aae5",
+      "size": 205410
+    },
+    "freqtrade/user_data/data/binance/XRP_USDT-5m.feather": {
+      "sha256": "b1756ccdc848ede8d13caa6b05f11dd2f4c4107c6d87863a98a1726abdae7795",
+      "size": 211746
+    },
+    "freqtrade/user_data/halal_list.json": {
+      "sha256": "b406389f4957a4644696c88f3960c06cc93c796a35b33e1e5e66f73beae5b84a",
+      "size": 131
+    },
+    "freqtrade/user_data/strategies/IctSmcStrategy.py": {
+      "sha256": "9f6bafc78c8cd0d9b9cbde615ddce89e304ab09738584b88d05bfdf92ff4e830",
+      "size": 21203
+    },
+    "legacy_core/.env.example": {
+      "sha256": "6215abf2793786dba6f2a3e340bfac4a8c6e433d1218104101b57bce4eefe405",
+      "size": 318
+    },
+    "legacy_core/__init__.py": {
+      "sha256": "e7918d1117bcc0ca324418f93dce1f5a21d63529b9f7cd257896f35a4fac305c",
+      "size": 47
+    },
+    "legacy_core/binance_bot_V4.9.16_ALL_IN_ONE.py": {
+      "sha256": "70b1d67cc0092b5b8db4a68b343cf893641bde1aae580e9ef51e2adec1062459",
+      "size": 431723
+    },
+    "legacy_core/binancebot.service": {
+      "sha256": "8c8c957f6551f7df9e87cac37854d8dcfcfdc494a0dda96b4f1cecfb20fcffde",
+      "size": 412
+    },
+    "legacy_core/halal_coins.json": {
+      "sha256": "5eba0b510f8197d06d6f9165ad4705dc29f779c1fbaecdc89153f68cfadb9282",
+      "size": 242
+    },
+    "legacy_core/logs/backtest_results_selftest.json": {
+      "sha256": "c239d7116d51303ba5755a6025bc905f159b2cfe9ec097d18e52a41eeefe1f72",
+      "size": 981
+    },
+    "legacy_core/logs/passed_partial_fill_test.flag": {
+      "sha256": "40789796c3fc511e0b343322c11b80c25c8b55f994c3f7ab3edfdfdf6c52dd32",
+      "size": 40
+    },
+    "legacy_core/logs/passed_rsi_tests.flag": {
+      "sha256": "7b6059b8d4b6362d34483d2a09f62feea33aaa21070da6351ec25e20f9e66ef3",
+      "size": 40
+    },
+    "legacy_core/logs/passed_vwap_uncap_test.flag": {
+      "sha256": "768fd71686de0dd670f7585b7f4cdb54ccb0035d3ff26bbca62c469cad2a1c58",
+      "size": 40
+    },
+    "legacy_core/requirements.txt": {
+      "sha256": "ff98ae538ee9239825232c6a011c5764ab89d4f1611d7b8bdd4261c3a41cf95d",
+      "size": 426
     },
     "monitoring/.env.monitor.example": {
       "sha256": "3fc776d378dfdbd182b312ff847b840292b53ba625f93d15e0822285cff2732a",
@@ -693,8 +901,8 @@
       "size": 1433
     },
     "monitoring/tests/test_monitoring.py": {
-      "sha256": "e0c8833dd9f41bcd892ba4997bb3d7f0acd8b401d47571c7d300d00af75d16f5",
-      "size": 28795
+      "sha256": "9707ad7fc516787a57ca179a1bd0918c2fa3ada1e47b8d3ebc87ecfc55abbba1",
+      "size": 28500
     },
     "monitoring/tests/test_owner_architecture.py": {
       "sha256": "024e480d8f536b31ed888861c3ead2296a4152a790d51201c2df232d088d415f",
@@ -733,8 +941,8 @@
       "size": 483
     },
     "runtime_owner/CANDIDATE_MANIFEST.json": {
-      "sha256": "b0372e21aab6df054187f7ed3f9e1f069434d17dd5cce809984bdbc329be2f01",
-      "size": 46091
+      "sha256": "7f4c0215de6ccfc4784c8e3082726032f1ec312acc558a07cc05c885fc66de2e",
+      "size": 41265
     },
     "runtime_owner/LICENSE": {
       "sha256": "53927bd0b739d38c87a0a82236fd9b070c2dfff11c0c119be50372005d5047ad",
@@ -745,8 +953,8 @@
       "size": 11704
     },
     "runtime_owner/README.md": {
-      "sha256": "c731242b275bb62929c2517f3d6b51e6e67fc7c21654b7290b6a8eb08703866b",
-      "size": 2269
+      "sha256": "3af06d3f9e0317df8cb486e71e70504d3de980e2b97f90f8719623175e997a34",
+      "size": 2550
     },
     "runtime_owner/deployed_r17/README.md": {
       "sha256": "b2a731b3ac0949da02e8a15d2015ded64bf2ce592b43c1a260880dd4b4b0e076",
@@ -988,37 +1196,57 @@
       "sha256": "5b898949935c43228e3d80e77a7c19af02950160725dca8251a8b8c8e95201ce",
       "size": 20524
     },
+    "runtime_owner/deployment/Dockerfile": {
+      "sha256": "3e27ce58c6b707bc7f7c1f1b8522fbe4caa2d36169621e18ba254b2a6ab8d6a3",
+      "size": 767
+    },
     "runtime_owner/deployment/Dockerfile.clean": {
-      "sha256": "403a87f2fa421c9d9c656fadc3f1782a1e0a2faa2ed00aaaf27d5c18ff0db24b",
-      "size": 3913
+      "sha256": "a50c8987d3321e53202ce09cb9aff1823220b7f0ce5b72e7ec7348d5e25e1d7d",
+      "size": 2206
     },
     "runtime_owner/deployment/README.md": {
-      "sha256": "55e46fea56c330aeced78cd68eacf0cadb80a9d31fa5745f4c7a982995cd9bf5",
-      "size": 4401
+      "sha256": "6c0f2faf51467b7ccd4fb57fa29035484b7344bafabc9c2dfda64f7b63686efe",
+      "size": 8648
     },
     "runtime_owner/deployment/RELEASE_AUTHORITY_CONTRACT.md": {
       "sha256": "6a97e11c617fb8b66fec802ac5f0e965eb143c1a2a3a25048e68a86df59bf537",
       "size": 2508
     },
-    "runtime_owner/deployment/build_native_runtime.sh": {
-      "sha256": "95a0af0312ad272b14c748b6e447b87affbed3f121ff5cadc666fee7d6f26607",
-      "size": 3625
+    "runtime_owner/deployment/binana-stage1-start": {
+      "sha256": "9c6bd36f5e3b21b65669e35bec597782cfd82e48d5ab136ea65a286f04fa9766",
+      "size": 2032
+    },
+    "runtime_owner/deployment/build_verified_owner.py": {
+      "sha256": "68e0997111c1ddba83b52eaff4d4d51a0fbad349e01fdeb2aaf6291992af9881",
+      "size": 844
+    },
+    "runtime_owner/deployment/compose.market-recovery-20261007.json": {
+      "sha256": "8e72cd097989114026d00acb9570154bbb83cbaab62ae0b20fed23a39ea4a603",
+      "size": 511
+    },
+    "runtime_owner/deployment/compose.research-v193.yml": {
+      "sha256": "92864e94f6e2330d44cb7b1040870d1622fe607cab9449352ff6503b8c0983de",
+      "size": 404
+    },
+    "runtime_owner/deployment/compose.running-images-20261007.json": {
+      "sha256": "4ff754e29ed18ac92f5f34e2f9330d07542960418e8b4be22e22902e94b13c12",
+      "size": 2035
     },
     "runtime_owner/deployment/local-images-20261007.json": {
       "sha256": "c76f88ba34e9cbc123a65d79fa5ec7a3c7bcc7390a09f97eccce50b9710821a5",
       "size": 1312
     },
     "runtime_owner/deployment/materialize_clean_context.py": {
-      "sha256": "93ed74e42a96ab7346c4d63ee567e79100491f0d0128faaa4d3effa9fe84c89a",
-      "size": 3596
+      "sha256": "5b13a410cf6fd711bbd2460232695ef4a8b8701c74ea267bb351bfa6693ada08",
+      "size": 3535
     },
     "runtime_owner/deployment/materialize_context.py": {
-      "sha256": "36e45d5b8aa9d4182bf530155b81195e47e9be6412431f10511d072bfeb2228b",
-      "size": 2959
+      "sha256": "859d0ac9f9581c03843ab5349e661ea9f2f87d72859f6877c90619c580311899",
+      "size": 3081
     },
     "runtime_owner/deployment/materialize_oracle_bundle.py": {
-      "sha256": "f7af7a46db7a7b279502ed480ad0cbe876748d546cec9c6c304655dbad8f2676",
-      "size": 25870
+      "sha256": "e368e669b7804c939f95dd4194b04cc4046a7807c5d48184ee612291878b9c91",
+      "size": 25584
     },
     "runtime_owner/deployment/materialize_service_health.py": {
       "sha256": "0dc7beded0b7cf2f936210cddce05086ab0e0ef1a1b056868221812c325e93dc",
@@ -1037,8 +1265,8 @@
       "size": 10704
     },
     "runtime_owner/deployment/oracle_services.Dockerfile": {
-      "sha256": "a19067572f49ea37eb05a175d501a783ba074bbe09179a4b61de32cdf663fa79",
-      "size": 3045
+      "sha256": "bf63325799b449d05f7ff477bed9dd2ad616a4445d90ea8c27fd5ac6e8b3f28c",
+      "size": 1009
     },
     "runtime_owner/deployment/oracle_validate_support.py": {
       "sha256": "890c1d1dcd402ec99a112dde9d6c0771bbb38d04b97bc49cafaeac1e578e3d82",
@@ -1057,28 +1285,20 @@
       "size": 5442
     },
     "runtime_owner/deployment/requirements.build.lock": {
-      "sha256": "47d8b4625acbeac5259c8c055af5446d569ea56b00f62a46c900bd62b4ee3b98",
-      "size": 817
+      "sha256": "223629bf7308a4e07699ceac93c78e4ca22c500f18a5fa51af5fae9a466fba44",
+      "size": 637
     },
     "runtime_owner/deployment/requirements.owner.lock": {
-      "sha256": "3977da39e6fa7f1a1b3919392c21595288e4bce00e1be8e0745f2fc18e9566bd",
-      "size": 206911
+      "sha256": "1ec33e93676870c86a04e7edcf3f744da9d6470187a7a3405b9535bc4fbb952f",
+      "size": 206938
     },
     "runtime_owner/deployment/retained-owner-base.json": {
       "sha256": "9251574093efc3f4268ff068c8076b179e4598f2873ae9879860aff8d52250e2",
       "size": 180
     },
-    "runtime_owner/deployment/stage_runtime.py": {
-      "sha256": "779205832effe2d83099bf1769ae710e2742879da3266bd7a9a2eff9e78d136f",
-      "size": 1162
-    },
     "runtime_owner/deployment/validate_image.py": {
       "sha256": "a7d7fcad5348b853c3144d9f9ab00f6d805844254ce752848fd55eb31d17633c",
       "size": 3840
-    },
-    "runtime_owner/deployment/validate_runtime_security.py": {
-      "sha256": "6d5f2d98b57cac2da18e0171a71c2cea93e3de811ca66cb571ed992192aff5ee",
-      "size": 4109
     },
     "runtime_owner/deployment/verify_local_images.py": {
       "sha256": "81f2ffa668f61b5028f6653cffea64083dc26ae84f23412170f967194560593d",
@@ -1125,8 +1345,8 @@
       "size": 2228
     },
     "runtime_owner/owner/freqtrade/binana/binance_order_lists.py": {
-      "sha256": "6027ed5cc0372b53b2fec7fc12f929d1f04bbc241c86509456d41988109692f8",
-      "size": 23983
+      "sha256": "8f80282e70f2442f796fc979c3f2a2fe4fe3ac02f35e182d239fe723564071f8",
+      "size": 23947
     },
     "runtime_owner/owner/freqtrade/binana/cache.py": {
       "sha256": "8a6b889e1fc1eaf3ae30f299aef46da80cee1c07cf17f48771ed07cb15fd94f6",
@@ -1145,8 +1365,8 @@
       "size": 3480
     },
     "runtime_owner/owner/freqtrade/binana/closed_recovery.py": {
-      "sha256": "c87cca3192f16f1b47c8a46ea32ca1ecc094507863bad9e48bc74ac6a74b6531",
-      "size": 8966
+      "sha256": "95b422cf6b23cdaa2de4906ce24426aae614a43e648886beb998d114c1b8e5f9",
+      "size": 9016
     },
     "runtime_owner/owner/freqtrade/binana/confluence.py": {
       "sha256": "2a782a3cf988efbfc1e6f3010760d132eb9ef1594458586917823a828b3a2d1c",
@@ -1165,16 +1385,16 @@
       "size": 7682
     },
     "runtime_owner/owner/freqtrade/binana/execution_manager.py": {
-      "sha256": "79ccf3d3e564ca1479f2c52a0a944f5f49781758532948115b77f3ee2faefb64",
-      "size": 54855
+      "sha256": "9a7071ae7152311e1f57b4ede553513aaf8ea470fb713cb965c77646492c1e1f",
+      "size": 54837
     },
     "runtime_owner/owner/freqtrade/binana/market_data.py": {
       "sha256": "afaa9d41d302b30e5875a3e1487508ff7a78dfb4b8e9ddff75e3721ef601a760",
       "size": 7962
     },
     "runtime_owner/owner/freqtrade/binana/operator_exit.py": {
-      "sha256": "a857dfcf4176c2b1d2f97caf3f3d4d732b769585f60cac3fa5922d0b8116e32d",
-      "size": 13689
+      "sha256": "6aefc567f472b50f04b59163f760f8666287d1c5c31f19b61d822745d12bec15",
+      "size": 11905
     },
     "runtime_owner/owner/freqtrade/binana/package_profile.py": {
       "sha256": "f514e5d55b82cc7f3a52d6729944642504511da3276f9f5e3b39f2192104676c",
@@ -1205,12 +1425,12 @@
       "size": 5617
     },
     "runtime_owner/owner/freqtrade/binana/retained_inventory.py": {
-      "sha256": "1382c19dc8fd436f15932194e62a0c9fbe8aae4a126a80f057d22895a328f766",
-      "size": 8360
+      "sha256": "abbc7edc5690d0e4156d642094fb7b6ae029a94b14fe01a0e5c77a99a39e1342",
+      "size": 7708
     },
     "runtime_owner/owner/freqtrade/binana/state_store.py": {
-      "sha256": "cbea95c193a3bf4f4d0634f2a5277727bd7487c4bd0636f31b9ef509340e8e93",
-      "size": 39443
+      "sha256": "601a34a4384c5c3048c578ffbdc9ad92c75c098a412404214b725b8055a75789",
+      "size": 39312
     },
     "runtime_owner/owner/freqtrade/binana/submission_absence.py": {
       "sha256": "112b934b374c64eec750563a1892a7907336597bf9c30b7cb6a7ba892cb3a550",
@@ -1221,36 +1441,48 @@
       "size": 6794
     },
     "runtime_owner/owner/freqtrade/binana/verified_recovery.py": {
-      "sha256": "056078da86ffea421263a7d4dfa40742ad379a8ae754a0601038476688818676",
-      "size": 30246
+      "sha256": "8a766844bc695586f36dcf664208d2967eec516139f65feb6f6a7793a0d13a30",
+      "size": 29234
     },
     "runtime_owner/owner/freqtrade/exchange/__init__.py": {
       "sha256": "6025655ffd3f667e643f8c37739ab642b2f1f6be36ddaa87c61bc2f3f955efa0",
       "size": 1780
     },
     "runtime_owner/owner/freqtrade/exchange/binance.py": {
-      "sha256": "26b07f961eb871c1ef8ff2df1040ae636dd0635804a9121d2ecad572e67338ca",
-      "size": 27444
+      "sha256": "8a8e20fd10ed45a4c3d59b7c8bf7a68e0d6275ea723a55bac5d314a07d87f6ca",
+      "size": 26846
     },
     "runtime_owner/owner/freqtrade/freqtradebot.py": {
-      "sha256": "e096cdb32d86c2817a0da355200c18cf390a8bb48fc924db5d267777cfd3b12a",
-      "size": 137615
+      "sha256": "8cc1935109e093bda78248374971d45928888c5686b0681b167cbf90989c29a6",
+      "size": 137220
+    },
+    "runtime_owner/owner/freqtrade/persistence/__init__.py": {
+      "sha256": "6894ab5fea124cb6323ce72424f472bb42323c453a056e01c6cb155f07280528",
+      "size": 1310
     },
     "runtime_owner/owner/freqtrade/persistence/trade_model.py": {
-      "sha256": "6a91863f9a05ef3138eeb31f5706c6118c85576f83b85e92983c6a2ec8cc2066",
-      "size": 93948
+      "sha256": "988956604e6ba18c3a3e26212328b6c1971965631baed9bdeb16e32c234451f9",
+      "size": 93990
+    },
+    "runtime_owner/owner/freqtrade/resolvers/__init__.py": {
+      "sha256": "28ea46f2c73048eb5cbd7f35f67b7af5a8026034af75d03ad1185892bb96f4de",
+      "size": 643
     },
     "runtime_owner/owner/freqtrade/resolvers/exchange_resolver.py": {
       "sha256": "baa1046bdb4fc82273c6426f5cc1def35444d4679c6eff2e0b1421eebe37ee2a",
       "size": 4363
+    },
+    "runtime_owner/owner/freqtrade/rpc/__init__.py": {
+      "sha256": "e10e64eb8714b459dc56cecf4d422b6bf4adacaad29fc579670462534fba88b2",
+      "size": 719
     },
     "runtime_owner/owner/freqtrade/rpc/api_server/deps.py": {
       "sha256": "36f57593a8d37d70919f61bf531215071bcf007d8de5a4fbd3095243d1a98322",
       "size": 2708
     },
     "runtime_owner/owner/freqtrade/rpc/rpc.py": {
-      "sha256": "d9b92666b9be3c0510081ff95d58b577a00bcf71c54981f5a17df499e94d2e1f",
-      "size": 76515
+      "sha256": "346a4c8d5f77f1386242b65b1fc3de5c8ddca4d562e8d502f90e39347beb9494",
+      "size": 76672
     },
     "runtime_owner/runtime-fixes/telegram/durable_outbox.py": {
       "sha256": "c72fa79cd6d3607a25f4421a0375a3b88b97afdd9604597b09bd80a3dd74fe79",
@@ -1293,8 +1525,8 @@
       "size": 1150
     },
     "runtime_owner/tests/test_deployment_completion.py": {
-      "sha256": "a142ee39772fbb7d09fe3f8da13eaafe2bc232dfa85be5ff56a2e7fd331c69a5",
-      "size": 5071
+      "sha256": "2a29991625f0f9e84517367ae7281f44d07e8d3b68806fbc0428d93c4e0ea745",
+      "size": 4529
     },
     "runtime_owner/tests/test_durable_notifications.py": {
       "sha256": "3a0b3ba7a849ae1bd04647b023ab6bf0877cc2f24a8a8bd9cec31863fa4e6e10",
@@ -1328,10 +1560,6 @@
       "sha256": "0187994831ebe817712f6010bfaf678a9a6b38f128512aab816d3eb20ea1cf73",
       "size": 10565
     },
-    "runtime_owner/tests/test_freqtrade_202610_upgrade.py": {
-      "sha256": "a84ad5a1cd5ed4bb1f1f3e148f82e150ee6aecfad1407633aa2e2136b3fe16e8",
-      "size": 9345
-    },
     "runtime_owner/tests/test_freqtrade_20269_upgrade.py": {
       "sha256": "3d36235955ed161631b08a9d4a21aee0a6ea6307282d8be9e3d80b47755cc5a4",
       "size": 4854
@@ -1340,17 +1568,9 @@
       "sha256": "3901d4b5a7cd39ddb011b175b5aac0cf627ab42cbefca9079a168cd3e2c82be2",
       "size": 4233
     },
-    "runtime_owner/tests/test_market_notional_reference.py": {
-      "sha256": "2d6d5819571f07985ef4265f9b713646b1697e8bb18a59901b4cd6d8d5bf1849",
-      "size": 6651
-    },
-    "runtime_owner/tests/test_market_recovery_safety.py": {
-      "sha256": "6b11241c0613db15f5c08afa1b9a9ed31dc886fb4d9ded7f88dc1d97967c7000",
-      "size": 14054
-    },
     "runtime_owner/tests/test_operator_exit.py": {
-      "sha256": "2a22976e8d1c9b253f183401f6d5d76e3ac80e48ffceabca033fe571c4206a84",
-      "size": 16543
+      "sha256": "3917ae9630ffc0f5c79a5e7b5558fabe9710d113e586aa475117be6a736c77b1",
+      "size": 16416
     },
     "runtime_owner/tests/test_owned_signal_replay.py": {
       "sha256": "4f8927ec56b09831e00970e8cc63488840c4098017efa73f850d5d92cb8d2a19",
@@ -1477,12 +1697,16 @@
       "size": 14317
     },
     "scripts/build_audit_ledgers.py": {
-      "sha256": "fd17bd3993cabb4c41b2bedf67c0e81ec8fa00e3b03fd8b7307968ae0d7086d3",
-      "size": 9478
+      "sha256": "25b71bfdb4fe037721940d39e1acb79ab9efca4e5275414ed2a306bb7992af14",
+      "size": 9627
     },
     "scripts/build_manifest.py": {
-      "sha256": "26fe3bdc3cf472a045fbe31a09f127d4432ba8de94f9a3dd50d33b56d70b945c",
-      "size": 2758
+      "sha256": "2dbabdae6744a8fa43fc659edb992c7bcf9260e0c4153320f4c9f116e7feba02",
+      "size": 5554
+    },
+    "scripts/fix_sharia_status.py": {
+      "sha256": "449746c0958fca53f545c0d957c2fba2214b6c29bf1d9e81a208ac67a238146a",
+      "size": 2446
     },
     "scripts/generate_evidence_status.py": {
       "sha256": "666ad3552a539babc7d109e8e1950800e206efdc638d8cbd30da4b81a649152a",
@@ -1493,24 +1717,36 @@
       "size": 1356
     },
     "scripts/recovery/authorize_verified_owner_20261008.py": {
-      "sha256": "843cc5a0867b63101c876443d3af97e0b66c20f1ecddb8d4aee90cd0c0d0b09a",
-      "size": 2456
-    },
-    "scripts/recovery/backup_archive.py": {
-      "sha256": "c5a638a473781b2410d3db71186ea954202d2fb358b5541977eb908d7b23b248",
-      "size": 4084
+      "sha256": "2e18a970a07b06551df751f77027b5a0852cb341ca041b24ed4547ae66d72af0",
+      "size": 9700
     },
     "scripts/recovery/compact_daily_backups.py": {
-      "sha256": "ee20c557e99acc42ab25113e4d87fd85d2b79937ba89ca58190b1f3336183ac9",
-      "size": 4081
+      "sha256": "baf1ed97455b4a16c84b50ceee42b2bcf7fe0207476827f1ea6202e2c4d2e744",
+      "size": 3853
+    },
+    "scripts/recovery/compact_old_binana_backups_20261007.py": {
+      "sha256": "2873489b2e4527c672c6d7b62f9254c82ded21e91f9089ab4c77b73649c5c83e",
+      "size": 4355
     },
     "scripts/recovery/deploy_candidate_owner.py": {
-      "sha256": "04b80e384afad92abaeb32328d64dd1ce50956dc443070cc7a995d828d818d73",
-      "size": 10284
+      "sha256": "043ebed2242200dc0efcf77ee4859c0e75f29d14085bfc20f804f7db96db4a75",
+      "size": 16187
+    },
+    "scripts/recovery/deploy_candidate_panel.py": {
+      "sha256": "a9f6002f86f658201c5db7a43e2cfe7b7d3408c79ce9ceff870b737b0c5e86e0",
+      "size": 3773
+    },
+    "scripts/recovery/deploy_market_recovery_20261007.py": {
+      "sha256": "ce560767fbc7cd5a65da903fa5baa50bf111c4fb6ec6131026a4b9b98b099e1f",
+      "size": 7521
     },
     "scripts/recovery/deploy_paused_owner_20261008.py": {
-      "sha256": "f313f8e05ffb06dd8fb936ee4a07e103f49c8bad5668e23c31e7d4fc0abb95a7",
-      "size": 13380
+      "sha256": "b656d6ce8af10f881630ac88670cec537e5dbb7194f58eae6ee9fcc790b9037c",
+      "size": 20064
+    },
+    "scripts/recovery/deploy_research_security_20261007.py": {
+      "sha256": "9a010704654c889d8bb1e9dec5a73d4a7607627896a873da58a687fb4eb8d462",
+      "size": 7442
     },
     "scripts/recovery/install_release_renewal.py": {
       "sha256": "7d4e16240cfff7a405f2bef5d8459706f5d4c82092e07b42444e01494f5a7777",
@@ -1540,29 +1776,53 @@
       "sha256": "588c21462eefe592100a0761a950f4d43590fe3b20fab9ec653880eeebbf4899",
       "size": 5502
     },
+    "scripts/recovery/repair_mina_identity_20260930.py": {
+      "sha256": "d8db7bd987f268d51ba10f7fee475e61f06d743ffc8cdc1d1062f688292132a1",
+      "size": 6712
+    },
+    "scripts/recovery/repair_retained_intent_states_20261007.py": {
+      "sha256": "b802d1c7a195cf7942a7e9a1b01a5ac36b228c0df3ed62324be9007658d8f106",
+      "size": 7998
+    },
+    "scripts/recovery/repair_retained_metadata_20260930.py": {
+      "sha256": "546efb49335e2e01f2aaaeab6edba83070fb66c60493718d848bd402dae3b661",
+      "size": 8980
+    },
+    "scripts/recovery/repair_zero_fill_intent_states_20261007.py": {
+      "sha256": "ecbad1d97ac35248809ccf67dc5b91ef34ff5d12690d9ec754fa2b5b26916105",
+      "size": 6657
+    },
     "scripts/recovery/run_candidate_acceptance.py": {
-      "sha256": "6f148f2720342a126bfd4518466dbe17eeccbd524ad3979c7db3d664da6980c9",
-      "size": 3938
+      "sha256": "7915880493cd774affe4893bb2d94fd36290d6ddc7be156b881c016c0594aaca",
+      "size": 12935
     },
     "scripts/recovery/run_controlled_owner_lifecycle.py": {
-      "sha256": "a4dbf4b082b86420996027d411840540a5882a9404415f63a275291b5cb12245",
-      "size": 3454
+      "sha256": "2fdcf7a3defca90b3e310c38e6cd37ba861bf9b167adc8668e24fda109422d56",
+      "size": 11339
     },
     "scripts/recovery/run_testnet_order_validation.py": {
-      "sha256": "e0eaf6431e6b6586229b507b4e8b60c407573a2611cf937c11b2e04ffb9f1836",
-      "size": 2327
+      "sha256": "b2ac5542b1a1fac0702b8240bc65cf3e53eca9d6f8b516755fe0ba65db243cb7",
+      "size": 6069
     },
     "scripts/recovery/run_testnet_otoco_no_fill.py": {
-      "sha256": "ee17945f9f3c30a874c7ede1a94aebee63e4d2311d71d0a4012516df227f5300",
-      "size": 7356
+      "sha256": "59b824c037b95db3a414ccd3a13e2220c34097ee670f35ae5c6bca04e0499efa",
+      "size": 7409
+    },
+    "scripts/recovery/verify_candidate_restore.py": {
+      "sha256": "6d101782e2dec3c393105772a581ca9e5cc29ac5a5e82c49f9f50facb81d8cb3",
+      "size": 6800
+    },
+    "scripts/recovery/verify_owner_backup_restore.py": {
+      "sha256": "453052b125289defe628f4e502bd85213191485efb0a76fa40df9ea7505731e1",
+      "size": 6080
     },
     "scripts/resolve_image_digests.sh": {
       "sha256": "d7c787671a5bdc0b0d2af56fd5662070eea205758add8066d2219dc7d7d6bd28",
       "size": 1198
     },
-    "scripts/resolve_retired_source.py": {
-      "sha256": "3dd87e9cd7c961da7ac0a2cbee4a563223b5f89577d55738020a6ed730ac1e45",
-      "size": 2482
+    "scripts/run_legacy_selftests.sh": {
+      "sha256": "826ee0a79b26f90b729531da9f658e30c7dc4885255d4fc4c7fd024f7a2c19be",
+      "size": 1006
     },
     "scripts/run_validation_venv.py": {
       "sha256": "e3e0de3d44909b0cacdcd81c9a42ddd98667140c5f82e2a904320e8117df0e50",
@@ -1571,6 +1831,10 @@
     "scripts/s3_backup_transport.py": {
       "sha256": "20370d3eb47be766704450bcadf75be91573cb1ab54ef5e12e57dcfac7930cfb",
       "size": 4461
+    },
+    "scripts/scan_gate.py": {
+      "sha256": "f926d9d21f9205395ff0a68b0e60f8f750a3a0f440f8569dc1929dd627a99c13",
+      "size": 2584
     },
     "scripts/scan_git_history_secrets.py": {
       "sha256": "80211d99936627a6a1b61c8e2cf773b0de2b65e1c63ad9db2ba13bd7468df893",
@@ -1581,8 +1845,8 @@
       "size": 30119
     },
     "scripts/validate_owner_offline.py": {
-      "sha256": "855e350cd8806748e0598e9ac1d19a7a5ccce6fdcbf1f857d37d9fc7958ba884",
-      "size": 2321
+      "sha256": "45074db152cab3069208f7c42849b17f2a2023f014da7e0afadee8720b530dd0",
+      "size": 7106
     },
     "scripts/verify_coverage_ratchet.py": {
       "sha256": "2ba42d2b8800518ba0bd744d87fdae0be507e8ef4abac1dea4d79a9087d8d643",
@@ -1593,24 +1857,24 @@
       "size": 4047
     },
     "scripts/verify_deployment_supply_chain.py": {
-      "sha256": "52c1f9f77e713210363e93914a3a48a4f5243a71da972acefc554905da454f42",
-      "size": 3196
+      "sha256": "9062ed169296a4789445fe1ee2bf7f85fe41b1ef9595e1902b2ebb3e8dd97d44",
+      "size": 4518
     },
     "scripts/verify_external_validation_evidence.py": {
       "sha256": "ce99f95b25226fd2cb89095d4e64ce5e84ca180f4ba90bd2ca9cae2c0c84fa90",
       "size": 5388
     },
     "scripts/verify_four_bot_cohost.py": {
-      "sha256": "51845a0d8781f87f341e0ed32c4b2c7ad455c49de827f5c8c8227dc2de83d2d6",
-      "size": 7399
+      "sha256": "c998c5e338e2dc95c6a441fe4da21e73ce8ed4807bb6e3a8330d7d5c1b676245",
+      "size": 18657
     },
     "scripts/verify_github_action_pins.py": {
       "sha256": "65b38789a4755f40818e5463c64057c2b221c4bb5cf9e05c56d772d9ea36bcf1",
       "size": 4009
     },
     "scripts/verify_manifest.py": {
-      "sha256": "cfcd20eb22adab2020a6386af6dbac0a034eb4de4eaad47959a9b600dbf3b07d",
-      "size": 3100
+      "sha256": "ff0fa84437cdacc2fc5c7b45ddedfaa2f95d448a73a959362ed5d9167475dcb1",
+      "size": 3685
     },
     "services/__init__.py": {
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -1652,10 +1916,6 @@
       "sha256": "be050babe8a315539cc2f2dd603373596e168968b867c8b7233558bd02913d6a",
       "size": 1200
     },
-    "services/common/owner_source_integrity.py": {
-      "sha256": "d4d3b45d3980b609e5cf717190eb1bd420ccf9d8c46dd706dd4055fb40512713",
-      "size": 3178
-    },
     "services/common/paths.py": {
       "sha256": "834687b0c278106513ff1ac016a53596444cffe838308745aa6eabc545077c06",
       "size": 3230
@@ -1679,6 +1939,70 @@
     "services/common/strategy_fingerprint.py": {
       "sha256": "09fe2da098d405eab7cac48fc9b7ecde7b2cbf6f3f69450ca989d461f272a959",
       "size": 3892
+    },
+    "services/execution_sidecar/__init__.py": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "services/execution_sidecar/binance_contract_guard.py": {
+      "sha256": "6e83c2eb58678b3f0bfdb8e859f76ed184d8d5a0240e9f9f348a9f8b1599742a",
+      "size": 25338
+    },
+    "services/execution_sidecar/core_adapter.py": {
+      "sha256": "578d3cd97879c4a6512dbc6a0a5c0d82cf179d80ed17a9cec1320dc69280ff1f",
+      "size": 112598
+    },
+    "services/execution_sidecar/filters.py": {
+      "sha256": "5897ca3ab71c2bda9e096b51aeaf3e9abae40c26048cc615b3ded5bbe6d417a8",
+      "size": 33819
+    },
+    "services/execution_sidecar/guarded_main.py": {
+      "sha256": "8958250e549a4290c0b5fd47f8e228b366f9abf32aefe1f387327b0ccffd7e38",
+      "size": 559
+    },
+    "services/execution_sidecar/live_evidence.py": {
+      "sha256": "08b467b7e8547efb553f2f88a1d257450887a82a1454b15360d974b0e6fc14c3",
+      "size": 3971
+    },
+    "services/execution_sidecar/main.py": {
+      "sha256": "967b4cf72ae1fa33563318c2e5243cdb55b4052b5231ef04774035ce585a984f",
+      "size": 31484
+    },
+    "services/execution_sidecar/order_manager.py": {
+      "sha256": "2ee18c8a7b2ce19ad81c82aa33faa22b54505304fdbd2944bf60a39a76124cd3",
+      "size": 14802
+    },
+    "services/execution_sidecar/package_mode.py": {
+      "sha256": "4a09dd03e4c23b770d2eaa31fd2ccc6ffe0e8f1c29d2c7b1bc159a1c5db61f22",
+      "size": 4661
+    },
+    "services/execution_sidecar/protection_modes.py": {
+      "sha256": "fcaf83f7209ff458a8b4c0e14243fc7a4bc5e4166a53c3c44fa9c9dddcc4e541",
+      "size": 4152
+    },
+    "services/execution_sidecar/protection_proof.py": {
+      "sha256": "a8a617c8844e277293d2a48ec2b7a5fe483b69e49ca722056cc08df6810b0270",
+      "size": 15364
+    },
+    "services/execution_sidecar/reconciler.py": {
+      "sha256": "c3ef1c46abb44001901b9988d94586ff4e33ae928f159385ab004ca4309fa92f",
+      "size": 674
+    },
+    "services/execution_sidecar/risk_checks.py": {
+      "sha256": "1664091dfbbcf8fbdcf27363dcb41d85aa4a10eab9849df829bb6d761680d93a",
+      "size": 10051
+    },
+    "services/execution_sidecar/simulation_adapter.py": {
+      "sha256": "b438c33d8b7e9c1c46432d2a7996aa4070a57cfdc06fb0004f4f01276d311432",
+      "size": 11885
+    },
+    "services/execution_sidecar/state_store.py": {
+      "sha256": "bf3294992cee1e282ec29bb5a7345a8767fd8cc89db60edc4fd44c407c3ceace",
+      "size": 58234
+    },
+    "services/execution_sidecar/user_data_stream.py": {
+      "sha256": "85e64a72d8b60e2e91a9a56fa46e69d3a3970221903919f3820b1ef92ee89c83",
+      "size": 11548
     },
     "services/market_context/__init__.py": {
       "sha256": "4a8440d31fd9ba93f47c6aba14700fea404d65842225e3a3a7c5031d1ed3717f",
@@ -1825,8 +2149,8 @@
       "size": 297
     },
     "services/telegram_broker/bot.py": {
-      "sha256": "9b536a80c94c265436558ed07bfe1e67333c563beb41cf19f05eb05f66f642d0",
-      "size": 125721
+      "sha256": "6dfd248e978f5f7c488b0405ff5455f84c8b6dcd8b5a23ce02b752eeb733c1a5",
+      "size": 125988
     },
     "services/telegram_broker/callbacks.py": {
       "sha256": "1f2932fa7fa64ee70a783fae5f5c5bf86af9b0dced8f8f9b43266d8d55391ec4",
@@ -1904,6 +2228,14 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "size": 0
     },
+    "shared/runtime/sharia_screener/health.json": {
+      "sha256": "e7fbd651eda5fc4d9bb656bcbebade8170a9d4b7366f621d1493beef390ff1b9",
+      "size": 473
+    },
+    "shared/runtime/sharia_screener/manual_registry_state.json": {
+      "sha256": "bb00a787fabce2c575cee1a1617457bd413a50dfbee36cd86b727cd8afb26ea3",
+      "size": 6435
+    },
     "shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json": {
       "sha256": "418e7280f0b6a5f4cd9ba3887b8be3099f5fcc4b18bfca66808749720a4dd355",
       "size": 112228
@@ -1924,9 +2256,1509 @@
       "sha256": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
       "size": 6304
     },
+    "shared/sharia/reports/0G_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "fd92086c3547cc20f5035e861c958244ee7f638ea9c7da76d37e884c9ff93147",
+      "size": 447
+    },
+    "shared/sharia/reports/2Z_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "80a135263da687ba8ced3968e8d16ec4c2524a1c8b341c194432bcb8406a3aee",
+      "size": 447
+    },
+    "shared/sharia/reports/ACH_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "cfdcab79f943122c698a7dd04b46db28bfa95e979e66242b3d75fa13202ffc05",
+      "size": 449
+    },
+    "shared/sharia/reports/ADA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "16207b49b9f6c3635c84c8c8d1b0328257f795de4d8107138149a7fffbf01ee9",
+      "size": 449
+    },
+    "shared/sharia/reports/AERGO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "4eec1e90d7051ffe08056a3bffa77382f658f4de2098678a190a5b77fc1c6355",
+      "size": 453
+    },
+    "shared/sharia/reports/AGLD_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "f6c7657389f770483c1a63dd8e0e126513bce017bd327c72e7a688618b9377dd",
+      "size": 451
+    },
+    "shared/sharia/reports/AIGENSYN_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c98f67b44fadb56ad1d385bf2093e9bc054d451d39b5b126590e1890be08ff8d",
+      "size": 459
+    },
+    "shared/sharia/reports/AION_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "557f2a528c33f4bb311d164046c20d8790f8f16e90d5759741e9609705e61d18",
+      "size": 451
+    },
+    "shared/sharia/reports/ALGO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "db5ad259a8fd1bd2ce2460b427dd05d201b8df1efb0bb22298301f08ae9a038d",
+      "size": 451
+    },
+    "shared/sharia/reports/ALICE_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "b8cb674024d647324dac890fbc0f14950212ddd7583104d5a3ce6aafee24eed1",
+      "size": 453
+    },
+    "shared/sharia/reports/ALLO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "ead5541a5bf2e12cffb5edbac000afd4fc96a8b49c98ddfc7f1623874fc01dc9",
+      "size": 451
+    },
+    "shared/sharia/reports/ANKR_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c1e7c43ad042ec330dac01a441c6e6c4d3f9d7bf6165957e4b2adca22d73b443",
+      "size": 451
+    },
+    "shared/sharia/reports/ANT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "380a388cc8fea2d0a2a856275a7fb616d781a0f9fae31a7080c8be754364bd69",
+      "size": 449
+    },
+    "shared/sharia/reports/APE_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "88b0856915fc61099fdcf052967c36b1771d8cb35373a1f77da4e6189aa6d3b0",
+      "size": 449
+    },
+    "shared/sharia/reports/ARPA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c13b2353b5b10d6748dcffb1b8a08878a03dce31447011168a7b919bdf453166",
+      "size": 451
+    },
+    "shared/sharia/reports/ARRR_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "5bd82b8cae39ad0416ec64f5eca3e270520e4c10091098e7a2214c02ada3b412",
+      "size": 451
+    },
+    "shared/sharia/reports/ARV_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "5a6e93cae67a6a0073f3962d277884756ea37d2ffff840387a5bbf88a47e4f04",
+      "size": 449
+    },
+    "shared/sharia/reports/AR_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "10056775944b3e90e76f3ceee9354f8a23842a8976ded23e0326234f405955af",
+      "size": 447
+    },
+    "shared/sharia/reports/ASM_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "3b0d6805749d11436878cc3bd9659a518d559b6da64066a45a9d24a814df4445",
+      "size": 449
+    },
+    "shared/sharia/reports/ASTA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "7642eb7127021048d87932ebe7129f30af95ff2511f4a42b2c6574eda0a67148",
+      "size": 451
+    },
+    "shared/sharia/reports/ATL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "7f6d04eb344a0453d25362e9dcf24f2c186a3a45a8f011645edc958fa03cc394",
+      "size": 449
+    },
+    "shared/sharia/reports/ATOM_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "4f92e25e0a61956c74d232f556f4518b34893d541db721474dbb5c6154053f3d",
+      "size": 451
+    },
+    "shared/sharia/reports/AT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "30f5a038d6c2e60ff834c26339054b69dc71d4282ce0d4ca95ab6cf96c34c880",
+      "size": 447
+    },
+    "shared/sharia/reports/AUDIO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "7ca71480d445940687cfa14eca5cfde5a547c974da8d79e571e8f80bc8309d01",
+      "size": 453
+    },
+    "shared/sharia/reports/AVAX_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "0b74c135f5f197076d5eee5cff4834555ad583aa64ef6c7e8665fc99b9ec0106",
+      "size": 451
+    },
+    "shared/sharia/reports/AVA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "7657bad03a11f1790976c519f155a4210e68b7a02041b08c9abd8bbd0a9aa458",
+      "size": 449
+    },
+    "shared/sharia/reports/AWE_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "882c2c4fbe5fb62de9adeb3fbb881beac4a7f7fc68d0f7e3c270acc548c843dc",
+      "size": 449
+    },
+    "shared/sharia/reports/AXS_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "bc94f586149499ae709f12b511817e0afa37e2d74ec1ac34edac3391ec17fb57",
+      "size": 449
+    },
+    "shared/sharia/reports/A_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "71e0e6daa3173d24ffee95d6e6bcae32681af3b9105de09f63dc50e08dc7cea9",
+      "size": 445
+    },
+    "shared/sharia/reports/BABY_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c1bdaaf8f92c57a115214717a7dfad3b7ce0e2145eab924d6e5cd9f07e01b707",
+      "size": 451
+    },
+    "shared/sharia/reports/BAL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "84051726e0260ca92aab4b9ec629c3413213c30b71528b7aa71a4da57129e4c8",
+      "size": 449
+    },
+    "shared/sharia/reports/BAND_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c5540ca7dbe50611f91d1d0d850d227e69611e1d408dd9951db14324023d64a0",
+      "size": 451
+    },
+    "shared/sharia/reports/BARD_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "934b351536dd12d9102b73b5a0d3b18ea7524e1584292292cd8128894da93ab2",
+      "size": 451
+    },
+    "shared/sharia/reports/BAT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "fe9e48218ddc0e07364eb007c71d94fca4234e851e94ce6c7fc8b9c545d422f7",
+      "size": 449
+    },
+    "shared/sharia/reports/BCH_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "0ee65507e80d0a0e720d5476413ed8dd26fcc09949fc6cf7fcb63bf4fe2d5d5c",
+      "size": 449
+    },
+    "shared/sharia/reports/BCN_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c245fafd60b6b3142c73c33e4e43efe79829cfde21593ecd72ec8383b54fe8c3",
+      "size": 449
+    },
+    "shared/sharia/reports/BEAM_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "77a7944945aefc9658debbde1e85c86abecc04ba08572bcf353d03c4ea758f7c",
+      "size": 451
+    },
+    "shared/sharia/reports/BFC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "18f50c931dadc4ac2baca1e9fb0752e6ce2032de0a859d6d94e48744219ca978",
+      "size": 449
+    },
+    "shared/sharia/reports/BIGTIME_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "fc29cf5d962cfbfc400bce835739e7fb363c11c1ab4f374ac9affd9f7688747f",
+      "size": 457
+    },
+    "shared/sharia/reports/BLZ_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "0dde248d552304878a9f2f6495e1c0c174a9eb0b03c0ed5bb8bc80e2ebc4cf71",
+      "size": 449
+    },
+    "shared/sharia/reports/BMT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "719006ee60ddab401f437c95f2db7d89e601575c260337cecef1bc516821e1ac",
+      "size": 449
+    },
+    "shared/sharia/reports/BNB_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "f59e8e0df4215eeff5ba394fd2cc129e96b42f95a1c10caaaf8b25488ba93085",
+      "size": 449
+    },
+    "shared/sharia/reports/BNK_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "5d78eac2cfe5524ef6af421f1e34539580f933404d7749dab08eeb2cd60d4cbd",
+      "size": 449
+    },
+    "shared/sharia/reports/BNT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "89178ce926e9d7bbe2ed7de5c3db0c14b8b699bff018fa9e8bbcea345b297698",
+      "size": 449
+    },
+    "shared/sharia/reports/BREV_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "e8e4396d8bc01ea9c62e73ae6f7c2d2d2f3b946c6e9affc5c76b2c55e8fe2cb7",
+      "size": 451
+    },
+    "shared/sharia/reports/BSV_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "462741123079a33e622ddb57c8a16f46d6f0680cac9c9fa300787c9a17a8dd84",
+      "size": 449
+    },
+    "shared/sharia/reports/BTC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c1fda0a85bacaf47a7b31462cfad2162db16b59bb45cc35aa93cd217f1b3224a",
+      "size": 449
+    },
+    "shared/sharia/reports/BUSD_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "d42f574487d0f9b55f440398a9000fb3de33c394e1c367f5451f68a86dea6f53",
+      "size": 451
+    },
+    "shared/sharia/reports/CELO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "65e765341fe5bd23411eebecb32fc2ac7b1fa94766d59305b1cbb897379bdd7d",
+      "size": 451
+    },
+    "shared/sharia/reports/CELR_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "3e0c572506da3fb500d2d716d799cd99c6c4e443b803e1d3620be1b16c839e16",
+      "size": 451
+    },
+    "shared/sharia/reports/CFX_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "0426ad793961386ab8760241b4cfcd72619c5ab1235a4ef75c0669902d645cd7",
+      "size": 449
+    },
+    "shared/sharia/reports/CHR_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "f9f3da4a2fa3948e950b63a18e24bb98664b6eafe2e5208dd28776ba52efeed4",
+      "size": 449
+    },
+    "shared/sharia/reports/CHZ_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "7064f06ba60cc6131a3c2ea823719a1fcedbe2766f3c9465ab6f090c03a59590",
+      "size": 449
+    },
+    "shared/sharia/reports/CKB_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "bb27b82ea49544200213c1e9be3ff37015d3a30a4c59da5cffea62759eff7137",
+      "size": 449
+    },
+    "shared/sharia/reports/CMT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "64f9dca851820971790919d9a5ff768d575ef3961ffcef0a7fe36b6dea45e8b7",
+      "size": 449
+    },
+    "shared/sharia/reports/COTI_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "7b8d4e2d28f61a768baa6659e3f6da8b4bd02256e52ad6379411315c2ddfc203",
+      "size": 451
+    },
+    "shared/sharia/reports/CQT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "b940c0c61d8a8e7dcce689866a3984475048758f56d29984b370a339650f84b6",
+      "size": 449
+    },
+    "shared/sharia/reports/CSPR_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "e40066012293bca937f369eec2f0e13b13d45d4014b5d787240e7622646d839d",
+      "size": 451
+    },
+    "shared/sharia/reports/CTK_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "f2deec2b2d5ecea32576272ad528f1e6ebc489362a564832a6b87810c656fef1",
+      "size": 449
+    },
+    "shared/sharia/reports/CTSI_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "5de03fb520396df386fa3abcd7f4aff4372e6b13ba6f39331fac6c3600bcb6cc",
+      "size": 451
+    },
+    "shared/sharia/reports/CTXC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "bc9a27712b1a1ec7e706c32ad55d0d28c1f1588cf38ec57fc03aea7fa6215b7c",
+      "size": 451
+    },
+    "shared/sharia/reports/CVC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "66270317021e8d9f708bf83c7c190db2773c673f1527d6b3ce0c904cb83597d1",
+      "size": 449
+    },
+    "shared/sharia/reports/C_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "5c91e5e8c0393b79f3836b7f38c9766d5c3dcb8fdb89e592b0e8b47577b6e708",
+      "size": 445
+    },
+    "shared/sharia/reports/DAI_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "b7f030c0dbc00ea60773dadb03981247d70d946dba1c55ab07422af5dbac429e",
+      "size": 449
+    },
+    "shared/sharia/reports/DASH_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "5bf2ab9da02629b9ba0f9d5a0b4953c01af9f3588e40ed3421d6ebdae38bc5be",
+      "size": 451
+    },
+    "shared/sharia/reports/DATA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "0bd3644455f8f195e65b9e6bf9355ba38051eb4a224f97917459050792c94fe2",
+      "size": 451
+    },
+    "shared/sharia/reports/DCR_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "d618eb1978e1c09094f4672e1106ca2f1f326e823708cb112683668487f83585",
+      "size": 449
+    },
+    "shared/sharia/reports/DENT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "ec3b40af1d620bd8e911965207cf88a7b34c3bc5c95de5586f4be949415bac31",
+      "size": 451
+    },
+    "shared/sharia/reports/DGB_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "37043cbb56d902055b5bf74e937900006606f17a7a2cc0ceed4172d6bff8c41c",
+      "size": 449
+    },
+    "shared/sharia/reports/DIA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "dfd0641ef8da5317662e7d2dac160653084ad89d8b5e55fbcdc4613cfb47a6e1",
+      "size": 449
+    },
+    "shared/sharia/reports/DLT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "d5f53c9de4a25eb9fce4fa38b102dbc70c18a781fa5b30d66b13a30ae9a76541",
+      "size": 449
+    },
+    "shared/sharia/reports/DNT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "4865bfd98142eee367fd7497fb5f7f838bc703da957b96e65b71389148507f8f",
+      "size": 449
+    },
+    "shared/sharia/reports/DOCK_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "5acd51ebded441e7e00479ccbc776db88eb31401e6113fbfab3ad1bd16bbe2a5",
+      "size": 451
+    },
+    "shared/sharia/reports/DOGE_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "f3e9f6487dd0636b90e356d3281a2657106a8c33e1668822db9f3f9fb8326bc7",
+      "size": 451
+    },
+    "shared/sharia/reports/DOT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "f68feb27d707a47f6f7ec06b5a2a790da433c417487f9fa75f1361a1b2b38dbc",
+      "size": 449
+    },
+    "shared/sharia/reports/DTA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "ed2d49e2267f41cc5a1f3bf556fc09e9e2fda5ee101dce682d5a02b43be039cf",
+      "size": 449
+    },
+    "shared/sharia/reports/DUSK_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "6ab50672d203345699128c6c1636705fc167b61871e7db21d0054b348ba5fca5",
+      "size": 451
+    },
+    "shared/sharia/reports/EGLD_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "00fd5d2f0c1ef65c4e950a3035e01cfd84588879c1236e19c30716db48158be5",
+      "size": 451
+    },
+    "shared/sharia/reports/ELF_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "4013154ae8230f01109793899025bb89ec23bde5d112c17e87d4d27b403de87d",
+      "size": 449
+    },
+    "shared/sharia/reports/EL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "7703008c96e7f3fc5bbe28af3c8c5de601e091ac3c56062b67dece1a0e5cc3d1",
+      "size": 447
+    },
+    "shared/sharia/reports/ENJ_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "447d00bfb06ab7a4c930d0902a1946cd09514f6349f2f5a5bc3f14d2c83523fc",
+      "size": 449
+    },
+    "shared/sharia/reports/ENSO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c82a40983704f9f44e7dc1789315922645117577015024ababc25b4cb3b2681f",
+      "size": 451
+    },
+    "shared/sharia/reports/ENS_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "eed25e4f2a7c618cd2f83a641d26887ff94db077bc51c61fcaf9be609fcbae17",
+      "size": 449
+    },
+    "shared/sharia/reports/EOS_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "3ce72a6d1b4831a242630bae8033c4ce3036f417f037cfb28528867cf0de5680",
+      "size": 449
+    },
+    "shared/sharia/reports/EPIC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "85f7ce0c738b2babe4a00ad8622971e98a9dfcec0bf26aac40919fd798a3adde",
+      "size": 451
+    },
+    "shared/sharia/reports/ERA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "132f3e81b8ccfe11f10ad79fff1ade871cbed96cc27ef6eb4f3dd5e9611e90de",
+      "size": 449
+    },
+    "shared/sharia/reports/ESP_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "fde83d43225bd079235adb5f21b9221c675abe85ed2915299296104eb7f8ea42",
+      "size": 449
+    },
+    "shared/sharia/reports/ETC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "f5090a2b187a7d10289061d84a4ca7feaacabbbf37a80de71a1023224e98bbe2",
+      "size": 449
+    },
+    "shared/sharia/reports/ETH_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "2f5b65614da1df907903ae3340bee4a4f481779f8e03024b420177e761ed75fc",
+      "size": 449
+    },
+    "shared/sharia/reports/ETN_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "d0e9853af6fcdc1c183af01f50c309bc43758c9605cbdd4c2d0afcb1675a350b",
+      "size": 449
+    },
+    "shared/sharia/reports/FET_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "14cb66a005e9c0377d202390edae6447afcf56139afdad34ccc4676225d760d5",
+      "size": 449
+    },
+    "shared/sharia/reports/FIDA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "40f2ace1b6b77a3d4d1ce44292b7a11bc7d1df1c0ce7d0014d569cd9a84e4035",
+      "size": 451
+    },
+    "shared/sharia/reports/FIL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "df61eca8cc4147f3012b3d163a14cae96feec8d0d2500affa6bf03beb1090848",
+      "size": 449
+    },
+    "shared/sharia/reports/FIO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "758adbcf6fc05b3ebec48bb401500b38a86415c264e31d4f37fb5467d5102346",
+      "size": 449
+    },
+    "shared/sharia/reports/FIRO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "64a8c8819cad4986d5743fc25ae46fa32ca11337d3add518f66cbc745f5496f6",
+      "size": 451
+    },
+    "shared/sharia/reports/FLUX_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "2828115326684d2a230da3898d25759861b23335f71e17f01d4d802fa0927dd1",
+      "size": 451
+    },
+    "shared/sharia/reports/FOGO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "7f81514ad05d7a484568825623a1112b97c8ce6c8347ab1f37b65d8de7119b21",
+      "size": 451
+    },
+    "shared/sharia/reports/FORM_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "dc215db8593f2e1354ad006bbc1643e0837dc19f2dc2b3c3e7d43f84af101f6e",
+      "size": 451
+    },
+    "shared/sharia/reports/FRAX_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "1b5459064e2b80d6201429d91575b522db3d446abaf964edd0d776e23a6c180b",
+      "size": 451
+    },
+    "shared/sharia/reports/GALA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "1c0a3297d7f7846d1723025870eba528135dbd77e181b40728cd6337b7e4d09b",
+      "size": 451
+    },
+    "shared/sharia/reports/GIGGLE_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "7c00cdb1d4314750bc1bdcf95c4816f5c4e1d828443c282f788bb402255570d8",
+      "size": 455
+    },
+    "shared/sharia/reports/GLC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "7d4ef6381c8c70591dbcd9761774af2255bb85d7c3fd12d60b73997fdd1f3cdc",
+      "size": 449
+    },
+    "shared/sharia/reports/GLM_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "0d25a733fd9b406eb0e9538f11f3da9d53a2a4defe893f17aab0e20ed38bca9a",
+      "size": 449
+    },
+    "shared/sharia/reports/GMT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "ff5a6102c1f756db6696f3ea7aeee25f4641372f4358f561fd204f395168c486",
+      "size": 449
+    },
+    "shared/sharia/reports/GO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "5ebd171819819d417d74543130cfb17e681eeb040fca3819f9fdc202e3c00c68",
+      "size": 447
+    },
+    "shared/sharia/reports/GPS_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c42ea7ad5d6a51efad6b8ccad3660b95109395b02ff116ffceb9cdc760fc0b49",
+      "size": 449
+    },
+    "shared/sharia/reports/GRAM_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "14156c47968c72acfd517a057bdff5dac1ef43c8e1c0232efe5bd82255c0c956",
+      "size": 451
+    },
+    "shared/sharia/reports/GRS_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "184247be9eac32ec96a325bea0a9f5fb12986637ca55b4a9d066f4b52e6364fe",
+      "size": 449
+    },
+    "shared/sharia/reports/GRT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "809b9f56a13e97a87d2a3dbbf5c8e160a6fd501145ce4b6ef97094215522301d",
+      "size": 449
+    },
+    "shared/sharia/reports/GTC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "5c7b46f1a389868193febdcbd85393cdbac05e891d322cdfe48ed91fb578a8b3",
+      "size": 449
+    },
+    "shared/sharia/reports/GTO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "4fe6ee0e16a32aeacaf1d275dedeb80545e6fc0fc6138900943df6ca58866d28",
+      "size": 449
+    },
+    "shared/sharia/reports/HAEDAL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "fde68a259f54fb7cc4ba20ad32f1cc80ff0f492a7e6799ca191c0265cb1b1767",
+      "size": 455
+    },
+    "shared/sharia/reports/HAI_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "044721f788337bfad638a554769ca1bc33fb00d4547c6f0c47f8165962b5617c",
+      "size": 449
+    },
+    "shared/sharia/reports/HAPI_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "5aaa1a81ff4de40ae091c83b2e96528dd4dde1477f4837c7cd97932404273cdb",
+      "size": 451
+    },
+    "shared/sharia/reports/HBAR_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "06d8bf62183a012281375b41e48528dae1f8f9edaac991c841720e787476fab2",
+      "size": 451
+    },
+    "shared/sharia/reports/HC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "363989e717e847e67f621b9c786e64e80685cae48f0d2c75c7cc61563facdfc7",
+      "size": 447
+    },
+    "shared/sharia/reports/HEI_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "af4c4a0bcc8289f7fbb9559408f3faf8d699fe36b2c64f175f4e7fd685d2e26f",
+      "size": 449
+    },
+    "shared/sharia/reports/HEMI_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "37ac046aef089e9c1a3ddb8713cd658a1a33e615bf18edf0e8291fca99db92c5",
+      "size": 451
+    },
+    "shared/sharia/reports/HERO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "33eaddec8e7979d4dd1dc11eeabe88b058b9a75663326847924462caf1a7c5e6",
+      "size": 451
+    },
+    "shared/sharia/reports/HIMSB_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "19ac777251f3f137cb88ebed6d0aaed9b91630204b461c6b96ce36093bf4fc63",
+      "size": 453
+    },
+    "shared/sharia/reports/HIVE_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "4819f6501bfa2f20384bee1db5a1e0bc11d7628641fcdcdf162cebf481bcd296",
+      "size": 451
+    },
+    "shared/sharia/reports/HNT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "a61d32f8684d75e8d6bc7dae2757e79a37498480c586faec05ea7f760e6d440e",
+      "size": 449
+    },
+    "shared/sharia/reports/HOLO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "25da5111c533fd46a03c9c53ff3c0cd405df4848cb189f08e7a90cbb1d089120",
+      "size": 451
+    },
+    "shared/sharia/reports/HOT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c79579e94f74fbb49de081e72f3a1fff581c77f43148c71d734b60dc463d2c60",
+      "size": 449
+    },
+    "shared/sharia/reports/HTR_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "142f29e360394a613f9545382c6642dfa2080509c979d5b4f8ccb96788940ebb",
+      "size": 449
+    },
+    "shared/sharia/reports/HYDRA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "8fd0849137b0f7c639bcfefcef64c8d9e1b8d108000145015ec207faebb29cfb",
+      "size": 453
+    },
+    "shared/sharia/reports/HYPER_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "e19e71d1f851f04798edc573d595a3573f7b08f98afc0c24c8851eefa563ebad",
+      "size": 453
+    },
+    "shared/sharia/reports/ICP_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "a09943169506c2d1ba06b87c0f78b77a2f2736733a57d0f484abb2e86da55795",
+      "size": 449
+    },
+    "shared/sharia/reports/ICX_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "52e39d9c54c5f44a19191fa449794a00bd681783f00eb2a0e53bdcfe4e484a37",
+      "size": 449
+    },
+    "shared/sharia/reports/ID_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "e2dc383e235cf33eb062344429d0d735d7249b0f076d26766cff0e09edd977ec",
+      "size": 447
+    },
+    "shared/sharia/reports/IMX_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "ba0b4afadb8918908b8143470cca601a6861ec55d869e675bcbf8ffb959e1519",
+      "size": 449
+    },
+    "shared/sharia/reports/INIT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c939d992d323460cb58c5b61a2f315ae16a323a78e266f34c5cc0c2c36ebc6c1",
+      "size": 451
+    },
+    "shared/sharia/reports/INTCB_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "e5f141341164879579dc0942a45004df4a6868507ce21457e81b7611e006fd6b",
+      "size": 453
+    },
+    "shared/sharia/reports/INT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "f7f8038561933975c4ff34ad09eb02ff127b5b8f346ca2b6650437c44102f026",
+      "size": 449
+    },
+    "shared/sharia/reports/IOST_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c9effc0f460510cd33797d06042a8a81d5d22c530234d8775c384839a0810a4e",
+      "size": 451
+    },
+    "shared/sharia/reports/IOTA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "d5fbc8a50dace3178c90fbd4dab9d4c75583ad5da603f686a3fa0b0a9e53a560",
+      "size": 451
+    },
+    "shared/sharia/reports/IOTX_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "f25467b957258cbab330a1a6952d73d5f669f99efaf0f91e159b32f61281e741",
+      "size": 451
+    },
+    "shared/sharia/reports/IO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "e3d79f1277b93bd117df6521a3e6617a65408818b3aebe8ab6ad5f4a9ef3c7d9",
+      "size": 447
+    },
+    "shared/sharia/reports/IQ_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "f0d52913985c8bc0403510138dd9d3d255bfaeb5ef3954f3e56723285b9298ca",
+      "size": 447
+    },
+    "shared/sharia/reports/IRIS_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c41c77f6cc81d423066cb8f4ebc170122a86890cf0848dd015e0818b94dc76a9",
+      "size": 451
+    },
+    "shared/sharia/reports/JASMY_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "43f7cc7437150a384a7c4eeab22b2534d433be76d7fbe02fff8658ded7e6d5b6",
+      "size": 453
+    },
+    "shared/sharia/reports/JOE_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "eced590c542733f4196caa3353a1d08d7b2a5e3c9610b57d049d1780770195c0",
+      "size": 449
+    },
+    "shared/sharia/reports/JTO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "0f4f063d82c696823c04c23f11fd9b9579fbca1fbb2f5f3a54e16f39235f30ae",
+      "size": 449
+    },
+    "shared/sharia/reports/JUV_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "4228d7c5c10c820f5302a90a5d1a285c819e3de1f36393214fecbfc90afe8402",
+      "size": 449
+    },
+    "shared/sharia/reports/KAIA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "f40022684651fa8e4c687e2c06bd1732dfb2917a39d7bcd8119e4094b1c2f341",
+      "size": 451
+    },
+    "shared/sharia/reports/KAITO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "88bc221ea856a0809e9fb34ee874a14cf0a72765d89683e0a93561b71e4fcbcd",
+      "size": 453
+    },
+    "shared/sharia/reports/KAI_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "ff229c07f1955aa0c03e8f3d0d6e7c6f58ef3735ec93bac1a2d6320ff4e9e882",
+      "size": 449
+    },
+    "shared/sharia/reports/KAT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "427c1202803f79b07ffe8171a833e05a6faebbe7675344c79a9dfcffcb398fd5",
+      "size": 449
+    },
+    "shared/sharia/reports/KAVA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "eef5a878fb4cb5be87a08573bca32c9a8b049d93041f6495a0ea012e20e0ccc8",
+      "size": 451
+    },
+    "shared/sharia/reports/KDA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "5a1446f1293b3fd8527bd58854f2dd86bc243b41446ff404425f33afe9c33a6b",
+      "size": 449
+    },
+    "shared/sharia/reports/KERNEL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "a2384c1cd4aa547221c8587c62a6bf7a6aef8fec94ec45ef9fe85f1ce5776bca",
+      "size": 455
+    },
+    "shared/sharia/reports/KEY_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "ee62ff73187caa460f7c55964b95695b2de91dc35000bfe94ede07780fc5826e",
+      "size": 449
+    },
+    "shared/sharia/reports/KGST_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "a11fd559477a1aa075c4f88a657e9bafda278aac31c8a753551c625f5561d46a",
+      "size": 451
+    },
+    "shared/sharia/reports/KITE_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "eb123fe951aaca1026ee935e497cfd35dffafe815a0c6c6efa59111892d0df7e",
+      "size": 451
+    },
+    "shared/sharia/reports/KLAY_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "efb7cdd0b02fc01b32878d705ce861ed94e1e8d8dc412178f5bfd6e2eb1b764b",
+      "size": 451
+    },
+    "shared/sharia/reports/KLO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "4dffa77f778321571f361a96c8cb8ba2bbcf8760919e7e2f3d3c3e1b6c818100",
+      "size": 449
+    },
+    "shared/sharia/reports/KMD_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "887bee2ba3d634c7b0aff9b1631c8f1d03270bfb26de6f11ac001b060cdb1b33",
+      "size": 449
+    },
+    "shared/sharia/reports/KNC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "fab4f0fcacc9904686c08f8a31e9210a0512e265adc635614fbd324e6a878544",
+      "size": 449
+    },
+    "shared/sharia/reports/KOK_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "0fdddf7330e1ac653f6eba6e2da2e88bc24f523343a66440abe74d1d3ced63fa",
+      "size": 449
+    },
+    "shared/sharia/reports/KRL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "bd5e134fd982c39a3065fb88c03e380ee46e234d91cd9c6485805b0f72862733",
+      "size": 449
+    },
+    "shared/sharia/reports/KSM_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "4026e21c65007b0637ca0a4015ed82461f111a22f5814fdc647b30bba891d777",
+      "size": 449
+    },
+    "shared/sharia/reports/LAYER_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "ee9f2ff40532f1a9eae1a169a589075c5429791e2da1163abc0468c2b79732e2",
+      "size": 453
+    },
+    "shared/sharia/reports/LAZIO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "f448f0c5998ebbef714d5f814cb6aa95844563feb04d12ee25170aa2ccd36da1",
+      "size": 453
+    },
+    "shared/sharia/reports/LA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "dc51084392c423ba52e6ffad0209a17e84312edfe806a01cb0f98ca88afeb699",
+      "size": 447
+    },
+    "shared/sharia/reports/LDO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "07df94395ae085973a7d2f8c6f27a322b3b3185ecc015c7d709779c7174ee2b3",
+      "size": 449
+    },
+    "shared/sharia/reports/LINEA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "4725d926f7b0743ebdc78aa9f0b1119710c968c31b5a4a7d31466554c96ce707",
+      "size": 453
+    },
+    "shared/sharia/reports/LINK_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "599d5cc71070867880a866b23975fae64c842bc561455cad718e5f34085aef9a",
+      "size": 451
+    },
+    "shared/sharia/reports/LIT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "02eb653bff77fcda816dedeb656c4350c3526b854e92027d2472eb13af44b9d4",
+      "size": 449
+    },
+    "shared/sharia/reports/LOOM_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "1e11800328473ca246af95558a7fa7b407e72801806a624374c274a2489b7be5",
+      "size": 451
+    },
+    "shared/sharia/reports/LPT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "b525c12fda172b5132be8f3df6360e0ec3da364cd33a5c68cb3f186a20c6521c",
+      "size": 449
+    },
+    "shared/sharia/reports/LSK_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "72bbdcb6d23c40cda836c8d1bde971bb3cbf8402ba9f6ae142863336a99e11cf",
+      "size": 449
+    },
+    "shared/sharia/reports/LSS_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "b8499648ccd99102ea15cac68f3bd11aa32149fd3e0040044f4bc125bec1f409",
+      "size": 449
+    },
+    "shared/sharia/reports/LTC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "99a323c7b78754abb97001e41c0023c3e0bd02408031970bc642ee24daaca453",
+      "size": 449
+    },
+    "shared/sharia/reports/LTO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "006f48baaf10820a8763264b6b1c3c22c69a42ada6035ff37284e1450baf2dc1",
+      "size": 449
+    },
+    "shared/sharia/reports/LUMIA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "9fac1993c8992d7525d260e9763ebd8d7e268c85b1e3a2021b8e3818fe743b5f",
+      "size": 453
+    },
+    "shared/sharia/reports/LUNA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "3bc1635ce0041f921e11462afe6339eb797cef2e945293c2c201dcc9afb5b1f6",
+      "size": 451
+    },
+    "shared/sharia/reports/LUNC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "df5ebea5422de3dccd4fb08f0f42890872733d3022fa26c529de4e51d4c646b0",
+      "size": 451
+    },
+    "shared/sharia/reports/LXT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "d2f1afb39faeb94343baea0515fe6181ccacd0df75a7a1e62c32a42b24ba2dac",
+      "size": 449
+    },
+    "shared/sharia/reports/MAGIC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "d5ef14be0b3b1c7d2248cf754985d3470bba598f34502744710be8ea21381aae",
+      "size": 453
+    },
+    "shared/sharia/reports/MANA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "a3cf328246ab61096b1d4a0048ccd4c9759b2bdb57883d8bd2e4abdb26af960a",
+      "size": 451
+    },
+    "shared/sharia/reports/MANTRA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "929ec659cde7d09b0774e8e8d2dcca4c22e28da886885bf18bd05d50800da74c",
+      "size": 455
+    },
+    "shared/sharia/reports/MASK_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "1832ec9fb947bc671680de42d35729c9c25011074e51c0a4b06633a9eb7dc14f",
+      "size": 451
+    },
+    "shared/sharia/reports/MATIC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "b4948b39cb6081c33ed8cea084a63b4e9f60b6c2364818083ce5ff47f6037fff",
+      "size": 453
+    },
+    "shared/sharia/reports/MAV_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "9458267af2096c821f1430ac06dcba1865afdc5c7806931f692f418d6b174cf5",
+      "size": 449
+    },
+    "shared/sharia/reports/MBL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "19cfcbf95227afe9fc26780b16ac2a629c3fedee161cd25ded3949a10a673c8b",
+      "size": 449
+    },
+    "shared/sharia/reports/MDT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "df7d711ff466077706ccae976d5be92b2da4e758c8b59f4ecc748570d374d139",
+      "size": 449
+    },
+    "shared/sharia/reports/MED_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "93a6572d44db2dcbe02b7e0eda28d81f4d254e1829d157f6b6b886766d573778",
+      "size": 449
+    },
+    "shared/sharia/reports/METIS_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "e6126b770854ba43b9d3845977cde2017f79aeb802eecac6efe5c20524e9e20b",
+      "size": 453
+    },
+    "shared/sharia/reports/MET_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "35a7a9f82038ef1a6605065d054eec7789cda78063bddaea454d238ce51ad34f",
+      "size": 449
+    },
+    "shared/sharia/reports/MINA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "86c884d7a1fe27b4d8e303e05035f6b64d8833375be54e6159c7dcc7c386944b",
+      "size": 451
+    },
+    "shared/sharia/reports/MIOTA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "d3f4440a52d7cd525b455af0ea68ea8fc7221839909606d53c4a91c96070378e",
+      "size": 453
+    },
+    "shared/sharia/reports/MIRA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "402d24d3a14ed9a41dcc7e5bdfe8efe45925ca128ab3075e6e5c8a4d5b2afd0b",
+      "size": 451
+    },
+    "shared/sharia/reports/MITO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "8ca6dfc36020e140900c671a6dc7d9a7c88086a7d321626f063592d392bd6a32",
+      "size": 451
+    },
+    "shared/sharia/reports/MMT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "d66e0374edcfd78f609ce5a516ad4c63115b997f90012efd3cfcf87a089b0de6",
+      "size": 449
+    },
+    "shared/sharia/reports/MOVR_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "4b2c8d42d40b769f75edf5934ae84acb15ec39b2f142417b442ecf2dd16f60ee",
+      "size": 451
+    },
+    "shared/sharia/reports/MRVLB_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "f8e0f58c06a57a5b1337dbaedee3ceefc59cd87e45e20a4a7d0eb8c45469dfc1",
+      "size": 453
+    },
+    "shared/sharia/reports/MTA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "d796fefbb77e4ae57d7fb8c7db2d8a79a739b1399aed9dfea04fd5992bfa5f78",
+      "size": 449
+    },
+    "shared/sharia/reports/MTH_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "881763e765cd6cb167bc08b7fd25a46efc5f92b346b7911db559a1edb858d259",
+      "size": 449
+    },
+    "shared/sharia/reports/MTL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "3bdf9ec04239004bb7d142184c4f758c3e7ae82e448ca23b6c9eb0eec61cc32a",
+      "size": 449
+    },
+    "shared/sharia/reports/MUB_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "02b72da54fdb64859c4d6629455f61871915805cc68b3fd965b3abca1f993fb9",
+      "size": 449
+    },
+    "shared/sharia/reports/NANO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "1f8cdc0889219f982f3749b6d2c55350374e4d6e28eb78aa46294adaa180dab5",
+      "size": 451
+    },
+    "shared/sharia/reports/NAS_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "1227b23ed69a0b6d3cee7113a605daf4338a006578eb109c483b48328d2cd290",
+      "size": 449
+    },
+    "shared/sharia/reports/NAV_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "479f8ab11e9e9e42873f243dddb09c2265d4ecbca61ab408fefba20178f1b929",
+      "size": 449
+    },
+    "shared/sharia/reports/NEAR_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "54eea75e6406869d19f5855d2a632f4e3dbebc4e76b13a48bcad418463f1e932",
+      "size": 451
+    },
+    "shared/sharia/reports/NEBL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "3f81d056fd253467f2799c6cad8d3ee595173ca75fc7c15d5f43da27fe8d6380",
+      "size": 451
+    },
+    "shared/sharia/reports/NEO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c2569988f509886231eee6330e03010983a08335b19b855ea3deb01f618f408b",
+      "size": 449
+    },
+    "shared/sharia/reports/NEWT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "56f327e7b1304a077e06f4b513eace4c2bf78ff1bc294ffcf2f98dcb3851df00",
+      "size": 451
+    },
+    "shared/sharia/reports/NFTB_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "58eafb8bf0bcd2348f67c802f07deda78de1f54ca7039b349d37f32a900c2672",
+      "size": 451
+    },
+    "shared/sharia/reports/NIGHT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "67e5998691649a7c2592067ab71d4048d2c11ca73f19b7d9e4cf87fc0f32ddae",
+      "size": 453
+    },
+    "shared/sharia/reports/NIL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "dd3e78d9226d804b55658235a4036634abd7a8c5c7e756d29db57082ae905362",
+      "size": 449
+    },
+    "shared/sharia/reports/NKN_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "0d8502ace26c6172b0e4e3aa4680d4fe5005f119e76b16fec3d63343f477b2cd",
+      "size": 449
+    },
+    "shared/sharia/reports/NMR_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "4b4b12e97ed532ddda5958e35888cad0aec00a674858e2585185c34e800caed7",
+      "size": 449
+    },
+    "shared/sharia/reports/NULS_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "927ad75e9c4c3ea58e75d0cf8e7f19f62f9acf921f9018faae6d351cfa68ca2b",
+      "size": 451
+    },
+    "shared/sharia/reports/NU_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "f8150663d6ce5dba729fd541efbd94d40e36174d85178811a8904cd51989cf58",
+      "size": 447
+    },
+    "shared/sharia/reports/NXPC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "156df69776311356d1e32d0915c0bb0b6096003be4cdc61f2c7e7700aa87116d",
+      "size": 451
+    },
+    "shared/sharia/reports/NXS_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "b30b360a5b4dce7afc274997ebc69eea006c8dc8afab1343f25edbc6f87740de",
+      "size": 449
+    },
+    "shared/sharia/reports/OCEAN_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "cb23b5effffd82dcadcd11f3d21195605229d9ad854e4961c8125a34421fe18c",
+      "size": 453
+    },
+    "shared/sharia/reports/OGN_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "94a6c3b23e200fddc0cf021cc7c0005ada05b232541727186177e0729830c242",
+      "size": 449
+    },
+    "shared/sharia/reports/OG_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "ba8414af9527f74ead7f8ac8352dc305efd38975d60346ae4abbfe0bd8c71d27",
+      "size": 447
+    },
+    "shared/sharia/reports/OMG_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "d7c60639ba1b973bb2dc01ac4277cde9b89d2f12518161f4ff3d8bf96f8ef510",
+      "size": 449
+    },
+    "shared/sharia/reports/OMI_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "ff05694f43a578c1bcdbeabd75a2e3fba7faa65f497a7dd845e47193605c8cad",
+      "size": 449
+    },
+    "shared/sharia/reports/ONE_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "85b62863c9387c146e777e637617fcafe81ab3ec0cfc7f4ff8353919433eeb6e",
+      "size": 449
+    },
+    "shared/sharia/reports/ONG_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "956a03eacbd321319665de5e5664a4e3cf28818b099e64b367a0ecbd6d25a212",
+      "size": 449
+    },
+    "shared/sharia/reports/ONT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "dc0b074a207179d9a38057f22ec6c985ff8539c2f7e7b0e0105dd6fcb80582c8",
+      "size": 449
+    },
+    "shared/sharia/reports/OPEN_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "ebbbb8e6341382cbaf4b0dfd706eb07a232fd20e2b1a46210203d6d2156189f7",
+      "size": 451
+    },
+    "shared/sharia/reports/OPG_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "817ee0fb847f06d42c18e19ea54addf15379767cde43589410cf8b7e45b8a859",
+      "size": 449
+    },
+    "shared/sharia/reports/OP_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "6b5d507bde40004e4a6baa7b70362fa6c7c6baa98174c19f8ded5998026fbca3",
+      "size": 447
+    },
+    "shared/sharia/reports/ORAI_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "a288a6fe2729d5a2cf8b2b2bcc38091d937d88f464205c28a02eca264d3df425",
+      "size": 451
+    },
+    "shared/sharia/reports/ORCA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "966b10d8d189dac9ff54056959d0482efb2a93666b54c1f519d62da53a68dd3d",
+      "size": 451
+    },
+    "shared/sharia/reports/ORC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "ae72b050904a6b60a512703e98ff6c69861a251e587eb36c594f49c815e5380e",
+      "size": 449
+    },
+    "shared/sharia/reports/ORN_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "63d905fdb3db9ea7600d7f2130bc68ae216f54af21bb315aa1db9dc14722b8ca",
+      "size": 449
+    },
+    "shared/sharia/reports/OSMO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "5d4a8ef1c19b628f6968c76877c5d2ee8990e1d3185c23d7710c321b34313271",
+      "size": 451
+    },
+    "shared/sharia/reports/OST_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "a25e8e474a31abcd4c2d216fb1cdb59b7af03e12e3c3fe2c9247893288121a9b",
+      "size": 449
+    },
+    "shared/sharia/reports/OXT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "07b2dfc615c17c39633c19a88de8502aec5b0eef02dd7f6277e648d10e2df17b",
+      "size": 449
+    },
+    "shared/sharia/reports/PARTI_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "0574ca87e4a1c19930d8c59cc5f0d07e68f43590e27b6fcbcc33b486b542ce77",
+      "size": 453
+    },
+    "shared/sharia/reports/PAXG_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "41455baf7fde97f8576864d7e6230f035e8b7cfdb614b2ec19e714b80c92cd7e",
+      "size": 451
+    },
+    "shared/sharia/reports/PENGU_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "b0d9dc24ed572d2d7390a11d218f5fd9903f580e31a95d08465ca3107669a3cb",
+      "size": 453
+    },
+    "shared/sharia/reports/PEOPLE_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "6a75b9b1a15531ab9e96cdfba6883d26438400cb1e88001c86565f88ca7b9e2a",
+      "size": 455
+    },
+    "shared/sharia/reports/PERL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "9eac46ee28513a8c12f68ed17ce253c59e00aea50e23bbb9768f088b9bf5ff06",
+      "size": 451
+    },
+    "shared/sharia/reports/PHA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "8396d097977418d8cb4356cbe9d3d606ed8cdd09931ae23b7011ca73dfecd4cb",
+      "size": 449
+    },
+    "shared/sharia/reports/PHB_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "b29095b58ccbcfe1e67c619a7ea7b3299d9ef4b9700958bc665ffa9fd6fc864a",
+      "size": 449
+    },
+    "shared/sharia/reports/PIVX_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "d89bc69576f1ee9e46e1a8daefe0c9db6904d454f5ddb192942f2b68ad2d2a6c",
+      "size": 451
+    },
+    "shared/sharia/reports/PIXEL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "2920ff77d4a0d034d4c7e8be0658f16af192e3b33eb3bff8c0bdeffe16b46087",
+      "size": 453
+    },
+    "shared/sharia/reports/PLUME_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "63463a63400c981e1d0047ae4a817f5030460c878c2ec9483529fffe6d4548f6",
+      "size": 453
+    },
+    "shared/sharia/reports/POA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "61db1bdb287ca8a9fd1644f8e17773fc1641b1e2371869f66f5c4bc489cc996f",
+      "size": 449
+    },
+    "shared/sharia/reports/POLYX_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "29466996059dbf66c284df9d2d1432ba2345c601ef213837a502b76023b3b838",
+      "size": 453
+    },
+    "shared/sharia/reports/POLY_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "221e92cad1bee388ca47e71f43d187f31b2922b9ddb35f96d3819a22596fd8e7",
+      "size": 451
+    },
+    "shared/sharia/reports/POL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "9397d46f649efff10ffebf9cb52604790e8f6cd77d21ce81c63d2da4f5963d0f",
+      "size": 449
+    },
+    "shared/sharia/reports/POND_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "18fb26030d8807240d743df6ec20d1237bf105baed105188928bb59ffc67c522",
+      "size": 451
+    },
+    "shared/sharia/reports/PORTAL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "156c91dbf93ec7308ddc73dd9735ffab676ab844896dabc522ff099623d2af4c",
+      "size": 455
+    },
+    "shared/sharia/reports/PORTO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "314c8d8ce56dd19614d07e0362a422ba222e773bc25142ca80be16ba2586f3a6",
+      "size": 453
+    },
+    "shared/sharia/reports/POWR_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "2d1435c94e3e4258cdae58bf7b2cc4d0e861028561a595f2b75d3af98e3665cb",
+      "size": 451
+    },
+    "shared/sharia/reports/PROM_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "9fcd8bb88fbbd21465f3e1a7296ff224a18681c268bf4df45ec28e27423fa28e",
+      "size": 451
+    },
+    "shared/sharia/reports/PROVE_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "491453d497df79ea5240bd272f0af735df252ba850ce7ef36087f9b16bc4068f",
+      "size": 453
+    },
+    "shared/sharia/reports/PSG_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "e3ca0f406f89558c48b671bde18f5ee670a7b666ccfdf373d4ce1bb716da23ef",
+      "size": 449
+    },
+    "shared/sharia/reports/PUMP_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "cfc4806f2bfc7cd5ee17601a0590601f97b8cc1263bd046dbf3f2b8454a0d55c",
+      "size": 451
+    },
+    "shared/sharia/reports/PUNDIX_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "f0cfcd49d06b60afa8666ac9e1175be0fb73808bcfbbb932108809e0649e2552",
+      "size": 455
+    },
+    "shared/sharia/reports/PYTH_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "901312dc3e4f608b6c9c1a3f760e643fe0af1919405e0b7c66a5bb50afbd254c",
+      "size": 451
+    },
+    "shared/sharia/reports/QLC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "2d0132ceba3fed0c2f851c296511bf0376e2a644428910d7084a24de1d5e3a11",
+      "size": 449
+    },
+    "shared/sharia/reports/QNT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c3d278da41bc2981cd102e6d5dde5e266bf37d6af2193ef1a503c4135bc5c008",
+      "size": 449
+    },
+    "shared/sharia/reports/QSP_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "482c4fe03ef725038f6ce8fcfab9db901064923911b3b020d2c9140b73c40074",
+      "size": 449
+    },
+    "shared/sharia/reports/QTUM_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "0e5071ec03e41a9d809678b60697bbcfe6730d963c438c91187e34c9133f347c",
+      "size": 451
+    },
+    "shared/sharia/reports/RAD_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "759e364999b160fd892c2d4d76366c8c41f2055c6851a0cee00b913b9b9865ca",
+      "size": 449
+    },
+    "shared/sharia/reports/RARE_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "ae99f8c33cf91deab73b79375cbc224800bf3b0c861897e365fa1686843b5c99",
+      "size": 451
+    },
+    "shared/sharia/reports/RAZOR_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "73d733ea7589239a594562436249b63624ff2ff25233ee9e4d2d34bb38d9d667",
+      "size": 453
+    },
+    "shared/sharia/reports/RED_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "3abead1aa925dae79988d7fc2c5245dc43e773bd908aa188b36bbfbe539dafc8",
+      "size": 449
+    },
+    "shared/sharia/reports/RENDER_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "a155e17b8cfec70b9beb87383089d0572e14feac288c689f35b96ed863b6e02c",
+      "size": 455
+    },
+    "shared/sharia/reports/REQ_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "0a0bef6ec45b1e14065cb159663737e6d60d751b8ae639d3522187e7b5851e7c",
+      "size": 449
+    },
+    "shared/sharia/reports/REV_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "63da687588f1eeb35795ad0109d758a06e19b44d812ccaf04966a83a942d27b0",
+      "size": 449
+    },
+    "shared/sharia/reports/RIF_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "e9486bc056a96772eed016fd503cf6b13f814574fbe75036e86f300d02f7cc80",
+      "size": 449
+    },
+    "shared/sharia/reports/RLC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "d3bea17149c02e2f1f562c316f787f8502f0d0065eb6f1a851ce5987882c11ff",
+      "size": 449
+    },
+    "shared/sharia/reports/RLUSD_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "6bd41bc5fe592d94d1c43c798695cda3028337cb871d445f0ae602e5e4b97aeb",
+      "size": 453
+    },
+    "shared/sharia/reports/RLY_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "366194e3a0e1c070ae3c5bdde3c9b92fb869701e1b04279eb94fa8a5ff0aac6a",
+      "size": 449
+    },
+    "shared/sharia/reports/RNDR_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "e1e0459d3463fcf0cb89319a33332d4c841cbd4146c3898fea9c46197fdba65b",
+      "size": 451
+    },
+    "shared/sharia/reports/ROBO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "8be3e6a31d1acfcecb1a226c287ce0fdc94e39382b14a92869ad24fefd7f6652",
+      "size": 451
+    },
+    "shared/sharia/reports/RPL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "45748d22461da1c76d65d7c4bdd1d8ff6de3692adef686b4261fe4ff62ca9bbf",
+      "size": 449
+    },
+    "shared/sharia/reports/RUNE_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "a12ea1b1848146abe1958348d768bdc2ec65f272fa6d7d7dcd206becfddf1e67",
+      "size": 451
+    },
+    "shared/sharia/reports/RVN_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "efab74bfe4eb2730d993f887e680554a64baa69755fcf3ab4974598e72cab669",
+      "size": 449
+    },
+    "shared/sharia/reports/SAHARA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "322959d6913605f08821ce659456277b5807d7904efebad81ce97ff497429e5e",
+      "size": 455
+    },
+    "shared/sharia/reports/SAND_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "bb73fc7d11b2f368356b765e38c2b5ac18d5f2857bf0348a0ae0df29ac026aef",
+      "size": 451
+    },
+    "shared/sharia/reports/SAPIEN_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "95d00350792af9232963bf6a1980bf7a4f5355d2d74b633ce0fdd7ba4748d361",
+      "size": 455
+    },
+    "shared/sharia/reports/SBD_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "7afaf86faa1f7c489f154883dc05e91c6b2602f7a4609059097ea99ef8e0f4b9",
+      "size": 449
+    },
+    "shared/sharia/reports/SCRT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "a0835032c62f73d81fda4ea965fd3b55c8124d9bd7cd42f6803abadbf18650e8",
+      "size": 451
+    },
+    "shared/sharia/reports/SC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "19cc77feb1a5d531ceb68b4905db236d184a42e53c74428ccb1a5e089f315b96",
+      "size": 447
+    },
+    "shared/sharia/reports/SENT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "f365820bd3cfc1d5f1e4a5b366818e5940d1c7e169e71f8bc23bebce1ef7cda5",
+      "size": 451
+    },
+    "shared/sharia/reports/SFP_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "92e40cf8f7f6980690f73ec12c9aae8fc5e998c8b650820d2df1833d0c9dc88e",
+      "size": 449
+    },
+    "shared/sharia/reports/SHELL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "bba5ec7fd03d3351893065294822ec6107845a844a65b0ab9fdd3e928bdd5b7d",
+      "size": 453
+    },
+    "shared/sharia/reports/SHR_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "1d9972cd230cf36e27a9d5e1773afb84b60496654cde19e5bded08e226b5a85c",
+      "size": 449
+    },
+    "shared/sharia/reports/SIGN_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "36174244d8509b57d4d94a21c8f64770bd43888dc21b0e6936b5765a4634ade8",
+      "size": 451
+    },
+    "shared/sharia/reports/SKL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "660f7937307ad05b2f38f6f3683a014ae3ba0bfb22bdc2200df19a87fb393fb4",
+      "size": 449
+    },
+    "shared/sharia/reports/SKM_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "75d8e432f93617ea5eb648911819c638c3557848eeb539f5d3834a53895453c1",
+      "size": 449
+    },
+    "shared/sharia/reports/SLIM_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "a814af45771e2e1d3863550b4b126fa9d10ea857bc22a741a98fa348804eb1d3",
+      "size": 451
+    },
+    "shared/sharia/reports/SNTVT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "0b5d8c22695522d91df57df82036350daed3465b2393dc8d61a0d4db60de760b",
+      "size": 453
+    },
+    "shared/sharia/reports/SNT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "edf9b1d71fdb00da6e9c60d94cf5c3162fb047d4896702c7396b8e1a71b6459a",
+      "size": 449
+    },
+    "shared/sharia/reports/SOC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "1bc6ef90bcd8cc42b6378f9e20ffd63e3346b013f085a174c5fee21e9f61322c",
+      "size": 449
+    },
+    "shared/sharia/reports/SOL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "58c9841e78de7aecdfd02d75c20d0dbc170d4192ec11ef65a5252d0f7cbd0ed5",
+      "size": 449
+    },
+    "shared/sharia/reports/SOMI_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "7101e2f02868f10d9e86a79dc0107833167557539ee07ae9319248568ef78c5f",
+      "size": 451
+    },
+    "shared/sharia/reports/SOPH_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "435bb030c71dca28ce26b1f34ef104738a33bb36fb3f0e2e7717d06af01fab38",
+      "size": 451
+    },
+    "shared/sharia/reports/STC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "deae1952c88d2f2db160faa489d2702513d0357a32a7c65204327ceccb1b06d7",
+      "size": 449
+    },
+    "shared/sharia/reports/STMX_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "6792da2b2697ef470039650f6dda9176d0b96d4711f6afacc56c82e593b59dc3",
+      "size": 451
+    },
+    "shared/sharia/reports/STORJ_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c13dafa03ae5055064bc5be2ca7d3362809ca3bc90af912c54fb02338487f211",
+      "size": 453
+    },
+    "shared/sharia/reports/STRAX_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "d88ed484520dd98d3ece34d2a0890e4541be1e483bebaeab547c829d2e53c2bf",
+      "size": 453
+    },
+    "shared/sharia/reports/STX_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "05c03a75bdacce53bd8f5b735165e2f069c310b5d93edde7f920a79d7953d33a",
+      "size": 449
+    },
+    "shared/sharia/reports/SUSHI_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "86756017623294d327ce48b582836a43ca90ccf99db188183d0262c3d39be9bb",
+      "size": 453
+    },
+    "shared/sharia/reports/SUTER_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "7ef3da884b94c265821da32acfcae622e76d0eb6e66e563acdf66103f2dda52b",
+      "size": 453
+    },
+    "shared/sharia/reports/SWASH_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "7a8913543ca1b6a4626050c1221dfd926d1a53078f99e8eba2088b1f7df3e259",
+      "size": 453
+    },
+    "shared/sharia/reports/SXT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "a9672f2508144f3ce6997c07642cb05c1cd94cdb68a5446be05950932647c950",
+      "size": 449
+    },
+    "shared/sharia/reports/SYS_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "2605b65d542476a69203b9cda78d97b02635a3fba525bee611b8e1b50d0ce745",
+      "size": 449
+    },
+    "shared/sharia/reports/S_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "fae067a033fc4c62a33816c6b5f0afd5a5690be5ba03abee5653cfdcbe5581b5",
+      "size": 445
+    },
+    "shared/sharia/reports/TEL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "5b90bfad8b686d437416b83d78ae9dbc00284e3eb5d41c83d6d516acff725855",
+      "size": 449
+    },
+    "shared/sharia/reports/TFUEL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "f2f074127261c4ef223b497319b0fdae0f4bc771e810d15a7d67084d3dc53061",
+      "size": 453
+    },
+    "shared/sharia/reports/THETA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "820fa74823770f110185a5510a4d73446d29863448e8c072cbb8a57ffbc285ee",
+      "size": 453
+    },
+    "shared/sharia/reports/TIME_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "10a0e187ff5c7b1d299f8bc721e0f37fb64b5e74f36892b24f4d36df0451f6f6",
+      "size": 451
+    },
+    "shared/sharia/reports/TITAN_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "bc74cc91f2a37670d5b033e9501adc870ddddc35d2a536983e07cac95bac42cf",
+      "size": 453
+    },
+    "shared/sharia/reports/TOMO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "fbe7872d6849448b679f0e474e1b741f1c92f5e27559fe73ac3ffb0de15bf8d1",
+      "size": 451
+    },
+    "shared/sharia/reports/TOWNS_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "5cc668ccbfd626d4882613824724038dbbbd3c5dce9f39f943519864139ea90d",
+      "size": 453
+    },
+    "shared/sharia/reports/TRB_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "251398cf4b82d5fd04f1f2cac9ef1bc84f9b7467a61ac5cf585d3193d3533693",
+      "size": 449
+    },
+    "shared/sharia/reports/TREE_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "1e1b53f1440afc3c9ece5a38f28f52944d38b6b344b86b15c21394b90a5b516c",
+      "size": 451
+    },
+    "shared/sharia/reports/TRIAS_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "021d73dbd77cd58808a09ec178aace2337536feb87aeea801906ef76ab5b43b0",
+      "size": 453
+    },
+    "shared/sharia/reports/TRX_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "134ce69c334fcad05f990c32472ba5c02cab8c522629c808a6821034db9ffdfa",
+      "size": 449
+    },
+    "shared/sharia/reports/TTN_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "d3849969eb5fd790c23bb2f94dcd3bde0eb7f08c4fdb22e778bf480bbb0c17a8",
+      "size": 449
+    },
+    "shared/sharia/reports/TURTLE_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "727c933b29a91c9b3842d28d64e4de2107e5edab21a9b018f5bcc0c8577e38c9",
+      "size": 455
+    },
+    "shared/sharia/reports/TUT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "0f4bf53d7c61a19b836678add92567e7cc39f0da997270d9e488f193ae95b6d8",
+      "size": 449
+    },
+    "shared/sharia/reports/TVK_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "05f7813788608948f6db0ad374e33779c15123d8a10efa7a755a8ffc0b13340c",
+      "size": 449
+    },
+    "shared/sharia/reports/TWT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "70b8056cabc8fa9198d1322e5501ae43b059ba445e9a62db7ef465f821dece62",
+      "size": 449
+    },
+    "shared/sharia/reports/UMA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "8b57d49dc8960005472e223bc34fb558319c6ddd2a4ebbf976a18f90038ecf9f",
+      "size": 449
+    },
+    "shared/sharia/reports/UNI_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "72ef9cd18f7d67a10acb80c8d586056a455b82b1b2ce92890a80ea50ef89af17",
+      "size": 449
+    },
+    "shared/sharia/reports/UOS_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "bf994faa7d8b2e8751e3287f28695894fc010eb70f6b8d3485d3e8643001a304",
+      "size": 449
+    },
+    "shared/sharia/reports/USD1_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "6cb407ec8a433ecab906ffc2a31e4f54e4fde3ff93a302a6a3430c7ddfeb95d6",
+      "size": 451
+    },
+    "shared/sharia/reports/USDC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "ab88d8348bbd1dac713022b548364481222889122b714eb243a9e69e92885891",
+      "size": 451
+    },
+    "shared/sharia/reports/USDP_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "9406f6741eba770178cef046a4b1898ae3adcb80ffb6f08fb75c86da9ac21787",
+      "size": 451
+    },
+    "shared/sharia/reports/UTK_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "1012fd16299c1fe6d64ef1511d2277d33761221d770c07dce0e88f5797cd6134",
+      "size": 449
+    },
+    "shared/sharia/reports/U_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "32e829f992dae6271f3b133f83525bb52faff07ca5ed8ef2eecf387f82f6caa0",
+      "size": 445
+    },
+    "shared/sharia/reports/VAL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c1aaa6b96ad26c086aec601fca2767b9c9f852eb1fd15de469273fbe6d27c1f2",
+      "size": 449
+    },
+    "shared/sharia/reports/VERI_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "edfaddea17b30234dbf70226426e470127a062a2393d80d5395b40ecae2b2d37",
+      "size": 451
+    },
+    "shared/sharia/reports/VET_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "276e02bd30f068c1c7f1529beffd316bb5ec2a69a424a7d2411ea8bf3cdc37cb",
+      "size": 449
+    },
+    "shared/sharia/reports/VIDT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "f06eab256b36c7c9093d1ae069e0de63c3985e126e821873058ab27ae34f5619",
+      "size": 451
+    },
+    "shared/sharia/reports/VIRTUAL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "be2da4db555744dd0a9221ee93f79c0818514f6598f75d4fcd739c92b3a165b3",
+      "size": 457
+    },
+    "shared/sharia/reports/VLX_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "38adde20e075b9f2c4c0aded0ffa25d705fdcdcd2ce461b9347afd8e8b001429",
+      "size": 449
+    },
+    "shared/sharia/reports/VTHO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "88e9a30d3298f39911e0cc3faa873aa32b4395f74d56eb984d486309f468a904",
+      "size": 451
+    },
+    "shared/sharia/reports/WABI_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c27e4f1da7ef93d837e4d0a17b0af1439053419746dd18331fb4c359f854a236",
+      "size": 451
+    },
+    "shared/sharia/reports/WAL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "0e78fd8446da38f90c42715a666a9451d46ec0f9a2b7b6f61eead8df2e1db29e",
+      "size": 449
+    },
+    "shared/sharia/reports/WAN_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "7ade36c8e97e86cea0505d878f92591f790369d39693123e3cf54d8bc674108b",
+      "size": 449
+    },
+    "shared/sharia/reports/WAVES_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "4390143c376c94bc74c32ec0a75fe05f888c4682fb0a8da40f05fdbed6aa2dd7",
+      "size": 453
+    },
+    "shared/sharia/reports/WAXP_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "09a151de97948c12db3d07b0c9e8d7d12fd7d0aa991f3863857a97885c889410",
+      "size": 451
+    },
+    "shared/sharia/reports/WBTC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "e42a2f5fac607bfa86c8dcb5116e008e7d7419786e22ab1b0435002e0109f3a6",
+      "size": 451
+    },
+    "shared/sharia/reports/WCT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "6a6a3e81abaf3f09518e3146bb3d7173f78e4f886054689c0d509191a5514268",
+      "size": 449
+    },
+    "shared/sharia/reports/WICC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "58e4fe526f2a24421030c992570478512c7004d2673cb1242fee5899d5caf2cc",
+      "size": 451
+    },
+    "shared/sharia/reports/WIN_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "ef01eba10b60537ebcf92abb5c69fdbcd82cfa5232c1984dca5f26376fa9fefb",
+      "size": 449
+    },
+    "shared/sharia/reports/WTC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "75841e9f8099e551f1d5a882339eb9c8a2b66b7cd20532ee5573c13f1bc76a72",
+      "size": 449
+    },
+    "shared/sharia/reports/XAUT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "b1b3f12757e901fa99fdf188185d1d73bfc3e8a29600cbe7f7e8d16c1cfac35b",
+      "size": 451
+    },
+    "shared/sharia/reports/XDB_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "70a06b31e36e6ed4d7893c7267d49f7e259f97ae7121f8aa0a72f6934eaddedb",
+      "size": 449
+    },
+    "shared/sharia/reports/XDC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "b2521f43072cc1455759f9e7cad1dc6e839cbebc3733478ed006e56850de3c6e",
+      "size": 449
+    },
+    "shared/sharia/reports/XEC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "c14de3772fd2056899fece7833cd2a2efbf81f096965616af4ce32c57b53bfc1",
+      "size": 449
+    },
+    "shared/sharia/reports/XEM_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "801e068dd4ade27b008a747e5b7f69be731c45c0a23e325f49d6a2c58d591b43",
+      "size": 449
+    },
+    "shared/sharia/reports/XLM_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "e6af2df343c69e11391afadeb40d7b90e45802d794a444b6abe86e81767c0642",
+      "size": 449
+    },
+    "shared/sharia/reports/XMR_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "7d0ea1ccbe221d1ae597383a0d71769affe67529fe674910b8a8998df40dd7d4",
+      "size": 449
+    },
+    "shared/sharia/reports/XNO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "15305cdf8b1ea6b3282c67452168f0a861506cac1bf185bd9694f299b7d03aa7",
+      "size": 449
+    },
+    "shared/sharia/reports/XPL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "ecc864bcbb707baa51f96e6c49ba85cae5778dfd5d12c6628ca9f58dd5a463b3",
+      "size": 449
+    },
+    "shared/sharia/reports/XPRT_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "76db99bf001e97ec1981e6391080591449fbef0668715dba25a6b455b4e3a0ac",
+      "size": 451
+    },
+    "shared/sharia/reports/XRP_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "9af6265ba58a42346d74c8eae3a8e14c7769018b07f0c36a40476eee2909624d",
+      "size": 449
+    },
+    "shared/sharia/reports/XTZ_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "9833ef93e2c70a1cddb440e64428fc72474ac72d802424b2d3ef423ae979846e",
+      "size": 449
+    },
+    "shared/sharia/reports/XUSD_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "6235395b3ee2ae13f5a7754d7d7ddaa421fa9b400db07b6933a60abcc3d15dd0",
+      "size": 451
+    },
+    "shared/sharia/reports/XVG_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "e15398f52b385aefd0d10d880081b5c9619579812ce4e5e2907a9fe1275413ba",
+      "size": 449
+    },
+    "shared/sharia/reports/XYM_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "95202bd342bea860e389b576926742fd52eee9d360c877f9fef9042090def94b",
+      "size": 449
+    },
+    "shared/sharia/reports/XYO_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "6a85a4ce18b925a55f38ee46c578cbadb442f440c1a19729393707f333259cb6",
+      "size": 449
+    },
+    "shared/sharia/reports/YB_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "8ef0b89fc53506b09a3070f08c6e9d3d9bf5edda6ba2f62d67f0c703a88d2c93",
+      "size": 447
+    },
+    "shared/sharia/reports/ZAMA_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "956419748c9b21695511b9455a1b24dc23c80a9022a7da10b7edc8c2de06945a",
+      "size": 451
+    },
+    "shared/sharia/reports/ZEC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "2c3ff9d7d3c644ec6c6ef5073d3f05e618f872ac9d48209e8d589fb95e85a01c",
+      "size": 449
+    },
+    "shared/sharia/reports/ZEN_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "8e2bc8590ac1ff0400208cb6ce272e4b2c68e0485cc60f214fca84069ab3b3b2",
+      "size": 449
+    },
+    "shared/sharia/reports/ZIG_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "2faad2d6602f93ddaa5ae0913e0bb3f84a255f2d8f73a8ac4a700e9b362fec5b",
+      "size": 449
+    },
+    "shared/sharia/reports/ZIL_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "5ff36ee8c7443be7ffc92cbfad46bbacfe67d8e177fc357fcca8e1b4403176d7",
+      "size": 449
+    },
+    "shared/sharia/reports/ZKC_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "eedf17ae61c991ce3f47981aa5cb6fd9fa8fc6ef7197ad97cbf588345d80204f",
+      "size": 449
+    },
+    "shared/sharia/reports/ZKP_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "a56ef4a2350123af0e139dc25c9a63d1bb7cea0163d160bab1fa551574a84df3",
+      "size": 449
+    },
+    "shared/sharia/reports/ZRX_manual-e37edb914877fbd51742a858.json": {
+      "sha256": "92759df220d7e698744630b5a93401c4fd86618bb0bcf8a77717c24e1e6fcc3a",
+      "size": 449
+    },
     "shared/sharia/sharia_status.json": {
-      "sha256": "e0d7b34b8411a7829a38618971708da9bda470244fc421fbdebecdae9ff10939",
-      "size": 1946
+      "sha256": "ea730988ce7cc445446b648378c2deb428f1d8810cf8916529bdb5a63c6eae61",
+      "size": 442661
     },
     "shared/sharia/source_registry.json": {
       "sha256": "92d63a41dc6bf8b5e997b0e83b8c55aa3e4076be77f94a6e78ab2deeb3dfe304",
@@ -1944,21 +3776,21 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "size": 0
     },
+    "shared/telegram_alerts/outbox/f1a24cdcaed241c48538834f20708ddf.json": {
+      "sha256": "3a74895392d36eb6ba8ae3314176033732d6279d158b359ea96b53a3fb60e7da",
+      "size": 291
+    },
     "shared/universe/snapshots/.gitkeep": {
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "size": 0
     },
+    "test_market_recovery_safety.py": {
+      "sha256": "1d0f91dc284eb9313e13982ad39876de9874bdd0882eeb9e1786b878e342513e",
+      "size": 13941
+    },
     "tests/_harness.py": {
-      "sha256": "be46a8968fd30b6144980b68b2cbd9eeceb46ae313a91933eaad5bdbfaa9b36f",
-      "size": 10870
-    },
-    "tests/ci/owner_strategy_probe.py": {
-      "sha256": "cf4be4732b07661d22579a32f9580814387139081badfc451ec268efd192089d",
-      "size": 2744
-    },
-    "tests/ci/support_integration.py": {
-      "sha256": "7076fea73e35afa01abfaff1d5e28bedb22558f0e875f456a0f09c3056fb1d3d",
-      "size": 10073
+      "sha256": "233cee965236ef32d4fa084cab3da93c776f7e56ed1118ff7a78916d56577494",
+      "size": 12713
     },
     "tests/clean_host/fake_host.py": {
       "sha256": "0982c9c9a74d79efc9104b9cd0e6be11fd39e87f5649ec1fda7d6af9ad08e0c9",
@@ -1981,44 +3813,44 @@
       "size": 2588
     },
     "tests/test_23e_safety_fixes.py": {
-      "sha256": "aa3e54b2235a336b4a79c19625b188f7ac1254550315f34fe5f6e565c726449b",
-      "size": 4659
+      "sha256": "57aef9e706ae0160deab381ce6274221b325fbb105f696d69411d7bef8d37bc8",
+      "size": 9540
     },
     "tests/test_api_readiness.py": {
-      "sha256": "7c9ff7ef1ae457dcd98558b80607273604ea4701d278926ee790ac628d3888ce",
-      "size": 8339
+      "sha256": "ca4d31af18e6ccb41e0ee0beb78d05a5cfa93029c1dbe5de4c48051c657fe7c1",
+      "size": 8627
     },
     "tests/test_audit_ledgers.py": {
-      "sha256": "cb7f45200a98bfcb307e683eec37e4e47d8c455d9034ab4ede2dffa4cc1c47f0",
-      "size": 6923
+      "sha256": "e1659d790268f352355022835362e6c067f1b48311b035c27c4c420230c1f782",
+      "size": 7117
     },
     "tests/test_backtest_pair_gate.py": {
-      "sha256": "1ebd16d5ef58582a3c2673721e50ff9395ab0e7c3dd994aebdb413361dba6b51",
-      "size": 3228
+      "sha256": "54d43cf479669bf6552a7c00f973ca085b8d54e033fe20dc71a63661c5b0e5a2",
+      "size": 3263
     },
     "tests/test_backup_recovery_20260830.py": {
-      "sha256": "1bea8e6aca0d225af597e5ee29c4fd620866bcc53b88f38c86af61eae6c6ca70",
-      "size": 5570
+      "sha256": "ac464bcdef0af68a78463031efba5f8e725cb9f5f0710cc656ebd9ae1d549d09",
+      "size": 5863
     },
     "tests/test_binance_filter_contract_20260822.py": {
-      "sha256": "d249fbc08281f02d9951b54c7c6aa16579ad9611ad572b996f0ff07a610e73dd",
-      "size": 10345
+      "sha256": "ad2bf62191b0ebdbea86acd2eb72b4dbd5ba5529bc55c980709aacf2844cdf0d",
+      "size": 22162
     },
     "tests/test_ci_evidence_status.py": {
-      "sha256": "4c4927dc07ccf3e56e36d51bf0e62ed68aac537607aff41761a923fc6a3675cb",
-      "size": 1985
+      "sha256": "82fe2fcbb6f9286088ba10911e9c0de9b808132abbf8747d5f5edaf7d270e7f6",
+      "size": 2780
     },
     "tests/test_clean_host_deployment.py": {
-      "sha256": "fb0a1775e06ce64d86d0c2c6b64b43ade3b191e31e660cd2bdef57d676b083cc",
-      "size": 1240
+      "sha256": "d33c6f223ee04e5ef154a7d78b2d42fef6a322c1e90db23fe21d5215a3adbeb2",
+      "size": 6685
     },
     "tests/test_clean_owner_context.py": {
       "sha256": "9bf0ea112e9e9b7c585328415fa4e5317f1e522b09cd9225ce2cd00a30a6aed2",
       "size": 2802
     },
     "tests/test_codex_revision_j_hardening.py": {
-      "sha256": "cd29df810843847b0af291a5cbc086c3cda87190cd96afaa33f0621182d22d9a",
-      "size": 9014
+      "sha256": "119d4cbf7b1b60db1b81a53dd9f561dc1bf9ef6c59c4ded09c5d37e2d669745f",
+      "size": 18836
     },
     "tests/test_compressed_backup_retention.py": {
       "sha256": "ef134d0be156d9731a1ed2e072835029c4e6acb1059390df48669831d874ed36",
@@ -2033,8 +3865,12 @@
       "size": 6280
     },
     "tests/test_deployment_view.py": {
-      "sha256": "2ba1d54fac9c9ab61239dd63597b617da0eb7ba93e8d03d54d3cb06da5399126",
-      "size": 3567
+      "sha256": "5d641dedeada0e82106a1f3e3c1ea512c29b857e48ed5314fa0ad7e94137f25a",
+      "size": 3569
+    },
+    "tests/test_entry_reprice_late_fills.py": {
+      "sha256": "4844947adb20ea0b8d99712034ca17faf592fc9c30667481d0edf8f7ba1c41ce",
+      "size": 22368
     },
     "tests/test_external_signals.py": {
       "sha256": "77d63c4702839303d168972bfe0f65a381c072e6f92ce1096188389726a8294a",
@@ -2045,8 +3881,8 @@
       "size": 3849
     },
     "tests/test_four_bot_cohosting.py": {
-      "sha256": "ecf3dab2db77e06818d0df3703e15f04a8ba4b3b540d2d4ed1caf28e036a9fb1",
-      "size": 2198
+      "sha256": "7d2a150f903b7568ab3d75b64ccad16556876dfbb918a1af106bf3db28629055",
+      "size": 3729
     },
     "tests/test_git_history_secret_scan.py": {
       "sha256": "abf60008986801328c79bdb60dff1e1ce2882e8c4d96df475a55314be71319c5",
@@ -2069,36 +3905,44 @@
       "size": 825
     },
     "tests/test_manual_sharia_registry.py": {
-      "sha256": "dcaff785fdfbd870918d45db61957da31118f0fb4820406da7bdead0bee426d9",
-      "size": 7894
+      "sha256": "4d11a62e892134ce33545a91d2f3b23448ad9b7f8cbecfafa2936d2a85384c41",
+      "size": 8453
     },
     "tests/test_market_recovery_20261007.py": {
       "sha256": "af8b52c8dbb35b491c3c8205f5ba2b65a4ccaab35dbbf2d202049b4bd85ff670",
       "size": 4515
     },
+    "tests/test_monitoring_rollback.py": {
+      "sha256": "637cf7dcb891ca3e23af7fd956c87165e87e5c99c60ec1ab1a2f156045f087a9",
+      "size": 8433
+    },
+    "tests/test_oracle_architecture_route.py": {
+      "sha256": "2d5f2a8e30d01faa305f57754c0e082191d3efc0bbc0b94489e9ba6ebc243da7",
+      "size": 1904
+    },
     "tests/test_oracle_capacity_contract.py": {
-      "sha256": "116910d52d0ef84c6e2efd62b4d098e9d6a568ea7d42d665716c24baa3fa8ffa",
-      "size": 799
+      "sha256": "12559e0dbced356c2ada65e3f36ca3ca6cd3d5ccf9cd5df10537655255d1ccb0",
+      "size": 1806
     },
     "tests/test_oracle_hardening_v2.py": {
-      "sha256": "38597eaa9a1e21a7e937cc0aa678b7f3bf51f1248279af379abab75c371d14a8",
-      "size": 12328
+      "sha256": "56d6d502de455efadd6ff44cceca0bbdbe8cdec232663e1f7cc4e511b66c26b1",
+      "size": 21150
     },
     "tests/test_oracle_host_loss_resilience.py": {
-      "sha256": "4f96871ed0d7ebb43a8c6cc61b9e201eaf9b391d2c64cd096d3f3f2f1e1d29b0",
-      "size": 4482
+      "sha256": "759941eb5c7d5ec29e9e74c0e6c469658534c45787bd9ea5d4bafb1411b1fb72",
+      "size": 4758
     },
     "tests/test_oracle_image_mode.py": {
       "sha256": "be1bf019daa44bb832ebf6c45516aeca1bc0e9a17dc2bac0503fdcc4c5830111",
       "size": 3621
     },
     "tests/test_oracle_owner_bundle.py": {
-      "sha256": "32e9d14cac0d59441a111dfd0cc5a3d0b9f264586f15eb341e455f0e052de828",
-      "size": 18436
+      "sha256": "7aaeb88c0314c15d8e20c5792d0f6081e74b46510090c0a9ec95c5645eb3ca06",
+      "size": 18435
     },
     "tests/test_oracle_package_mode.py": {
-      "sha256": "9316c5493f23c6b61dd3b091bd5af352f25c00dc1b3720b1d0cd97e52215689a",
-      "size": 6385
+      "sha256": "43db4fb2fbf9631e16acd842cb940369b7e7357cc041f8f6ff8a4ae1a28e8d61",
+      "size": 6281
     },
     "tests/test_oracle_panel_transport.py": {
       "sha256": "a65717dc643280c930ca6ccf7ecb3a67bf97cdb5290715a7e5d4ed18d55d7c8c",
@@ -2112,17 +3956,21 @@
       "sha256": "12526f20f9478953a567f70bed825de1baa27a1c5b32487cb4a34ae6d9d1aae5",
       "size": 2107
     },
+    "tests/test_oracle_swap_capacity.py": {
+      "sha256": "e53907fade574941550463456785999afa1a4cd3e5ce80f6665e491aa2dfec11",
+      "size": 3610
+    },
     "tests/test_order_validation_transport.py": {
       "sha256": "5f2f8963125487de421cfe64a928ead0fd9f6db294b2aef8ccb2abac10d0edb8",
       "size": 3605
     },
     "tests/test_otoco_rehearsal_transport.py": {
-      "sha256": "cd9039edd2500ab3b3c353fa75ab8e445ad06d227f1244531b60dfe3e49a9ce8",
-      "size": 6495
+      "sha256": "8b73541aca6a56b57b843dfdbc61196e1a881d8a0708657e6b8de926ed6e6db4",
+      "size": 6365
     },
     "tests/test_owner_build_context.py": {
-      "sha256": "7e35eacecb9f18cea41fdadc957c3651a601827728deb14078717f87cb7b3563",
-      "size": 5482
+      "sha256": "cd1b8fb21179dcac6970ff2c8235897b089f733a8df44261bb8e8b21ae24fc27",
+      "size": 6931
     },
     "tests/test_owner_monitor_installer.py": {
       "sha256": "aa6337916716b409245a05dbabe8eb7a88104eb13e693fcd77077b937b0a3f8f",
@@ -2132,13 +3980,9 @@
       "sha256": "bbb645f882ba26029c07acc73b7f01bc4da492f7146564227977b7955615ae5d",
       "size": 2175
     },
-    "tests/test_owner_release_integrity.py": {
-      "sha256": "90ee6bebd6efc64be870d1e2ff0deda8044a6f8ab8b632190d5414fdb98851ae",
-      "size": 1568
-    },
     "tests/test_package_mode.py": {
-      "sha256": "94dc45ee5edf3d36c01cf97f5c3e489b0c1f479eb96b96caba0cc152fc8796e5",
-      "size": 3521
+      "sha256": "3289f0cc3c7c62a6b118c7046e23357e149b36ede959d10667c9ca119cc3d7e5",
+      "size": 15645
     },
     "tests/test_panel_deployment_current.py": {
       "sha256": "5945c3ce11d5b1dcddcf49456de2abf58de6df16c6192cf227287afce61fb59c",
@@ -2153,32 +3997,36 @@
       "size": 957
     },
     "tests/test_phase45_repairs.py": {
-      "sha256": "1f73b805550038bc4094a8105e1e1179b656c6f33c635a96c3d77b868fd1669b",
-      "size": 9390
+      "sha256": "26056377ad324ca92f4e0966c621bcfb17fd2d32837e531a30c1079059d5e3bb",
+      "size": 11305
+    },
+    "tests/test_phase_6_8_lifecycle_repairs.py": {
+      "sha256": "61c80bc8ec202203cf883d3a675586996b9823d918aef0356266fd4d187b49e7",
+      "size": 28394
     },
     "tests/test_phase_6_8_repairs.py": {
-      "sha256": "65db4aa7ff6b42c314d343f6fd0291f008535cce6bd0337b1946b6c6d725802c",
-      "size": 13973
+      "sha256": "e6cf1127b34346a75af9f4e6a89acd2afb07933f2a36c57b261b88290d3f0c64",
+      "size": 20189
     },
     "tests/test_portable_readiness_20260830.py": {
-      "sha256": "41f09af280e987447ddc02a9d268768b10ed00779e7df5bb845064762798ad2e",
-      "size": 7750
+      "sha256": "348addfe5a6eead9474273b73a05afe1a7d5cbdd84add8c8dc92ee6869f2971a",
+      "size": 8526
     },
     "tests/test_property_invariants.py": {
       "sha256": "cac45d4f1a4922bed3dce8b54e1f44f9be0c0fd11e866f0ea14e677a6bd41d13",
       "size": 1599
     },
     "tests/test_provider_budget_contract.py": {
-      "sha256": "4ee8b273ffce45a44ca756c4cea1132d78e495992a22a01b8297d6477bab26c4",
-      "size": 3456
+      "sha256": "d6e4f89078efe767047b5ce39fd931de2d24d9389097af670fdfe894340226dc",
+      "size": 4441
     },
     "tests/test_recovered_universe_boundaries.py": {
       "sha256": "4c0680c5aee96ceede9e28ab01a801184c5ab317e680f8db1a75ecc45c32e216",
       "size": 5759
     },
     "tests/test_recovery_rollout_profile.py": {
-      "sha256": "367d03f2c2e445e90d79c513bdfaea0c0c3b52c5a45a28140d7cfc2fe0e539f8",
-      "size": 2341
+      "sha256": "3b7f8d8804baf0d6d618da725e77ff5a5b60d11c3e6011b728d30e365f2502c9",
+      "size": 1462
     },
     "tests/test_release_host_portability.py": {
       "sha256": "c83994a9c82e2021ddedbb05a21112e6b244a12180c854317948b58e6d55ac21",
@@ -2192,21 +4040,25 @@
       "sha256": "15bb63a8ac3ad7c2d36f6fe74fdefc06446415e138d7bddabb764d447dd83e6c",
       "size": 3138
     },
-    "tests/test_retired_source.py": {
-      "sha256": "d41e87eaba55005a78fd461217ab4c25b6fee6997c0c09133e2a1d3da3172581",
-      "size": 1806
-    },
-    "tests/test_retirement_contracts.py": {
-      "sha256": "60b02118e79253b954f81d0cab11a9ec4815fac38abb62f499f34fd8ffd3e5a9",
-      "size": 6724
-    },
     "tests/test_rollout_accounting.py": {
       "sha256": "6d6c20c5634fc5894fe4fb3ab15fdb29d496f9f3c4aed22aba33da4d6bafb58d",
       "size": 2407
     },
     "tests/test_runtime_health_permissions.py": {
-      "sha256": "ff084fbe30ca28af75b7cae69cfcdfd9d11b266016fd75a08a6757f080bd809a",
-      "size": 7903
+      "sha256": "c45adb84e99594230770337ee4a6850ea2c5aeedd7c02cff3aa5d7105221de02",
+      "size": 7857
+    },
+    "tests/test_runtime_recovery_20260830.py": {
+      "sha256": "798dc9fbd57064d8219591e003cbe11445206511766d3e5985d1da2be209dedd",
+      "size": 9598
+    },
+    "tests/test_safety_state_sqlite.py": {
+      "sha256": "8bd01abb2ba02393aa58f521490786054b5ec98e1b05c55cf7a14e20cd9468eb",
+      "size": 11920
+    },
+    "tests/test_scan_gate.py": {
+      "sha256": "f99a1001de3f73fc85b46ba2d4459edb4403dfea06634e54c01ced6e67fa5a3c",
+      "size": 4212
     },
     "tests/test_seed_source_registry.py": {
       "sha256": "07c1da0eb71a221ca7b399be083eb3536d31fbd08c50b8e6e44b9cfcd8e33155",
@@ -2221,16 +4073,16 @@
       "size": 7404
     },
     "tests/test_sharia_egress_proxy.py": {
-      "sha256": "347de23ba9a5f02859b05497a917d5978d0a187b482be7409f7dbc06312a0f69",
-      "size": 1923
+      "sha256": "3ca4f0189482e2c0a1def829cfc0364fdcd25ab50f7ebdc9da61347d2e915fd5",
+      "size": 4298
     },
     "tests/test_sharia_health_permissions.py": {
       "sha256": "03ebca028c15c2fb1cdf8b04f7e523bbaa30535d317ad6d1994cb448ce071f16",
       "size": 6267
     },
     "tests/test_sharia_operator_workflow.py": {
-      "sha256": "12064181ac63a9b93196bcf9ec10e8c31b695edd8817f65c92edc4eec922eb84",
-      "size": 25297
+      "sha256": "69a234234d6cf04c05cb812520bf4fcfdb5e5b20200412e148817465cc78d934",
+      "size": 25299
     },
     "tests/test_sharia_quota_hardening.py": {
       "sha256": "6834faf198aa8fd8f0e5e954171bf1510f1fb3a65c71d3557b0c748744905ec2",
@@ -2241,12 +4093,16 @@
       "size": 14608
     },
     "tests/test_spot_microstructure.py": {
-      "sha256": "ab1b74d0cbd216fe73675b383515ea5995e1adec1344b845b57c17a6cadb2b51",
-      "size": 15074
+      "sha256": "880d8e5adf4500da57b6de3eb62673da678d492dc6d38a18a02657ecf9619226",
+      "size": 15955
+    },
+    "tests/test_strategy_probe.py": {
+      "sha256": "924df2971f2810ef22b31c69fe8a0aa9c3479e234526e1134799a67a1ad64357",
+      "size": 4458
     },
     "tests/test_supply_chain_gate.py": {
-      "sha256": "9862ce35479fde60a50a80382825aa5926620695469b65fb4b919280ef564ac6",
-      "size": 3025
+      "sha256": "7c705f6f9b61da649e5c6465276c640bfe49193ed1aeac07a35218d2d6d4e179",
+      "size": 4169
     },
     "tests/test_telegram_backoff_20261024.py": {
       "sha256": "8645f9f23b4a51adadc42dccda3928a95038f3ff47075c0a43810a65565d7c66",
@@ -2269,12 +4125,12 @@
       "size": 14729
     },
     "tests/test_v101_consolidation.py": {
-      "sha256": "357f4e09282962d4ae78ec5e9f882c143e2153278b0dafe5cc78049618e0eae6",
-      "size": 9728
+      "sha256": "3a1b6a5b8ea1713974038dfbd5ffd0d77e55dcaf8a9fe2367dac7e6ad07109af",
+      "size": 15087
     },
     "tests/test_v101_v19_hardening.py": {
-      "sha256": "ef760c49b7aa859ba105eb88e5de80030e42e0abf7dcca11b19f0fd38efd9504",
-      "size": 21594
+      "sha256": "0aff78f84766a32c4c1e89bae87beff86fdcde236850cedaa240f45c5cee47e4",
+      "size": 45232
     },
     "tests/test_v193_discovery.py": {
       "sha256": "c2cf0cbcd47d40d940281c4e24baa6091be6e9866ab2f832f133e5360552e841",
@@ -2285,12 +4141,12 @@
       "size": 19623
     },
     "tests/test_v81.py": {
-      "sha256": "cdd2d0b7d72c293ea8742eab4c5f82e5b4ffc4c6f541b28006f8de3bd72f5dfb",
-      "size": 9029
+      "sha256": "767b30a77afd4293c47fcc4488c4f6e360eea2c8203507c48d231adc31e4f1c3",
+      "size": 28677
     },
     "tests/test_v81_safety_regressions.py": {
-      "sha256": "59672bce23f30915d6cbd720e8de37ef168eac3a7c37b50ba94c73a1ee3dd1da",
-      "size": 12998
+      "sha256": "72e9c77043a616c7de5fbbd99e60313af02f5d1e19c0324492c554d0ca4c0d60",
+      "size": 46438
     },
     "tests/test_validation_runner.py": {
       "sha256": "6925d6dee6a3d8de8ef24c4a111a625ecbd23d60debc7e073f138b87289df49e",
@@ -2301,47 +4157,74 @@
       "size": 21319
     },
     "tests/test_workflow_graph.py": {
-      "sha256": "6b1c0414278d5724b7caf847cbc553c4d8fe1e116153f54a114b20d1719687a8",
-      "size": 7473
+      "sha256": "f52beefe2fa5dd9e0e7767e3fcf9f49123b77638e7ea17342670717e20e07b13",
+      "size": 7298
+    },
+    "tests/test_zero_fill_event_contract.py": {
+      "sha256": "8105fcd60f28b522ba67b52d6023d5ba3f763294115745dd3dd18129df647385",
+      "size": 4365
+    },
+    "tests/test_zero_fill_terminal_reconciliation.py": {
+      "sha256": "257cc933c5bf180612be28864e6cc3987e5ab1c6426a8afb137b7dde7f25bddd",
+      "size": 6330
+    },
+    "validator_out.txt": {
+      "sha256": "3a624810a573f7a0c2b4a50739fd0d212d541eb7f187dbc356259f02ea94e794",
+      "size": 95391
     }
   },
-  "lineage": "Freqtrade-owned Oracle bundle; historical source identities retained in Git",
+  "lineage": "V8.1-MERGED-AUDITED (safety baseline) + reviewed V10 operational imports",
   "live_certified": false,
   "manifest_format": 2,
   "package_mode": "testnet",
   "preservation": {
-    "execution_owner": "BinanaNfiSpot",
-    "protected_source_sha256": {
-      "runtime_owner/owner/binana-strategies/BinanaNfiSpot.py": "3b66d4a64280b37ecc321cab939f86fd89ee00cdd888fa38ec5ff1e4757974cf",
-      "runtime_owner/owner/binana-strategies/binana_vendor/NostalgiaForInfinityX8.py": "fcf9f622a3ad797bd143561d1017f3930220f22c793905af929ff1d33bbde686",
-      "services/common/evidence_providers.py": "e8c76e1cd75a2847903420b764d4d4669283c1420ebbb0729021b5e565b282cf",
-      "services/common/sharia_attestation.py": "55fc7d9b206cf0d4193124bab4d770ae80371dd939054c737c4cfa363c998757",
-      "services/common/sharia_v19.py": "768b3f5261d618e0beb50aa7f15de4ab84b4e02ad3a621d9dfebb944175580f5",
-      "services/sharia_rules/engine.py": "b17d33bc5a095810ba759554828f6c21e95cffa57a40a62f90464c5a46047e86",
-      "services/sharia_screener/approval.py": "f34453c2356cdc40ff23bd532a6dbb8e0a57c3eb0f4a5930442ab0e11cee656e",
-      "services/sharia_screener/bridge.py": "3cc237e29f2892967d562b9f0272e79e9bb8f2e491d532a5a4fa8056f38dcd49",
-      "services/sharia_screener/evidence_binding.py": "e3782a392e133b1c156dbfef7e592f3f9f0846af86f1273b01643acb8202b645",
-      "services/sharia_screener/local_runner.py": "23ad93a18835d548db6d53ab26593b3e7792d590c6ed2b5e2bb89418fe98689e",
-      "services/sharia_screener/queue_store.py": "44c63c34b0407dbeb319636259a425d19ec3542c4ca81e5e01cdccea2b302c6d",
-      "services/sharia_screener/runner.py": "7298f5ebad396b7d45849d3344d7218f6be92e70de930dfe19f92973656d4f66",
-      "services/sharia_screener/service.py": "3c837f393bbf18158ed366021107cbefb476c5791ad1971909c018f688d50f4a",
-      "services/sharia_screener/source_discovery.py": "cf54c90bba66e586da5e161c5b9d1fe5406a9b993018ed72e2b48a53384a8459",
-      "services/sharia_screener/source_registry.py": "72de23c10a37c8db27e31cc6bfb58bdfb41b27efb2f2fc57edb43c76f13baffe",
-      "services/sharia_screener/verdict_policy.py": "afde5fc2733d6e5a4aea50e436adf3cf55ff83e5d1e32428214f57f8dc6f55e2",
-      "services/universe_service/ranker.py": "267b743782453979cbc6fbbf77fa37895dfdec9910b1d190ba6efa898b7c8e2a",
-      "services/universe_service/scanner.py": "4b6e80fe5b2777adfff3d42b7a77883b804e6c56d8b2cc74be3fafc2778a1028",
-      "services/universe_service/sharia_filter.py": "3fed49cca73b8e6646768d144b928a3c588b5cac7a6a750578747a10d33763d0",
-      "services/universe_service/snapshot_store.py": "70b2cc407a014c069fa902d90da955b2b62a33407a370269b46fe33672a6b264",
-      "services/universe_service/validate_sharia.py": "3f512488ecc53f4f259883907843da5218881af3bd579e9dd543c1a486fd8219",
-      "shared/sharia/HALAL_CRYPTO_SPOT_SCREENING_V19_3_PRODUCTION.json": "418e7280f0b6a5f4cd9ba3887b8be3099f5fcc4b18bfca66808749720a4dd355",
-      "shared/sharia/halal_coins.json": "e37edb914877fbd51742a858805f066d35674c267cc1d79ead2c637d7202da16",
-      "shared/sharia/sharia_status.json": "e0d7b34b8411a7829a38618971708da9bda470244fc421fbdebecdae9ff10939"
+    "expected_legacy_core_sha256": "70b1d67cc0092b5b8db4a68b343cf893641bde1aae580e9ef51e2adec1062459",
+    "expected_strategy_signal_fingerprints": {
+      "populate_entry_trend": {
+        "source_sha256": "277b321d40430842a0462182df665ca1e4f0a1546ced7bf2ffc75eb5b7b8c11e",
+        "token_sha256": "954d39c9f92fc3a7ce744cc2ef0269e38d32949612fea4ba6baed07049e0c8ad"
+      },
+      "populate_exit_trend": {
+        "source_sha256": "fdd2c099edf44b4db4408a5aec183f2c493c95db34d66975697dc6a50c50c196",
+        "token_sha256": "dc79eb4e19e4c68db8c3e877c671a115edb11f87f40cf1a9b34fbb0c457ccd7f"
+      },
+      "populate_indicators": {
+        "source_sha256": "11c39597e4c7f535808e36db290f36f8908dc0e3b98578d9d92dd1e8abd93526",
+        "token_sha256": "ab8b017314652ed1d08f9c23813eade8a79d5a67c0831a624095f315ef6ecd59"
+      },
+      "populate_indicators_5m": {
+        "source_sha256": "3c01ceda9807efbcf63b32297879c04af6cc65744387dd4821a2ed1328025969",
+        "token_sha256": "071a394a70a2370b05700ba8e58bfbbeec6d66fb48ca78995dc8fc5dd98e265b"
+      }
+    },
+    "fingerprint_method": "canonical source segment + logical token stream (services/common/strategy_fingerprint.py); interpreter-independent, Python 3.10-3.13",
+    "legacy_core_sha256": "70b1d67cc0092b5b8db4a68b343cf893641bde1aae580e9ef51e2adec1062459",
+    "strategy_signal_fingerprints": {
+      "populate_entry_trend": {
+        "source_sha256": "277b321d40430842a0462182df665ca1e4f0a1546ced7bf2ffc75eb5b7b8c11e",
+        "token_sha256": "954d39c9f92fc3a7ce744cc2ef0269e38d32949612fea4ba6baed07049e0c8ad"
+      },
+      "populate_exit_trend": {
+        "source_sha256": "fdd2c099edf44b4db4408a5aec183f2c493c95db34d66975697dc6a50c50c196",
+        "token_sha256": "dc79eb4e19e4c68db8c3e877c671a115edb11f87f40cf1a9b34fbb0c457ccd7f"
+      },
+      "populate_indicators": {
+        "source_sha256": "11c39597e4c7f535808e36db290f36f8908dc0e3b98578d9d92dd1e8abd93526",
+        "token_sha256": "ab8b017314652ed1d08f9c23813eade8a79d5a67c0831a624095f315ef6ecd59"
+      },
+      "populate_indicators_5m": {
+        "source_sha256": "3c01ceda9807efbcf63b32297879c04af6cc65744387dd4821a2ed1328025969",
+        "token_sha256": "071a394a70a2370b05700ba8e58bfbbeec6d66fb48ca78995dc8fc5dd98e265b"
+      }
     }
   },
   "release": "V10.3-LOCAL-SHARIA-2026-08-10A-TESTNET",
-  "safety_default": "stopped",
+  "safety_default": "simulation",
   "source_archives": {
     "binance_bot_V4.9.16_COMPLETE-1.zip": "e89c4025ce423bcaea67be226dbc7243d929c2da7a7e5e3a44152ab570fef41a",
     "ict_smc_freqtrade_DEPLOY_v7_MERGED-2.zip": "e4812f3af69a1c55a633861fbbd243e1c612161770c5c7cad033842aff1a54d5"
+  },
+  "validation": {
+    "additional_tests": {}
   }
 }
