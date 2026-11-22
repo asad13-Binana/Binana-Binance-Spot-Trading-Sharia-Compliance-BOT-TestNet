@@ -16,7 +16,7 @@ def explicit_absence(error, *, order_list=False):
             payload, _ = json.JSONDecoder().raw_decode(text[index:])
         except ValueError:
             continue
-        expected = (-2018, 'Order list does not exist.') if order_list else (-2013, 'Order does not exist.')
+        expected = (-2013, 'Order does not exist.')
         if isinstance(payload, dict) and (payload.get('code'), payload.get('msg')) == expected:
             return True
     return False
