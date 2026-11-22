@@ -141,7 +141,10 @@ class EntryRecovery:
         if filled == 0 and status in {'expired','rejected','canceled','cancelled'}:
             if response.get('listOrderStatus') != 'ALL_DONE':
                 raise RecoveryBlocked('ZERO_FILL_ENTRY_LIST_NOT_TERMINAL')
-            if self.exchange._api.fetch_open_orders(pair):
+            open_orders = self.exchange._api.fetch_open_orders(pair)
+            if not isinstance(open_orders, list):
+                raise RecoveryBlocked('ZERO_FILL_ENTRY_OPEN_ORDERS_NOT_A_LIST')
+            if open_orders:
                 raise RecoveryBlocked('ZERO_FILL_ENTRY_HAS_OPEN_OBLIGATIONS')
             self.store.finalize_entry_no_fill(intent_id)
             prepared = getattr(self, 'prepared', {}).get(pair)
