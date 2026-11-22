@@ -22,13 +22,6 @@ os.environ.setdefault('AUDIT_LOG', str(_ROOT / 'audit' / 'events.jsonl'))
 import _harness  # noqa: E402
 from services.common.models import LifecycleState  # noqa: E402
 from services.common.sharia_v19 import ResultValidationError, validate_result  # noqa: E402
-from services.execution_sidecar import core_adapter as core_module  # noqa: E402
-from services.execution_sidecar import main as sidecar_main  # noqa: E402
-from services.execution_sidecar.core_adapter import CoreAdapter  # noqa: E402
-from services.execution_sidecar.filters import (  # noqa: E402
-    FilterDataUnavailable, FilterViolation, SpotFilterValidator,
-)
-from services.execution_sidecar.state_store import StateStore  # noqa: E402
 from services.telegram_broker import bot as telegram_bot  # noqa: E402
 from services.universe_service.snapshot_store import (  # noqa: E402
     UniverseSnapshotError, load_current, store,
@@ -37,20 +30,8 @@ from services.universe_service.snapshot_store import (  # noqa: E402
 os.chdir(_WORKSPACE)
 
 
-def _symbol():
-    return core_module.legacy.Sym(
-        symbol='ETHUSDT', base='ETH', quote='USDT', step='0.001', tick='0.01',
-        min_notional='1', min_qty='0.001', max_qty='1000',
-        trail_min=10, trail_max=2000, oco_allowed=True, oto_allowed=True,
-    )
 
 
-def _position():
-    return core_module.legacy.Position(
-        symbol='ETHUSDT', sym=_symbol(), entry_order_id=1,
-        trade_size_usdt=Decimal('100'), filled_qty=Decimal('1'),
-        entry_price=Decimal('100'), state=core_module.legacy.PosState.ARMED_TRAIL,
-    )
 
 
 def _filters(*, percent: dict | None = None, trailing: dict | None = None,
@@ -145,16 +126,6 @@ class UniversePointerTests(unittest.TestCase):
             self.assertEqual([path.name for path in history], [pointer['snapshot_file']])
             self.assertEqual(load_current(root / 'current_pairlist.json')['pairs'], ['SOL/USDT'])
 
-    def test_sidecar_uses_the_validated_full_snapshot(self):
-        with tempfile.TemporaryDirectory() as raw:
-            root = Path(raw)
-            published = store(
-                root, [{'pair': 'ETH/USDT', 'rank': 1}], {'limit': 1}, 900)
-            with mock.patch.object(sidecar_main, 'UNIVERSE_CURRENT',
-                                   root / 'current_pairlist.json'):
-                pairs, digest, fresh = sidecar_main.universe_state()
-            self.assertEqual((pairs, digest, fresh),
-                             ({'ETH/USDT'}, published['snapshot_hash'], True))
 
 
 class ShariaProvenanceAndTelegramTests(unittest.TestCase):
@@ -226,165 +197,10 @@ class ShariaProvenanceAndTelegramTests(unittest.TestCase):
             self.assertIn('health: NOT READY', text)
 
 
-class FilterSchemaTests(unittest.TestCase):
-    @staticmethod
-    def _limit_params():
-        return {'symbol': 'ETHUSDT', 'side': 'SELL', 'type': 'LIMIT',
-                'quantity': '1', 'price': '100.00'}
-
-    def test_duplicate_filters_and_symbol_identity_mismatch_fail_closed(self):
-        duplicate = _filters()
-        duplicate.append(dict(duplicate[0]))
-        validator = SpotFilterValidator(_Public(duplicate), max_age_seconds=300)
-        with self.assertRaisesRegex(FilterDataUnavailable, 'duplicate PRICE_FILTER'):
-            validator.validate_replacement('ETHUSDT', 'order', self._limit_params())
-
-        validator = SpotFilterValidator(
-            _Public(_filters(), entry_overrides={'baseAsset': 'ETC'}),
-            max_age_seconds=300)
-        with self.assertRaisesRegex(FilterDataUnavailable, 'identity binding'):
-            validator.validate_replacement('ETHUSDT', 'order', self._limit_params())
-
-    def test_spot_boolean_market_flags_and_percent_ranges_are_strict(self):
-        validator = SpotFilterValidator(
-            _Public(_filters(), entry_overrides={'isSpotTradingAllowed': 'true'}),
-            max_age_seconds=300)
-        with self.assertRaisesRegex(FilterViolation, 'spot trading'):
-            validator.validate_replacement('ETHUSDT', 'order', self._limit_params())
-
-        rows = _filters()
-        rows[3]['applyMinToMarket'] = 'false'
-        validator = SpotFilterValidator(_Public(rows), max_age_seconds=300)
-        with self.assertRaisesRegex(FilterDataUnavailable, 'JSON boolean'):
-            validator.validate_replacement(
-                'ETHUSDT', 'order',
-                {'symbol': 'ETHUSDT', 'side': 'SELL', 'type': 'MARKET',
-                 'quantity': '1'})
-
-        rows = _filters(percent={
-            'askMultiplierDown': '2', 'askMultiplierUp': '1', 'avgPriceMins': 0,
-        })
-        validator = SpotFilterValidator(_Public(rows), max_age_seconds=300)
-        with self.assertRaisesRegex(FilterDataUnavailable, 'range is inverted'):
-            validator.validate_replacement('ETHUSDT', 'order', self._limit_params())
-
-    def test_trailing_and_oco_relationships_use_strict_fresh_values(self):
-        rows = _filters(trailing={
-            'minTrailingAboveDelta': 10, 'maxTrailingAboveDelta': 2000,
-            'minTrailingBelowDelta': 200, 'maxTrailingBelowDelta': 100,
-        })
-        validator = SpotFilterValidator(_Public(rows), max_age_seconds=300)
-        with self.assertRaisesRegex(FilterDataUnavailable, 'range is inverted'):
-            validator.validate_replacement(
-                'ETHUSDT', 'order',
-                {'symbol': 'ETHUSDT', 'side': 'SELL', 'type': 'STOP_LOSS_LIMIT',
-                 'quantity': '1', 'price': '95.00', 'trailingDelta': 100})
-
-        validator = SpotFilterValidator(_Public(_filters(), last='100'), max_age_seconds=300)
-        with self.assertRaisesRegex(FilterViolation, 'abovePrice > lastPrice'):
-            validator.validate_replacement(
-                'ETHUSDT', 'orderList/oco', {
-                    'symbol': 'ETHUSDT', 'side': 'SELL', 'quantity': '1',
-                    'aboveType': 'LIMIT_MAKER', 'abovePrice': '90.00',
-                    'belowType': 'STOP_LOSS_LIMIT', 'belowPrice': '79.00',
-                    'belowStopPrice': '80.00',
-                })
-
-    def test_malformed_capacity_rows_fail_closed(self):
-        rows = _filters(capacity={
-            'filterType': 'MAX_NUM_ORDERS', 'maxNumOrders': 10})
-        validator = SpotFilterValidator(_Public(rows), max_age_seconds=300)
-        with self.assertRaisesRegex(FilterDataUnavailable, 'malformed rows'):
-            validator.validate_replacement(
-                'ETHUSDT', 'order', self._limit_params(),
-                open_orders_provider=lambda _symbol: [{
-                    'symbol': 'ETHUSDT', 'orderId': 'not-an-int', 'type': 'LIMIT'}])
 
 
-class StreamAndExactPayloadTests(unittest.TestCase):
-    def _adapter(self, store):
-        position = _position()
-        pf = SimpleNamespace(
-            positions={'ETHUSDT': position}, autotrade_on=True,
-            protection_halt='', halt_reason='', save=mock.Mock())
-        original_order = mock.Mock()
-        original_list = mock.Mock()
-        trader = SimpleNamespace(
-            pf=pf, _uds_order=original_order, _uds_list=original_list,
-            set_autotrade=mock.Mock(return_value='ON'))
-        adapter = CoreAdapter.__new__(CoreAdapter)
-        adapter.state_store = store
-        adapter.event_sink = None
-        adapter.trader = trader
-        adapter._runtime_safety_faults = {}
-        adapter._install_event_wrappers()
-        return adapter, trader, position, original_order
-
-    def test_unsafe_expiry_latches_disarms_and_keeps_callback_alive(self):
-        with tempfile.TemporaryDirectory() as raw:
-            store = StateStore(Path(raw) / 'state.json', Path(raw) / 'state.sqlite')
-            adapter, trader, position, original = self._adapter(store)
-            core_module.legacy._set_entries_armed(True)
-            trader._uds_order({
-                'e': 'executionReport', 's': 'ETHUSDT', 'i': 7, 'I': 9,
-                'E': 10, 'X': 'EXPIRED_IN_MATCH', 'expiryReason': 'PRICE_RANGE',
-            })
-            original.assert_called_once()
-            self.assertFalse(core_module.legacy._entries_armed())
-            self.assertFalse(store.entries())
-            self.assertTrue(store.safety_halts())
-            self.assertEqual(position._sidecar_lifecycle,
-                             LifecycleState.RECONCILIATION_REQUIRED.value)
-            with self.assertRaisesRegex(RuntimeError, 'in-memory safety fault'):
-                adapter.set_enabled(True)
-
-    def test_journal_failure_also_disarms_without_killing_callback(self):
-        with tempfile.TemporaryDirectory() as raw:
-            store = StateStore(Path(raw) / 'state.json', Path(raw) / 'state.sqlite')
-            adapter, trader, _position_value, original = self._adapter(store)
-            core_module.legacy._set_entries_armed(True)
-            with mock.patch.object(
-                    store, 'record_exchange_event', side_effect=OSError('disk full')):
-                trader._uds_order({
-                    'e': 'executionReport', 's': 'ETHUSDT', 'i': 8, 'I': 10,
-                    'E': 11, 'X': 'NEW',
-                })
-            original.assert_called_once()
-            self.assertFalse(core_module.legacy._entries_armed())
-            self.assertTrue(adapter.runtime_safety_faults())
-            self.assertTrue(store.safety_halts())
-
-    def test_exact_trailing_payload_is_validated_before_the_only_send(self):
-        client = SimpleNamespace(create_order=mock.Mock(return_value={'orderId': 77}))
-        broker = SimpleNamespace(
-            c=client, price=mock.Mock(return_value=Decimal('100')),
-            clamp_delta=lambda _sym, value: int(value), _check_lot=mock.Mock(),
-            _sync_weight=mock.Mock(), _find_order=lambda _symbol, _coid: None,
-            _place_idempotent=lambda send, _lookup, _label: send(),
-        )
-        adapter = CoreAdapter.__new__(CoreAdapter)
-        adapter._validate_existing_request = mock.Mock()
-        adapter._validate_replacement_filters = mock.Mock()
-        result = adapter._strict_trailing_sell(
-            broker, _symbol(), Decimal('1'), 100)
-        self.assertEqual(result['orderId'], 77)
-        validated = adapter._validate_replacement_filters.call_args.args[3]
-        self.assertEqual(validated, client.create_order.call_args.kwargs)
-        broker.price.assert_called_once_with('ETHUSDT')
-
-        client.create_order.reset_mock()
-        adapter._validate_replacement_filters.side_effect = FilterViolation('blocked')
-        with self.assertRaisesRegex(FilterViolation, 'blocked'):
-            adapter._strict_trailing_sell(broker, _symbol(), Decimal('1'), 100)
-        client.create_order.assert_not_called()
 
 
-class ComposeOwnershipTests(unittest.TestCase):
-    def test_every_universe_consumer_has_a_read_only_overlay(self):
-        compose = (Path(__file__).resolve().parents[1] / 'docker-compose.yml').read_text()
-        overlays = [line for line in compose.splitlines()
-                    if '/universe:' in line and line.rstrip().endswith(':ro')]
-        self.assertEqual(len(overlays), 4)
 
 
 if __name__ == '__main__':

@@ -397,7 +397,9 @@ class StateStore:
         with self.tx() as connection:
             result = connection.execute("UPDATE protection SET status='SUBMISSION_PENDING',expected_qty=?,updated_ts=? "
                 "WHERE intent_id=? AND generation=? AND mode='OPERATOR_EXIT' "
-                "AND status IN ('EXIT_REQUESTED','EXIT_CANCEL_PENDING','EXIT_CANCEL_UNKNOWN')",
+                "AND (status IN ('EXIT_REQUESTED','EXIT_CANCEL_PENDING','EXIT_CANCEL_UNKNOWN') "
+                "OR (status IN ('OPERATOR_REMAINDER_DUST','DUST_PENDING') "
+                "AND tp_order_id IS NULL AND expected_qty IS NULL))",
                 (str(quantity),time(),intent_id,generation))
             if result.rowcount != 1:
                 raise ValueError('Operator submission already attempted or phase changed')

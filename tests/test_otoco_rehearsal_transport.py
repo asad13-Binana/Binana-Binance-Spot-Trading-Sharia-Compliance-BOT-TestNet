@@ -95,7 +95,9 @@ def test_host_timeout_preserves_journal_and_writes_failed_receipt(tmp_path, monk
             raise subprocess.TimeoutExpired(command, 180)
         return subprocess.CompletedProcess(command, 0)
     monkeypatch.setattr(runner.subprocess, 'run', timeout)
-    assert runner.main() == 1
+    monkeypatch.setattr(runner, 'IMAGE', 'sha256:' + 'a' * 64)
+    monkeypatch.setattr(runner, 'OWNER', 'fixture-owner')
+    assert runner.run_rehearsal() == 1
     receipt = json.loads((runner.ROOT / 'receipt.json').read_text())
     assert receipt['passed'] is False
     assert receipt['requires_exchange_reconciliation'] is True

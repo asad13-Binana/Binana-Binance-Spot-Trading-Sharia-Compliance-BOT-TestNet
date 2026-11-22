@@ -123,12 +123,6 @@ def test_checksum_duplicates_traversal_and_corruption(recovery):
         validate_backup(root, mode)
 
 
-def test_tmpfs_is_one_valid_mount():
-    compose = yaml.safe_load((ROOT / 'docker-compose.yml').read_text())
-    for service in compose['services'].values():
-        for mount in service.get('tmpfs', []):
-            assert mount.startswith('/'), mount
-            assert mount != 'mode=1777'
 
 
 def test_backup_timestamp_discovery_and_logging_do_not_skip_safety():

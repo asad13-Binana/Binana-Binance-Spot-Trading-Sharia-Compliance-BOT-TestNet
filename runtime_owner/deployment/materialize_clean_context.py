@@ -10,8 +10,8 @@ import urllib.request
 
 from materialize_context import materialize
 
-UPSTREAM_COMMIT = '1f394eaebc2f46a83d26971388628707802f8602'
-UPSTREAM_SHA256 = 'a453638c8ad59f8655036eaabd0858cb432331e70caa259976299e5c59108c89'
+UPSTREAM_COMMIT = '4cf0351e08d26e96a6429ef48103b726bb230cf8'
+UPSTREAM_SHA256 = 'e7e83e139f0d7b01f337dfb2e0c4ff13d895431615886b3c8570e99bb139476a'
 UPSTREAM_URL = 'https://codeload.github.com/freqtrade/freqtrade/tar.gz/' + UPSTREAM_COMMIT
 ROOT_FILES = {'pyproject.toml', 'README.md', 'LICENSE', 'MANIFEST.in',
               'requirements.txt', 'requirements-hyperopt.txt'}
@@ -45,13 +45,14 @@ def source_files(raw):
 
 def clean_context(source, destination, raw):
     files = source_files(raw)  # Validate before creating any destination.
-    result = materialize(source, destination, include_retained_dockerfile=False)
+    result = materialize(source, destination)
     upstream = destination / 'upstream'
     for relative, content in files.items():
         target = upstream / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(content)
-    for name in ('requirements.owner.lock', 'requirements.build.lock', 'Dockerfile.clean'):
+    for name in ('requirements.owner.lock', 'requirements.build.lock', 'Dockerfile.clean',
+                 'build_native_runtime.sh', 'stage_runtime.py', 'validate_runtime_security.py'):
         shutil.copyfile(source / 'deployment' / name, destination / name)
     result.update(upstream_commit=UPSTREAM_COMMIT, upstream_archive_sha256=UPSTREAM_SHA256,
                   upstream_files=len(files), retained_aws_image_required=False)
